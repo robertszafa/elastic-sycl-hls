@@ -1,9 +1,9 @@
 //==============================================================================
 // FILE:
-//    HelloWorld.h
+//    StoreQueueInsert.h
 //
 // DESCRIPTION:
-//    Declares the HelloWorld pass for the new and the legacy pass managers.
+//    Declares the StoreQueueInsert pass for the new and the legacy pass managers.
 //
 // License: MIT
 //==============================================================================
@@ -19,7 +19,7 @@
 // New PM interface
 //------------------------------------------------------------------------------
 
-struct HelloWorld : llvm::PassInfoMixin<HelloWorld> {
+struct StoreQueueInsert : llvm::PassInfoMixin<StoreQueueInsert> {
   // This is one of the standard run() member functions expected by
   // PassInfoMixin. When the pass is executed by the new PM, this is the
   // function that will be called.

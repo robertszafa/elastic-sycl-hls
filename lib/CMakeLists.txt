@@ -1,11 +1,11 @@
 # THE LIST OF PLUGINS AND THE CORRESPONDING SOURCE FILES
 # ======================================================
 set(LLVM_TUTOR_PLUGINS
-    HelloWorld
+    StoreQueueInsert
     )
 
-set(HelloWorld_SOURCES
-  HelloWorld.cpp)
+set(StoreQueueInsert_SOURCES
+  StoreQueueInsert.cpp)
 
 
 # CONFIGURE THE PLUGIN LIBRARIES

@@ -1,4 +1,4 @@
-// #include "HelloWorld.h"
+// #include "StoreQueueInsert.h"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/BasicBlock.h"
@@ -49,16 +49,15 @@ using namespace llvm;
 
 // This method implements what the pass does
 void visitor(Function &F, FunctionAnalysisManager &AM) {
-  auto &DA = AM.getResult<DependenceAnalysis>(F);
   auto &LI = AM.getResult<LoopAnalysis>(F);
   auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
   auto &TTI = AM.getResult<TargetIRAnalysis>(F);
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  auto &BFI = AM.getResult<BlockFrequencyAnalysis>(F);
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
   auto &AA = AM.getResult<AAManager>(F);
   auto &AC = AM.getResult<AssumptionAnalysis>(F);
 
+  auto &DA = AM.getResult<DependenceAnalysis>(F);
   auto &LAM = AM.getResult<LoopAnalysisManagerFunctionProxy>(F).getManager();
   LoopStandardAnalysisResults AR = {AA, AC, DT, LI, SE, TLI, TTI, nullptr, nullptr, nullptr};
 
@@ -116,7 +115,7 @@ void visitor(Function &F, FunctionAnalysisManager &AM) {
 
 }
 
-struct HelloWorld : PassInfoMixin<HelloWorld> {
+struct StoreQueueInsert : PassInfoMixin<StoreQueueInsert> {
   // Main entry point, takes IR unit to run the pass on (&F) and the
   // corresponding pass manager (to be queried if need be)
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
@@ -151,12 +150,12 @@ struct HelloWorld : PassInfoMixin<HelloWorld> {
 //-----------------------------------------------------------------------------
 // New PM Registration
 //-----------------------------------------------------------------------------
-llvm::PassPluginLibraryInfo getHelloWorldPluginInfo() {
-  return {LLVM_PLUGIN_API_VERSION, "HelloWorld", LLVM_VERSION_STRING, [](PassBuilder &PB) {
+llvm::PassPluginLibraryInfo getStoreQueueInsertPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "StoreQueueInsert", LLVM_VERSION_STRING, [](PassBuilder &PB) {
             PB.registerPipelineParsingCallback([](StringRef Name, FunctionPassManager &FPM,
                                                   ArrayRef<PassBuilder::PipelineElement>) {
-              if (Name == "hello-world") {
-                FPM.addPass(HelloWorld());
+              if (Name == "stq-insert") {
+                FPM.addPass(StoreQueueInsert());
                 return true;
               }
               return false;
@@ -165,7 +164,7 @@ llvm::PassPluginLibraryInfo getHelloWorldPluginInfo() {
 }
 
 // This is the core interface for pass plugins. It guarantees that 'opt' will
-// be able to recognize the pass via '-passes=hello-world'
+// be able to recognize the pass via '-passes=stq-insert'
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginInfo() {
-  return getHelloWorldPluginInfo();
+  return getStoreQueueInsertPluginInfo();
 }

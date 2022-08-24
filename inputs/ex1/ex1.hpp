@@ -1,33 +1,37 @@
-#include "CL/sycl/access/access.hpp"
-#include "CL/sycl/builtins.hpp"
-#include "CL/sycl/properties/accessor_properties.hpp"
 #include <CL/sycl.hpp>
-#include <iostream>
+// #include <sycl/ext/intel/fpga_extensions.hpp>
 #include <vector>
 
-#include <sycl/ext/intel/fpga_extensions.hpp>
 
 using namespace sycl;
 
 class MyKernelClassName;
+class SecondKernel;
 
-void histogram_kernel(queue &q, const std::vector<int> &idx, std::vector<int> &hist) {
-  const uint array_size = idx.size();
+void histogram_kernel(queue &q, const std::vector<int> h_idx, std::vector<float> h_hist) {
+  const uint array_size = h_idx.size();
 
-  buffer idx_buf(idx);
-  buffer hist_buf(hist);
+  int *idx = device_ptr<int>(malloc_device<int>(h_idx.size(), q));
+  q.memcpy(idx, h_idx.data(), sizeof(int)*h_idx.size()).wait();
 
-  q.submit([&](handler &hnd) {
-    accessor idx(idx_buf, hnd, read_only);
-    accessor hist(hist_buf, hnd, write_only);
+  float *hist = device_ptr<float>(malloc_device<float>(h_hist.size(), q));
+  q.memcpy(hist, h_hist.data(), sizeof(float)*h_hist.size()).wait();
 
-    hnd.single_task<MyKernelClassName>([=]() [[intel::kernel_args_restrict]] {
-      for (int i = 0; i < array_size; ++i) {
-        // int idx_scalar  = idx[i];
-        int idx_scalar  = i;
-        uint x = hist[idx_scalar];
-        hist[idx_scalar] = x + 3;
-      }
-    });
-  });
+  // q.single_task<SecondKernel>([=]() [[intel::kernel_args_restrict]] {
+  //   for (int i = 0; i < 22; ++i) {
+  //     idx[i] = 9;
+  //   }
+  // });
+
+  q.single_task<MyKernelClassName>([=]() [[intel::kernel_args_restrict]] {
+    for (int i = 0; i < 64; ++i) {
+      auto idx_scalar  = idx[i];
+      // auto idx_scalar  = i;
+      float x = hist[idx_scalar];
+      hist[idx_scalar] = x + 3.0;
+    }
+  }).wait();
+
+  q.memcpy(h_hist.data(), hist, sizeof(h_hist[0])*h_hist.size()).wait();
 }
+

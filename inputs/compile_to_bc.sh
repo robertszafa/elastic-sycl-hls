@@ -32,6 +32,23 @@
  -D__GCC_HAVE_DWARF2_CFI_ASM=1 -mllvm -disable-hir-generate-mkl-call -mllvm -intel-libirc-allowed -mllvm -loopopt=0 -floopopt-pipeline=none -o "$1".bc -x c++ "$1"
 
 
+ ~/git/llvm/build/bin/opt --mem2reg \
+                          --deadargelim-sycl \
+                          --simplifycfg \
+                          --loop-simplifycfg \
+                          --loop-rotate \
+                          --lcssa \
+                          --instcombine \
+                          --instsimplify \
+                          --aggressive-instcombine \
+                          --interleaved-access \
+                          --dse \
+                          --adce \
+                          --sroa \
+                          --gvn \
+                          -stats \
+                          "$1".bc -o "$1".bc
+
  ~/git/llvm/build/bin/llvm-dis "$1".bc
 
 ~/git/llvm/build/bin/llvm-cxxfilt < "$1".ll > "$1".demangled.ll

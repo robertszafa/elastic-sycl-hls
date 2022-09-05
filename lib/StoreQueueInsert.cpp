@@ -10,6 +10,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
 
 #include "llvm/Analysis/AssumptionCache.h"
 #include "llvm/Analysis/BlockFrequencyInfo.h"
@@ -66,6 +67,7 @@ void visitor(Function &F, FunctionAnalysisManager &AM) {
   SmallVector<const Value *> loadAddrs;
   SmallVector<Instruction *> storeInstrs;
   SmallVector<Instruction *> loadInstrs;
+  bool isAnyRAW = false;
   for (Loop *TopLevelLoop : LI) {
     for (Loop *L : depth_first(TopLevelLoop)) {
       auto &LAI = LAM.getResult<LoopAccessAnalysis>(*L, AR);
@@ -87,6 +89,11 @@ void visitor(Function &F, FunctionAnalysisManager &AM) {
         StoreInst *si = dyn_cast<StoreInst>(dstI);
         const SCEV *ldPointerSCEV = SE.getSCEV(li->getPointerOperand());
         const SCEV *stPointerSCEV = SE.getSCEV(si->getPointerOperand());
+
+        (si->getPointerOperand())->print(errs());
+        errs() << "\ngetname: " << (si->getPointerOperand())->getName();
+        errs() << "\ngetOperand: " << (si->getPointerOperand())->getNameOrAsOperand();
+        errs() << "\n";
         
         if (SE.isLoopInvariant(ldPointerSCEV, L) && SE.hasComputableLoopEvolution(ldPointerSCEV, L) &&
             SE.isLoopInvariant(stPointerSCEV, L) && SE.hasComputableLoopEvolution(stPointerSCEV, L)) {
@@ -97,6 +104,8 @@ void visitor(Function &F, FunctionAnalysisManager &AM) {
         loadInstrs.push_back(li);
         storeInstrs.push_back(si);
         storeAddrs.push_back(si->getPointerOperand());
+
+        isAnyRAW = true;
 
         errs() << "\nldPointer\n";
         errs() << "SCEV formulation of pointer: ";
@@ -113,14 +122,46 @@ void visitor(Function &F, FunctionAnalysisManager &AM) {
     }
   }
 
+  if (isAnyRAW) {
+    errs() << demangle(std::string(F.getName())) << " has dependency\n";
+    errs() << "\n\n--Analysis:\n";
+
+    Module* mod = F.getParent();
+    auto &functionList = mod->getFunctionList();
+    for (auto &function : functionList) {
+      for (auto &bb : function) {
+        for (auto &instruction : bb) {
+          if (CallInst *callInst = dyn_cast<CallInst>(&instruction)) {
+            if (Function *calledFunction = callInst->getCalledFunction()) {
+              if (calledFunction->getName() == F.getName()) {
+                errs() << "Kernel: " << demangle(std::string(function.getName())) << "\n";
+                errs() << "Num Copies: " << storeInstrs.size() + loadInstrs.size() << "\n";
+                errs() << "Num Loads: " << loadInstrs.size() << "\n";
+                errs() << "Num Stores: " << storeInstrs.size() << "\n";
+                errs() << "Array Line: " << storeInstrs[0]->getDebugLoc().getLine() << "\n";
+                errs() << "Array Column: " << storeInstrs[0]->getDebugLoc()->getColumn() << "\n";
+
+                // The array type is not used since it's more robus to get the type from array_name:
+                //     using val_type = std::remove_reference<decltype( *{array_name} )>::type;
+                errs() << "Array Type: "; 
+                dyn_cast<StoreInst>(storeInstrs[0])->getPointerOperand()->getType()->print(errs());
+                errs() << "\n"; 
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
 }
 
 struct StoreQueueInsert : PassInfoMixin<StoreQueueInsert> {
   // Main entry point, takes IR unit to run the pass on (&F) and the
   // corresponding pass manager (to be queried if need be)
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    if (F.getCallingConv() == CallingConv::SPIR_FUNC &&
-        F.getLinkage() == llvm::GlobalValue::InternalLinkage) {
+    if (F.getCallingConv() == CallingConv::SPIR_FUNC) {// &&
+        // F.getLinkage() == llvm::GlobalValue::InternalLinkage) {
       visitor(F, AM);
     }
 

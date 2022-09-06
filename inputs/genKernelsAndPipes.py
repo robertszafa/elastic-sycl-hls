@@ -15,12 +15,11 @@ Array Line: 29
 Array Column: 26
 """
 
-import sys
 import re
-
+import sys
+import json
 
 STOREQ_HEADER = '#include "store_queue.hpp"'
-START_MARKER = '--Analysis:'
 # TODO: get queue name from llvm pass
 Q_NAME = 'q'
 # TODO: compute required piped depths
@@ -123,32 +122,21 @@ def get_array_name(line_with_array, end_col):
 
     return array
 
-def parse_analysis(fname):
-    with open(fname) as f:
-        str = f.read().split(START_MARKER)[-1]
+def parse_report(report_fname):
+    with open(report_fname) as f:
+        str = f.read()
 
-    for line in str.splitlines():
-        if 'Kernel:' in line:
-            kernel_name = line.split(' ')[-1]
-        if 'Num Copies:' in line:
-            num_copy = int(line.split(' ')[-1])
-        if 'Num Loads:' in line:
-            num_loads = int(line.split(' ')[-1])
-        if 'Num Stores:' in line:
-            num_stores = int(line.split(' ')[-1])
-        if 'Array Line:' in line:
-            array_line = int(line.split(' ')[-1])
-        if 'Array Column:' in line:
-            array_column = int(line.split(' ')[-1])
+    report = json.loads(str)
+    report["kernel_name"] = report["kernel_name"].split(' ')[-1]
 
-    return kernel_name, num_copy, num_loads, num_stores, array_line, array_column
-
+    return report['kernel_name'], report['num_copies'], report['num_loads'], report['num_stores'], \
+           report['array_line'], report['array_column']
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        sys.exit("No input files")
+        sys.exit("loop-raw-report and src filename required")
 
-    kernel_name, num_copy, num_loads, num_stores, array_line, array_column = parse_analysis(sys.argv[1])
+    kernel_name, num_copy, num_loads, num_stores, array_line, array_column = parse_report(sys.argv[1])
 
     with open(sys.argv[2], 'r') as f:
         source_file = f.read()

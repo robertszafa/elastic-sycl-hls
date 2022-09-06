@@ -1,16 +1,20 @@
 # THE LIST OF PLUGINS AND THE CORRESPONDING SOURCE FILES
 # ======================================================
-set(LLVM_TUTOR_PLUGINS
-    StoreQueueInsert
+set(OPT_PASSES_PLUGINS
+    StoreQueueTransform
+    LoopRAWHazardReport
     )
 
-set(StoreQueueInsert_SOURCES
-  StoreQueueInsert.cpp)
+set(StoreQueueTransform_SOURCES
+  StoreQueueTransform.cpp)
+
+set(LoopRAWHazardReport_SOURCES
+  LoopRAWHazardReport.cpp)
 
 
 # CONFIGURE THE PLUGIN LIBRARIES
 # ==============================
-foreach( plugin ${LLVM_TUTOR_PLUGINS} )
+foreach( plugin ${OPT_PASSES_PLUGINS} )
     # Create a library corresponding to 'plugin'
     add_library(
       ${plugin}

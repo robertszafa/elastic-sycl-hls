@@ -1,4 +1,4 @@
-// #include "StoreQueueInsert.h"
+// #include "StoreQueueTransform.h"
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/BasicBlock.h"
@@ -46,7 +46,10 @@
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
 #include "llvm/Transforms/Utils/SizeOpts.h"
 
+#include "llvm/Support/JSON.h"
+
 using namespace llvm;
+
 
 // This method implements what the pass does
 void visitor(Function &F, FunctionAnalysisManager &AM) {
@@ -156,7 +159,11 @@ void visitor(Function &F, FunctionAnalysisManager &AM) {
 
 }
 
-struct StoreQueueInsert : PassInfoMixin<StoreQueueInsert> {
+struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
+  const std::string loopRAWReportFilename = "loop-raw-report.txt";
+
+
+
   // Main entry point, takes IR unit to run the pass on (&F) and the
   // corresponding pass manager (to be queried if need be)
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
@@ -191,12 +198,12 @@ struct StoreQueueInsert : PassInfoMixin<StoreQueueInsert> {
 //-----------------------------------------------------------------------------
 // New PM Registration
 //-----------------------------------------------------------------------------
-llvm::PassPluginLibraryInfo getStoreQueueInsertPluginInfo() {
-  return {LLVM_PLUGIN_API_VERSION, "StoreQueueInsert", LLVM_VERSION_STRING, [](PassBuilder &PB) {
+llvm::PassPluginLibraryInfo getStoreQueueTransformPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "StoreQueueTransform", LLVM_VERSION_STRING, [](PassBuilder &PB) {
             PB.registerPipelineParsingCallback([](StringRef Name, FunctionPassManager &FPM,
                                                   ArrayRef<PassBuilder::PipelineElement>) {
-              if (Name == "stq-insert") {
-                FPM.addPass(StoreQueueInsert());
+              if (Name == "stq-transform") {
+                FPM.addPass(StoreQueueTransform());
                 return true;
               }
               return false;
@@ -207,5 +214,5 @@ llvm::PassPluginLibraryInfo getStoreQueueInsertPluginInfo() {
 // This is the core interface for pass plugins. It guarantees that 'opt' will
 // be able to recognize the pass via '-passes=stq-insert'
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginInfo() {
-  return getStoreQueueInsertPluginInfo();
+  return getStoreQueueTransformPluginInfo();
 }

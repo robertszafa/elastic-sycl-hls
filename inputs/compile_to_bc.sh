@@ -17,8 +17,8 @@
                           --adce \
                           --sroa \
                           --gvn \
-                          -stats \
                           "$1".bc -o "$1".bc
+                          # -stats \
 
  ~/git/llvm/build/bin/llvm-dis "$1".bc
 

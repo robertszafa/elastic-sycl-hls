@@ -65,6 +65,31 @@ def insert_storeq_wait(src, original_kernel_start):
     
     return src[:insert_before_line] + [f'eventStoreQueue.wait();'] + src[insert_before_line:]
 
+def add_idx_pipe_connections(kernel_body, num_loads, num_stores):
+    kernel_body_lines = list(map(lambda x : x + '\n', kernel_body.split('\n')))
+
+    ld_kernel_bodies = []
+    for i in range(num_loads):
+        new_kernel_body = kernel_body_lines[:1] + [f'ld_idx_pipes::PipeAt<{i}>::write({{0, 0}});\n'] + kernel_body_lines[1:] 
+        ld_kernel_bodies.append(new_kernel_body)
+
+    st_kernel_bodies = []
+    for i in range(num_stores):
+        new_kernel_body = kernel_body_lines[:1] + [f'st_idx_pipe::write({{0, 0}});\n'] + kernel_body_lines[1:] 
+        st_kernel_bodies.append(new_kernel_body)
+    
+    return ld_kernel_bodies, st_kernel_bodies
+
+def gen_val_pipe_connections(num_loads, num_stores):
+    pipe_calls = []
+    for i in range(num_loads):
+        pipe_calls.append(f'auto ld_val_pipe_rd_{i} = ld_val_pipes::PipeAt<{i}>::read();')
+
+    for i in range(num_stores):
+        pipe_calls.append(f'st_val_pipe::write(val_type());')
+    
+    return pipe_calls
+
 def get_paren_contents(s):
     results = set()
     for start in range(len(s)):
@@ -81,7 +106,7 @@ def get_kernel_body(s):
     return body
 
 # Point before the first call to q.submit
-def get_insert_point_for_copies(source_file_lines):
+def get_insert_point_for_idx_kernels(source_file_lines):
     """Line of first kernel submission."""
     insert_line = -1
     for i, line in enumerate(source_file_lines):
@@ -130,24 +155,35 @@ if __name__ == '__main__':
 
     kernel_body = get_kernel_body(source_file)
 
-    kernel_names_decl = [f'class {kernel_name}_{i};' for i in range(num_copy)]
-    full_kernel_copies = [f'\n{Q_NAME}.single_task<{kernel_name}_{i}>{kernel_body}\n' for i in range(num_copy)]
+    ld_kernel_bodies, st_kernel_bodies = add_idx_pipe_connections(kernel_body, num_loads, num_stores)
+    main_kernel_pipes = gen_val_pipe_connections(num_loads, num_stores)
+
+    kernel_names_decl = [f'class {kernel_name}_load_{i};' for i in range(num_loads)] + \
+                        [f'class {kernel_name}_store_{i};' for i in range(num_stores)] 
+    ld_idx_kernel_copies = [f'\n{Q_NAME}.single_task<{kernel_name}_load_{i}>{"".join(ld_kernel_bodies[i])}\n' for i in range(num_loads)]
+    # TODO: handle multiple stores with a demultiplexer kernel.
+    st_idx_kernel_copies = [f'\n{Q_NAME}.single_task<{kernel_name}_store_{i}>{"".join(st_kernel_bodies[i])}\n' for i in range(num_stores)]
     
     source_file_lines = source_file.splitlines()
-    insert_line = get_insert_point_for_copies(source_file_lines)
+
+    insert_line_idx_kernels = get_insert_point_for_idx_kernels(source_file_lines)
     array_name = get_array_name(source_file_lines[array_line-1], array_column)
     storeq_syntax = gen_store_queue_syntax(array_name, num_loads, num_stores)
 
+    source_file_lines_with_pipes = source_file.splitlines()[:array_line-1] + \
+                                   main_kernel_pipes + source_file.splitlines()[array_line-1:]
+
     new_source_file_lines = [STOREQ_HEADER] + \
                             kernel_names_decl + \
-                            source_file_lines[:insert_line] + \
+                            source_file_lines_with_pipes[:insert_line_idx_kernels] + \
                             [storeq_syntax] + \
                             ["\n//// Kernel copies"] + \
-                            full_kernel_copies + \
+                            ld_idx_kernel_copies + \
+                            st_idx_kernel_copies + \
                             ["//// End Kernel copies\n"] + \
-                            source_file_lines[insert_line:]
+                            source_file_lines_with_pipes[insert_line_idx_kernels:]
     
-    new_source_file_lines_with_wait_call = insert_storeq_wait(new_source_file_lines, insert_line)
+    new_source_file_lines_with_wait_call = insert_storeq_wait(new_source_file_lines, insert_line_idx_kernels)
     
     new_filename = sys.argv[2].replace('.cpp', '.tmp.cpp')
     with open(new_filename, 'w') as f:

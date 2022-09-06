@@ -123,20 +123,22 @@ def get_array_name(line_with_array, end_col):
     return array
 
 def parse_report(report_fname):
-    with open(report_fname) as f:
+    with open(report_fname, 'r') as f:
         str = f.read()
 
     report = json.loads(str)
-    report["kernel_name"] = report["kernel_name"].split(' ')[-1]
+    report["kernel_class_name"] = report["kernel_class_name"].split(' ')[-1]
+    report['spir_func_name'] = report["spir_func_name"].split('::')[0]
 
-    return report['kernel_name'], report['num_copies'], report['num_loads'], report['num_stores'], \
-           report['array_line'], report['array_column']
+    return report['kernel_class_name'], report['spir_func_name'], report['num_copies'], \
+           report['num_loads'], report['num_stores'], report['array_line'], report['array_column']
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         sys.exit("loop-raw-report and src filename required")
 
-    kernel_name, num_copy, num_loads, num_stores, array_line, array_column = parse_report(sys.argv[1])
+    kernel_name, spir_func_name, num_copy, num_loads, num_stores, array_line, array_column = \
+        parse_report(sys.argv[1])
 
     with open(sys.argv[2], 'r') as f:
         source_file = f.read()
@@ -148,9 +150,11 @@ if __name__ == '__main__':
 
     kernel_names_decl = [f'class {kernel_name}_load_{i};' for i in range(num_loads)] + \
                         [f'class {kernel_name}_store_{i};' for i in range(num_stores)] 
-    ld_idx_kernel_copies = [f'\n{Q_NAME}.single_task<{kernel_name}_load_{i}>{"".join(ld_kernel_bodies[i])}\n' for i in range(num_loads)]
+    ld_idx_kernel_copies = [f'\n{Q_NAME}.single_task<{kernel_name}_load_{i}>{"".join(ld_kernel_bodies[i])}\n' \
+                            for i in range(num_loads)]
     # TODO: handle multiple stores with a demultiplexer kernel.
-    st_idx_kernel_copies = [f'\n{Q_NAME}.single_task<{kernel_name}_store_{i}>{"".join(st_kernel_bodies[i])}\n' for i in range(num_stores)]
+    st_idx_kernel_copies = [f'\n{Q_NAME}.single_task<{kernel_name}_store_{i}>{"".join(st_kernel_bodies[i])}\n' \
+                            for i in range(num_stores)]
     
     source_file_lines = source_file.splitlines()
 
@@ -161,21 +165,21 @@ if __name__ == '__main__':
     source_file_lines_with_pipes = source_file.splitlines()[:array_line-1] + \
                                    main_kernel_pipes + source_file.splitlines()[array_line-1:]
 
-    new_source_file_lines = [STOREQ_HEADER] + \
-                            kernel_names_decl + \
-                            source_file_lines_with_pipes[:insert_line_idx_kernels] + \
-                            [storeq_syntax] + \
-                            ["\n//// Kernel copies"] + \
-                            ld_idx_kernel_copies + \
-                            st_idx_kernel_copies + \
-                            ["//// End Kernel copies\n"] + \
-                            source_file_lines_with_pipes[insert_line_idx_kernels:]
+    src_lines = [STOREQ_HEADER] + \
+                kernel_names_decl + \
+                source_file_lines_with_pipes[:insert_line_idx_kernels] + \
+                [storeq_syntax] + \
+                ["\n//// Kernel copies"] + \
+                ld_idx_kernel_copies + \
+                st_idx_kernel_copies + \
+                ["//// End Kernel copies\n"] + \
+                source_file_lines_with_pipes[insert_line_idx_kernels:]
     
-    new_source_file_lines_with_wait_call = insert_storeq_wait(new_source_file_lines, insert_line_idx_kernels)
+    src_lines_with_storeq = insert_storeq_wait(src_lines, insert_line_idx_kernels)
     
     new_filename = sys.argv[2].replace('.cpp', '.tmp.cpp')
     with open(new_filename, 'w') as f:
-        f.write('\n'.join(new_source_file_lines_with_wait_call))
+        f.write('\n'.join(src_lines_with_storeq))
 
     print(f'-- Refactored source file at {new_filename}')
 

@@ -1,4 +1,7 @@
 // #include "StoreQueueTransform.h"
+#include <cassert>
+#include <fstream>
+#include <sstream>
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/BasicBlock.h"
@@ -53,122 +56,63 @@ using namespace llvm;
 
 // This method implements what the pass does
 void visitor(Function &F, FunctionAnalysisManager &AM) {
-  auto &LI = AM.getResult<LoopAnalysis>(F);
-  auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
-  auto &TTI = AM.getResult<TargetIRAnalysis>(F);
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
-  auto &AA = AM.getResult<AAManager>(F);
-  auto &AC = AM.getResult<AssumptionAnalysis>(F);
+  return;
+}
 
-  auto &DA = AM.getResult<DependenceAnalysis>(F);
-  auto &LAM = AM.getResult<LoopAnalysisManagerFunctionProxy>(F).getManager();
-  LoopStandardAnalysisResults AR = {AA, AC, DT, LI, SE, TLI, TTI, nullptr, nullptr, nullptr};
+/// This function can be used to identrify spir functions that need to be transformed.
+/// This is done by detecting annotations.
+std::set<Function *> getAnnotatedFunctions(Module *M) {
+  std::set<Function *> annotFuncs;
+  const std::string AnnotationString("load_num_0");
 
-  // Get all memory loads and stores.
-  SmallVector<const Value *> storeAddrs;
-  SmallVector<const Value *> loadAddrs;
-  SmallVector<Instruction *> storeInstrs;
-  SmallVector<Instruction *> loadInstrs;
-  bool isAnyRAW = false;
-  for (Loop *TopLevelLoop : LI) {
-    for (Loop *L : depth_first(TopLevelLoop)) {
-      auto &LAI = LAM.getResult<LoopAccessAnalysis>(*L, AR);
-
-      auto depChecker = LAI.getDepChecker();
-      const auto allDeps = depChecker.getDependences();
-      errs() << "isSafeForVectorization(): " << depChecker.isSafeForVectorization() << "\n";
-      if (depChecker.isSafeForVectorization())
-        continue;
-
-      errs() << "All deps:\n";
-      for (const auto dep : *allDeps) {
-        Instruction* srcI = dep.getSource(LAI);
-        Instruction* dstI = dep.getDestination(LAI);
-        assert(isa<LoadInst>(srcI) && "Source of dependence is not a load\n");
-        assert(isa<StoreInst>(dstI) && "Destination of dependence is not a store\n");
-
-        LoadInst *li = dyn_cast<LoadInst>(srcI);
-        StoreInst *si = dyn_cast<StoreInst>(dstI);
-        const SCEV *ldPointerSCEV = SE.getSCEV(li->getPointerOperand());
-        const SCEV *stPointerSCEV = SE.getSCEV(si->getPointerOperand());
-
-        (si->getPointerOperand())->print(errs());
-        errs() << "\ngetname: " << (si->getPointerOperand())->getName();
-        errs() << "\ngetOperand: " << (si->getPointerOperand())->getNameOrAsOperand();
-        errs() << "\n";
-        
-        if (SE.isLoopInvariant(ldPointerSCEV, L) && SE.hasComputableLoopEvolution(ldPointerSCEV, L) &&
-            SE.isLoopInvariant(stPointerSCEV, L) && SE.hasComputableLoopEvolution(stPointerSCEV, L)) {
-          errs() << "Ignoring dep because is invariant or SCEV-computable\n";
-          continue;
-        }
-        loadAddrs.push_back(li->getPointerOperand());
-        loadInstrs.push_back(li);
-        storeInstrs.push_back(si);
-        storeAddrs.push_back(si->getPointerOperand());
-
-        isAnyRAW = true;
-
-        errs() << "\nldPointer\n";
-        errs() << "SCEV formulation of pointer: ";
-        ldPointerSCEV->print(errs());
-        errs() << "\n";
-        li->getPointerOperand()->print(errs());
-        errs() << "\nstPointer\n";
-        errs() << "SCEV formulation of pointer: ";
-        stPointerSCEV->print(errs());
-        errs() << "\n";
-        si->getPointerOperand()->print(errs());
-        errs() << "\n";
-      }
-    }
-  }
-
-  if (isAnyRAW) {
-    errs() << demangle(std::string(F.getName())) << " has dependency\n";
-    errs() << "\n\n--Analysis:\n";
-
-    Module* mod = F.getParent();
-    auto &functionList = mod->getFunctionList();
-    for (auto &function : functionList) {
-      for (auto &bb : function) {
-        for (auto &instruction : bb) {
-          if (CallInst *callInst = dyn_cast<CallInst>(&instruction)) {
-            if (Function *calledFunction = callInst->getCalledFunction()) {
-              if (calledFunction->getName() == F.getName()) {
-                errs() << "Kernel: " << demangle(std::string(function.getName())) << "\n";
-                errs() << "Num Copies: " << storeInstrs.size() + loadInstrs.size() << "\n";
-                errs() << "Num Loads: " << loadInstrs.size() << "\n";
-                errs() << "Num Stores: " << storeInstrs.size() << "\n";
-                errs() << "Array Line: " << storeInstrs[0]->getDebugLoc().getLine() << "\n";
-                errs() << "Array Column: " << storeInstrs[0]->getDebugLoc()->getColumn() << "\n";
-
-                // The array type is not used since it's more robus to get the type from array_name:
-                //     using val_type = std::remove_reference<decltype( *{array_name} )>::type;
-                errs() << "Array Type: "; 
-                dyn_cast<StoreInst>(storeInstrs[0])->getPointerOperand()->getType()->print(errs());
-                errs() << "\n"; 
-              }
-            }
-          }
+  for (Module::global_iterator I = M->global_begin(), E = M->global_end(); I != E; ++I) {
+    if (I->getName() == "llvm.global.annotations") {
+      ConstantArray *CA = dyn_cast<ConstantArray>(I->getOperand(0));
+      for (auto OI = CA->op_begin(); OI != CA->op_end(); ++OI) {
+        ConstantStruct *CS = dyn_cast<ConstantStruct>(OI->get());
+        Function *FUNC = dyn_cast<Function>(CS->getOperand(0)->getOperand(0));
+        GlobalVariable *AnnotationGL = dyn_cast<GlobalVariable>(CS->getOperand(1)->getOperand(0));
+        StringRef annotation =
+            dyn_cast<ConstantDataArray>(AnnotationGL->getInitializer())->getAsCString();
+        if (annotation.compare(AnnotationString) == 0) {
+          annotFuncs.insert(FUNC);
+          // errs() << "Found annotated function " << FUNC->getName()<<"\n";
         }
       }
     }
   }
 
+  return annotFuncs;
+}
+
+json::Value parseJsonReport(const std::string fname) {
+  std::ifstream t(fname);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+
+  auto Json = json::parse(llvm::StringRef(buffer.str()));
+  assert(Json && "Error parsing json loop-raw-report");
+
+  if (Json)
+    return *Json;
+  return json::Value(nullptr);
 }
 
 struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
-  const std::string loopRAWReportFilename = "loop-raw-report.txt";
+  const std::string loopRAWReportFilename = "loop-raw-report.json";
+  std::set<Function*> annotFuncs;
+  json::Object report;
 
-
-
-  // Main entry point, takes IR unit to run the pass on (&F) and the
-  // corresponding pass manager (to be queried if need be)
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    if (F.getCallingConv() == CallingConv::SPIR_FUNC) {// &&
+    // Module* M = F.getParent();
+
+    if (report.empty()) {
+      report = *parseJsonReport(loopRAWReportFilename).getAsObject();
+    }
+    
+    if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
         // F.getLinkage() == llvm::GlobalValue::InternalLinkage) {
+      errs() << "num_loads: " << report["num_loads"] << "\n";
       visitor(F, AM);
     }
 
@@ -181,7 +125,7 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
   static bool isRequired() { return true; }
 
   void getAnalysisUsage(AnalysisUsage &AU) const {
-    AU.addRequiredID(DependenceAnalysis::ID());
+    // AU.addRequiredID(DependenceAnalysis::ID());
 
     AU.addRequiredID(LoopAccessAnalysis::ID());
     AU.addRequiredID(LoopAnalysis::ID());

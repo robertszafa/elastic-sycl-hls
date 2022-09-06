@@ -113,7 +113,8 @@ void visitor(Function &F, FunctionAnalysisManager &AM) {
           if (CallInst *callInst = dyn_cast<CallInst>(&instruction)) {
             if (Function *calledFunction = callInst->getCalledFunction()) {
               if (calledFunction->getName() == F.getName()) {
-                report["kernel_name"] = demangle(std::string(function.getName()));
+                report["kernel_class_name"] = demangle(std::string(function.getName()));
+                report["spir_func_name"] = demangle(std::string(F.getName()));
                 report["num_copies"] = storeInstrs.size() + loadInstrs.size();
                 report["num_loads"] = loadInstrs.size();
                 report["num_stores"] = storeInstrs.size();

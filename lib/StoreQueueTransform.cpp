@@ -1,64 +1,56 @@
 #include "StoreqUtils.h"
 
-#include <algorithm>
-#include <cassert>
-#include <fstream>
-#include <sstream>
-#include <string>
-
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/Passes/PassBuilder.h"
-#include "llvm/Passes/PassPlugin.h"
-#include "llvm/Support/raw_ostream.h"
-
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/IR/CallingConv.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/Module.h"
-
 #include "llvm/Analysis/AssumptionCache.h"
-#include "llvm/Analysis/BlockFrequencyInfo.h"
 #include "llvm/Analysis/DependenceAnalysis.h"
 #include "llvm/Analysis/GlobalsModRef.h"
-#include "llvm/Analysis/LazyBlockFrequencyInfo.h"
 #include "llvm/Analysis/LoopAccessAnalysis.h"
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
-#include "llvm/Analysis/ProfileSummaryInfo.h"
 #include "llvm/Analysis/ScalarEvolution.h"
-#include "llvm/Analysis/ScalarEvolutionExpressions.h"
-#include "llvm/Analysis/TargetLibraryInfo.h"
-#include "llvm/Analysis/TargetTransformInfo.h"
-#include "llvm/Analysis/ValueTracking.h"
-#include "llvm/IR/DataLayout.h"
+#include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
+
+#include "llvm/Pass.h"
+#include "llvm/Passes/PassBuilder.h"
+#include "llvm/Passes/PassPlugin.h"
+#include "llvm/InitializePasses.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/CallingConv.h"
 #include "llvm/IR/Dominators.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
-#include "llvm/InitializePasses.h"
-#include "llvm/Pass.h"
+
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/Demangle/Demangle.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Transforms/Utils.h"
-#include "llvm/Transforms/Utils/LoopSimplify.h"
-#include "llvm/Transforms/Utils/LoopVersioning.h"
-#include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
-#include "llvm/Transforms/Utils/SizeOpts.h"
+
+#include <algorithm>
+#include <cassert>
+#include <regex>
+#include <string>
 
 
 using namespace llvm;
 
 namespace storeq {
 
-// This method implements what the pass does
-void visitor(Function &F, FunctionAnalysisManager &AM) {
+void transformLoadKernel(Function &F, FunctionAnalysisManager &AM, const int loadNum) {
+  errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
+  return;
+}
+
+void transformStoreKernel(Function &F, FunctionAnalysisManager &AM, const int storeNum) {
+  errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
+  return;
+}
+
+void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object &report) {
   errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
   return;
 }
@@ -67,22 +59,40 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
   const std::string loopRAWReportFilename = "loop-raw-report.json";
   SmallVector<Function *> annotFuncs;
   json::Object report;
+  std::regex load_regex{"_load_(\\d+)", std::regex_constants::ECMAScript};
+  std::regex store_regex{"_store_(\\d+)", std::regex_constants::ECMAScript};
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    Module* M = F.getParent();
+    Module *M = F.getParent();
 
     // Read in report once.
     if (report.empty()) {
       report = *parseJsonReport(loopRAWReportFilename).getAsObject();
     }
-    
+
     auto callers = getCallerFunctions(M, F);
+    if (callers.size() != 1)
+      return PreservedAnalyses::all();
+
     std::string mainKernelName = std::string(report["kernel_class_name"].getAsString().getValue());
+    std::string thisKernelName = demangle(std::string(callers[0]->getName()));
+
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
       // The names of kernels that we need to transform are guaranteed to begin with mainKernelName.
-      if (callers.size() == 1 && std::equal(mainKernelName.begin(), mainKernelName.end(), 
-                                            demangle(std::string(callers[0]->getName())).begin())) {
-        visitor(F, AM);
+      if (std::equal(mainKernelName.begin(), mainKernelName.end(), thisKernelName.begin())) {
+        std::smatch load_matches, store_matches;
+        std::regex_search(thisKernelName, load_matches, load_regex);
+        std::regex_search(thisKernelName, store_matches, store_regex);
+
+        if (load_matches.size() > 1) {
+          int loadNum = std::stoi(load_matches[1]);
+          transformLoadKernel(F, AM, loadNum);
+        } else if (store_matches.size() > 1) {
+          int storeNum = std::stoi(store_matches[1]);
+          transformStoreKernel(F, AM, storeNum);
+        } else {
+          transformMainKernel(F, AM, report);
+        }
       }
     }
 
@@ -107,7 +117,6 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
     AU.addRequiredID(AssumptionAnalysis::ID());
   }
 };
-
 
 //-----------------------------------------------------------------------------
 // New PM Registration

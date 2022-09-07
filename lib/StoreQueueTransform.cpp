@@ -1,7 +1,10 @@
-// #include "StoreQueueTransform.h"
+#include "StoreqUtils.h"
+
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/BasicBlock.h"
@@ -49,71 +52,38 @@
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
 #include "llvm/Transforms/Utils/SizeOpts.h"
 
-#include "llvm/Support/JSON.h"
 
 using namespace llvm;
 
+namespace storeq {
 
 // This method implements what the pass does
 void visitor(Function &F, FunctionAnalysisManager &AM) {
+  errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
   return;
-}
-
-/// This function can be used to identrify spir functions that need to be transformed.
-/// This is done by detecting annotations.
-std::set<Function *> getAnnotatedFunctions(Module *M) {
-  std::set<Function *> annotFuncs;
-  const std::string AnnotationString("load_num_0");
-
-  for (Module::global_iterator I = M->global_begin(), E = M->global_end(); I != E; ++I) {
-    if (I->getName() == "llvm.global.annotations") {
-      ConstantArray *CA = dyn_cast<ConstantArray>(I->getOperand(0));
-      for (auto OI = CA->op_begin(); OI != CA->op_end(); ++OI) {
-        ConstantStruct *CS = dyn_cast<ConstantStruct>(OI->get());
-        Function *FUNC = dyn_cast<Function>(CS->getOperand(0)->getOperand(0));
-        GlobalVariable *AnnotationGL = dyn_cast<GlobalVariable>(CS->getOperand(1)->getOperand(0));
-        StringRef annotation =
-            dyn_cast<ConstantDataArray>(AnnotationGL->getInitializer())->getAsCString();
-        if (annotation.compare(AnnotationString) == 0) {
-          annotFuncs.insert(FUNC);
-          // errs() << "Found annotated function " << FUNC->getName()<<"\n";
-        }
-      }
-    }
-  }
-
-  return annotFuncs;
-}
-
-json::Value parseJsonReport(const std::string fname) {
-  std::ifstream t(fname);
-  std::stringstream buffer;
-  buffer << t.rdbuf();
-
-  auto Json = json::parse(llvm::StringRef(buffer.str()));
-  assert(Json && "Error parsing json loop-raw-report");
-
-  if (Json)
-    return *Json;
-  return json::Value(nullptr);
 }
 
 struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
   const std::string loopRAWReportFilename = "loop-raw-report.json";
-  std::set<Function*> annotFuncs;
+  SmallVector<Function *> annotFuncs;
   json::Object report;
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    // Module* M = F.getParent();
+    Module* M = F.getParent();
 
+    // Read in report once.
     if (report.empty()) {
       report = *parseJsonReport(loopRAWReportFilename).getAsObject();
     }
     
+    auto callers = getCallerFunctions(M, F);
+    std::string mainKernelName = std::string(report["kernel_class_name"].getAsString().getValue());
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
-        // F.getLinkage() == llvm::GlobalValue::InternalLinkage) {
-      errs() << "num_loads: " << report["num_loads"] << "\n";
-      visitor(F, AM);
+      // The names of kernels that we need to transform are guaranteed to begin with mainKernelName.
+      if (callers.size() == 1 && std::equal(mainKernelName.begin(), mainKernelName.end(), 
+                                            demangle(std::string(callers[0]->getName())).begin())) {
+        visitor(F, AM);
+      }
     }
 
     return PreservedAnalyses::all();
@@ -160,3 +130,5 @@ llvm::PassPluginLibraryInfo getStoreQueueTransformPluginInfo() {
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginInfo() {
   return getStoreQueueTransformPluginInfo();
 }
+
+} // end namespace storeq

@@ -1,3 +1,5 @@
+#include "StoreqUtils.h"
+
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Instruction.h"
@@ -46,6 +48,8 @@
 #include "llvm/Transforms/Utils/SizeOpts.h"
 
 using namespace llvm;
+
+namespace storeq {
 
 // This method implements what the pass does
 void visitor(Function &F, FunctionAnalysisManager &AM) {
@@ -103,40 +107,26 @@ void visitor(Function &F, FunctionAnalysisManager &AM) {
 
   json::Object report;
   if (isAnyRAW) {
-    // errs() << "\n\n--RAW Hazard Report:\n";
-
-    Module* mod = F.getParent();
-    auto &functionList = mod->getFunctionList();
-    for (auto &function : functionList) {
-      for (auto &bb : function) {
-        for (auto &instruction : bb) {
-          if (CallInst *callInst = dyn_cast<CallInst>(&instruction)) {
-            if (Function *calledFunction = callInst->getCalledFunction()) {
-              if (calledFunction->getName() == F.getName()) {
-                report["kernel_class_name"] = demangle(std::string(function.getName()));
-                report["spir_func_name"] = demangle(std::string(F.getName()));
-                report["num_copies"] = storeInstrs.size() + loadInstrs.size();
-                report["num_loads"] = loadInstrs.size();
-                report["num_stores"] = storeInstrs.size();
-                report["array_line"] = storeInstrs[0]->getDebugLoc().getLine();
-                report["array_column"] = storeInstrs[0]->getDebugLoc()->getColumn();
-                outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n"; 
-              }
-            }
-          }
-        }
-      }
+    auto callers = getCallerFunctions(F.getParent(), F);
+    // A spir_func lambda is called only once from one kernel.
+    if (callers.size() == 1) {
+        report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
+        report["spir_func_name"] = demangle(std::string(F.getName()));
+        report["num_copies"] = storeInstrs.size() + loadInstrs.size();
+        report["num_loads"] = loadInstrs.size();
+        report["num_stores"] = storeInstrs.size();
+        report["array_line"] = storeInstrs[0]->getDebugLoc().getLine();
+        report["array_column"] = storeInstrs[0]->getDebugLoc()->getColumn();
+        outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n"; 
     }
   }
-
 }
 
 struct LoopRAWHazardReport : PassInfoMixin<LoopRAWHazardReport> {
-  // Main entry point, takes IR unit to run the pass on (&F) and the
-  // corresponding pass manager (to be queried if need be)
+
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    if (F.getCallingConv() == CallingConv::SPIR_FUNC) {// &&
-        // F.getLinkage() == llvm::GlobalValue::InternalLinkage) {
+    // F.getLinkage() == llvm::GlobalValue::InternalLinkage) 
+    if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
       visitor(F, AM);
     }
 
@@ -179,8 +169,9 @@ llvm::PassPluginLibraryInfo getLoopRAWHazardReportPluginInfo() {
           }};
 }
 
-// This is the core interface for pass plugins. It guarantees that 'opt' will
-// be able to recognize the pass via '-passes=stq-insert'
+// This is the core interface for pass plugins. It guarantees that 'opt' will find the pass.
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginInfo() {
   return getLoopRAWHazardReportPluginInfo();
 }
+
+} // end namespace storeq

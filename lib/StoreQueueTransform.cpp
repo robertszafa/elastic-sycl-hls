@@ -29,6 +29,7 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/JSON.h"
 
 #include <algorithm>
 #include <cassert>
@@ -40,19 +41,48 @@ using namespace llvm;
 
 namespace storeq {
 
-void transformLoadKernel(Function &F, FunctionAnalysisManager &AM, const int loadNum) {
+void transformLoadKernel(Function &F, FunctionAnalysisManager &AM, const int loadNum,
+                         SmallVector<const Value *> &storeAddrs,
+                         SmallVector<const Value *> &loadAddrs,
+                         SmallVector<Instruction *> &storeInstrs,
+                         SmallVector<Instruction *> &loadInstrs) {
+
+  bool isAnyRAW = storeInstrs.size() > 0;
+  errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
+  errs() << "isAnyRAW " << isAnyRAW << "\n";
+  return;
+}
+
+void transformStoreKernel(Function &F, FunctionAnalysisManager &AM, const int storeNum,
+                          SmallVector<const Value *> &storeAddrs,
+                          SmallVector<const Value *> &loadAddrs,
+                          SmallVector<Instruction *> &storeInstrs,
+                          SmallVector<Instruction *> &loadInstrs) {
   errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
   return;
 }
 
-void transformStoreKernel(Function &F, FunctionAnalysisManager &AM, const int storeNum) {
+void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object &report,
+                         SmallVector<const Value *> &storeAddrs,
+                         SmallVector<const Value *> &loadAddrs,
+                         SmallVector<Instruction *> &storeInstrs,
+                         SmallVector<Instruction *> &loadInstrs) {
   errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
   return;
 }
 
-void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object &report) {
-  errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
-  return;
+/// Given json file name, return llvm::json::Value
+json::Value parseJsonReport(const std::string fname) {
+  std::ifstream t(fname);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+
+  auto Json = json::parse(llvm::StringRef(buffer.str()));
+  assert(Json && "Error parsing json loop-raw-report");
+
+  if (Json)
+    return *Json;
+  return json::Value(nullptr);
 }
 
 struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
@@ -84,14 +114,20 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
         std::regex_search(thisKernelName, load_matches, load_regex);
         std::regex_search(thisKernelName, store_matches, store_regex);
 
+        SmallVector<const Value *> storeAddrs;
+        SmallVector<const Value *> loadAddrs;
+        SmallVector<Instruction *> storeInstrs;
+        SmallVector<Instruction *> loadInstrs;
+        getDepMemOps(F, AM, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
+
         if (load_matches.size() > 1) {
           int loadNum = std::stoi(load_matches[1]);
-          transformLoadKernel(F, AM, loadNum);
+          transformLoadKernel(F, AM, loadNum, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
         } else if (store_matches.size() > 1) {
           int storeNum = std::stoi(store_matches[1]);
-          transformStoreKernel(F, AM, storeNum);
+          transformStoreKernel(F, AM, storeNum, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
         } else {
-          transformMainKernel(F, AM, report);
+          transformMainKernel(F, AM, report, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
         }
       }
     }

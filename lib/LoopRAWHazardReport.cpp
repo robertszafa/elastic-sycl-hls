@@ -29,6 +29,7 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/JSON.h"
 
 #include <algorithm>
 #include <cassert>
@@ -39,74 +40,39 @@ using namespace llvm;
 
 namespace storeq {
 
+json::Object generateReport(Function &F, SmallVector<const Value *> &storeAddrs,
+                            SmallVector<const Value *> &loadAddrs,
+                            SmallVector<Instruction *> &storeInstrs,
+                            SmallVector<Instruction *> &loadInstrs) {
+  json::Object report;
+  auto callers = getCallerFunctions(F.getParent(), F);
+  // A spir_func lambda is called only once from one kernel.
+  if (callers.size() == 1) {
+    report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
+    report["spir_func_name"] = demangle(std::string(F.getName()));
+    report["num_copies"] = storeInstrs.size() + loadInstrs.size();
+    report["num_loads"] = loadInstrs.size();
+    report["num_stores"] = storeInstrs.size();
+    report["array_line"] = storeInstrs[0]->getDebugLoc().getLine();
+    report["array_column"] = storeInstrs[0]->getDebugLoc()->getColumn();
+  }
+
+  return report;
+}
+
 // This method implements what the pass does
 void visitor(Function &F, FunctionAnalysisManager &AM) {
-  auto &LI = AM.getResult<LoopAnalysis>(F);
-  auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
-  auto &TTI = AM.getResult<TargetIRAnalysis>(F);
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
-  auto &AA = AM.getResult<AAManager>(F);
-  auto &AC = AM.getResult<AssumptionAnalysis>(F);
-
-  // auto &DA = AM.getResult<DependenceAnalysis>(F);
-  auto &LAM = AM.getResult<LoopAnalysisManagerFunctionProxy>(F).getManager();
-  LoopStandardAnalysisResults AR = {AA, AC, DT, LI, SE, TLI, TTI, nullptr, nullptr, nullptr};
-
   // Get all memory loads and stores that form a RAW hazard dependence.
   SmallVector<const Value *> storeAddrs;
   SmallVector<const Value *> loadAddrs;
   SmallVector<Instruction *> storeInstrs;
   SmallVector<Instruction *> loadInstrs;
-  bool isAnyRAW = false;
-  for (Loop *TopLevelLoop : LI) {
-    for (Loop *L : depth_first(TopLevelLoop)) {
-      auto &LAI = LAM.getResult<LoopAccessAnalysis>(*L, AR);
+  getDepMemOps(F, AM, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
+  bool isAnyRAW = storeInstrs.size() > 0;
 
-      auto depChecker = LAI.getDepChecker();
-      const auto allDeps = depChecker.getDependences();
-      if (depChecker.isSafeForVectorization())
-        continue;
-
-      for (const auto dep : *allDeps) {
-        Instruction* srcI = dep.getSource(LAI);
-        Instruction* dstI = dep.getDestination(LAI);
-        assert(isa<LoadInst>(srcI) && "Source of dependence is not a load\n");
-        assert(isa<StoreInst>(dstI) && "Destination of dependence is not a store\n");
-
-        LoadInst *li = dyn_cast<LoadInst>(srcI);
-        StoreInst *si = dyn_cast<StoreInst>(dstI);
-        const SCEV *ldPointerSCEV = SE.getSCEV(li->getPointerOperand());
-        const SCEV *stPointerSCEV = SE.getSCEV(si->getPointerOperand());
-
-        if (SE.isLoopInvariant(ldPointerSCEV, L) && SE.hasComputableLoopEvolution(ldPointerSCEV, L) &&
-            SE.isLoopInvariant(stPointerSCEV, L) && SE.hasComputableLoopEvolution(stPointerSCEV, L)) {
-          continue;
-        }
-        loadAddrs.push_back(li->getPointerOperand());
-        loadInstrs.push_back(li);
-        storeInstrs.push_back(si);
-        storeAddrs.push_back(si->getPointerOperand());
-
-        isAnyRAW = true;
-      }
-    }
-  }
-
-  json::Object report;
   if (isAnyRAW) {
-    auto callers = getCallerFunctions(F.getParent(), F);
-    // A spir_func lambda is called only once from one kernel.
-    if (callers.size() == 1) {
-        report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
-        report["spir_func_name"] = demangle(std::string(F.getName()));
-        report["num_copies"] = storeInstrs.size() + loadInstrs.size();
-        report["num_loads"] = loadInstrs.size();
-        report["num_stores"] = storeInstrs.size();
-        report["array_line"] = storeInstrs[0]->getDebugLoc().getLine();
-        report["array_column"] = storeInstrs[0]->getDebugLoc()->getColumn();
-        outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n"; 
-    }
+    json::Object report = generateReport(F, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
+    outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n"; 
   }
 }
 

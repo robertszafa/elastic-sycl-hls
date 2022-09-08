@@ -7,6 +7,7 @@
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/ScalarEvolution.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Operator.h"
@@ -64,21 +65,36 @@ CallInst* getNthPipeCall(Function &F, const int n) {
   return nullptr;
 }
 
-void transformLoadKernel(Function &F, FunctionAnalysisManager &AM, const int loadNum,
+/// Delete any side-effect instructions and their users that come after {InstToDeleteAfter}.
+/// (Uses of deleteded Values are replaced with undefs).
+void deleteInstrAfter(Instruction* InstToDeleteAfter) {
+  SmallVector<Instruction *> instToDelete;
+  bool afterPipe = false;
+  for (Instruction &inst : InstToDeleteAfter->getParent()->getInstList()) {
+    if (afterPipe && (isa<StoreInst>(&inst) || isa<LoadInst>(&inst))) {
+      instToDelete.emplace_back(&inst);
+    } else if (InstToDeleteAfter->isSameOperationAs(&inst)) {
+      afterPipe = true;
+    }
+  }
+  for (Instruction *inst : instToDelete) {
+    inst->dropAllReferences();
+    inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
+    inst->eraseFromParent();
+  }
+}
+
+void transformLoadKernel(Function &F, FunctionAnalysisManager &AM, const int loadNum, const int numStores,
                          SmallVector<const Value *> &loadAddrs,
                          SmallVector<Instruction *> &loadInstrs) {
-  errs() << "Load number " << loadNum << "\n";
-  const Value* addr = loadAddrs[0];
-  LoadInst* loadInst = dyn_cast<LoadInst>(loadInstrs[loadNum]);
-  const GetElementPtrInst* gepInst = dyn_cast<GetElementPtrInst>(loadAddrs[0]);
-
-  Value* idxVal = gepInst->getOperand(1);
+  const GetElementPtrInst *gepInst = dyn_cast<GetElementPtrInst>(loadAddrs[0]);
+  Value *idxVal = gepInst->getOperand(1);
   CallInst *pipeWriteCall = getNthPipeCall(F, loadNum);
-  assert (pipeWriteCall && "No pipe call in this function\n");
+  assert(pipeWriteCall && "No pipe call in this function\n");
 
   // {idx, tag} struct store instructions.
-  SmallVector<StoreInst*, 2> idxTagStores;
-  Value* pipeArgPtr = pipeWriteCall->getArgOperand(0);
+  SmallVector<StoreInst *, 2> idxTagStores;
+  Value *pipeArgPtr = pipeWriteCall->getArgOperand(0);
   // Get first store instrs into the gep values.
   for (auto user : pipeArgPtr->users()) {
     if (auto gep = dyn_cast<GetElementPtrInst>(user)) {
@@ -93,9 +109,8 @@ void transformLoadKernel(Function &F, FunctionAnalysisManager &AM, const int loa
 
   // Move pipe call and {idx, tag} struct strores into place.
   pipeWriteCall->moveBefore(loadInstrs[loadNum]);
-  idxTagStores[0]->moveBefore(pipeWriteCall);
-  // In addition to moving tag store, keep original tag=0 store at the beginning of function. 
-  idxTagStores[1]->clone()->insertBefore(pipeWriteCall);
+  for (auto &st : idxTagStores)
+    st->moveBefore(pipeWriteCall);
 
   // Add correct operands to struct stores.
   auto idxTypeForPipe = idxTagStores[0]->getOperand(0)->getType();
@@ -103,11 +118,25 @@ void transformLoadKernel(Function &F, FunctionAnalysisManager &AM, const int loa
                                                    dyn_cast<Instruction>(idxTagStores[0]));
   idxTagStores[0]->setOperand(0, idxCasted);
 
+  // Create phi for tag base induction variable.
+  // TODO: generalise tag generation
+  PHINode *tagPhi;
   auto tagTypeForPipe = idxTagStores[1]->getOperand(0)->getType();
-  // idxTagStores[1]->setOperand(0, idxCasted);
-  // IRBuilder<> Builder(F.getContext());
-  // AllocaInst *AI = Builder.CreateAlloca(tagTypeForPipe, idxTagStores[1]->getAd);
-  
+  for (auto &phi : loadInstrs[0]->getParent()->phis()) {
+    tagPhi = dyn_cast<PHINode>(phi.clone());
+    tagPhi->insertAfter(&phi);
+    break;
+  }
+  IRBuilder<> Builder(pipeWriteCall->getParent()->getTerminator());
+  Value *NextVar = Builder.CreateAdd(tagPhi, ConstantInt::get(tagTypeForPipe, 1), "tagBaseNext");
+  tagPhi->setIncomingValue(1, NextVar);
+
+  // Calculate tag based on numer of stores in scope.
+  Builder.SetInsertPoint(idxTagStores[1]);
+  Value *finalTag = Builder.CreateMul(tagPhi, ConstantInt::get(tagTypeForPipe, numStores), "tag");
+  idxTagStores[1]->setOperand(0, finalTag);
+
+  deleteInstrAfter(pipeWriteCall);
 }
 
 void transformStoreKernel(Function &F, FunctionAnalysisManager &AM, const int storeNum,
@@ -175,7 +204,7 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 
         if (load_matches.size() > 1) {
           int loadNum = std::stoi(load_matches[1]);
-          transformLoadKernel(F, AM, loadNum, loadAddrs, loadInstrs);
+          transformLoadKernel(F, AM, loadNum, storeInstrs.size(), loadAddrs, loadInstrs);
         } else if (store_matches.size() > 1) {
           int storeNum = std::stoi(store_matches[1]);
           transformStoreKernel(F, AM, storeNum, storeAddrs, storeInstrs);

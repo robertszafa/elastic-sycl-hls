@@ -7,6 +7,9 @@
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/ScalarEvolution.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Operator.h"
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
 
 #include "llvm/Pass.h"
@@ -41,25 +44,76 @@ using namespace llvm;
 
 namespace storeq {
 
-void transformLoadKernel(Function &F, FunctionAnalysisManager &AM, const int loadNum,
-                         SmallVector<const Value *> &storeAddrs,
-                         SmallVector<const Value *> &loadAddrs,
-                         SmallVector<Instruction *> &storeInstrs,
-                         SmallVector<Instruction *> &loadInstrs) {
+CallInst* getNthPipeCall(Function &F, const int n) {
+  int callsSoFar = 0;
+  for (auto &bb : F) {
+    for (auto &instruction : bb) {
+      if (CallInst *callInst = dyn_cast<CallInst>(&instruction)) {
+        if (Function *calledFunction = callInst->getCalledFunction()) {
+          if (calledFunction->getCallingConv() == CallingConv::SPIR_FUNC && callsSoFar == n) {
+            return callInst;
+          }
+          else if (calledFunction->getCallingConv() == CallingConv::SPIR_FUNC) {
+            callsSoFar++;
+          }
+        }
+      }
+    }
+  }
 
-  bool isAnyRAW = storeInstrs.size() > 0;
-  errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
-  errs() << "isAnyRAW " << isAnyRAW << "\n";
-  return;
+  return nullptr;
+}
+
+void transformLoadKernel(Function &F, FunctionAnalysisManager &AM, const int loadNum,
+                         SmallVector<const Value *> &loadAddrs,
+                         SmallVector<Instruction *> &loadInstrs) {
+  errs() << "Load number " << loadNum << "\n";
+  const Value* addr = loadAddrs[0];
+  LoadInst* loadInst = dyn_cast<LoadInst>(loadInstrs[loadNum]);
+  const GetElementPtrInst* gepInst = dyn_cast<GetElementPtrInst>(loadAddrs[0]);
+
+  Value* idxVal = gepInst->getOperand(1);
+  CallInst *pipeWriteCall = getNthPipeCall(F, loadNum);
+  assert (pipeWriteCall && "No pipe call in this function\n");
+
+  // {idx, tag} struct store instructions.
+  SmallVector<StoreInst*, 2> idxTagStores;
+  Value* pipeArgPtr = pipeWriteCall->getArgOperand(0);
+  // Get first store instrs into the gep values.
+  for (auto user : pipeArgPtr->users()) {
+    if (auto gep = dyn_cast<GetElementPtrInst>(user)) {
+      for (auto userGEP : gep->users()) {
+        if (auto stInstr = dyn_cast<StoreInst>(userGEP)) {
+          idxTagStores.emplace_back(stInstr);
+          break;
+        }
+      }
+    }
+  }
+
+  // Move pipe call and {idx, tag} struct strores into place.
+  pipeWriteCall->moveBefore(loadInstrs[loadNum]);
+  idxTagStores[0]->moveBefore(pipeWriteCall);
+  // In addition to moving tag store, keep original tag=0 store at the beginning of function. 
+  idxTagStores[1]->clone()->insertBefore(pipeWriteCall);
+
+  // Add correct operands to struct stores.
+  auto idxTypeForPipe = idxTagStores[0]->getOperand(0)->getType();
+  auto idxCasted = TruncInst::CreateTruncOrBitCast(idxVal, idxTypeForPipe, "",
+                                                   dyn_cast<Instruction>(idxTagStores[0]));
+  idxTagStores[0]->setOperand(0, idxCasted);
+
+  auto tagTypeForPipe = idxTagStores[1]->getOperand(0)->getType();
+  // idxTagStores[1]->setOperand(0, idxCasted);
+  // IRBuilder<> Builder(F.getContext());
+  // AllocaInst *AI = Builder.CreateAlloca(tagTypeForPipe, idxTagStores[1]->getAd);
+  
 }
 
 void transformStoreKernel(Function &F, FunctionAnalysisManager &AM, const int storeNum,
                           SmallVector<const Value *> &storeAddrs,
-                          SmallVector<const Value *> &loadAddrs,
-                          SmallVector<Instruction *> &storeInstrs,
-                          SmallVector<Instruction *> &loadInstrs) {
-  errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
-  return;
+                          SmallVector<Instruction *> &storeInstrs) {
+  // errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
 }
 
 void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object &report,
@@ -67,8 +121,7 @@ void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object 
                          SmallVector<const Value *> &loadAddrs,
                          SmallVector<Instruction *> &storeInstrs,
                          SmallVector<Instruction *> &loadInstrs) {
-  errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
-  return;
+  // errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
 }
 
 /// Given json file name, return llvm::json::Value
@@ -122,17 +175,17 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 
         if (load_matches.size() > 1) {
           int loadNum = std::stoi(load_matches[1]);
-          transformLoadKernel(F, AM, loadNum, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
+          transformLoadKernel(F, AM, loadNum, loadAddrs, loadInstrs);
         } else if (store_matches.size() > 1) {
           int storeNum = std::stoi(store_matches[1]);
-          transformStoreKernel(F, AM, storeNum, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
+          transformStoreKernel(F, AM, storeNum, storeAddrs, storeInstrs);
         } else {
           transformMainKernel(F, AM, report, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
         }
       }
     }
 
-    return PreservedAnalyses::all();
+    return PreservedAnalyses::none();
   }
 
   // Without isRequired returning true, this pass will be skipped for functions

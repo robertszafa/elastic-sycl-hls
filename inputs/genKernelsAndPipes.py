@@ -86,6 +86,8 @@ def gen_val_pipe_connections(num_loads, num_stores):
 
     for i in range(num_stores):
         pipe_calls.append(f'st_val_pipe::write(val_type());')
+        
+    pipe_calls.append(f'end_signal_pipe::write(0);')
     
     return pipe_calls
 

@@ -38,7 +38,11 @@ double histogram_kernel(queue &q, const std::vector<int> &h_idx, std::vector<flo
   sycl::free(idx, q);
   sycl::free(hist, q);
 
-  return 0;
+  auto start = event.get_profiling_info<info::event_profiling::command_start>();
+  auto end = event.get_profiling_info<info::event_profiling::command_end>();
+  double time_in_ms = static_cast<double>(end - start) / 1000000;
+
+  return time_in_ms;
 }
 
 

@@ -107,11 +107,12 @@ def get_kernel_body(s):
     return body
 
 # Point before the first call to q.submit
-def get_insert_point_for_idx_kernels(source_file_lines):
-    """Line of first kernel submission."""
+def get_line_of_pattern(source_file_lines, pattern):
+    """Line of last pattern ocurrence."""
     insert_line = -1
     for i, line in enumerate(source_file_lines):
-        if f'{Q_NAME}.submit' in line:
+        # TODO: Use regex to account for spaces etc.
+        if pattern in line:
             insert_line = i
 
     return insert_line
@@ -160,12 +161,13 @@ if __name__ == '__main__':
     
     source_file_lines = source_file.splitlines()
 
-    insert_line_idx_kernels = get_insert_point_for_idx_kernels(source_file_lines)
+    insert_line_idx_kernels = get_line_of_pattern(source_file_lines, f'{Q_NAME}.submit')
     array_name = get_array_name(source_file_lines[array_line-1], array_column)
     storeq_syntax = gen_store_queue_syntax(array_name, num_loads, num_stores)
 
-    source_file_lines_with_pipes = source_file.splitlines()[:array_line-1] + \
-                                   main_kernel_pipes + source_file.splitlines()[array_line-1:]
+    insert_line_main_kernel_pipes = get_line_of_pattern(source_file_lines, f'<{kernel_name}>')
+    source_file_lines_with_pipes = source_file.splitlines()[:insert_line_main_kernel_pipes+1] + \
+                                   main_kernel_pipes + source_file.splitlines()[insert_line_main_kernel_pipes+1:]
 
     src_lines = [STOREQ_HEADER] + \
                 kernel_names_decl + \

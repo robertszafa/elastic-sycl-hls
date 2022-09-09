@@ -91,9 +91,9 @@ void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int seqN
 
   // {idx, tag} struct store instructions.
   SmallVector<StoreInst *, 2> storesToStruct;
-  Value *pipeArg = pipeWriteCall->getArgOperand(0);
+  Value *idxPipeWriteArg = pipeWriteCall->getArgOperand(0);
   // Get first store instruction for each GEP value.
-  for (auto user : pipeArg->users()) {
+  for (auto user : idxPipeWriteArg->users()) {
     if (auto gep = dyn_cast<GetElementPtrInst>(user)) {
       for (auto userGEP : gep->users()) {
         if (auto stInstr = dyn_cast<StoreInst>(userGEP)) {
@@ -112,17 +112,20 @@ void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int seqN
   for (auto &st : storesToStruct)
     st->moveBefore(pipeWriteCall);
 
+  auto tagSctructStore = storesToStruct[0];
+  auto idxSctructStore = storesToStruct[1];
+
   // Add correct operands to struct stores.
   // Add idx.
-  auto idxTypeForPipe = storesToStruct[0]->getOperand(0)->getType();
+  auto idxTypeForPipe = idxSctructStore->getOperand(0)->getType();
   auto idxCasted = TruncInst::CreateTruncOrBitCast(idxVal, idxTypeForPipe, "",
-                                                   dyn_cast<Instruction>(storesToStruct[0]));
-  storesToStruct[0]->setOperand(0, idxCasted);
+                                                   dyn_cast<Instruction>(idxSctructStore));
+  idxSctructStore->setOperand(0, idxCasted);
 
   // Add tag.
   // TODO: generalise tag generation
   PHINode *baseTagPhi;
-  auto tagTypeForPipe = storesToStruct[1]->getOperand(0)->getType();
+  auto tagTypeForPipe = tagSctructStore->getOperand(0)->getType();
   for (auto &phi : memInst->getParent()->phis()) {
     baseTagPhi = dyn_cast<PHINode>(phi.clone());
     baseTagPhi->insertAfter(&phi);
@@ -133,12 +136,12 @@ void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int seqN
   baseTagPhi->setIncomingValue(1, baseTagNext);
 
   // Calculate tag based on numer of stores in scope.
-  Builder.SetInsertPoint(storesToStruct[1]);
+  Builder.SetInsertPoint(tagSctructStore);
   auto baseTagTimesNumStores = Builder.CreateMul(baseTagPhi, ConstantInt::get(tagTypeForPipe, numStores));
   Value *finalTag = isLoad 
                     ? baseTagTimesNumStores
                     : Builder.CreateAdd(baseTagTimesNumStores, ConstantInt::get(tagTypeForPipe, seqNum+1));
-  storesToStruct[1]->setOperand(0, finalTag);
+  tagSctructStore->setOperand(0, finalTag);
 
   deleteInstrAfter(pipeWriteCall);
 }
@@ -148,7 +151,39 @@ void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object 
                          SmallVector<const Value *> &loadAddrs,
                          SmallVector<Instruction *> &storeInstrs,
                          SmallVector<Instruction *> &loadInstrs) {
-  // errs() << "Visited " << demangle(std::string(F.getName())) << "\n";
+  // Get pipe calls.
+  SmallVector<CallInst*> loadPipeReadCalls(loadInstrs.size());
+  SmallVector<CallInst*> storePipeWriteCalls(storeInstrs.size());
+  CallInst* endSignalPipeWriteCall = getNthPipeCall(F, storeInstrs.size() + loadInstrs.size());
+  for (int i=0; i<loadInstrs.size(); ++i) 
+    loadPipeReadCalls[i] = getNthPipeCall(F, i);
+  for (int i=0; i<storeInstrs.size(); ++i) 
+    storePipeWriteCalls[i] = getNthPipeCall(F, i + loadInstrs.size());
+
+
+  // Replace load instructions with calls to pipe::read
+  for (int iLoad=0; iLoad<loadInstrs.size(); ++iLoad) {
+    loadPipeReadCalls[iLoad]->moveBefore(loadInstrs[iLoad]);
+    Value* loadVal = dyn_cast<Value>(loadInstrs[iLoad]);
+    loadVal->replaceAllUsesWith(loadPipeReadCalls[iLoad]);
+  }
+
+  // Replace store instructions with calls to pipe::write
+  for (int iStore=0; iStore<storeInstrs.size(); ++iStore) {
+    storePipeWriteCalls[iStore]->moveAfter(storeInstrs[iStore]);
+    // storePipeWriteCalls[iStore]->setOperand(0, storeInstrs[iStore]->getOperand(0));
+    storeInstrs[iStore]->setOperand(1, storePipeWriteCalls[iStore]->getOperand(0));
+  }
+
+  
+  // The end signal pipe should be called before every fn exit.
+  for (auto &BB : F) {
+    for (auto &I : BB) {
+      if (isa<ReturnInst>(I))
+        endSignalPipeWriteCall->clone()->insertBefore(&I);
+    }
+  }
+  endSignalPipeWriteCall->eraseFromParent();
 }
 
 /// Given json file name, return llvm::json::Value

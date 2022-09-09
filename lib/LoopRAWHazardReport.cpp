@@ -55,6 +55,11 @@ json::Object generateReport(Function &F, SmallVector<const Value *> &storeAddrs,
     report["num_stores"] = storeInstrs.size();
     report["array_line"] = storeInstrs[0]->getDebugLoc().getLine();
     report["array_column"] = storeInstrs[0]->getDebugLoc()->getColumn();
+
+    std::string typeStr;
+    llvm::raw_string_ostream rso(typeStr);
+    storeInstrs[0]->getOperand(0)->getType()->print(rso);
+    report["val_type"] = rso.str();
   }
 
   return report;

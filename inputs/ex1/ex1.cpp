@@ -8,10 +8,10 @@ using namespace sycl;
 class MainKernel;
 
 template<typename T>
-device_ptr<T> toDevice(const std::vector<T> host_vector, queue &q) {
+T* toDevice(const std::vector<T> host_vector, queue &q) {
   auto device_data = malloc_device<T>(host_vector.size(), q);
-  q.memcpy(device_data, host_vector.data(), sizeof(T) * host_vector.size()).wait();
-  return device_ptr<T>(device_data);
+  q.copy(host_vector.data(), device_data, host_vector.size()).wait();
+  return device_data;
 }
 
 double histogram_kernel(queue &q, const std::vector<int> &h_idx, std::vector<float> &h_hist) {
@@ -19,7 +19,6 @@ double histogram_kernel(queue &q, const std::vector<int> &h_idx, std::vector<flo
 
   int* idx = toDevice(h_idx, q);
   float* hist = toDevice(h_hist, q);
-
 
   auto event = q.submit([&](handler &hnd) {
     hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
@@ -31,9 +30,8 @@ double histogram_kernel(queue &q, const std::vector<int> &h_idx, std::vector<flo
     });
   });
 
-
   event.wait();
-  q.memcpy(h_hist.data(), hist, sizeof(h_hist[0])*h_hist.size()).wait();
+  q.copy(hist, h_hist.data(), h_hist.size()).wait();
 
   sycl::free(idx, q);
   sycl::free(hist, q);

@@ -155,21 +155,21 @@ void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object 
   SmallVector<CallInst*> loadPipeReadCalls(loadInstrs.size());
   SmallVector<CallInst*> storePipeWriteCalls(storeInstrs.size());
   CallInst* endSignalPipeWriteCall = getNthPipeCall(F, storeInstrs.size() + loadInstrs.size());
-  for (int i=0; i<loadInstrs.size(); ++i) 
+  for (size_t i=0; i<loadInstrs.size(); ++i) 
     loadPipeReadCalls[i] = getNthPipeCall(F, i);
-  for (int i=0; i<storeInstrs.size(); ++i) 
+  for (size_t i=0; i<storeInstrs.size(); ++i) 
     storePipeWriteCalls[i] = getNthPipeCall(F, i + loadInstrs.size());
 
 
   // Replace load instructions with calls to pipe::read
-  for (int iLoad=0; iLoad<loadInstrs.size(); ++iLoad) {
+  for (size_t iLoad=0; iLoad<loadInstrs.size(); ++iLoad) {
     loadPipeReadCalls[iLoad]->moveBefore(loadInstrs[iLoad]);
     Value* loadVal = dyn_cast<Value>(loadInstrs[iLoad]);
     loadVal->replaceAllUsesWith(loadPipeReadCalls[iLoad]);
   }
 
   // Replace store instructions with calls to pipe::write
-  for (int iStore=0; iStore<storeInstrs.size(); ++iStore) {
+  for (size_t iStore=0; iStore<storeInstrs.size(); ++iStore) {
     storePipeWriteCalls[iStore]->moveAfter(storeInstrs[iStore]);
     // storePipeWriteCalls[iStore]->setOperand(0, storeInstrs[iStore]->getOperand(0));
     storeInstrs[iStore]->setOperand(1, storePipeWriteCalls[iStore]->getOperand(0));

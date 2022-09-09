@@ -29,10 +29,11 @@ IDX_TAG_TYPE = 'pair'
 c_var_regex = r'([a-zA-Z_][a-zA-Z0-9_]*)'
 
 
-def gen_store_queue_syntax(array_name, num_loads, num_stores, forward_q=False, q_size=8, st_latency=8):
+def gen_store_queue_syntax(array_name, array_type, num_loads, num_stores, 
+                           forward_q=False, q_size=8, st_latency=8):
     return f'''
     //// gen_store_queue_syntax(array_name, num_loads)
-    using val_type = std::remove_reference<decltype( *{array_name} )>::type;
+    using val_type = {array_type};
     constexpr int kNumLoads = {num_loads};
     constexpr int kNumStores = {num_stores};
     constexpr bool isQueueForwarding = {'true' if forward_q else 'false'};
@@ -91,14 +92,6 @@ def gen_val_pipe_connections(num_loads, num_stores):
     
     return pipe_calls
 
-def get_paren_contents(s):
-    results = set()
-    for start in range(len(s)):
-        string = s[start:]
-        results.update(re.findall('\(.*?\)', string))
-
-    return results
-
 def get_kernel_body(s):
     body = ""
     m = re.findall(r'<\s*' + kernel_name + r'\s*>\s*(\(.*?}\s*\)\s*;)', s, re.DOTALL)
@@ -133,14 +126,14 @@ def parse_report(report_fname):
     report["kernel_class_name"] = report["kernel_class_name"].split(' ')[-1]
     report['spir_func_name'] = report["spir_func_name"].split('::')[0]
 
-    return report['kernel_class_name'], report['spir_func_name'], report['num_copies'], \
-           report['num_loads'], report['num_stores'], report['array_line'], report['array_column']
+    return report['kernel_class_name'], report['spir_func_name'], report['num_copies'], report['num_loads'], \
+           report['num_stores'], report['array_line'], report['array_column'], report['val_type']
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         sys.exit("loop-raw-report and src filename required")
 
-    kernel_name, spir_func_name, num_copy, num_loads, num_stores, array_line, array_column = \
+    kernel_name, spir_func_name, num_copy, num_loads, num_stores, array_line, array_column, array_type = \
         parse_report(sys.argv[1])
 
     with open(sys.argv[2], 'r') as f:
@@ -163,7 +156,7 @@ if __name__ == '__main__':
 
     insert_line_idx_kernels = get_line_of_pattern(source_file_lines, f'{Q_NAME}.submit')
     array_name = get_array_name(source_file_lines[array_line-1], array_column)
-    storeq_syntax = gen_store_queue_syntax(array_name, num_loads, num_stores)
+    storeq_syntax = gen_store_queue_syntax(array_name, array_type, num_loads, num_stores)
 
     insert_line_main_kernel_pipes = get_line_of_pattern(source_file_lines, f'<{kernel_name}>')
     source_file_lines_with_pipes = source_file.splitlines()[:insert_line_main_kernel_pipes+1] + \

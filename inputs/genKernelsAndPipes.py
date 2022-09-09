@@ -30,7 +30,7 @@ c_var_regex = r'([a-zA-Z_][a-zA-Z0-9_]*)'
 
 
 def gen_store_queue_syntax(array_name, array_type, num_loads, num_stores, 
-                           forward_q=False, q_size=8, st_latency=8):
+                           forward_q=True, q_size=4, st_latency=12):
     return f'''
     //// gen_store_queue_syntax(array_name, num_loads)
     using val_type = {array_type};

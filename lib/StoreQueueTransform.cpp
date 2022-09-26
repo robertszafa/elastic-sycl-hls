@@ -45,6 +45,7 @@ using namespace llvm;
 
 namespace storeq {
 
+/// Assummes that the first n spir_func calls in F are pipe calls.
 CallInst* getNthPipeCall(Function &F, const int n) {
   int callsSoFar = 0;
   for (auto &bb : F) {
@@ -155,6 +156,8 @@ void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object 
   SmallVector<CallInst*> loadPipeReadCalls(loadInstrs.size());
   SmallVector<CallInst*> storePipeWriteCalls(storeInstrs.size());
   CallInst* endSignalPipeWriteCall = getNthPipeCall(F, storeInstrs.size() + loadInstrs.size());
+  Value* storeReqValPtr = endSignalPipeWriteCall->getOperand(0);
+
   for (size_t i=0; i<loadInstrs.size(); ++i) 
     loadPipeReadCalls[i] = getNthPipeCall(F, i);
   for (size_t i=0; i<storeInstrs.size(); ++i) 
@@ -171,10 +174,13 @@ void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object 
   // Replace store instructions with calls to pipe::write
   for (size_t iStore=0; iStore<storeInstrs.size(); ++iStore) {
     storePipeWriteCalls[iStore]->moveAfter(storeInstrs[iStore]);
-    // storePipeWriteCalls[iStore]->setOperand(0, storeInstrs[iStore]->getOperand(0));
     storeInstrs[iStore]->setOperand(1, storePipeWriteCalls[iStore]->getOperand(0));
+    // Increment num_store_req value for every store_val_pipe write call.
+    IRBuilder<> IR(storeInstrs[iStore]);
+    LoadInst *loadReqInstr = IR.CreateLoad(Type::getInt32Ty(IR.getContext()), storeReqValPtr);
+    Value *incReqVal = IR.CreateAdd(IR.getInt32(1), loadReqInstr);
+    IR.CreateStore(incReqVal, storeReqValPtr);
   }
-
   
   // The end signal pipe should be called before every fn exit.
   for (auto &BB : F) {

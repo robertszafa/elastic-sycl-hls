@@ -30,7 +30,7 @@ c_var_regex = r'([a-zA-Z_][a-zA-Z0-9_]*)'
 
 
 def gen_store_queue_syntax(array_name, array_type, num_loads, num_stores, 
-                           forward_q=True, q_size=4, st_latency=12):
+                           forward_q=True, q_size=4, st_latency=17):
     return f'''
     //// gen_store_queue_syntax(array_name, num_loads)
     using val_type = {array_type};
@@ -44,7 +44,7 @@ def gen_store_queue_syntax(array_name, array_type, num_loads, num_stores,
     using ld_val_pipes = PipeArray<class ld_val_pipes_class, val_type, {PIPE_DEPTH}, kNumLoads>;
     using st_idx_pipe = pipe<class st_idx_pipe_class, {IDX_TAG_TYPE}, {PIPE_DEPTH}>;
     using st_val_pipe = pipe<class st_val_pipe_class, val_type, {PIPE_DEPTH}>;
-    using end_signal_pipe = pipe<class end_signal_pipe_class, bool>;
+    using end_signal_pipe = pipe<class end_signal_pipe_class, int>;
     
     auto eventStoreQueue = 
         StoreQueue<ld_idx_pipes, ld_val_pipes, kNumLoads, st_idx_pipe, st_val_pipe, end_signal_pipe,
@@ -88,7 +88,8 @@ def gen_val_pipe_connections(num_loads, num_stores):
     for i in range(num_stores):
         pipe_calls.append(f'st_val_pipe::write(val_type());')
         
-    pipe_calls.append(f'end_signal_pipe::write(0);')
+    pipe_calls.append(f'int __total_store_req = 0;')
+    pipe_calls.append(f'end_signal_pipe::write(__total_store_req);')
     
     return pipe_calls
 

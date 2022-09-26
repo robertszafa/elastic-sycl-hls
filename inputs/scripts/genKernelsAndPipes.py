@@ -95,18 +95,21 @@ def gen_val_pipe_connections(num_loads, num_stores):
 
 def get_kernel_body(s):
     body = ""
-    m = re.findall(r'<\s*' + kernel_name + r'\s*>\s*(\(.*?}\s*\)\s*;)', s, re.DOTALL)
+    print(kernel_name)
+    m = re.findall(r'<\s*(?:class\s+)?' + kernel_name + r'\s*>\s*(\(.*?}\s*\)\s*;)', s, re.DOTALL)
     if m:
         body = m[0]
+    else:
+        exit("Failed match kernel body.")
+
     return body
 
 # Point before the first call to q.submit
-def get_line_of_pattern(source_file_lines, pattern):
+def get_line_of_pattern(source_file_lines, re_pattern):
     """Line of last pattern ocurrence."""
     insert_line = -1
     for i, line in enumerate(source_file_lines):
-        # TODO: Use regex to account for spaces etc.
-        if pattern in line:
+        if re.findall(re_pattern, line):
             insert_line = i
 
     return insert_line
@@ -124,7 +127,7 @@ def parse_report(report_fname):
         str = f.read()
 
     report = json.loads(str)
-    report["kernel_class_name"] = report["kernel_class_name"].split(' ')[-1]
+    report["kernel_class_name"] = report["kernel_class_name"].split(' ')[-1].split('::')[-1]
     report['spir_func_name'] = report["spir_func_name"].split('::')[0]
 
     return report['kernel_class_name'], report['spir_func_name'], report['num_copies'], report['num_loads'], \
@@ -155,11 +158,11 @@ if __name__ == '__main__':
     
     source_file_lines = source_file.splitlines()
 
-    insert_line_idx_kernels = get_line_of_pattern(source_file_lines, f'{Q_NAME}.submit')
+    insert_line_idx_kernels = get_line_of_pattern(source_file_lines, Q_NAME + r'\.submit')
     array_name = get_array_name(source_file_lines[array_line-1], array_column)
     storeq_syntax = gen_store_queue_syntax(array_name, array_type, num_loads, num_stores)
 
-    insert_line_main_kernel_pipes = get_line_of_pattern(source_file_lines, f'<{kernel_name}>')
+    insert_line_main_kernel_pipes = get_line_of_pattern(source_file_lines, r'(<\s*' + kernel_name + r'\s*>)|(<\s*class\s*' + kernel_name + r'\s*>)')
     source_file_lines_with_pipes = source_file.splitlines()[:insert_line_main_kernel_pipes+1] + \
                                    main_kernel_pipes + source_file.splitlines()[insert_line_main_kernel_pipes+1:]
 

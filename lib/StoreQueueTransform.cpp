@@ -163,7 +163,6 @@ void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object 
   for (size_t i=0; i<storeInstrs.size(); ++i) 
     storePipeWriteCalls[i] = getNthPipeCall(F, i + loadInstrs.size());
 
-
   // Replace load instructions with calls to pipe::read
   for (size_t iLoad=0; iLoad<loadInstrs.size(); ++iLoad) {
     loadPipeReadCalls[iLoad]->moveBefore(loadInstrs[iLoad]);
@@ -208,7 +207,6 @@ json::Value parseJsonReport(const std::string fname) {
 
 struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
   const std::string loopRAWReportFilename = "loop-raw-report.json";
-  SmallVector<Function *> annotFuncs;
   json::Object report;
   std::regex load_regex{"_load_(\\d+)", std::regex_constants::ECMAScript};
   std::regex store_regex{"_store_(\\d+)", std::regex_constants::ECMAScript};
@@ -243,7 +241,7 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 
         if (load_matches.size() > 1) {
           int iLoad = std::stoi(load_matches[1]);
-          transformIdxKernel(F, AM, iLoad,storeInstrs.size(), loadAddrs[iLoad], loadInstrs[iLoad], true);
+          transformIdxKernel(F, AM, iLoad, loadInstrs.size(), loadAddrs[iLoad], loadInstrs[iLoad], true);
         } else if (store_matches.size() > 1) {
           int iStore = std::stoi(store_matches[1]);
           transformIdxKernel(F, AM, iStore, storeInstrs.size(), storeAddrs[iStore], storeInstrs[iStore], false);

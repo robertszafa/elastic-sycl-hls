@@ -1,4 +1,4 @@
-BENCHMARK := ex1
+BENCHMARK := histogram
 
 SRC := $(FILE)
 # HDR := ""
@@ -8,8 +8,8 @@ I = /home/rob/git/sycl-playground/include
 
 CXX := dpcpp
 CXXFLAGS += -std=c++17 -O2 -I$(I)
+CXXFLAGS += -qactypes
 # CXXFLAGS += --verbose
-# CXXFLAGS += -qactypes
 # CXXFLAGS += -Xsprofile
 # CXXFLAGS += -g
 # CXXFLAGS += -Xsghdl

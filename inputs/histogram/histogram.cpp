@@ -1,24 +1,19 @@
 #include <CL/sycl.hpp>
-#include <sycl/ext/intel/fpga_extensions.hpp>
+#include <algorithm>
 #include <numeric>
+#include <sycl/ext/intel/fpga_extensions.hpp>
 #include <vector>
+
+#include "memory_utils.hpp"
 
 using namespace sycl;
 
 class MainKernel;
-
-template<typename T>
-T* toDevice(const std::vector<T> host_vector, queue &q) {
-  auto device_data = malloc_device<T>(host_vector.size(), q);
-  q.copy(host_vector.data(), device_data, host_vector.size()).wait();
-  return device_data;
-}
-
 double histogram_kernel(queue &q, const std::vector<int> &h_idx, std::vector<float> &h_hist) {
   const int array_size = h_idx.size();
 
-  int* idx = toDevice(h_idx, q);
-  float* hist = toDevice(h_hist, q);
+  int *idx = fpga_tools::toDevice(h_idx, q);
+  float *hist = fpga_tools::toDevice(h_hist, q);
 
   auto event = q.submit([&](handler &hnd) {
     hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
@@ -43,7 +38,13 @@ double histogram_kernel(queue &q, const std::vector<int> &h_idx, std::vector<flo
   return time_in_ms;
 }
 
-
+void histogram_cpu(const int *idx, float *hist, const int N) {
+  for (int i = 0; i < N; ++i) {
+    auto idx_scalar = idx[i];
+    float x = hist[idx_scalar];
+    hist[idx_scalar] = x + 10.0f;
+  }
+}
 
 // Create an exception handler for asynchronous SYCL exceptions
 static auto exception_handler = [](sycl::exception_list e_list) {
@@ -79,9 +80,10 @@ int main(int argc, char *argv[]) {
 
     std::vector<int> feature(ARRAY_SIZE);
     std::vector<float> hist(ARRAY_SIZE);
+    std::vector<float> hist_cpu(ARRAY_SIZE);
     std::iota(feature.begin(), feature.end(), 0);
     std::fill(hist.begin(), hist.end(), 0.0);
-    // std::iota(hist.begin(), hist.end(), 0.0);
+    std::fill(hist_cpu.begin(), hist_cpu.end(), 0.0);
 
     auto start = std::chrono::steady_clock::now();
     double kernel_time = 0;
@@ -91,9 +93,18 @@ int main(int argc, char *argv[]) {
     // Wait for all work to finish.
     q.wait();
 
-    // std::cout << "\nKernel time (ms): " << kernel_time << "\n";
-    std::cout << " sum(hist) = " << std::accumulate(hist.begin(), hist.end(), 0.0) << "\n";
+    histogram_cpu(feature.data(), hist_cpu.data(), hist_cpu.size());
 
+    std::cout << "\nKernel time (ms): " << kernel_time << "\n";
+
+    if (std::equal(hist.begin(), hist.end(), hist_cpu.begin())) {
+      std::cout << "Passed\n";
+    } else {
+      std::cout << "Failse\n";
+      std::cout << " sum(hist) = " << std::accumulate(hist.begin(), hist.end(), 0.0) << "\n";
+      std::cout << " sum(hist_cpu) = " << std::accumulate(hist_cpu.begin(), hist_cpu.end(), 0.0)
+                << "\n";
+    }
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

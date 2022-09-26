@@ -175,7 +175,7 @@ if __name__ == '__main__':
     
     src_lines_with_storeq = insert_storeq_wait(src_lines, insert_line_idx_kernels)
     
-    new_filename = sys.argv[2].replace('.cpp', '.tmp.cpp')
+    new_filename = sys.argv[2] + '.tmp.cpp' if len(sys.argv) < 4 else sys.argv[3] 
     with open(new_filename, 'w') as f:
         f.write('\n'.join(src_lines_with_storeq))
 

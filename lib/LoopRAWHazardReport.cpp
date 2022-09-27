@@ -78,6 +78,9 @@ void visitor(Function &F, FunctionAnalysisManager &AM) {
   if (isAnyRAW) {
     json::Object report = generateReport(F, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
     outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n"; 
+  } 
+  else {
+    errs() << "No RAW hazards.\n";  
   }
 }
 
@@ -98,8 +101,7 @@ struct LoopRAWHazardReport : PassInfoMixin<LoopRAWHazardReport> {
   static bool isRequired() { return true; }
 
   void getAnalysisUsage(AnalysisUsage &AU) const {
-    // AU.addRequiredID(DependenceAnalysis::ID());
-
+    AU.addRequiredID(DependenceAnalysis::ID());
     AU.addRequiredID(LoopAccessAnalysis::ID());
     AU.addRequiredID(LoopAnalysis::ID());
     AU.addRequiredID(ScalarEvolutionAnalysis::ID());

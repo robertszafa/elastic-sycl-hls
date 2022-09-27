@@ -95,7 +95,6 @@ def gen_val_pipe_connections(num_loads, num_stores):
 
 def get_kernel_body(s):
     body = ""
-    print(kernel_name)
     m = re.findall(r'<\s*(?:class\s+)?' + kernel_name + r'\s*>\s*(\(.*?}\s*\)\s*;)', s, re.DOTALL)
     if m:
         body = m[0]
@@ -123,15 +122,18 @@ def get_array_name(line_with_array, end_col):
     return array
 
 def parse_report(report_fname):
-    with open(report_fname, 'r') as f:
-        str = f.read()
+    try:
+        with open(report_fname, 'r') as f:
+            str = f.read()
 
-    report = json.loads(str)
-    report["kernel_class_name"] = report["kernel_class_name"].split(' ')[-1].split('::')[-1]
-    report['spir_func_name'] = report["spir_func_name"].split('::')[0]
+        report = json.loads(str)
+        report["kernel_class_name"] = report["kernel_class_name"].split(' ')[-1].split('::')[-1]
+        report['spir_func_name'] = report["spir_func_name"].split('::')[0]
 
-    return report['kernel_class_name'], report['spir_func_name'], report['num_copies'], report['num_loads'], \
-           report['num_stores'], report['array_line'], report['array_column'], report['val_type']
+        return report['kernel_class_name'], report['spir_func_name'], report['num_copies'], report['num_loads'], \
+            report['num_stores'], report['array_line'], report['array_column'], report['val_type']
+    except Exception as e:
+        exit("Error parsing analysis report " + report_fname)
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:

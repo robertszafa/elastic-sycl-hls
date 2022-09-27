@@ -1,8 +1,12 @@
+#!/bin/bash
+
+set -e
 
 SRC_FILE="$2"
 TMP_SRC_FILE="$2".tmp.cpp
 SRC_FILE_BASENAME=`basename "$2"`
 SRC_FILE_DIR=`dirname "$2"`
+LOOP_REPORT_FILE=$SRC_FILE_DIR/loop-raw-report.json
 # Demangled (human readable) IR files are generated at each step.
 
 mkdir -p "$SRC_FILE_DIR/bin"
@@ -23,11 +27,11 @@ $TO_BC $SRC_FILE
 
 # Generate analysis json report.
 ~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libLoopRAWHazardReport.so \
-                         -passes=loop-raw-report $SRC_FILE.ll -o $SRC_FILE.ll > loop-raw-report.json
+                         -passes=loop-raw-report $SRC_FILE.ll -o $SRC_FILE.ll > $LOOP_REPORT_FILE
 
 # Given json report, make kernel copies and pipe read/write calls from correct kernels.
 # Output from this source-to-source transformation will be in $SRC_FILE.tmp.cpp
-python3 scripts/genKernelsAndPipes.py loop-raw-report.json $SRC_FILE
+python3 scripts/genKernelsAndPipes.py $LOOP_REPORT_FILE $SRC_FILE
 
 # Get IR of source with kernels and pipes instantiated. 
 $TO_BC $TMP_SRC_FILE

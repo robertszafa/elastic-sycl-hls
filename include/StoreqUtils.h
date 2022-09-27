@@ -7,6 +7,7 @@
 #include "llvm/IR/Dominators.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
+#include <llvm/IR/BasicBlock.h>
 
 #include "llvm/Analysis/AssumptionCache.h"
 #include "llvm/Analysis/DependenceAnalysis.h"
@@ -43,40 +44,42 @@ void getDepMemOps(Function &F, FunctionAnalysisManager &AM, SmallVector<const Va
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
   auto &AA = AM.getResult<AAManager>(F);
   auto &AC = AM.getResult<AssumptionAnalysis>(F);
-  // auto &DA = AM.getResult<DependenceAnalysis>(F);
+  auto &DA = AM.getResult<DependenceAnalysis>(F);
   auto &LAM = AM.getResult<LoopAnalysisManagerFunctionProxy>(F).getManager();
   LoopStandardAnalysisResults AR = {AA, AC, DT, LI, SE, TLI, TTI, nullptr, nullptr, nullptr};
 
   for (Loop *TopLevelLoop : LI) {
     for (Loop *L : depth_first(TopLevelLoop)) {
       auto &LAI = LAM.getResult<LoopAccessAnalysis>(*L, AR);
-
       auto depChecker = LAI.getDepChecker();
-      const auto allDeps = depChecker.getDependences();
-      if (depChecker.isSafeForVectorization())
+      
+      if (LAI.canVectorizeMemory())
         continue;
 
-      for (const auto dep : *allDeps) {
-        Instruction *srcI = dep.getSource(LAI);
-        Instruction *dstI = dep.getDestination(LAI);
-        assert(isa<LoadInst>(srcI) && "Source of dependence is not a load\n");
-        assert(isa<StoreInst>(dstI) && "Destination of dependence is not a store\n");
+      auto &memInstr = depChecker.getMemoryInstructions();
 
-        LoadInst *li = dyn_cast<LoadInst>(srcI);
-        StoreInst *si = dyn_cast<StoreInst>(dstI);
-        const SCEV *ldPointerSCEV = SE.getSCEV(li->getPointerOperand());
-        const SCEV *stPointerSCEV = SE.getSCEV(si->getPointerOperand());
+      for (auto &I0 : memInstr) {
+        for (auto &I1 : memInstr) {
+          // Capture only pairs where load depends on store.
+          if (I0 == I1 || !DA.depends(I0, I1, false) || !isa<LoadInst>(I0) || !isa<StoreInst>(I1))
+            continue;
 
-        if (SE.isLoopInvariant(ldPointerSCEV, L) &&
-            SE.hasComputableLoopEvolution(ldPointerSCEV, L) &&
-            SE.isLoopInvariant(stPointerSCEV, L) &&
-            SE.hasComputableLoopEvolution(stPointerSCEV, L)) {
-          continue;
+          auto li = dyn_cast<LoadInst>(I0);
+          auto si = dyn_cast<StoreInst>(I1);
+          auto liPointer = li->getPointerOperand();
+          auto siPointer = si->getPointerOperand();
+
+          // If both load and store pointers have a computable scalar evolution, then ignore. 
+          if (SE.hasComputableLoopEvolution(SE.getSCEV(liPointer), L) && 
+              SE.hasComputableLoopEvolution(SE.getSCEV(siPointer), L)) {
+            continue;
+          }
+
+          loadAddrs.push_back(liPointer);
+          loadInstrs.push_back(li);
+          storeAddrs.push_back(siPointer);
+          storeInstrs.push_back(si);
         }
-        loadAddrs.push_back(li->getPointerOperand());
-        loadInstrs.push_back(li);
-        storeInstrs.push_back(si);
-        storeAddrs.push_back(si->getPointerOperand());
       }
     }
   }

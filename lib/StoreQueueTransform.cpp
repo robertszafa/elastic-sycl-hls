@@ -11,6 +11,7 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Operator.h"
+#include <llvm/IR/Function.h>
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
 
 #include "llvm/Pass.h"
@@ -68,14 +69,14 @@ CallInst* getNthPipeCall(Function &F, const int n) {
 
 /// Delete any side-effect instructions and their users that come after {InstToDeleteAfter}.
 /// (Uses of deleteded Values are replaced with undefs).
-void deleteInstrAfter(Instruction* InstToDeleteAfter) {
+void deleteSideEffectInstrAfter(Instruction* InstToDeleteAfter) {
   SmallVector<Instruction *> instToDelete;
-  bool afterPipe = false;
+  bool isAfterCutoff = false;
   for (Instruction &inst : InstToDeleteAfter->getParent()->getInstList()) {
-    if (afterPipe && (isa<StoreInst>(&inst) || isa<LoadInst>(&inst))) {
+    if (isAfterCutoff && (isa<StoreInst>(&inst) || isa<LoadInst>(&inst))) {
       instToDelete.emplace_back(&inst);
-    } else if (InstToDeleteAfter->isSameOperationAs(&inst)) {
-      afterPipe = true;
+    } else if (InstToDeleteAfter->isIdenticalTo(&inst)) {
+      isAfterCutoff = true;
     }
   }
   for (Instruction *inst : instToDelete) {
@@ -85,9 +86,10 @@ void deleteInstrAfter(Instruction* InstToDeleteAfter) {
   }
 }
 
-void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int seqNum,
-                        const int numStores, const Value *addr,  Instruction *memInst, bool isLoad) {
-  CallInst *pipeWriteCall = getNthPipeCall(F, seqNum);
+void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int ithKernel,
+                        const int storesSoFarInclusive, const int numStores, const Value *addr,
+                        Instruction *memInst) {
+  CallInst *pipeWriteCall = getNthPipeCall(F, ithKernel);
   assert(pipeWriteCall && "No pipe call in this function\n");
 
   // {idx, tag} struct store instructions.
@@ -116,35 +118,38 @@ void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int seqN
   auto tagSctructStore = storesToStruct[0];
   auto idxSctructStore = storesToStruct[1];
 
-  // Add correct operands to struct stores.
-  // Add idx.
+  // Add idx struct store (storing to {idx, tag} struct).
   auto idxTypeForPipe = idxSctructStore->getOperand(0)->getType();
   auto idxCasted = TruncInst::CreateTruncOrBitCast(idxVal, idxTypeForPipe, "",
                                                    dyn_cast<Instruction>(idxSctructStore));
   idxSctructStore->setOperand(0, idxCasted);
 
-  // Add tag.
-  // TODO: generalise tag generation
-  PHINode *baseTagPhi;
+  // Add tag struct store and tag generation instructions. 
+  // TODO: generalise tag generation to nested loops
+  IRBuilder<> Builder(F.getEntryBlock().getTerminator());
+
+  // Initialize base tag to 0.
   auto tagTypeForPipe = tagSctructStore->getOperand(0)->getType();
-  for (auto &phi : memInst->getParent()->phis()) {
-    baseTagPhi = dyn_cast<PHINode>(phi.clone());
-    baseTagPhi->insertAfter(&phi);
-    break;
-  }
-  IRBuilder<> Builder(pipeWriteCall->getParent()->getTerminator());
-  Value *baseTagNext = Builder.CreateAdd(baseTagPhi, ConstantInt::get(tagTypeForPipe, 1));
-  baseTagPhi->setIncomingValue(1, baseTagNext);
+  Value *baseTagAddr = Builder.CreateAlloca(tagTypeForPipe);  
+  Builder.CreateStore(ConstantInt::get(tagTypeForPipe, 0), baseTagAddr);
 
-  // Calculate tag based on numer of stores in scope.
+  // Load base tag in the BB where the {idx, tag} pipe write occurs.
   Builder.SetInsertPoint(tagSctructStore);
-  auto baseTagTimesNumStores = Builder.CreateMul(baseTagPhi, ConstantInt::get(tagTypeForPipe, numStores));
-  Value *finalTag = isLoad 
-                    ? baseTagTimesNumStores
-                    : Builder.CreateAdd(baseTagTimesNumStores, ConstantInt::get(tagTypeForPipe, seqNum+1));
-  tagSctructStore->setOperand(0, finalTag);
+  Value *baseTag = Builder.CreateLoad(tagTypeForPipe, baseTagAddr);
 
-  deleteInstrAfter(pipeWriteCall);
+  // Calculate: tag = loopInductionVar * kNumStoresInLoop + storesSoFarInclusive
+  auto storesSoFarInclVal = ConstantInt::get(tagTypeForPipe, storesSoFarInclusive);
+  auto numStoresVal = ConstantInt::get(tagTypeForPipe, numStores);
+  auto baseTagTimesNumStoresVal = Builder.CreateMul(baseTag, numStoresVal);
+  Value *tag = Builder.CreateAdd(baseTagTimesNumStoresVal, storesSoFarInclVal);
+  tagSctructStore->setOperand(0, tag);
+
+  // Increment base tag after {idx, tag} pipe write.
+  Builder.SetInsertPoint(pipeWriteCall);
+  Value *baseTagNext = Builder.CreateAdd(baseTag, ConstantInt::get(tagTypeForPipe, 1));
+  Builder.CreateStore(baseTagNext, baseTagAddr);
+
+  deleteSideEffectInstrAfter(pipeWriteCall);
 }
 
 void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object &report,
@@ -208,6 +213,27 @@ json::Value parseJsonReport() {
   return json::Value(nullptr);
 }
 
+/// return the number of instr from {instrs} that occur {beforeThisI} in {F}.
+/// Works even if instructions are in differnt basic blocks.
+int getNumInstrsBeforeThisInstr(const SmallVector<Instruction *> &instrs, Instruction *beforeThisI,
+                                Function &F) {  
+  int res = 0;
+  for (auto &BB : F) {
+    for (auto &I : BB) {
+      if (I.isIdenticalTo(beforeThisI))
+        return res;
+      
+      for (auto &instrsI : instrs) {
+        if (instrsI->isIdenticalTo(&I))
+          res++;
+      }
+    }
+  }
+
+  assert("{beforeThisI} not present in F.");
+  return res;
+}
+
 struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
   const std::string loopRAWReportFilename = "loop-raw-report.json";
   json::Object report;
@@ -244,10 +270,14 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 
         if (load_matches.size() > 1) {
           int iLoad = std::stoi(load_matches[1]);
-          transformIdxKernel(F, AM, iLoad, loadInstrs.size(), loadAddrs[iLoad], loadInstrs[iLoad], true);
+          int storesSoFarInclusive = getNumInstrsBeforeThisInstr(storeInstrs, loadInstrs[iLoad], F);
+          transformIdxKernel(F, AM, iLoad, storesSoFarInclusive, loadInstrs.size(),
+                             loadAddrs[iLoad], loadInstrs[iLoad]);
         } else if (store_matches.size() > 1) {
           int iStore = std::stoi(store_matches[1]);
-          transformIdxKernel(F, AM, iStore, storeInstrs.size(), storeAddrs[iStore], storeInstrs[iStore], false);
+          int storesSoFarInclusive = iStore + 1;
+          transformIdxKernel(F, AM, iStore, storesSoFarInclusive, storeInstrs.size(),
+                             storeAddrs[iStore], storeInstrs[iStore]);
         } else {
           transformMainKernel(F, AM, report, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
         }
@@ -263,8 +293,7 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
   static bool isRequired() { return true; }
 
   void getAnalysisUsage(AnalysisUsage &AU) const {
-    // AU.addRequiredID(DependenceAnalysis::ID());
-
+    AU.addRequiredID(DependenceAnalysis::ID());
     AU.addRequiredID(LoopAccessAnalysis::ID());
     AU.addRequiredID(LoopAnalysis::ID());
     AU.addRequiredID(ScalarEvolutionAnalysis::ID());

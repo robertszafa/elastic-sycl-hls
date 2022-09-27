@@ -192,16 +192,19 @@ void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object 
 }
 
 /// Given json file name, return llvm::json::Value
-json::Value parseJsonReport(const std::string fname) {
-  std::ifstream t(fname);
-  std::stringstream buffer;
-  buffer << t.rdbuf();
+json::Value parseJsonReport() {
+  if (const char* fname = std::getenv("LOOP_RAW_REPORT")) {
+    std::ifstream t(fname);
+    std::stringstream buffer;
+    buffer << t.rdbuf();
 
-  auto Json = json::parse(llvm::StringRef(buffer.str()));
-  assert(Json && "Error parsing json loop-raw-report");
+    auto Json = json::parse(llvm::StringRef(buffer.str()));
+    assert(Json && "Error parsing json loop-raw-report");
 
-  if (Json)
     return *Json;
+  }
+
+  assert("Error parsing json loop-raw-report");
   return json::Value(nullptr);
 }
 
@@ -216,7 +219,7 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 
     // Read in report once.
     if (report.empty()) {
-      report = *parseJsonReport(loopRAWReportFilename).getAsObject();
+      report = *parseJsonReport().getAsObject();
     }
 
     auto callers = getCallerFunctions(M, F);

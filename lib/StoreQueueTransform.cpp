@@ -196,6 +196,27 @@ void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object 
   endSignalPipeWriteCall->eraseFromParent();
 }
 
+/// Given a {ld -> st} inter-iteration dependence, move both instructions to the same BB, if possible.
+/// Example this: 
+///     x = hist[idx_scalar];
+///     if (wt > 0)
+///         hist[idx_scalar] = x + 10.0;
+/// Would be transformed into this: 
+///     if (wt > 0)
+///         x = hist[idx_scalar];
+///         hist[idx_scalar] = x + 10.0;
+/// Don't do anything if the move is not possible, e.g. if the ld inst value is used before the st.
+void moveDepPairIntoSameBB(Function &F, FunctionAnalysisManager &AM,
+                           Instruction * storeInstrs, Instruction *loadInstrs) {
+  // If already in same BB, or the ld is used in a BB different to the st BB, then ignore.
+  if (storeInstrs->getParent() == loadInstrs->getParent() || 
+      loadInstrs->isUsedOutsideOfBlock(storeInstrs->getParent())) {
+    return;
+  }
+
+  loadInstrs->moveBefore(storeInstrs->getParent()->getFirstNonPHI());
+}
+
 /// Given json file name, return llvm::json::Value
 json::Value parseJsonReport() {
   if (const char* fname = std::getenv("LOOP_RAW_REPORT")) {
@@ -267,6 +288,9 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
         SmallVector<Instruction *> storeInstrs;
         SmallVector<Instruction *> loadInstrs;
         getDepMemOps(F, AM, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
+        
+        for (int i=0; i<storeInstrs.size(); ++i) 
+          moveDepPairIntoSameBB(F, AM, storeInstrs[i], loadInstrs[i]);
 
         if (load_matches.size() > 1) {
           int iLoad = std::stoi(load_matches[1]);

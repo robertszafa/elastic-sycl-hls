@@ -24,13 +24,14 @@ STOREQ_HEADER = '#include "store_queue.hpp"'
 Q_NAME = 'q'
 # TODO: compute required piped depths
 PIPE_DEPTH = 64
+ST_LATENCY = 20
 IDX_TAG_TYPE = 'pair'
 # This has false positives but we use it only on strings that have a variable name at the beginning
 c_var_regex = r'([a-zA-Z_][a-zA-Z0-9_]*)'
 
 
 def gen_store_queue_syntax(array_name, array_type, num_loads, num_stores, 
-                           forward_q=True, q_size=4, st_latency=17):
+                           forward_q=True, q_size=4):
     return f'''
     //// gen_store_queue_syntax(array_name, num_loads)
     using val_type = {array_type};
@@ -38,7 +39,7 @@ def gen_store_queue_syntax(array_name, array_type, num_loads, num_stores,
     constexpr int kNumStores = {num_stores};
     constexpr bool isQueueForwarding = {'true' if forward_q else 'false'};
     constexpr int kQueueSize = {q_size};
-    constexpr int kStoreLatency = {st_latency};
+    constexpr int kStoreLatency = {ST_LATENCY};
 
     using ld_idx_pipes = PipeArray<class ld_idx_pipes_class, {IDX_TAG_TYPE}, {PIPE_DEPTH}, kNumLoads>;
     using ld_val_pipes = PipeArray<class ld_val_pipes_class, val_type, {PIPE_DEPTH}, kNumLoads>;

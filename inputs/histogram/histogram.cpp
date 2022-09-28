@@ -56,7 +56,7 @@ void histogram_cpu(const int *idx, float *hist, const int N) {
 }
 
 enum data_distribution { ALL_WAIT, NO_WAIT, PERCENTAGE_WAIT };
-void init_data(std::vector<int> &feature, std::vector<int> &hist,
+void init_data(std::vector<int> &feature, std::vector<float> &hist,
                const data_distribution distr, const int percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 100);
@@ -65,7 +65,7 @@ void init_data(std::vector<int> &feature, std::vector<int> &hist,
   int counter=0;
   for (int i = 0; i < feature.size(); i++) {
     if (distr == data_distribution::ALL_WAIT) {
-      feature[i] = (feature.size() >= 4) ? std::max(i-1, 0) : i % feature.size();
+      feature[i] = (feature.size() >= 4) ? i % 4 : 0;
     }
     else if (distr == data_distribution::NO_WAIT) {
       feature[i] = i;
@@ -74,7 +74,7 @@ void init_data(std::vector<int> &feature, std::vector<int> &hist,
       feature[i] = (dice() <= percentage) ? feature[std::max(i-1, 0)] : i;
     }
 
-    hist[i] = 0;
+    hist[i] = 0.0;
   }
 }
 
@@ -136,9 +136,9 @@ int main(int argc, char *argv[]) {
     std::vector<int> feature(ARRAY_SIZE);
     std::vector<float> hist(ARRAY_SIZE);
     std::vector<float> hist_cpu(ARRAY_SIZE);
-    std::iota(feature.begin(), feature.end(), 0);
-    std::fill(hist.begin(), hist.end(), 0.0);
-    std::fill(hist_cpu.begin(), hist_cpu.end(), 0.0);
+
+    init_data(feature, hist, DATA_DISTR, PERCENTAGE);
+    std::copy(hist.begin(), hist.end(), hist_cpu.begin());
 
     auto start = std::chrono::steady_clock::now();
     double kernel_time = 0;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
     if (std::equal(hist.begin(), hist.end(), hist_cpu.begin())) {
       std::cout << "Passed\n";
     } else {
-      std::cout << "Failse\n";
+      std::cout << "Failed\n";
       std::cout << "sum(fpga) = " << std::accumulate(hist.begin(), hist.end(), 0.0) << "\n";
       std::cout << "sum(cpu) = " << std::accumulate(hist_cpu.begin(), hist_cpu.end(), 0.0) << "\n";
     }

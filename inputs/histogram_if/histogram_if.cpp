@@ -64,7 +64,7 @@ void histogram_if_cpu(const int *idx, const int *weight, float *hist, const int 
 }
 
 enum data_distribution { ALL_WAIT, NO_WAIT, PERCENTAGE_WAIT };
-void init_data(std::vector<int> &feature, std::vector<int> &weight, std::vector<int> &hist,
+void init_data(std::vector<int> &feature, std::vector<int> &weight, std::vector<float> &hist,
                const data_distribution distr, const int percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 100);
@@ -73,7 +73,7 @@ void init_data(std::vector<int> &feature, std::vector<int> &weight, std::vector<
   int counter=0;
   for (int i = 0; i < feature.size(); i++) {
     if (distr == data_distribution::ALL_WAIT) {
-      feature[i] = (feature.size() >= 4) ? std::max(i-1, 0) : i % feature.size();
+      feature[i] = (feature.size() >= 4) ? i % 4 : 0;
     }
     else if (distr == data_distribution::NO_WAIT) {
       feature[i] = i;
@@ -83,7 +83,7 @@ void init_data(std::vector<int> &feature, std::vector<int> &weight, std::vector<
     }
 
     weight[i] = (i % 2 == 0) ? 1 : 0;
-    hist[i] = 0;
+    hist[i] = 0.0;
   }
 }
 
@@ -146,11 +146,9 @@ int main(int argc, char *argv[]) {
     std::vector<int> weight(ARRAY_SIZE);
     std::vector<float> hist(ARRAY_SIZE);
     std::vector<float> hist_cpu(ARRAY_SIZE);
-    std::iota(feature.begin(), feature.end(), 0);
-    std::fill(hist.begin(), hist.end(), 0.0);
-    std::fill(hist_cpu.begin(), hist_cpu.end(), 0.0);
 
-    for (int i=0; i<ARRAY_SIZE; ++i) weight[i] = i % 2;
+    init_data(feature, weight, hist, DATA_DISTR, PERCENTAGE);
+    std::copy(hist.begin(), hist.end(), hist_cpu.begin());
 
     auto start = std::chrono::steady_clock::now();
     double kernel_time = 0;
@@ -167,7 +165,7 @@ int main(int argc, char *argv[]) {
     if (std::equal(hist.begin(), hist.end(), hist_cpu.begin())) {
       std::cout << "Passed\n";
     } else {
-      std::cout << "Failse\n";
+      std::cout << "Failed\n";
       std::cout << "sum(fpga) = " << std::accumulate(hist.begin(), hist.end(), 0.0) << "\n";
       std::cout << "sum(cpu) = " << std::accumulate(hist_cpu.begin(), hist_cpu.end(), 0.0) << "\n";
     }

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# $1 - sim/emu
+# $2 - filename to compile
+
 set -e
 
 SRC_FILE="$2"
@@ -11,59 +14,47 @@ LOOP_REPORT_FILE="$SRC_FILE_DIR/loop-raw-report.json"
 
 mkdir -p "$SRC_FILE_DIR/bin"
 
-if [ "$1" == "sim" ]; then
-  TO_BC=./scripts/compile_to_bc_sim.sh
-  FROM_BC=./scripts/compile_from_bc_sim.sh
-  FINAL_BINARY="$SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.fpga_sim"
-else
-  TO_BC=./scripts/compile_to_bc.sh
-  FROM_BC=./scripts/compile_from_bc.sh
-  FINAL_BINARY="$SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.fpga_emu"
-fi
+FINAL_BINARY="$SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.fpga_$1"
 
+###
+### STAGE 1: Get IR of original source and prepare it for mem dep analysis.
+###
+./scripts/compile_to_bc.sh "$1" $SRC_FILE
+./scripts/prepare_ir.sh $SRC_FILE.bc
 
-# Get IR of original source. Prepare IR for mem dep analysis.
-$TO_BC $SRC_FILE
-
-# Generate analysis json report.
+###
+### STAGE 2: Generate analysis json report.
+###
 export LOOP_RAW_REPORT=$LOOP_REPORT_FILE
 ~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libLoopRAWHazardReport.so \
-                         -passes=loop-raw-report $SRC_FILE.ll -o $SRC_FILE.ll > $LOOP_REPORT_FILE
+                         -passes=loop-raw-report $SRC_FILE.bc -o /dev/null > $LOOP_REPORT_FILE
 
+###
+### STAGE 3: Generate kernel & pipe scaffolding code based on report. 
+###
 # Given json report, make kernel copies and pipe read/write calls from correct kernels.
 # Output from this source-to-source transformation will be in $SRC_FILE.tmp.cpp
+# TODO: use clang AST Transormer
 python3 scripts/genKernelsAndPipes.py $LOOP_REPORT_FILE $SRC_FILE
 
-# Get IR of source with kernels and pipes instantiated. 
-$TO_BC $TMP_SRC_FILE
-
-# Transform each kernel to do only one correct work and write/read correct pipes.
+###
+### STAGE 4: Fix IR inside kernels.
+###
 echo "-- Running libStoreQueueTransform on refactored source"
+# Get IR of source with kernels and pipes instantiated. 
+./scripts/compile_to_bc.sh "$1" $TMP_SRC_FILE
+./scripts/prepare_ir.sh $TMP_SRC_FILE.bc
+# Transform each kernel to do only one correct work and write/read correct pipes.
 ~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libStoreQueueTransform.so \
                          -passes=stq-transform $TMP_SRC_FILE.bc -o $TMP_SRC_FILE.bc.out
 
-# Cleanup the transformed IR. The transformation leaves a lot of dead code, unused kernel args, etc.
-~/git/llvm/build/bin/opt --mem2reg \
-                         --deadargelim-sycl \
-                         --simplifycfg \
-                         --loop-simplifycfg \
-                         --loop-rotate \
-                         --lcssa \
-                         --instcombine \
-                         --instsimplify \
-                         --aggressive-instcombine \
-                         --interleaved-access \
-                         --dse \
-                         --adce \
-                         --sroa \
-                         --gvn \
-                         $TMP_SRC_FILE.bc.out -o $TMP_SRC_FILE.bc.out
-
-~/git/llvm/build/bin/llvm-dis $TMP_SRC_FILE.bc.out -o $TMP_SRC_FILE.out.ll
-~/git/llvm/build/bin/llvm-cxxfilt < $TMP_SRC_FILE.out.ll > $TMP_SRC_FILE.demangled.out.ll
-
-# Produce final binary.
+###
+### STAGE 5: Produce final binary.
+###
 echo "-- Compiling into $FINAL_BINARY"
-$FROM_BC $TMP_SRC_FILE.bc.out $TMP_SRC_FILE $FINAL_BINARY
+# Cleanup the transformed IR. The transformation leaves a lot of dead code, unused kernel args, etc.
+./scripts/prepare_ir.sh $TMP_SRC_FILE.bc.out
+./scripts/compile_from_bc.sh $1 $TMP_SRC_FILE.bc.out $TMP_SRC_FILE $FINAL_BINARY
+
 
 echo "done"

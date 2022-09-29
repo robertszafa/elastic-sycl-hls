@@ -89,7 +89,7 @@ void deleteSideEffectInstrAfter(Instruction* InstToDeleteAfter) {
 void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int ithKernel,
                         const int storesSoFarInclusive, const int numStores, const Value *addr,
                         Instruction *memInst) {
-  CallInst *pipeWriteCall = getNthPipeCall(F, ithKernel);
+  CallInst *pipeWriteCall = getNthPipeCall(F, 0);
   assert(pipeWriteCall && "No pipe call in this function\n");
 
   // {idx, tag} struct store instructions.
@@ -153,34 +153,31 @@ void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int ithK
 }
 
 void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object &report,
-                         SmallVector<const Value *> &storeAddrs,
-                         SmallVector<const Value *> &loadAddrs,
-                         SmallVector<Instruction *> &storeInstrs,
-                         SmallVector<Instruction *> &loadInstrs) {
+                         SmallVector<Instruction *> &stores, SmallVector<Instruction *> &loads) {
   // Get pipe calls.
-  SmallVector<CallInst*> loadPipeReadCalls(loadInstrs.size());
-  SmallVector<CallInst*> storePipeWriteCalls(storeInstrs.size());
-  CallInst* endSignalPipeWriteCall = getNthPipeCall(F, storeInstrs.size() + loadInstrs.size());
+  SmallVector<CallInst*> loadPipeReadCalls(loads.size());
+  SmallVector<CallInst*> storePipeWriteCalls(stores.size());
+  CallInst* endSignalPipeWriteCall = getNthPipeCall(F, stores.size() + loads.size());
   Value* storeReqValPtr = endSignalPipeWriteCall->getOperand(0);
 
-  for (size_t i=0; i<loadInstrs.size(); ++i) 
+  for (size_t i=0; i<loads.size(); ++i) 
     loadPipeReadCalls[i] = getNthPipeCall(F, i);
-  for (size_t i=0; i<storeInstrs.size(); ++i) 
-    storePipeWriteCalls[i] = getNthPipeCall(F, i + loadInstrs.size());
+  for (size_t i=0; i<stores.size(); ++i) 
+    storePipeWriteCalls[i] = getNthPipeCall(F, i + loads.size());
 
   // Replace load instructions with calls to pipe::read
-  for (size_t iLoad=0; iLoad<loadInstrs.size(); ++iLoad) {
-    loadPipeReadCalls[iLoad]->moveBefore(loadInstrs[iLoad]);
-    Value* loadVal = dyn_cast<Value>(loadInstrs[iLoad]);
+  for (size_t iLoad=0; iLoad<loads.size(); ++iLoad) {
+    loadPipeReadCalls[iLoad]->moveBefore(loads[iLoad]);
+    Value* loadVal = dyn_cast<Value>(loads[iLoad]);
     loadVal->replaceAllUsesWith(loadPipeReadCalls[iLoad]);
   }
 
   // Replace store instructions with calls to pipe::write
-  for (size_t iStore=0; iStore<storeInstrs.size(); ++iStore) {
-    storePipeWriteCalls[iStore]->moveAfter(storeInstrs[iStore]);
-    storeInstrs[iStore]->setOperand(1, storePipeWriteCalls[iStore]->getOperand(0));
+  for (size_t iStore=0; iStore<stores.size(); ++iStore) {
+    storePipeWriteCalls[iStore]->moveAfter(stores[iStore]);
+    stores[iStore]->setOperand(1, storePipeWriteCalls[iStore]->getOperand(0));
     // Increment num_store_req value for every store_val_pipe write call.
-    IRBuilder<> IR(storeInstrs[iStore]);
+    IRBuilder<> IR(stores[iStore]);
     LoadInst *loadReqInstr = IR.CreateLoad(Type::getInt32Ty(IR.getContext()), storeReqValPtr);
     Value *incReqVal = IR.CreateAdd(IR.getInt32(1), loadReqInstr);
     IR.CreateStore(incReqVal, storeReqValPtr);
@@ -197,26 +194,31 @@ void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object 
 }
 
 /// Given a {ld -> st} inter-iteration dependence, move both instructions to the same BB, if possible.
-/// Example this: 
-///     x = hist[idx_scalar];
-///     if (wt > 0)
-///         hist[idx_scalar] = x + 10.0;
-/// Would be transformed into this: 
-///     if (wt > 0)
-///         x = hist[idx_scalar];
-///         hist[idx_scalar] = x + 10.0;
-/// Don't do anything if the move is not possible, e.g. if the ld inst value is used before the st.
-void moveIntoSameBB(Function &F, FunctionAnalysisManager &AM, Instruction *stI, Instruction *ldI) {
-  // If exists use of ldI whose BasicBlock properly dominates the stI BasicBlock, 
-  // then we cannot move the ldI.
+///   Example this: 
+///       x = hist[idx_scalar];
+///       if (wt > 0)
+///           hist[idx_scalar] = x + 10.0;
+///   Would be transformed into this: 
+///       if (wt > 0)
+///           x = hist[idx_scalar];
+///           hist[idx_scalar] = x + 10.0;
+/// Don't do anything if the move is not possible, e.g. if the ld value is used before the st.
+void moveIntoSameBB(Function &F, FunctionAnalysisManager &AM, Instruction *ldI, Instruction *stI) {
+  if (ldI->getParent() == stI->getParent())
+    return;
+
+  // If exists use of ldI that is not dominated by stI, then we cannot move the ldI.
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
   for (auto ldUser : ldI->users()) {
     if (auto ldUserI = dyn_cast<Instruction>(ldUser)) {
-      if (DT.properlyDominates(ldUserI->getParent(), stI->getParent())) 
+      if (!DT.dominates(stI->getParent(), ldUserI->getParent())) {
+        // errs() << "Store does not dominate ld user\n";
         return;
+      }
     }
   }
 
+  // errs() << "Ld moved\n";
   ldI->moveBefore(stI->getParent()->getFirstNonPHI());
 }
 
@@ -286,27 +288,26 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
         std::regex_search(thisKernelName, load_matches, load_regex);
         std::regex_search(thisKernelName, store_matches, store_regex);
 
-        SmallVector<const Value *> storeAddrs;
-        SmallVector<const Value *> loadAddrs;
-        SmallVector<Instruction *> storeInstrs;
-        SmallVector<Instruction *> loadInstrs;
-        getDepMemOps(F, AM, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
+        SmallVector<Instruction *> loads;
+        SmallVector<Instruction *> stores;
+        SmallVector<DepPairT> depPairs;
+        getDepMemOps(F, AM, loads, stores, depPairs);
         
-        for (int i=0; i<storeInstrs.size(); ++i) 
-          moveIntoSameBB(F, AM, storeInstrs[i], loadInstrs[i]);
+        for (size_t i=0; i<stores.size(); ++i) 
+          moveIntoSameBB(F, AM, loads[i], stores[i]);
 
         if (load_matches.size() > 1) {
           int iLoad = std::stoi(load_matches[1]);
-          int storesSoFarInclusive = getNumInstrsBeforeThisInstr(storeInstrs, loadInstrs[iLoad], F);
-          transformIdxKernel(F, AM, iLoad, storesSoFarInclusive, loadInstrs.size(),
-                             loadAddrs[iLoad], loadInstrs[iLoad]);
+          int storesSoFarInclusive = getNumInstrsBeforeThisInstr(stores, loads[iLoad], F);
+          transformIdxKernel(F, AM, iLoad, storesSoFarInclusive, loads.size(),
+                             dyn_cast<LoadInst>(loads[iLoad])->getPointerOperand(), loads[iLoad]);
         } else if (store_matches.size() > 1) {
           int iStore = std::stoi(store_matches[1]);
           int storesSoFarInclusive = iStore + 1;
-          transformIdxKernel(F, AM, iStore, storesSoFarInclusive, storeInstrs.size(),
-                             storeAddrs[iStore], storeInstrs[iStore]);
+          transformIdxKernel(F, AM, iStore, storesSoFarInclusive, stores.size(),
+                             dyn_cast<StoreInst>(stores[iStore])->getPointerOperand(), stores[iStore]);
         } else {
-          transformMainKernel(F, AM, report, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
+          transformMainKernel(F, AM, report, stores, loads);
         }
       }
     }

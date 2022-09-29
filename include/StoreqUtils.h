@@ -32,11 +32,12 @@ using namespace llvm;
 
 namespace storeq {
 
+using DepPairT = std::pair<Instruction *, Instruction *>;
+
 /// Collect all load and store instruction, and the their address values, that have a RAW
 /// inter-iteration dependence whose scalar evolution is not computable.
-void getDepMemOps(Function &F, FunctionAnalysisManager &AM, SmallVector<const Value *> &storeAddrs,
-                  SmallVector<const Value *> &loadAddrs, SmallVector<Instruction *> &storeInstrs,
-                  SmallVector<Instruction *> &loadInstrs) {
+void getDepMemOps(Function &F, FunctionAnalysisManager &AM, SmallVector<Instruction *> &loads,
+                  SmallVector<Instruction *> &stores, SmallVector<DepPairT> &depPairs) {
   auto &LI = AM.getResult<LoopAnalysis>(F);
   auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
   auto &TTI = AM.getResult<TargetIRAnalysis>(F);
@@ -56,11 +57,11 @@ void getDepMemOps(Function &F, FunctionAnalysisManager &AM, SmallVector<const Va
       if (LAI.canVectorizeMemory())
         continue;
 
-      auto &memInstr = depChecker.getMemoryInstructions();
+      auto &memInstrs = depChecker.getMemoryInstructions();
 
-      for (auto &I0 : memInstr) {
-        for (auto &I1 : memInstr) {
-          // Capture only pairs where load depends on store.
+      for (auto &I0 : memInstrs) {
+        for (auto &I1 : memInstrs) {
+          // Capture only pairs where load depends on store (inter-iteration RAW hazards).
           if (I0 == I1 || !DA.depends(I0, I1, false) || !isa<LoadInst>(I0) || !isa<StoreInst>(I1))
             continue;
 
@@ -75,10 +76,14 @@ void getDepMemOps(Function &F, FunctionAnalysisManager &AM, SmallVector<const Va
             continue;
           }
 
-          loadAddrs.push_back(liPointer);
-          loadInstrs.push_back(li);
-          storeAddrs.push_back(siPointer);
-          storeInstrs.push_back(si);
+          auto depPair = DepPairT{li, si};
+
+          if (std::count(loads.begin(), loads.end(), li) == 0) 
+            loads.push_back(li);
+          if (std::count(stores.begin(), stores.end(), si) == 0) 
+            stores.push_back(si);
+          if (std::count(depPairs.begin(), depPairs.end(), depPair) == 0) 
+            depPairs.push_back(depPair);
         }
       }
     }
@@ -107,7 +112,7 @@ SmallVector<Function *> getCallerFunctions(Module *M, Function &F) {
   return callers;
 }
 
-/// This function can be used to identrify spir functions that need to be transformed.
+/// This function can be used to identify spir functions that need to be transformed.
 /// This is done by detecting annotations.
 SmallVector<Function *> getAnnotatedFunctions(Module *M) {
   SmallVector<Function *> annotFuncs;

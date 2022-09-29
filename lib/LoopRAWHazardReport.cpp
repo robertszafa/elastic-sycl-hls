@@ -35,30 +35,30 @@
 #include <cassert>
 #include <regex>
 #include <string>
+#include <utility>
 
 using namespace llvm;
 
 namespace storeq {
 
-json::Object generateReport(Function &F, SmallVector<const Value *> &storeAddrs,
-                            SmallVector<const Value *> &loadAddrs,
-                            SmallVector<Instruction *> &storeInstrs,
-                            SmallVector<Instruction *> &loadInstrs) {
+json::Object generateReport(Function &F, SmallVector<Instruction *> &loads,
+                            SmallVector<Instruction *> &stores, SmallVector<DepPairT> &depPairs) {
   json::Object report;
   auto callers = getCallerFunctions(F.getParent(), F);
   // A spir_func lambda is called only once from one kernel.
   if (callers.size() == 1) {
     report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
     report["spir_func_name"] = demangle(std::string(F.getName()));
-    report["num_copies"] = storeInstrs.size() + loadInstrs.size();
-    report["num_loads"] = loadInstrs.size();
-    report["num_stores"] = storeInstrs.size();
-    report["array_line"] = storeInstrs[0]->getDebugLoc().getLine();
-    report["array_column"] = storeInstrs[0]->getDebugLoc()->getColumn();
+    report["num_copies"] = stores.size() + loads.size();
+    report["num_loads"] = loads.size();
+    report["num_stores"] = stores.size();
+    report["num_dep_pairs"] = depPairs.size();
+    report["array_line"] = stores[0]->getDebugLoc().getLine();
+    report["array_column"] = stores[0]->getDebugLoc()->getColumn();
 
     std::string typeStr;
     llvm::raw_string_ostream rso(typeStr);
-    storeInstrs[0]->getOperand(0)->getType()->print(rso);
+    stores[0]->getOperand(0)->getType()->print(rso);
     report["val_type"] = rso.str();
   }
 
@@ -68,15 +68,15 @@ json::Object generateReport(Function &F, SmallVector<const Value *> &storeAddrs,
 // This method implements what the pass does
 void visitor(Function &F, FunctionAnalysisManager &AM) {
   // Get all memory loads and stores that form a RAW hazard dependence.
-  SmallVector<const Value *> storeAddrs;
-  SmallVector<const Value *> loadAddrs;
-  SmallVector<Instruction *> storeInstrs;
-  SmallVector<Instruction *> loadInstrs;
-  getDepMemOps(F, AM, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
-  bool isAnyRAW = storeInstrs.size() > 0;
+  SmallVector<Instruction *> loads;
+  SmallVector<Instruction *> stores;
+  SmallVector<DepPairT> depPairs;
+
+  getDepMemOps(F, AM, loads, stores, depPairs);
+  bool isAnyRAW = stores.size() > 0;
 
   if (isAnyRAW) {
-    json::Object report = generateReport(F, storeAddrs, loadAddrs, storeInstrs, loadInstrs);
+    json::Object report = generateReport(F, loads, stores, depPairs);
     outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n"; 
   } 
   else {

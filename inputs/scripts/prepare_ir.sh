@@ -2,6 +2,7 @@
 
 # Perform a number of transformations to easy analysis.
  ~/git/llvm/build/bin/opt --mem2reg \
+                          --lcssa \
                           --deadargelim-sycl \
                           --simplifycfg \
                           --loop-simplifycfg \
@@ -17,7 +18,6 @@
                           "$1" -o "$1"
                           # --licm \
                           # --loop-rotate \
-                          # --lcssa \
                           # --stats \
 
 # Get human readable bitcode

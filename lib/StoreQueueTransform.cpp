@@ -7,12 +7,17 @@
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/ScalarEvolution.h"
+#include "llvm/Analysis/PostDominators.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Operator.h"
+#include <cstddef>
+#include <llvm/IR/Attributes.h>
+#include <llvm/IR/Constant.h>
 #include <llvm/IR/Function.h>
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
+#include "llvm/Transforms/Utils/Cloning.h"
 
 #include "llvm/Pass.h"
 #include "llvm/Passes/PassBuilder.h"
@@ -69,16 +74,19 @@ CallInst* getNthPipeCall(Function &F, const int n) {
 
 /// Delete any side-effect instructions and their users that come after {InstToDeleteAfter}.
 /// (Uses of deleteded Values are replaced with undefs).
-void deleteSideEffectInstrAfter(Instruction* InstToDeleteAfter) {
+void deleteSideEffectInstrAfter(Instruction* cutOffInst) {
   SmallVector<Instruction *> instToDelete;
+
   bool isAfterCutoff = false;
-  for (Instruction &inst : InstToDeleteAfter->getParent()->getInstList()) {
+  BasicBlock *cutOffBB = cutOffInst->getParent();
+  for (Instruction &inst : cutOffBB->getInstList()) {
     if (isAfterCutoff && (isa<StoreInst>(&inst) || isa<LoadInst>(&inst))) {
       instToDelete.emplace_back(&inst);
-    } else if (InstToDeleteAfter->isIdenticalTo(&inst)) {
+    } else if (cutOffInst->isIdenticalTo(&inst)) {
       isAfterCutoff = true;
     }
   }
+
   for (Instruction *inst : instToDelete) {
     inst->dropAllReferences();
     inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
@@ -86,17 +94,80 @@ void deleteSideEffectInstrAfter(Instruction* InstToDeleteAfter) {
   }
 }
 
+void deleteInstruction(Instruction *inst) {
+  inst->dropAllReferences();
+  inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
+  inst->eraseFromParent();
+}
+
+/// Given a {keepI} instruction, delete all stores in F where a {keepI} doesn't dependent on it.  
+void deleteStoresAfterI(Function &F, FunctionAnalysisManager &AM, Instruction *cutOffI) {
+  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+
+  // First delete stores in the cutOffI's BB.
+  SmallVector<Instruction *> instToDelete;
+  bool isAfterCutoff = false;
+  BasicBlock *cutOffBB = cutOffI->getParent();
+  for (Instruction &inst : cutOffBB->getInstList()) {
+    if (isAfterCutoff && (isa<StoreInst>(&inst) || isa<LoadInst>(&inst))) {
+      instToDelete.emplace_back(&inst);
+    } else if (cutOffI->isIdenticalTo(&inst)) {
+      isAfterCutoff = true;
+    }
+  }
+
+  // Now delete all stores in BB's dominated by cuttOffI.
+  for (auto &BB : F) {
+    for (auto &I : BB) {
+      if (isa<StoreInst>(&I) && DT.properlyDominates(cutOffBB, &BB)) 
+        instToDelete.emplace_back(&I);
+    }
+  }
+
+  for (Instruction *inst : instToDelete) 
+    deleteInstruction(inst);
+}
+
+/// Assumes F has one exit BB after the --mergereturn pass.
+BasicBlock* getExitBB(Function &F) {
+  BasicBlock *exit = nullptr;
+  for (auto &BB : F) {
+    for (auto &I : BB) {
+      assert(!(isa<ReturnInst>(I) && exit != nullptr) && "Precondition of single exit BB violated\n");
+
+      if (isa<ReturnInst>(I) && exit == nullptr) {
+        exit = &BB;
+        continue;
+      }
+    }
+  }
+
+  return exit;
+}
+
+// Check if {I} is control dependent, i.e. is there a path going through L.latch without {I}?
+bool isControlDependent(Function &F, FunctionAnalysisManager &AM, Instruction *I) {
+  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+  
+  Loop *L = getBBLoop(AM.getResult<LoopAnalysis>(F), I->getParent());
+  assert(L && "Instruction not part of loop in isControlDependent()\n");
+  auto latchBB = L->getLoopLatch();
+
+  return !(DT.dominates(I->getParent(), latchBB));
+}
+
+
 void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int ithKernel,
                         const int storesSoFarInclusive, const int numStores, const Value *addr,
                         Instruction *memInst) {
   CallInst *pipeWriteCall = getNthPipeCall(F, 0);
   assert(pipeWriteCall && "No pipe call in this function\n");
 
+  Loop *L = getBBLoop(AM.getResult<LoopAnalysis>(F), memInst->getParent());
+  
   // {idx, tag} struct store instructions.
   SmallVector<StoreInst *, 2> storesToStruct;
-  Value *idxPipeWriteArg = pipeWriteCall->getArgOperand(0);
-  // Get first store instruction for each GEP value.
-  for (auto user : idxPipeWriteArg->users()) {
+  for (auto user : pipeWriteCall->getArgOperand(0)->users()) {
     if (auto gep = dyn_cast<GetElementPtrInst>(user)) {
       for (auto userGEP : gep->users()) {
         if (auto stInstr = dyn_cast<StoreInst>(userGEP)) {
@@ -106,50 +177,56 @@ void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int ithK
       }
     }
   }
+  auto tagStoreInHeader = storesToStruct[0];
+  auto idxStoreInHEader = storesToStruct[1];
 
-  const GetElementPtrInst *idxGEP = dyn_cast<GetElementPtrInst>(addr);
-  Value *idxVal = idxGEP->getOperand(1);
-
-  // Move pipe call and {idx, tag} struct strores into the correct place.
-  pipeWriteCall->moveBefore(memInst);
+  // Move {idx, tag} struct strores into Loop header. Pipe write into loop latch.
+  // The loop header will store correct tag, and dummy idx. Later the loop body 
+  // (depending on control flow) will store the correct idx.
+  // The loop latch BB can be the only BB in the body, so need to insert call at the end.
+  pipeWriteCall->moveBefore(L->getLoopLatch()->getTerminator());
   for (auto &st : storesToStruct)
-    st->moveBefore(pipeWriteCall);
-
-  auto tagSctructStore = storesToStruct[0];
-  auto idxSctructStore = storesToStruct[1];
+    st->moveBefore(L->getHeader()->getTerminator());
 
   // Add idx struct store (storing to {idx, tag} struct).
-  auto idxTypeForPipe = idxSctructStore->getOperand(0)->getType();
+  // Dummy idx=-1 in loop header. Actual idx (which might be control dependent) in loop body.
+  const GetElementPtrInst *idxGEP = dyn_cast<GetElementPtrInst>(addr);
+  Value *idxVal = idxGEP->getOperand(1);
+  auto idxTypeForPipe = idxStoreInHEader->getOperand(0)->getType();
+  idxStoreInHEader->setOperand(0, ConstantInt::get(idxTypeForPipe, -1));
+  auto idxStoreInBody = idxStoreInHEader->clone();
+  idxStoreInBody->insertBefore(memInst);
   auto idxCasted = TruncInst::CreateTruncOrBitCast(idxVal, idxTypeForPipe, "",
-                                                   dyn_cast<Instruction>(idxSctructStore));
-  idxSctructStore->setOperand(0, idxCasted);
+                                                   dyn_cast<Instruction>(idxStoreInBody));
+  idxStoreInBody->setOperand(0, idxCasted);
+
+  // No need for memInst store anyore, delete it and any other stores dominated by it. 
+  // Any values that are postdominated by the deleted instructions will be deleted by dce.
+  deleteStoresAfterI(F, AM, memInst);
+  if (isa<StoreInst>(memInst)) deleteInstruction(memInst);
 
   // Add tag struct store and tag generation instructions. 
   // TODO: generalise tag generation to nested loops
   IRBuilder<> Builder(F.getEntryBlock().getTerminator());
-
-  // Initialize base tag to 0.
-  auto tagTypeForPipe = tagSctructStore->getOperand(0)->getType();
+  // In function entry, alloca for baseTag. Set baseTag=0.
+  auto tagTypeForPipe = tagStoreInHeader->getOperand(0)->getType();
   Value *baseTagAddr = Builder.CreateAlloca(tagTypeForPipe);  
   Builder.CreateStore(ConstantInt::get(tagTypeForPipe, 0), baseTagAddr);
-
-  // Load base tag in the BB where the {idx, tag} pipe write occurs.
-  Builder.SetInsertPoint(tagSctructStore);
-  Value *baseTag = Builder.CreateLoad(tagTypeForPipe, baseTagAddr);
-
+  // In loop header, load base tag in the BB where the {idx, tag} pipe write occurs.
   // Calculate: tag = loopInductionVar * kNumStoresInLoop + storesSoFarInclusive
+  // Builder.SetInsertPoint(L->getHeader());
+  Builder.SetInsertPoint(tagStoreInHeader);
+  Value *baseTag = Builder.CreateLoad(tagTypeForPipe, baseTagAddr);
   auto storesSoFarInclVal = ConstantInt::get(tagTypeForPipe, storesSoFarInclusive);
   auto numStoresVal = ConstantInt::get(tagTypeForPipe, numStores);
   auto baseTagTimesNumStoresVal = Builder.CreateMul(baseTag, numStoresVal);
   Value *tag = Builder.CreateAdd(baseTagTimesNumStoresVal, storesSoFarInclVal);
-  tagSctructStore->setOperand(0, tag);
+  tagStoreInHeader->setOperand(0, tag);
 
-  // Increment base tag after {idx, tag} pipe write.
+  // In loop latch, increment base tag after {idx, tag} pipe write.
   Builder.SetInsertPoint(pipeWriteCall);
   Value *baseTagNext = Builder.CreateAdd(baseTag, ConstantInt::get(tagTypeForPipe, 1));
   Builder.CreateStore(baseTagNext, baseTagAddr);
-
-  deleteSideEffectInstrAfter(pipeWriteCall);
 }
 
 void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object &report,
@@ -203,23 +280,30 @@ void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object 
 ///           x = hist[idx_scalar];
 ///           hist[idx_scalar] = x + 10.0;
 /// Don't do anything if the move is not possible, e.g. if the ld value is used before the st.
-void moveIntoSameBB(Function &F, FunctionAnalysisManager &AM, Instruction *ldI, Instruction *stI) {
-  if (ldI->getParent() == stI->getParent())
-    return;
+void tryMoveIntoSameBB(Function &F, FunctionAnalysisManager &AM, SmallVector<DepPairT> &depPairs) {
+  for (auto &depPair : depPairs) {
+    auto &&src = depPair.first;
+    auto &&dst = depPair.second;
 
-  // If exists use of ldI that is not dominated by stI, then we cannot move the ldI.
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  for (auto ldUser : ldI->users()) {
-    if (auto ldUserI = dyn_cast<Instruction>(ldUser)) {
-      if (!DT.dominates(stI->getParent(), ldUserI->getParent())) {
-        // errs() << "Store does not dominate ld user\n";
-        return;
+    if (src->getParent() == dst->getParent())
+      continue;
+
+    // If exists use of ldI that is not dominated by stI, then we cannot move the ldI.
+    auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+    errs() << "DT.isPostDominator " << DT.isPostDominator() << "\n";
+
+    for (auto srcUser : src->users()) {
+      if (auto srcUserI = dyn_cast<Instruction>(srcUser)) {
+        if (!DT.dominates(dst->getParent(), srcUserI->getParent())) {
+          errs() << "Dst does not dominate src user\n";
+          continue;
+        }
       }
     }
-  }
 
-  // errs() << "Ld moved\n";
-  ldI->moveBefore(stI->getParent()->getFirstNonPHI());
+    errs() << "Ld moved\n";
+    src->moveBefore(dst->getParent()->getFirstNonPHI());
+  }
 }
 
 /// Given json file name, return llvm::json::Value
@@ -290,11 +374,10 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 
         SmallVector<Instruction *> loads;
         SmallVector<Instruction *> stores;
+        // Holds {loads[i], storej[j]} pairs. 
         SmallVector<DepPairT> depPairs;
+
         getDepMemOps(F, AM, loads, stores, depPairs);
-        
-        for (size_t i=0; i<stores.size(); ++i) 
-          moveIntoSameBB(F, AM, loads[i], stores[i]);
 
         if (load_matches.size() > 1) {
           int iLoad = std::stoi(load_matches[1]);
@@ -330,6 +413,7 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
     AU.addRequiredID(TargetLibraryAnalysis::ID());
     AU.addRequiredID(AAManager::ID());
     AU.addRequiredID(AssumptionAnalysis::ID());
+    AU.addRequiredID(PostDominatorTreeAnalysis::ID());
   }
 };
 

@@ -90,6 +90,21 @@ void getDepMemOps(Function &F, FunctionAnalysisManager &AM, SmallVector<Instruct
   }
 }
 
+/// Given a BasicBlock, return the inner-most loop that it belongs to.
+/// Return nullptr if it doesn't belong to any loop.
+Loop *getBBLoop(LoopInfo &LI, BasicBlock *BB) {
+  Loop *res = nullptr;
+
+  for (Loop *TopLevelLoop : LI) {
+    for (Loop *L : depth_first(TopLevelLoop)) {
+      if (L->contains(BB))
+        res = L;
+    }
+  }
+
+  return res;
+}
+
 /// Given Function {F}, return all Functions that call {F}.
 SmallVector<Function *> getCallerFunctions(Module *M, Function &F) {
   // The expected case is one caller.

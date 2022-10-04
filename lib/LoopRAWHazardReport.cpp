@@ -65,8 +65,7 @@ json::Object generateReport(Function &F, SmallVector<Instruction *> &loads,
   return report;
 }
 
-// This method implements what the pass does
-void visitor(Function &F, FunctionAnalysisManager &AM) {
+void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
   // Get all memory loads and stores that form a RAW hazard dependence.
   SmallVector<Instruction *> loads;
   SmallVector<Instruction *> stores;
@@ -87,12 +86,14 @@ void visitor(Function &F, FunctionAnalysisManager &AM) {
 struct LoopRAWHazardReport : PassInfoMixin<LoopRAWHazardReport> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    // F.getLinkage() == llvm::GlobalValue::InternalLinkage) 
+    bool preserveAnalysis = true;
+
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
-      visitor(F, AM);
+      preserveAnalysis = ifConversionForStores(F, AM);
+      analyseRAW(F, AM);
     }
 
-    return PreservedAnalyses::all();
+    return preserveAnalysis ? PreservedAnalyses::all() : PreservedAnalyses::none();
   }
 
   // Without isRequired returning true, this pass will be skipped for functions

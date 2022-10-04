@@ -94,12 +94,6 @@ void deleteSideEffectInstrAfter(Instruction* cutOffInst) {
   }
 }
 
-void deleteInstruction(Instruction *inst) {
-  inst->dropAllReferences();
-  inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
-  inst->eraseFromParent();
-}
-
 /// Given a {keepI} instruction, delete all stores in F where a {keepI} doesn't dependent on it.  
 void deleteStoresAfterI(Function &F, FunctionAnalysisManager &AM, Instruction *cutOffI) {
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
@@ -270,42 +264,6 @@ void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object 
   endSignalPipeWriteCall->eraseFromParent();
 }
 
-/// Given a {ld -> st} inter-iteration dependence, move both instructions to the same BB, if possible.
-///   Example this: 
-///       x = hist[idx_scalar];
-///       if (wt > 0)
-///           hist[idx_scalar] = x + 10.0;
-///   Would be transformed into this: 
-///       if (wt > 0)
-///           x = hist[idx_scalar];
-///           hist[idx_scalar] = x + 10.0;
-/// Don't do anything if the move is not possible, e.g. if the ld value is used before the st.
-void tryMoveIntoSameBB(Function &F, FunctionAnalysisManager &AM, SmallVector<DepPairT> &depPairs) {
-  for (auto &depPair : depPairs) {
-    auto &&src = depPair.first;
-    auto &&dst = depPair.second;
-
-    if (src->getParent() == dst->getParent())
-      continue;
-
-    // If exists use of ldI that is not dominated by stI, then we cannot move the ldI.
-    auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-    errs() << "DT.isPostDominator " << DT.isPostDominator() << "\n";
-
-    for (auto srcUser : src->users()) {
-      if (auto srcUserI = dyn_cast<Instruction>(srcUser)) {
-        if (!DT.dominates(dst->getParent(), srcUserI->getParent())) {
-          errs() << "Dst does not dominate src user\n";
-          continue;
-        }
-      }
-    }
-
-    errs() << "Ld moved\n";
-    src->moveBefore(dst->getParent()->getFirstNonPHI());
-  }
-}
-
 /// Given json file name, return llvm::json::Value
 json::Value parseJsonReport() {
   if (const char* fname = std::getenv("LOOP_RAW_REPORT")) {
@@ -368,6 +326,8 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
       // The names of kernels that we need to transform are guaranteed to begin with mainKernelName.
       if (std::equal(mainKernelName.begin(), mainKernelName.end(), thisKernelName.begin())) {
+        ifConversionForStores(F, AM);
+
         std::smatch load_matches, store_matches;
         std::regex_search(thisKernelName, load_matches, load_regex);
         std::regex_search(thisKernelName, store_matches, store_regex);

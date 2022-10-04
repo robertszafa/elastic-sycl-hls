@@ -9,6 +9,7 @@
 #include "llvm/IR/Value.h"
 #include <llvm/IR/BasicBlock.h>
 
+#include "llvm/Analysis/CFG.h"
 #include "llvm/Analysis/AssumptionCache.h"
 #include "llvm/Analysis/DependenceAnalysis.h"
 #include "llvm/Analysis/GlobalsModRef.h"
@@ -144,13 +145,131 @@ SmallVector<Function *> getAnnotatedFunctions(Module *M) {
             dyn_cast<ConstantDataArray>(AnnotationGL->getInitializer())->getAsCString();
         if (annotation.compare(AnnotationString) == 0) {
           annotFuncs.push_back(FUNC);
-          // errs() << "Found annotated function " << FUNC->getName()<<"\n";
         }
       }
     }
   }
 
   return annotFuncs;
+}
+
+void deleteInstruction(Instruction *inst) {
+  inst->dropAllReferences();
+  inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
+  inst->eraseFromParent();
+}
+
+/// Given a vector of stores, cluster them into equivalence sets, where equivalence is defined
+/// as writing to the same address.
+SmallVector<SmallVector<Instruction *>> 
+getEquivalentStores(SmallVector<Instruction *> &stores) {
+  SmallVector<SmallVector<Instruction *>> storeEquivalenceClasses;
+
+  int num_classes = 0;
+  for (auto &si : stores) {
+    auto siAddrI = dyn_cast<Instruction>(dyn_cast<StoreInst>(si)->getPointerOperand());
+    bool foundClass = false;
+
+    // Compare si->pointerOperand to pointer operand from the eq classes.
+    // If there is a match, add it to the matching class.
+    for (auto &eqClass : storeEquivalenceClasses) {
+      auto eqClassI = dyn_cast<StoreInst>(eqClass[0]);
+      auto eqClassAddrI = dyn_cast<Instruction>(eqClassI->getPointerOperand());
+
+      // isIdenticalTo would only match when the valueIDs are the same.
+      if (eqClassAddrI->isSameOperationAs(siAddrI)) {
+        eqClass.emplace_back(si);
+        foundClass = true;
+        break;
+      }
+    }
+
+    // If there is no match, create new class and add si to it.
+    if (!foundClass) {
+      storeEquivalenceClasses.emplace_back(SmallVector<Instruction *>());
+      storeEquivalenceClasses[num_classes].emplace_back(stores[0]);
+      num_classes++;
+    }
+  }
+
+  return storeEquivalenceClasses;
+}
+
+/// Given two basic blocks (with same pre/successors), each containing a store instruction writing
+/// to the same address, convert the 2 stores into one store in the successor -- if-conversion.
+void doIfConversionForStore(SmallVector<Instruction *> stores) {
+  if (stores.size() < 2) return;
+
+  // Create a phi = (si0.operand, si1.operand, ...)
+  IRBuilder<> Builder(stores[0]->getParent()->getSingleSuccessor()->getFirstNonPHI());
+  auto valPhi = Builder.CreatePHI(stores[0]->getOperand(0)->getType(), stores.size());
+  
+  for (auto &si : stores) 
+    valPhi->addIncoming(si->getOperand(0), si->getParent());
+
+  // Move store 0 to succ and set val to the phi.
+  stores[0]->moveAfter(valPhi);
+  stores[0]->setOperand(0, valPhi);
+  // Delete rest of stores.
+  for (size_t i=1; i<stores.size(); ++i)
+    deleteInstruction(stores[i]);
+}
+
+/// Turn:
+///   if (..)
+///     hist[i] = calc(x)
+///   else
+///     hist[i] = calc(y)
+///
+/// Into:
+///   if (..)
+///     calc(x)
+///   else
+///     calc(y)
+///   hist[i] = phi(x, y)
+bool ifConversionForStores(Function &F, FunctionAnalysisManager &AM) {
+  bool isTransformed = false;
+
+  // Get all memory loads and stores that form a RAW hazard dependence.
+  SmallVector<Instruction *> loads;
+  SmallVector<Instruction *> stores;
+  SmallVector<DepPairT> depPairs;
+
+  getDepMemOps(F, AM, loads, stores, depPairs);
+  if (stores.size() == 0) return isTransformed;
+
+  // Each class holds stores with the same address expression
+  SmallVector<SmallVector<Instruction *>> eqStoreClasses = getEquivalentStores(stores);
+
+  // Now check if there is a path from the Loop header to Loop latch that doesn't go through any
+  // of the stores. If that's the case, then there exists an execution path without the store,
+  // and we cannot do the if-conversion.
+  auto &LI = AM.getResult<LoopAnalysis>(F);
+  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+  for (auto &eqClass : eqStoreClasses) {
+    if (eqClass.size() > 32) {
+      errs() << "Warning: Exceeded num equivalent stores in ifConversionForStores() (TODO: split)\n";
+      continue;
+    }
+
+    // Put stores into a set, expected by the CFG analysis API (with max capacity of 32).
+    SmallPtrSet<BasicBlock *, 32> exclusionSet;
+    for (auto &si : eqClass)
+      exclusionSet.insert(si->getParent());
+
+    auto *L = getBBLoop(LI, eqClass[0]->getParent());
+    if (!isPotentiallyReachable(L->getHeader(), L->getLoopLatch(), &exclusionSet, &DT, &LI)) {
+      // No header->latch path without store in eqClass. Do ifConversion, invalidate analysis'
+      // (since we're chaning the IR), and call ifConversionForStores() recursively with changed IR.
+      doIfConversionForStore(eqClass);
+      isTransformed = true;
+      AM.invalidate(F, PreservedAnalyses::none());
+      ifConversionForStores(F, AM);
+      break;
+    }
+  }
+
+  return isTransformed;
 }
 
 

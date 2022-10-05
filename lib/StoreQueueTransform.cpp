@@ -1,18 +1,12 @@
 #include "StoreqUtils.h"
 
-#include "llvm/Analysis/AssumptionCache.h"
-#include "llvm/Analysis/DependenceAnalysis.h"
-#include "llvm/Analysis/GlobalsModRef.h"
-#include "llvm/Analysis/LoopAccessAnalysis.h"
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/ScalarEvolution.h"
-#include "llvm/Analysis/PostDominators.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Operator.h"
-#include <cstddef>
 #include <llvm/IR/Attributes.h>
 #include <llvm/IR/Constant.h>
 #include <llvm/IR/Function.h>
@@ -38,8 +32,8 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
-#include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/JSON.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <algorithm>
 #include <cassert>
@@ -334,10 +328,7 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 
         SmallVector<Instruction *> loads;
         SmallVector<Instruction *> stores;
-        // Holds {loads[i], storej[j]} pairs. 
-        SmallVector<DepPairT> depPairs;
-
-        getDepMemOps(F, AM, loads, stores, depPairs);
+        getMemInstrsWithRAW(F, AM, loads, stores);
 
         if (load_matches.size() > 1) {
           int iLoad = std::stoi(load_matches[1]);
@@ -364,16 +355,9 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
   static bool isRequired() { return true; }
 
   void getAnalysisUsage(AnalysisUsage &AU) const {
-    AU.addRequiredID(DependenceAnalysis::ID());
-    AU.addRequiredID(LoopAccessAnalysis::ID());
     AU.addRequiredID(LoopAnalysis::ID());
     AU.addRequiredID(ScalarEvolutionAnalysis::ID());
-    AU.addRequiredID(TargetIRAnalysis::ID());
     AU.addRequiredID(DominatorTreeAnalysis::ID());
-    AU.addRequiredID(TargetLibraryAnalysis::ID());
-    AU.addRequiredID(AAManager::ID());
-    AU.addRequiredID(AssumptionAnalysis::ID());
-    AU.addRequiredID(PostDominatorTreeAnalysis::ID());
   }
 };
 

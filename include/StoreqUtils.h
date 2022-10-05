@@ -7,6 +7,7 @@
 #include "llvm/IR/Dominators.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
+#include <llvm/ADT/DenseMap.h>
 #include <llvm/IR/BasicBlock.h>
 
 #include "llvm/Analysis/CFG.h"
@@ -24,6 +25,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/Support/Casting.h"
+#include <llvm/Support/raw_ostream.h>
 
 #include <fstream>
 #include <sstream>
@@ -33,60 +35,56 @@ using namespace llvm;
 
 namespace storeq {
 
-using DepPairT = std::pair<Instruction *, Instruction *>;
-
 /// Collect all load and store instruction, and the their address values, that have a RAW
 /// inter-iteration dependence whose scalar evolution is not computable.
-void getDepMemOps(Function &F, FunctionAnalysisManager &AM, SmallVector<Instruction *> &loads,
-                  SmallVector<Instruction *> &stores, SmallVector<DepPairT> &depPairs) {
+void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<Instruction *> &loads,
+                         SmallVector<Instruction *> &stores) {
   auto &LI = AM.getResult<LoopAnalysis>(F);
   auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
-  auto &TTI = AM.getResult<TargetIRAnalysis>(F);
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
-  auto &AA = AM.getResult<AAManager>(F);
-  auto &AC = AM.getResult<AssumptionAnalysis>(F);
-  auto &DA = AM.getResult<DependenceAnalysis>(F);
-  auto &LAM = AM.getResult<LoopAnalysisManagerFunctionProxy>(F).getManager();
-  LoopStandardAnalysisResults AR = {AA, AC, DT, LI, SE, TLI, TTI, nullptr, nullptr, nullptr};
 
+  // Collect all base addresses that are stored to with an SE uncomputable index inside a loop.
+  DenseMap<const SCEV *, SmallVector<Instruction *>> memInstrs;
   for (Loop *TopLevelLoop : LI) {
     for (Loop *L : depth_first(TopLevelLoop)) {
-      auto &LAI = LAM.getResult<LoopAccessAnalysis>(*L, AR);
-      auto depChecker = LAI.getDepChecker();
-      
-      if (LAI.canVectorizeMemory())
-        continue;
-
-      auto &memInstrs = depChecker.getMemoryInstructions();
-
-      for (auto &I0 : memInstrs) {
-        for (auto &I1 : memInstrs) {
-          // Capture only pairs where load depends on store (inter-iteration RAW hazards).
-          if (I0 == I1 || !DA.depends(I0, I1, false) || !isa<LoadInst>(I0) || !isa<StoreInst>(I1))
-            continue;
-
-          auto li = dyn_cast<LoadInst>(I0);
-          auto si = dyn_cast<StoreInst>(I1);
-          auto liPointer = li->getPointerOperand();
-          auto siPointer = si->getPointerOperand();
-
-          // If both load and store pointers have a computable scalar evolution, then ignore. 
-          if (SE.hasComputableLoopEvolution(SE.getSCEV(liPointer), L) && 
-              SE.hasComputableLoopEvolution(SE.getSCEV(siPointer), L)) {
-            continue;
+      for (auto &BB : L->getBlocks()) {
+        for (auto &I : *BB) {
+          if (auto si = dyn_cast<StoreInst>(&I)) {
+            auto siPointerSE = SE.getSCEV(si->getPointerOperand());
+            auto siPointerBaseSE = SE.getPointerBase(siPointerSE);
+            if (!SE.hasComputableLoopEvolution(siPointerSE, L)) {
+              memInstrs[siPointerBaseSE].emplace_back(&I);
+            }
           }
-
-          auto depPair = DepPairT{li, si};
-
-          if (std::count(loads.begin(), loads.end(), li) == 0) 
-            loads.push_back(li);
-          if (std::count(stores.begin(), stores.end(), si) == 0) 
-            stores.push_back(si);
-          if (std::count(depPairs.begin(), depPairs.end(), depPair) == 0) 
-            depPairs.push_back(depPair);
         }
       }
+    }
+  }
+
+  // Collect loads seperately.
+  // TODO: check if loads and stores are part of the same loop?
+  for (Loop *TopLevelLoop : LI) {
+    for (Loop *L : depth_first(TopLevelLoop)) {
+      for (auto &BB : L->getBlocks()) {
+        for (auto &I : *BB) {
+          if (auto li = dyn_cast<LoadInst>(&I)) {
+            auto liPointerSE = SE.getSCEV(li->getPointerOperand());
+            auto liPointerBaseSE = SE.getPointerBase(liPointerSE);
+            if (memInstrs.find(liPointerBaseSE) != memInstrs.end()) {
+              memInstrs[liPointerBaseSE].emplace_back(&I);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // TODO: deal with stores/loads to multiple base adrresses.
+  for (auto &kv : memInstrs) {
+    for (auto &I : kv.getSecond()) {
+      if (isa<LoadInst>(I)) 
+        loads.push_back(I);
+      else if (isa<StoreInst>(I)) 
+        stores.push_back(I);
     }
   }
 }
@@ -233,9 +231,8 @@ bool ifConversionForStores(Function &F, FunctionAnalysisManager &AM) {
   // Get all memory loads and stores that form a RAW hazard dependence.
   SmallVector<Instruction *> loads;
   SmallVector<Instruction *> stores;
-  SmallVector<DepPairT> depPairs;
 
-  getDepMemOps(F, AM, loads, stores, depPairs);
+  getMemInstrsWithRAW(F, AM, loads, stores);
   if (stores.size() == 0) return isTransformed;
 
   // Each class holds stores with the same address expression

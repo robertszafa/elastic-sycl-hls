@@ -1,9 +1,5 @@
 #include "StoreqUtils.h"
 
-#include "llvm/Analysis/AssumptionCache.h"
-#include "llvm/Analysis/DependenceAnalysis.h"
-#include "llvm/Analysis/GlobalsModRef.h"
-#include "llvm/Analysis/LoopAccessAnalysis.h"
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/ScalarEvolution.h"
@@ -28,8 +24,8 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
-#include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/JSON.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <algorithm>
 #include <cassert>
@@ -42,17 +38,16 @@ using namespace llvm;
 namespace storeq {
 
 json::Object generateReport(Function &F, SmallVector<Instruction *> &loads,
-                            SmallVector<Instruction *> &stores, SmallVector<DepPairT> &depPairs) {
+                            SmallVector<Instruction *> &stores) {
   json::Object report;
   auto callers = getCallerFunctions(F.getParent(), F);
   // A spir_func lambda is called only once from one kernel.
   if (callers.size() == 1) {
     report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
     report["spir_func_name"] = demangle(std::string(F.getName()));
-    report["num_copies"] = stores.size() + loads.size();
+    report["num_copies"] = 1 + loads.size(); // 1 store idx kernel
     report["num_loads"] = loads.size();
     report["num_stores"] = stores.size();
-    report["num_dep_pairs"] = depPairs.size();
     report["array_line"] = stores[0]->getDebugLoc().getLine();
     report["array_column"] = stores[0]->getDebugLoc()->getColumn();
 
@@ -69,17 +64,16 @@ void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
   // Get all memory loads and stores that form a RAW hazard dependence.
   SmallVector<Instruction *> loads;
   SmallVector<Instruction *> stores;
-  SmallVector<DepPairT> depPairs;
 
-  getDepMemOps(F, AM, loads, stores, depPairs);
+  getMemInstrsWithRAW(F, AM, loads, stores);
   bool isAnyRAW = stores.size() > 0;
 
   if (isAnyRAW) {
-    json::Object report = generateReport(F, loads, stores, depPairs);
+    json::Object report = generateReport(F, loads, stores);
     outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n"; 
   } 
   else {
-    errs() << "No RAW hazards.\n";  
+    errs() << "Warning: Report not generated - no RAW hazards.\n";  
   }
 }
 
@@ -102,15 +96,9 @@ struct LoopRAWHazardReport : PassInfoMixin<LoopRAWHazardReport> {
   static bool isRequired() { return true; }
 
   void getAnalysisUsage(AnalysisUsage &AU) const {
-    AU.addRequiredID(DependenceAnalysis::ID());
-    AU.addRequiredID(LoopAccessAnalysis::ID());
     AU.addRequiredID(LoopAnalysis::ID());
     AU.addRequiredID(ScalarEvolutionAnalysis::ID());
-    AU.addRequiredID(TargetIRAnalysis::ID());
     AU.addRequiredID(DominatorTreeAnalysis::ID());
-    AU.addRequiredID(TargetLibraryAnalysis::ID());
-    AU.addRequiredID(AAManager::ID());
-    AU.addRequiredID(AssumptionAnalysis::ID());
   }
 };
 

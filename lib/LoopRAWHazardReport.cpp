@@ -3,6 +3,8 @@
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/ScalarEvolution.h"
+#include "llvm/Analysis/DependenceAnalysis.h"
+#include "llvm/Analysis/PostDominators.h"
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
 
 #include "llvm/Pass.h"
@@ -64,13 +66,33 @@ void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
   // Get all memory loads and stores that form a RAW hazard dependence.
   SmallVector<Instruction *> loads;
   SmallVector<Instruction *> stores;
+  // DenseMap<const SCEV *, SmallVector<Instruction *>> memInstrs;
 
   getMemInstrsWithRAW(F, AM, loads, stores);
   bool isAnyRAW = stores.size() > 0;
 
+
   if (isAnyRAW) {
     json::Object report = generateReport(F, loads, stores);
+    
+    // Check if the store address generation can be split from the compute into a different kernel.
+    bool canSplitStores = canSplitAddressGenFromCompute(F, AM, loads, stores);
+    report["split_stores"] = int(canSplitStores);
+
     outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n"; 
+
+    // Degub prints.
+    dbgs() << "dbg: collected the following offending instructions\ndbg: Stores " << stores.size() << ":\n";
+    for (auto &si : stores) {
+      si->print(dbgs());
+      dbgs() << "\n";
+    }
+    dbgs() << "dbg: Loads " << loads.size() << ":\n";
+    for (auto &li : loads) {
+      li->print(dbgs());
+      dbgs() << "\n";
+    }
+    dbgs() << "dbg: canSplitStores " << canSplitStores << "\n";
   } 
   else {
     errs() << "Warning: Report not generated - no RAW hazards.\n";  
@@ -80,14 +102,20 @@ void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
 struct LoopRAWHazardReport : PassInfoMixin<LoopRAWHazardReport> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    bool preserveAnalysis = true;
+    bool invalidateAnalysis = false;
 
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
-      preserveAnalysis = ifConversionForStores(F, AM);
+      invalidateAnalysis = ifConversionForStores(F, AM);
+      dbgs() << "\ndgb: ifConversionForStores " << invalidateAnalysis << "\n";
+
+      invalidateAnalysis |= hoistLoadsOutOfBranches(F, AM);
+      dbgs() << "\ndgb: movedLoadsToFront " << invalidateAnalysis << "\n";
+
+      // TODO: recalculate analysis
       analyseRAW(F, AM);
     }
 
-    return preserveAnalysis ? PreservedAnalyses::all() : PreservedAnalyses::none();
+    return invalidateAnalysis ? PreservedAnalyses::none() : PreservedAnalyses::all();
   }
 
   // Without isRequired returning true, this pass will be skipped for functions
@@ -99,6 +127,8 @@ struct LoopRAWHazardReport : PassInfoMixin<LoopRAWHazardReport> {
     AU.addRequiredID(LoopAnalysis::ID());
     AU.addRequiredID(ScalarEvolutionAnalysis::ID());
     AU.addRequiredID(DominatorTreeAnalysis::ID());
+    AU.addRequiredID(PostDominatorTreeAnalysis::ID());
+    AU.addRequiredID(DependenceAnalysis::ID());
   }
 };
 

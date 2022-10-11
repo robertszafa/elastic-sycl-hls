@@ -145,10 +145,10 @@ bool isControlDependent(Function &F, FunctionAnalysisManager &AM, Instruction *I
 }
 
 
-void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int ithKernel,
+void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int idxPipeSeqNum,
                         const int storesSoFarInclusive, const int numStores, const Value *addr,
-                        Instruction *memInst) {
-  CallInst *pipeWriteCall = getNthPipeCall(F, 0);
+                        Instruction *memInst, bool deleteStoresAfter=true) {
+  CallInst *pipeWriteCall = getNthPipeCall(F, idxPipeSeqNum);
   assert(pipeWriteCall && "No pipe call in this function\n");
 
   Loop *L = getBBLoop(AM.getResult<LoopAnalysis>(F), memInst->getParent());
@@ -190,8 +190,11 @@ void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int ithK
 
   // No need for memInst store anyore, delete it and any other stores dominated by it. 
   // Any values that are postdominated by the deleted instructions will be deleted by dce.
-  deleteStoresAfterI(F, AM, memInst);
-  if (isa<StoreInst>(memInst)) deleteInstruction(memInst);
+  if (deleteStoresAfter) {
+    deleteStoresAfterI(F, AM, memInst);
+    if (isa<StoreInst>(memInst)) 
+      deleteInstruction(memInst);
+  }
 
   // Add tag struct store and tag generation instructions. 
   // TODO: generalise tag generation to nested loops
@@ -299,6 +302,7 @@ int getNumInstrsBeforeThisInstr(const SmallVector<Instruction *> &instrs, Instru
 struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
   const std::string loopRAWReportFilename = "loop-raw-report.json";
   json::Object report;
+  // Kernel names will be annotated with load/store by the AST transform upstream.
   std::regex load_regex{"_load_(\\d+)", std::regex_constants::ECMAScript};
   std::regex store_regex{"_store_(\\d+)", std::regex_constants::ECMAScript};
 
@@ -316,12 +320,15 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 
     std::string mainKernelName = std::string(report["kernel_class_name"].getAsString().getValue());
     std::string thisKernelName = demangle(std::string(callers[0]->getName()));
+    bool isSplitStores = report["split_stores"].getAsInteger().getValue() == 1;
 
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
       // The names of kernels that we need to transform are guaranteed to begin with mainKernelName.
       if (std::equal(mainKernelName.begin(), mainKernelName.end(), thisKernelName.begin())) {
         ifConversionForStores(F, AM);
+        hoistLoadsOutOfBranches(F, AM);
 
+        // Find out if this F should be a load_idx, store_idx or main kernel.
         std::smatch load_matches, store_matches;
         std::regex_search(thisKernelName, load_matches, load_regex);
         std::regex_search(thisKernelName, store_matches, store_regex);
@@ -332,15 +339,33 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 
         if (load_matches.size() > 1) {
           int iLoad = std::stoi(load_matches[1]);
+          // Used for tag calculation.
           int storesSoFarInclusive = getNumInstrsBeforeThisInstr(stores, loads[iLoad], F);
-          transformIdxKernel(F, AM, iLoad, storesSoFarInclusive, loads.size(),
+          transformIdxKernel(F, AM, 0, storesSoFarInclusive, loads.size(),
                              dyn_cast<LoadInst>(loads[iLoad])->getPointerOperand(), loads[iLoad]);
         } else if (store_matches.size() > 1) {
           int iStore = std::stoi(store_matches[1]);
+          // Used for base tag.
           int storesSoFarInclusive = iStore + 1;
-          transformIdxKernel(F, AM, iStore, storesSoFarInclusive, stores.size(),
+          transformIdxKernel(F, AM, 0, storesSoFarInclusive, stores.size(),
                              dyn_cast<StoreInst>(stores[iStore])->getPointerOperand(), stores[iStore]);
         } else {
+          // If we could not split the stores into another kernel, then we need to insert
+          // store idx pipe writes into the main kernel.
+          if (!isSplitStores) {
+            int idxPipeWriteSeq = loads.size() + stores.size() + 1;
+            int storesSoFarInclusive = 1;
+            for (auto si : stores) {
+              // Do not delete any mem instructions in transformIdxKernel, 
+              // since they will be needed in transformMainKernel.
+              transformIdxKernel(F, AM, idxPipeWriteSeq, storesSoFarInclusive, stores.size(),
+                                 dyn_cast<StoreInst>(si)->getPointerOperand(), si, false);
+              storesSoFarInclusive++;
+              // No need to increment idxPipeWriteSeq since the previous pipe would have been
+              // moved/deleted, moving the next one hisher up the sequence 
+            }
+          }
+
           transformMainKernel(F, AM, report, stores, loads);
         }
       }

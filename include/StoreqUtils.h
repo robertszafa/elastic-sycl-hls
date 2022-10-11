@@ -11,6 +11,7 @@
 #include <llvm/IR/BasicBlock.h>
 
 #include "llvm/Analysis/CFG.h"
+#include "llvm/Analysis/PostDominators.h"
 #include "llvm/Analysis/AssumptionCache.h"
 #include "llvm/Analysis/DependenceAnalysis.h"
 #include "llvm/Analysis/GlobalsModRef.h"
@@ -25,6 +26,9 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/Support/Casting.h"
+#include <llvm/IR/Constant.h>
+#include <llvm/IR/InstrTypes.h>
+#include <llvm/IR/Type.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <fstream>
@@ -34,6 +38,34 @@
 using namespace llvm;
 
 namespace storeq {
+
+void deleteInstruction(Instruction *inst) {
+  inst->dropAllReferences();
+  inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
+  inst->eraseFromParent();
+}
+
+Instruction *getPointerBase(Instruction *pointerOperand) {
+  if (auto gep = dyn_cast<GetElementPtrInst>(pointerOperand)) 
+    return getPointerBase(dyn_cast<Instruction>(gep->getPointerOperand()));
+
+  return pointerOperand;
+}
+
+/// Given a BasicBlock, return the inner-most loop that it belongs to.
+/// Return nullptr if it doesn't belong to any loop.
+Loop *getBBLoop(LoopInfo &LI, BasicBlock *BB) {
+  Loop *res = nullptr;
+
+  for (Loop *TopLevelLoop : LI) {
+    for (Loop *L : depth_first(TopLevelLoop)) {
+      if (L->contains(BB))
+        res = L;
+    }
+  }
+
+  return res;
+}
 
 /// Collect all load and store instruction, and the their address values, that have a RAW
 /// inter-iteration dependence whose scalar evolution is not computable.
@@ -62,6 +94,7 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
 
   // Collect loads seperately.
   // TODO: check if loads and stores are part of the same loop?
+  // TODO: check if multiple loads are part of the same BB, and generate a single kernel for them?
   for (Loop *TopLevelLoop : LI) {
     for (Loop *L : depth_first(TopLevelLoop)) {
       for (auto &BB : L->getBlocks()) {
@@ -78,30 +111,64 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
     }
   }
 
-  // TODO: deal with stores/loads to multiple base adrresses.
+  // TODO: deal with stores/loads to multiple base adrresses (see SE.getUsedLoops(SCEV, Loops[])).
   for (auto &kv : memInstrs) {
     for (auto &I : kv.getSecond()) {
       if (isa<LoadInst>(I)) 
         loads.push_back(I);
-      else if (isa<StoreInst>(I)) 
+      else if (isa<StoreInst>(I))
         stores.push_back(I);
     }
   }
+
 }
 
-/// Given a BasicBlock, return the inner-most loop that it belongs to.
-/// Return nullptr if it doesn't belong to any loop.
-Loop *getBBLoop(LoopInfo &LI, BasicBlock *BB) {
-  Loop *res = nullptr;
+// Returns true if inst0 is control dependent (may_occur && !must_occur), 
+// where the control dependency depends {inst1}.
+// The control-dependent-store must_occur case is handled by doIfConversionForStore assumed
+// to be performed before calling this function.
+//
+// The motivation behind this check is to see, if the generation of store addresses can be hosited
+// into it's own kernel, without using the base address of the {st} instruction. 
+// 
+// Go over all users of {onI} recursively:
+//  - if we hit a branch:
+//      - if the store is in any but not all of the BB dominated by the branch, return true
+bool isInst0ConditionalOnInst1(DominatorTree &DT, Instruction *inst0, Instruction *inst1) {
+  for (auto user : inst1->users()) {
+    auto userI = dyn_cast<Instruction>(user);
 
-  for (Loop *TopLevelLoop : LI) {
-    for (Loop *L : depth_first(TopLevelLoop)) {
-      if (L->contains(BB))
-        res = L;
+    if (auto brI = dyn_cast<BranchInst>(userI)) {
+      bool atLeastOneDominatesStore = false;
+      bool allDominateStore = true;
+      for (auto succ : brI->successors()) {
+        allDominateStore &= DT.dominates(succ, inst0->getParent());
+        atLeastOneDominatesStore |= DT.dominates(succ, inst0->getParent());
+      }
+
+      if (atLeastOneDominatesStore && !allDominateStore) 
+        return true;
+    }
+
+    return isInst0ConditionalOnInst1(DT, inst0, userI);
+  }
+
+  return false;
+}
+
+bool canSplitAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM, 
+                            SmallVector<Instruction *> &loads,
+                            SmallVector<Instruction *> &stores) {
+  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+
+  bool isAnyStoreControlDepOnBaseAddr = false;
+  for (auto si : stores) {
+    for (auto li : loads) {
+      isAnyStoreControlDepOnBaseAddr |= isInst0ConditionalOnInst1(DT, si, li);
     }
   }
 
-  return res;
+  return !isAnyStoreControlDepOnBaseAddr;
 }
 
 /// Given Function {F}, return all Functions that call {F}.
@@ -149,12 +216,6 @@ SmallVector<Function *> getAnnotatedFunctions(Module *M) {
   }
 
   return annotFuncs;
-}
-
-void deleteInstruction(Instruction *inst) {
-  inst->dropAllReferences();
-  inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
-  inst->eraseFromParent();
 }
 
 /// Given a vector of stores, cluster them into equivalence sets, where equivalence is defined
@@ -263,6 +324,65 @@ bool ifConversionForStores(Function &F, FunctionAnalysisManager &AM) {
       AM.invalidate(F, PreservedAnalyses::none());
       ifConversionForStores(F, AM);
       break;
+    }
+  }
+
+  return isTransformed;
+}
+
+bool isSafeToMoveInto(Instruction *I, BasicBlock *BB) {
+  if (I->getParent() == BB)
+    return true;
+
+  bool res = true;  
+  for (uint iOp = 0; iOp < I->getNumOperands(); ++iOp) {
+    if (auto opInst = dyn_cast<Instruction>(I->getOperand(iOp))) {
+      if (opInst->getParent() != I->getParent() && opInst->getParent() != BB)
+        return false;
+
+      res &= isSafeToMoveInto(opInst, BB);
+    }
+  }
+
+  return res;
+}
+
+// Move I, and all its operands recursively, before the terminating instruction in BB.
+// This is assumed to be safe, see isSafeToMoveAfter.
+void moveIntoBB(Instruction *I, BasicBlock *BB) {
+  for (uint iOp = 0; iOp < I->getNumOperands(); ++iOp) {
+    if (auto opInst = dyn_cast<Instruction>(I->getOperand(iOp))) {
+      if (opInst->getParent() == I->getParent()) {
+        moveIntoBB(opInst, BB);
+      }
+    }
+  }
+
+  I->moveBefore(BB->getTerminator());
+}
+
+/// Hoist loads used inside branches to a block before the branches.
+bool hoistLoadsOutOfBranches(Function &F, FunctionAnalysisManager &AM) {
+  bool isTransformed = false;
+
+  // Get all memory loads and stores that form a RAW hazard dependence.
+  SmallVector<Instruction *> loads;
+  SmallVector<Instruction *> stores;
+
+  getMemInstrsWithRAW(F, AM, loads, stores);
+  if (stores.size() == 0) return isTransformed;
+
+  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+
+  for (auto li0 : loads) {
+    for (auto li1 : loads) {
+      if (li0 == li1 || li0->getParent() == li1->getParent())
+        continue;
+
+      if (isInst0ConditionalOnInst1(DT, li1, li0) && isSafeToMoveInto(li1, li0->getParent())) {
+        moveIntoBB(li1, li0->getParent());
+        isTransformed = true;
+      }
     }
   }
 

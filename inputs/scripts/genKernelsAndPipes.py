@@ -25,7 +25,7 @@ Q_NAME = 'q'
 # TODO: compute required piped depths
 PIPE_DEPTH = 64
 ST_LATENCY = 20
-IDX_TAG_TYPE = 'pair'
+IDX_TAG_TYPE = 'pair_t'
 # This has false positives but we use it only on strings that have a variable name at the beginning
 c_var_regex = r'([a-zA-Z_][a-zA-Z0-9_]*)'
 
@@ -81,8 +81,9 @@ def add_idx_pipe_connections(kernel_body, num_loads, num_stores):
     
     return ld_kernel_bodies, st_kernel_bodies
 
-def gen_val_pipe_connections(num_loads, num_stores):
+def gen_val_pipe_connections(num_loads, num_stores, split_stores):
     pipe_calls = []
+
     for i in range(num_loads):
         pipe_calls.append(f'auto ld_val_pipe_rd_{i} = ld_val_pipes::PipeAt<{i}>::read();')
 
@@ -92,6 +93,12 @@ def gen_val_pipe_connections(num_loads, num_stores):
     pipe_calls.append(f'int __total_store_req = 0;')
     pipe_calls.append(f'end_signal_pipe::write(__total_store_req);')
     
+    # If the store addresses cannot be hoisted into another kernel, then insert the st idx pipes
+    # into the main kernel.
+    if not split_stores:
+        for i in range(num_stores):
+            pipe_calls.append(f'st_idx_pipe::write({{0, 0}});\n')
+
     return pipe_calls
 
 def get_kernel_body(s):
@@ -122,6 +129,12 @@ def get_array_name(line_with_array, end_col):
 
     return array
 
+def llvm2ctype(llvm_type):
+    if llvm_type == 'i32':
+        return 'int'
+
+    return llvm_type
+
 def parse_report(report_fname):
     try:
         with open(report_fname, 'r') as f:
@@ -131,8 +144,9 @@ def parse_report(report_fname):
         report["kernel_class_name"] = report["kernel_class_name"].split(' ')[-1].split('::')[-1]
         report['spir_func_name'] = report["spir_func_name"].split('::')[0]
 
-        return report['kernel_class_name'], report['spir_func_name'], report['num_copies'], report['num_loads'], \
-            report['num_stores'], report['array_line'], report['array_column'], report['val_type']
+        return report['kernel_class_name'], report['spir_func_name'], report['num_copies'], \
+               report['num_loads'], report['num_stores'], report['array_line'], \
+               report['array_column'], report['val_type'], report['split_stores']
     except Exception as e:
         exit("Error parsing analysis report " + report_fname)
 
@@ -140,8 +154,8 @@ if __name__ == '__main__':
     if len(sys.argv) < 3:
         sys.exit("loop-raw-report and src filename required")
 
-    kernel_name, spir_func_name, num_copy, num_loads, num_stores, array_line, array_column, array_type = \
-        parse_report(sys.argv[1])
+    kernel_name, spir_func_name, num_copy, num_loads, num_stores, array_line, array_column, array_type, split_stores = parse_report(sys.argv[1])
+    array_type = llvm2ctype(array_type)
 
     with open(sys.argv[2], 'r') as f:
         source_file = f.read()
@@ -149,15 +163,18 @@ if __name__ == '__main__':
     kernel_body = get_kernel_body(source_file)
 
     ld_kernel_bodies, st_kernel_bodies = add_idx_pipe_connections(kernel_body, num_loads, num_stores)
-    main_kernel_pipes = gen_val_pipe_connections(num_loads, num_stores)
+    main_kernel_pipes = gen_val_pipe_connections(num_loads, num_stores, split_stores)
 
     kernel_names_decl = [f'class {kernel_name}_load_{i};' for i in range(num_loads)] + \
                         [f'class {kernel_name}_store_{i};' for i in range(num_stores)] 
     ld_idx_kernel_copies = [f'\n{Q_NAME}.single_task<{kernel_name}_load_{i}>{"".join(ld_kernel_bodies[i])}\n' \
                             for i in range(num_loads)]
-    # TODO: handle multiple stores with a demultiplexer kernel.
-    st_idx_kernel_copies = [f'\n{Q_NAME}.single_task<{kernel_name}_store_{i}>{"".join(st_kernel_bodies[i])}\n' \
-                            for i in range(num_stores)]
+
+    st_idx_kernel_copies = []
+    if split_stores:
+        # TODO: handle multiple stores with a demultiplexer kernel.
+        st_idx_kernel_copies = [f'\n{Q_NAME}.single_task<{kernel_name}_store_{i}>{"".join(st_kernel_bodies[i])}\n' \
+                                for i in range(num_stores)]
     
     source_file_lines = source_file.splitlines()
 

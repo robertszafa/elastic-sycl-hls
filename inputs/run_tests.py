@@ -11,12 +11,18 @@ KERNEL_ASIZE_PAIRS = {
     'histogram' : 1000000,
     'histogram_if' : 1000000,
     'histogram_if_2' : 1000000,
+    'histogram_if_3' : 1000000,
+    'get_tanh' : 1000000,
+    'maximal_matching' : 1000000,
 }
 # Decrease domain sizes when running in simulation.
 KERNEL_ASIZE_PAIRS_SIM = {
-    'histogram' : 100,
-    'histogram_if' : 100,
-    'histogram_if_2' : 100,
+    'histogram' : 1000,
+    'histogram_if' : 1000,
+    'histogram_if_2' : 1000,
+    'histogram_if_3' : 1000,
+    'get_tanh' : 1000,
+    'maximal_matching' : 1000,
 }
 
 DATA_DISTRIBUTIONS = {

@@ -30,12 +30,12 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges, std::v
       while (i < num_edges) {
         int j = i * 2;
 
-        int u = edges[j];
-        int v = edges[j + 1];
+        int e1 = edges[j];
+        int e2 = edges[j + 1];
 
-        if ((vertices[u] < 0) && (vertices[v] < 0)) {
-          vertices[u] = v;
-          vertices[v] = u;
+        if ((vertices[e1] < 0) && (vertices[e2] < 0)) {
+          vertices[e1] = e2;
+          vertices[e2] = e1;
 
           out_scalar = out_scalar + 1;
         }
@@ -123,7 +123,10 @@ int maximal_matching_cpu(const std::vector<int> &edges, std::vector<int> &vertic
     int u = edges[j];
     int v = edges[j + 1];
 
-    if ((vertices[u] < 0) && (vertices[v] < 0)) {
+    int vertex_u = vertices[u];
+    int vertex_v = vertices[v];
+    
+    if (vertex_u < 0 && vertex_v < 0) {
       vertices[u] = v;
       vertices[v] = u;
 

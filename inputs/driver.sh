@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# $1 - sim/emu
+# $1 - sim/emu/hw
 # $2 - filename to compile
 
 set -e

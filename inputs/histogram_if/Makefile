@@ -4,7 +4,7 @@ SRC := $(FILE)
 # HDR := ""
 BIN := bin/$(BENCHMARK)
 
-I = /home/rob/git/sycl-playground/include
+I = ${HOME}/git/sycl-playground/include
 
 CXX := dpcpp
 CXXFLAGS += -std=c++17 -O2 -I$(I)

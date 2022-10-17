@@ -311,7 +311,7 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 
     // Read in report once.
     if (report.empty()) {
-      report = *parseJsonReport().getAsObject();
+      report = *(parseJsonReport().getAsObject());
     }
 
     auto callers = getCallerFunctions(M, F);
@@ -341,7 +341,7 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
           int iLoad = std::stoi(load_matches[1]);
           // Used for tag calculation.
           int storesSoFarInclusive = getNumInstrsBeforeThisInstr(stores, loads[iLoad], F);
-          transformIdxKernel(F, AM, 0, storesSoFarInclusive, loads.size(),
+          transformIdxKernel(F, AM, 0, storesSoFarInclusive, stores.size(),
                              dyn_cast<LoadInst>(loads[iLoad])->getPointerOperand(), loads[iLoad]);
         } else if (store_matches.size() > 1) {
           int iStore = std::stoi(store_matches[1]);

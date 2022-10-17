@@ -18,6 +18,7 @@ The inputs/driver.sh scripts demonstrates how the passes can be integrated into 
 - `git clone https://github.com/intel/llvm/tree/sycl` 
 - `git checkout 40d08c238ce80e132df800ee21c3386f139fd85f` (newer commits not tested)
 - `cd llvm && python buildbot/contfigure.py && python buildbot/compile.py` 
+- `cd build && ninja`
 
 **To build the passes in this repo:**
 

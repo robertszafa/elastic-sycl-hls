@@ -71,7 +71,6 @@ void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
   getMemInstrsWithRAW(F, AM, loads, stores);
   bool isAnyRAW = stores.size() > 0;
 
-
   if (isAnyRAW) {
     json::Object report = generateReport(F, loads, stores);
     
@@ -109,7 +108,7 @@ struct LoopRAWHazardReport : PassInfoMixin<LoopRAWHazardReport> {
       dbgs() << "\ndgb: ifConversionForStores " << invalidateAnalysis << "\n";
 
       invalidateAnalysis |= hoistLoadsOutOfBranches(F, AM);
-      dbgs() << "\ndgb: movedLoadsToFront " << invalidateAnalysis << "\n";
+      dbgs() << "dgb: movedLoadsToFront " << invalidateAnalysis << "\n";
 
       // TODO: recalculate analysis
       analyseRAW(F, AM);

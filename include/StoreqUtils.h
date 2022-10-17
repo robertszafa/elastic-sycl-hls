@@ -82,9 +82,15 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
         for (auto &I : *BB) {
           if (auto si = dyn_cast<StoreInst>(&I)) {
             auto siPointerSE = SE.getSCEV(si->getPointerOperand());
-            auto siPointerBaseSE = SE.getPointerBase(siPointerSE);
             if (!SE.hasComputableLoopEvolution(siPointerSE, L)) {
-              memInstrs[siPointerBaseSE].emplace_back(&I);
+              auto siPointerBaseSE = SE.getPointerBase(siPointerSE);
+              if (std::find(memInstrs[siPointerBaseSE].begin(), memInstrs[siPointerBaseSE].end(),
+                            &I) == memInstrs[siPointerBaseSE].end()) {
+                memInstrs[siPointerBaseSE].emplace_back(&I);
+                dbgs() << "dgb: Offending base address ";
+                siPointerBaseSE->print(errs());
+                errs() << "\n";
+              }
             }
           }
         }
@@ -102,8 +108,13 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
           if (auto li = dyn_cast<LoadInst>(&I)) {
             auto liPointerSE = SE.getSCEV(li->getPointerOperand());
             auto liPointerBaseSE = SE.getPointerBase(liPointerSE);
+            // Add if there is an offending store to the same base address.
             if (memInstrs.find(liPointerBaseSE) != memInstrs.end()) {
-              memInstrs[liPointerBaseSE].emplace_back(&I);
+              // And if not added before.
+              if (std::find(memInstrs[liPointerBaseSE].begin(), memInstrs[liPointerBaseSE].end(),
+                            &I) == memInstrs[liPointerBaseSE].end()) {
+                memInstrs[liPointerBaseSE].emplace_back(&I);
+              }
             }
           }
         }

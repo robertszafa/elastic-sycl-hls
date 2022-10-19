@@ -87,9 +87,6 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
               if (std::find(memInstrs[siPointerBaseSE].begin(), memInstrs[siPointerBaseSE].end(),
                             &I) == memInstrs[siPointerBaseSE].end()) {
                 memInstrs[siPointerBaseSE].emplace_back(&I);
-                dbgs() << "dgb: Offending base address ";
-                siPointerBaseSE->print(errs());
-                errs() << "\n";
               }
             }
           }

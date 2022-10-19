@@ -2,10 +2,13 @@
 
 # $1 - sim/emu/hw
 # $2 - filename to compile
+# $3 - Q_SIZE
 
 set -e
 
 SRC_FILE="$2"
+Q_SIZE="$3"
+
 TMP_SRC_FILE="$2".tmp.cpp
 SRC_FILE_BASENAME=`basename "$2"`
 SRC_FILE_DIR=`dirname "$2"`
@@ -35,7 +38,7 @@ export LOOP_RAW_REPORT=$LOOP_REPORT_FILE
 # Given json report, make kernel copies and pipe read/write calls from correct kernels.
 # Output from this source-to-source transformation will be in $SRC_FILE.tmp.cpp
 # TODO: use clang AST Transormer
-python3 scripts/genKernelsAndPipes.py $LOOP_REPORT_FILE $SRC_FILE
+python3 scripts/genKernelsAndPipes.py $LOOP_REPORT_FILE $SRC_FILE $Q_SIZE
 
 ###
 ### STAGE 4: Fix IR inside kernels.

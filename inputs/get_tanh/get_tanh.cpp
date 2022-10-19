@@ -130,27 +130,6 @@ double get_tanh_kernel(queue &q, std::vector<int> &h_A, const std::vector<int> h
 }
 
 
-void maximal_matching_cpu(const int *idx, const int *weight, float *hist, const int N) {
-  for (int i = 0; i < N; ++i) {
-    auto wt = weight[i];
-    auto idx_scalar = idx[i];
-    auto x = hist[idx_scalar];
-
-    if (wt > 0) {
-      hist[idx_scalar] = x + 10.0;
-    }
-    else if (wt == 0) {
-      if (idx_scalar == 1)
-        hist[idx_scalar] = x * 2.0;
-      else
-        hist[idx_scalar] = x - 20.0;
-    }
-    else {
-      hist[idx_scalar] = x - 10.0; 
-    }
-  }
-}
-
 enum data_distribution { ALL_WAIT, NO_WAIT, PERCENTAGE_WAIT };
 void init_data(std::vector<int> &A, std::vector<int> &addr_in, std::vector<int> &addr_out,
                const data_distribution distr, const uint percentage) {

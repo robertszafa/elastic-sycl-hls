@@ -14,6 +14,8 @@ KERNEL_ASIZE_PAIRS = {
     'histogram_if_3' : 1000000,
     'get_tanh' : 1000000,
     'maximal_matching' : 1000000,
+    'spmv' : 400,
+    'bnn' : 1000000,
 }
 # Decrease domain sizes when running in simulation.
 KERNEL_ASIZE_PAIRS_SIM = {
@@ -23,6 +25,8 @@ KERNEL_ASIZE_PAIRS_SIM = {
     'histogram_if_3' : 1000,
     'get_tanh' : 1000,
     'maximal_matching' : 1000,
+    'spmv' : 20,
+    'bnn' : 100,
 }
 
 DATA_DISTRIBUTIONS = {
@@ -30,11 +34,6 @@ DATA_DISTRIBUTIONS = {
     1: 'no_wait',
     # 2: 'percentage_wait' # run_exp_all_percentages runs for different % of data hazards.
 }
-
-# Q_SIZES_DYNAMIC = [1, 2, 4, 8, 16, 32, 64]
-# Q_SIZES_DYNAMIC_NO_FORWARD = [1, 2, 4, 8, 16, 32, 64]
-Q_SIZES_DYNAMIC = [4]
-Q_SIZES_DYNAMIC_NO_FORWARD = [4]
 
 PERCENTAGE_WAIT = 5
 
@@ -68,14 +67,19 @@ def run_bin(bin, a_size, distr=0, percentage=0):
 
 
 if __name__ == '__main__':
-    is_sim = any('sim' in arg for arg in sys.argv[1:])
+    exec_type = sys.argv[1] # sim/emu/hw
 
-    BIN_EXTENSION = 'fpga_sim' if is_sim else 'fpga'
-    KERNEL_ASIZE_PAIRS = KERNEL_ASIZE_PAIRS_SIM if is_sim else KERNEL_ASIZE_PAIRS
-
+    BIN_EXTENSION = 'fpga' 
+    if 'sim' in exec_type:
+        BIN_EXTENSION += '_sim'
+        KERNEL_ASIZE_PAIRS = KERNEL_ASIZE_PAIRS_SIM
+    elif 'emu' in exec_type:
+        BIN_EXTENSION += '_emu'
+        KERNEL_ASIZE_PAIRS = KERNEL_ASIZE_PAIRS_SIM
+    
     for kernel, a_size in KERNEL_ASIZE_PAIRS.items():
         print('\n--Building kernel:', kernel)
-        os.system(f'./driver.sh sim {kernel}/{kernel}.cpp > {TMP_FILE}')
+        os.system(f'./driver.sh {exec_type} {kernel}/{kernel}.cpp 8 > {TMP_FILE}')
         BIN_DYNAMIC = f'{kernel}/bin/{kernel}.cpp.{BIN_EXTENSION}'
 
         for distr_idx, distr_name in DATA_DISTRIBUTIONS.items():

@@ -22,15 +22,12 @@ c_var_regex = r'([a-zA-Z_][a-zA-Z0-9_]*)'
 def gen_store_queue_syntax(report, q_size):
     IDX_TAG_TYPE = 'pair_t'
     PIPE_DEPTH = 64
-    ST_LATENCY = 12
 
     return f'''
     using val_type = {report['array_type']};
     constexpr int kNumLoads = {report['num_loads']};
     constexpr int kNumStores = {report['num_stores']};
-    constexpr bool isQueueForwarding = true;
     constexpr int kQueueSize = {q_size};
-    constexpr int kStoreLatency = {ST_LATENCY};
 
     using ld_idx_pipes = PipeArray<class ld_idx_pipes_class, {IDX_TAG_TYPE}, {PIPE_DEPTH}, kNumLoads>;
     using ld_val_pipes = PipeArray<class ld_val_pipes_class, val_type, {PIPE_DEPTH}, kNumLoads>;
@@ -39,9 +36,8 @@ def gen_store_queue_syntax(report, q_size):
     using end_signal_pipe = pipe<class end_signal_pipe_class, int>;
     
     auto __array_device_ptr = sycl::device_ptr<val_type>({report['array_name']});
-    auto eventStoreQueue = 
-        StoreQueue<ld_idx_pipes, ld_val_pipes, kNumLoads, st_idx_pipe, st_val_pipe, end_signal_pipe,
-                   isQueueForwarding, kQueueSize, kStoreLatency>({Q_NAME}, __array_device_ptr);
+    auto eventStoreQueue = StoreQueue<ld_idx_pipes, ld_val_pipes, kNumLoads, st_idx_pipe, st_val_pipe, 
+                                      end_signal_pipe, kQueueSize>({Q_NAME}, __array_device_ptr);
     '''
 
 
@@ -64,8 +60,9 @@ def add_agu_pipe_connections(kernel_body, report):
 
     agu_pipe_writes = []
     for i in range(report['num_loads']):
-       agu_pipe_writes.append(f'ld_idx_pipes::PipeAt<{i}>::write({{0, 0}});\n')
-    agu_pipe_writes.append(f'st_idx_pipe::write({{0, 0}});\n')
+        agu_pipe_writes.append(f'ld_idx_pipes::PipeAt<{i}>::write({{0, 0}});\n')
+    for i in range(report['num_stores']):
+        agu_pipe_writes.append(f'st_idx_pipe::write({{0, 0}});\n')
 
     agu_kernel_body = kernel_body_lines[:1] + agu_pipe_writes + kernel_body_lines[1:] 
     return agu_kernel_body, agu_pipe_writes

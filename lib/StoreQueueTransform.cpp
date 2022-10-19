@@ -147,67 +147,49 @@ bool isControlDependent(Function &F, FunctionAnalysisManager &AM, Instruction *I
 void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, Instruction *memInst, 
                         Value *baseTagAddr, CallInst *pipeWriteCall, const bool isStore) {
   // {idx, tag} struct store instructions.
-  SmallVector<StoreInst *, 2> storesToStructLoadPipe;
+  SmallVector<StoreInst *, 2> storesToIdxTagStruct;
   for (auto user : pipeWriteCall->getArgOperand(0)->users()) {
     if (auto gep = dyn_cast<GetElementPtrInst>(user)) {
       for (auto userGEP : gep->users()) {
         if (auto stInstr = dyn_cast<StoreInst>(userGEP)) {
-          storesToStructLoadPipe.emplace_back(stInstr);
+          storesToIdxTagStruct.emplace_back(stInstr);
           break;
         }
       }
     }
   }
-  auto loadPipeTagStore = storesToStructLoadPipe[0];
-  auto loadPipeIdxStore = storesToStructLoadPipe[1];
+  auto tagStore = storesToIdxTagStruct[0];
+  auto idxStore = storesToIdxTagStruct[1];
 
-  Loop *L = getBBLoop(AM.getResult<LoopAnalysis>(F), memInst->getParent());
+  // Move everything needed to setup the pipe write call to where the memInst occurs.
+  pipeWriteCall->moveBefore(memInst);
+  tagStore->moveBefore(pipeWriteCall);
+  idxStore->moveBefore(pipeWriteCall);
 
-  // Move {idx, tag} struct strores into Loop header. Pipe write into loop latch.
-  // The loop header will store correct tag, and dummy idx. Later the loop body 
-  // (depending on control flow) will store the correct idx.
-  // The loop latch BB can be the only BB in the body, so need to insert call at the end.
-  pipeWriteCall->moveBefore(L->getLoopLatch()->getTerminator());
-  for (auto &st : storesToStructLoadPipe)
-    st->moveBefore(L->getHeader()->getTerminator());
-
-  // Move {idx, tag} struct strores into Loop header. Pipe write into loop latch.
-  // The loop header will store correct tag, and dummy idx. Later the loop body 
-  // (depending on control flow) will store the correct idx.
-  // The loop latch BB can be the only BB in the body, so need to insert call at the end.
-  // firstLoadPipeCall->moveBefore(L->getLoopLatch()->getTerminator());
-  for (auto &st : storesToStructLoadPipe)
-    st->moveBefore(L->getHeader()->getTerminator());
-
-  // Add idx struct store (storing to {idx, tag} struct).
-  // Dummy idx=-1 in loop header. Actual idx (which might be control dependent) in loop body.
+  // Write the GEP value of the memInst into the pipeWrite idx field.
   Value *memInstAddr = isStore ? dyn_cast<StoreInst>(memInst)->getPointerOperand()
                                : dyn_cast<LoadInst>(memInst)->getPointerOperand();
-  const GetElementPtrInst *idxGEP = dyn_cast<GetElementPtrInst>(memInstAddr);
-  Value *idxVal = idxGEP->getOperand(1);
-  auto idxTypeForPipe = loadPipeIdxStore->getOperand(0)->getType();
-  loadPipeIdxStore->setOperand(0, ConstantInt::get(idxTypeForPipe, -1));
-  auto idxStoreInBody = loadPipeIdxStore->clone();
-  idxStoreInBody->insertBefore(memInst);
+  Value *idxVal = dyn_cast<GetElementPtrInst>(memInstAddr)->getOperand(1);
+  auto idxTypeForPipe = idxStore->getOperand(0)->getType();
+  // Ensure idx matches pipe idx type (we assume i32 is fine but we might have to check 
+  // properly in the future).
   auto idxCasted = TruncInst::CreateTruncOrBitCast(idxVal, idxTypeForPipe, "",
-                                                   dyn_cast<Instruction>(idxStoreInBody));
-  idxStoreInBody->setOperand(0, idxCasted);
+                                                   dyn_cast<Instruction>(idxStore));
+  idxStore->setOperand(0, idxCasted);
 
-  // Add tag struct store and tag generation instructions. 
-  // In loop header, load base tag in the BB where the {idx, tag} pipe write occurs.
-  //    If store, base_tag += 1
-  IRBuilder<> Builder(loadPipeTagStore);
-  auto tagType = loadPipeTagStore->getOperand(0)->getType();
+  // Write baseTag into the pipeWrite idx field. If it's a store, increment the tag by one before.
+  IRBuilder<> Builder(tagStore);
+  auto tagType = tagStore->getOperand(0)->getType();
   Value *baseTagVal = Builder.CreateLoad(tagType, baseTagAddr, "baseTagVal");
-  
   auto baseTagPlusOne = Builder.CreateAdd(baseTagVal, ConstantInt::get(tagType, 1), "baseTagPlus1");
   if (isStore) {
-    loadPipeTagStore->setOperand(0, baseTagPlusOne);
+    tagStore->setOperand(0, baseTagPlusOne);
     Builder.CreateStore(baseTagPlusOne, baseTagAddr);
   }
   else {
-    loadPipeTagStore->setOperand(0, baseTagVal);
+    tagStore->setOperand(0, baseTagVal);
   }
+
 }
 
 void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object &report,
@@ -339,11 +321,9 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
             CallInst *pipeWriteCall = getNthPipeCall(F, 0);
             transformIdxKernel(F, AM, loads[i_ld], baseTagAddr, pipeWriteCall, false);
           }
-          
-          // There is only one store idx pipe.
-          CallInst *storePipeWriteCall = getNthPipeCall(F, 0);
           for (uint i_st = 0; i_st < stores.size(); ++i_st) {
-            transformIdxKernel(F, AM, stores[i_st], baseTagAddr, storePipeWriteCall, true);
+            CallInst *pipeWriteCall = getNthPipeCall(F, 0);
+            transformIdxKernel(F, AM, stores[i_st], baseTagAddr, pipeWriteCall, true);
           }
           
           // Delete instruction using the base address of the store instructions.

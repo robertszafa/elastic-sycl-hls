@@ -101,20 +101,21 @@ void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
 struct LoopRAWHazardReport : PassInfoMixin<LoopRAWHazardReport> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    bool invalidateAnalysis = false;
+    bool isIfConversionDone = false, ishoistLoadsOutOfBranchesDone = false;
 
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
-      invalidateAnalysis = ifConversionForStores(F, AM);
-      dbgs() << "\ndgb: ifConversionForStores " << invalidateAnalysis << "\n";
+      isIfConversionDone = ifConversionForStores(F, AM);
+      dbgs() << "\ndgb: isIfConversionDone " << isIfConversionDone << "\n";
 
-      invalidateAnalysis |= hoistLoadsOutOfBranches(F, AM);
-      dbgs() << "dgb: movedLoadsToFront " << invalidateAnalysis << "\n";
+      ishoistLoadsOutOfBranchesDone = hoistLoadsOutOfBranches(F, AM);
+      dbgs() << "dgb: ishoistLoadsOutOfBranchesDone " << ishoistLoadsOutOfBranchesDone << "\n";
 
       // TODO: recalculate analysis
       analyseRAW(F, AM);
     }
 
-    return invalidateAnalysis ? PreservedAnalyses::none() : PreservedAnalyses::all();
+    return (isIfConversionDone || ishoistLoadsOutOfBranchesDone) ? PreservedAnalyses::none() 
+                                                                 : PreservedAnalyses::all();
   }
 
   // Without isRequired returning true, this pass will be skipped for functions

@@ -144,80 +144,70 @@ bool isControlDependent(Function &F, FunctionAnalysisManager &AM, Instruction *I
   return !(DT.dominates(I->getParent(), latchBB));
 }
 
-
-void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, const int idxPipeSeqNum,
-                        const int storesSoFarInclusive, const int numStores, const Value *addr,
-                        Instruction *memInst, bool deleteStoresAfter=true) {
-  CallInst *pipeWriteCall = getNthPipeCall(F, idxPipeSeqNum);
-  assert(pipeWriteCall && "No pipe call in this function\n");
-
-  Loop *L = getBBLoop(AM.getResult<LoopAnalysis>(F), memInst->getParent());
-  
+void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, Instruction *memInst, 
+                        Value *baseTagAddr, CallInst *pipeWriteCall, const bool isStore) {
   // {idx, tag} struct store instructions.
-  SmallVector<StoreInst *, 2> storesToStruct;
+  SmallVector<StoreInst *, 2> storesToStructLoadPipe;
   for (auto user : pipeWriteCall->getArgOperand(0)->users()) {
     if (auto gep = dyn_cast<GetElementPtrInst>(user)) {
       for (auto userGEP : gep->users()) {
         if (auto stInstr = dyn_cast<StoreInst>(userGEP)) {
-          storesToStruct.emplace_back(stInstr);
+          storesToStructLoadPipe.emplace_back(stInstr);
           break;
         }
       }
     }
   }
-  auto tagStoreInHeader = storesToStruct[0];
-  auto idxStoreInHEader = storesToStruct[1];
+  auto loadPipeTagStore = storesToStructLoadPipe[0];
+  auto loadPipeIdxStore = storesToStructLoadPipe[1];
+
+  Loop *L = getBBLoop(AM.getResult<LoopAnalysis>(F), memInst->getParent());
 
   // Move {idx, tag} struct strores into Loop header. Pipe write into loop latch.
   // The loop header will store correct tag, and dummy idx. Later the loop body 
   // (depending on control flow) will store the correct idx.
   // The loop latch BB can be the only BB in the body, so need to insert call at the end.
   pipeWriteCall->moveBefore(L->getLoopLatch()->getTerminator());
-  for (auto &st : storesToStruct)
+  for (auto &st : storesToStructLoadPipe)
+    st->moveBefore(L->getHeader()->getTerminator());
+
+  // Move {idx, tag} struct strores into Loop header. Pipe write into loop latch.
+  // The loop header will store correct tag, and dummy idx. Later the loop body 
+  // (depending on control flow) will store the correct idx.
+  // The loop latch BB can be the only BB in the body, so need to insert call at the end.
+  // firstLoadPipeCall->moveBefore(L->getLoopLatch()->getTerminator());
+  for (auto &st : storesToStructLoadPipe)
     st->moveBefore(L->getHeader()->getTerminator());
 
   // Add idx struct store (storing to {idx, tag} struct).
   // Dummy idx=-1 in loop header. Actual idx (which might be control dependent) in loop body.
-  const GetElementPtrInst *idxGEP = dyn_cast<GetElementPtrInst>(addr);
+  Value *memInstAddr = isStore ? dyn_cast<StoreInst>(memInst)->getPointerOperand()
+                               : dyn_cast<LoadInst>(memInst)->getPointerOperand();
+  const GetElementPtrInst *idxGEP = dyn_cast<GetElementPtrInst>(memInstAddr);
   Value *idxVal = idxGEP->getOperand(1);
-  auto idxTypeForPipe = idxStoreInHEader->getOperand(0)->getType();
-  idxStoreInHEader->setOperand(0, ConstantInt::get(idxTypeForPipe, -1));
-  auto idxStoreInBody = idxStoreInHEader->clone();
+  auto idxTypeForPipe = loadPipeIdxStore->getOperand(0)->getType();
+  loadPipeIdxStore->setOperand(0, ConstantInt::get(idxTypeForPipe, -1));
+  auto idxStoreInBody = loadPipeIdxStore->clone();
   idxStoreInBody->insertBefore(memInst);
   auto idxCasted = TruncInst::CreateTruncOrBitCast(idxVal, idxTypeForPipe, "",
                                                    dyn_cast<Instruction>(idxStoreInBody));
   idxStoreInBody->setOperand(0, idxCasted);
 
-  // No need for memInst store anyore, delete it and any other stores dominated by it. 
-  // Any values that are postdominated by the deleted instructions will be deleted by dce.
-  if (deleteStoresAfter) {
-    deleteStoresAfterI(F, AM, memInst);
-    if (isa<StoreInst>(memInst)) 
-      deleteInstruction(memInst);
-  }
-
   // Add tag struct store and tag generation instructions. 
-  // TODO: generalise tag generation to nested loops
-  IRBuilder<> Builder(F.getEntryBlock().getTerminator());
-  // In function entry, alloca for baseTag. Set baseTag=0.
-  auto tagTypeForPipe = tagStoreInHeader->getOperand(0)->getType();
-  Value *baseTagAddr = Builder.CreateAlloca(tagTypeForPipe);  
-  Builder.CreateStore(ConstantInt::get(tagTypeForPipe, 0), baseTagAddr);
   // In loop header, load base tag in the BB where the {idx, tag} pipe write occurs.
-  // Calculate: tag = loopInductionVar * kNumStoresInLoop + storesSoFarInclusive
-  // Builder.SetInsertPoint(L->getHeader());
-  Builder.SetInsertPoint(tagStoreInHeader);
-  Value *baseTag = Builder.CreateLoad(tagTypeForPipe, baseTagAddr);
-  auto storesSoFarInclVal = ConstantInt::get(tagTypeForPipe, storesSoFarInclusive);
-  auto numStoresVal = ConstantInt::get(tagTypeForPipe, numStores);
-  auto baseTagTimesNumStoresVal = Builder.CreateMul(baseTag, numStoresVal);
-  Value *tag = Builder.CreateAdd(baseTagTimesNumStoresVal, storesSoFarInclVal);
-  tagStoreInHeader->setOperand(0, tag);
-
-  // In loop latch, increment base tag after {idx, tag} pipe write.
-  Builder.SetInsertPoint(pipeWriteCall);
-  Value *baseTagNext = Builder.CreateAdd(baseTag, ConstantInt::get(tagTypeForPipe, 1));
-  Builder.CreateStore(baseTagNext, baseTagAddr);
+  //    If store, base_tag += 1
+  IRBuilder<> Builder(loadPipeTagStore);
+  auto tagType = loadPipeTagStore->getOperand(0)->getType();
+  Value *baseTagVal = Builder.CreateLoad(tagType, baseTagAddr, "baseTagVal");
+  
+  auto baseTagPlusOne = Builder.CreateAdd(baseTagVal, ConstantInt::get(tagType, 1), "baseTagPlus1");
+  if (isStore) {
+    loadPipeTagStore->setOperand(0, baseTagPlusOne);
+    Builder.CreateStore(baseTagPlusOne, baseTagAddr);
+  }
+  else {
+    loadPipeTagStore->setOperand(0, baseTagVal);
+  }
 }
 
 void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object &report,
@@ -302,70 +292,71 @@ int getNumInstrsBeforeThisInstr(const SmallVector<Instruction *> &instrs, Instru
 struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
   const std::string loopRAWReportFilename = "loop-raw-report.json";
   json::Object report;
-  // Kernel names will be annotated with load/store by the AST transform upstream.
-  std::regex load_regex{"_load_(\\d+)", std::regex_constants::ECMAScript};
-  std::regex store_regex{"_store_(\\d+)", std::regex_constants::ECMAScript};
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     Module *M = F.getParent();
 
     // Read in report once.
-    if (report.empty()) {
-      report = *(parseJsonReport().getAsObject());
-    }
+    if (report.empty()) report = *(parseJsonReport().getAsObject());
 
+    // SPIR lambda kernel functions are guaranteed to be called just once.
     auto callers = getCallerFunctions(M, F);
-    if (callers.size() != 1)
-      return PreservedAnalyses::all();
+    if (callers.size() != 1) return PreservedAnalyses::all();
 
     std::string mainKernelName = std::string(report["kernel_class_name"].getAsString().getValue());
     std::string thisKernelName = demangle(std::string(callers[0]->getName()));
-    bool isSplitStores = report["split_stores"].getAsInteger().getValue() == 1;
 
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
       // The names of kernels that we need to transform are guaranteed to begin with mainKernelName.
       if (std::equal(mainKernelName.begin(), mainKernelName.end(), thisKernelName.begin())) {
+        // Prepatory transformations, which were also done before analysis.
         ifConversionForStores(F, AM);
         hoistLoadsOutOfBranches(F, AM);
 
-        // Find out if this F should be a load_idx, store_idx or main kernel.
-        std::smatch load_matches, store_matches;
-        std::regex_search(thisKernelName, load_matches, load_regex);
-        std::regex_search(thisKernelName, store_matches, store_regex);
-
+        // Collect the same load/store instructions as during analysis.
         SmallVector<Instruction *> loads;
         SmallVector<Instruction *> stores;
         getMemInstrsWithRAW(F, AM, loads, stores);
 
-        if (load_matches.size() > 1) {
-          int iLoad = std::stoi(load_matches[1]);
-          // Used for tag calculation.
-          int storesSoFarInclusive = getNumInstrsBeforeThisInstr(stores, loads[iLoad], F);
-          transformIdxKernel(F, AM, 0, storesSoFarInclusive, stores.size(),
-                             dyn_cast<LoadInst>(loads[iLoad])->getPointerOperand(), loads[iLoad]);
-        } else if (store_matches.size() > 1) {
-          int iStore = std::stoi(store_matches[1]);
-          // Used for base tag.
-          int storesSoFarInclusive = iStore + 1;
-          transformIdxKernel(F, AM, 0, storesSoFarInclusive, stores.size(),
-                             dyn_cast<StoreInst>(stores[iStore])->getPointerOperand(), stores[iStore]);
-        } else {
-          // If we could not split the stores into another kernel, then we need to insert
-          // store idx pipe writes into the main kernel.
-          if (!isSplitStores) {
-            int idxPipeWriteSeq = loads.size() + stores.size() + 1;
-            int storesSoFarInclusive = 1;
-            for (auto si : stores) {
-              // Do not delete any mem instructions in transformIdxKernel, 
-              // since they will be needed in transformMainKernel.
-              transformIdxKernel(F, AM, idxPipeWriteSeq, storesSoFarInclusive, stores.size(),
-                                 dyn_cast<StoreInst>(si)->getPointerOperand(), si, false);
-              storesSoFarInclusive++;
-              // No need to increment idxPipeWriteSeq since the previous pipe would have been
-              // moved/deleted, moving the next one hisher up the sequence 
+        // Find out if this F should be an AGU or Main kernel.
+        std::regex agu_kernel_regex{mainKernelName + "_AGU", std::regex_constants::ECMAScript};
+        std::smatch agu_kernel_match;
+        std::regex_search(thisKernelName, agu_kernel_match, agu_kernel_regex);
+        bool isAGU = agu_kernel_match.size() > 0;
+        // If we could not split the address generation from the compute, 
+        // then we need to merge the AGU kernel into the main kernel.
+        bool isSplitStores = (report["split_stores"].getAsInteger().getValue() == 1);
+
+        if (isAGU || !isSplitStores) {
+          // At AGU function entry, initialize a base tag to 0.
+          IRBuilder<> Builder(F.getEntryBlock().getTerminator());
+          auto tagType = Type::getInt32Ty(F.getContext());
+          Value *baseTagAddr = Builder.CreateAlloca(tagType, nullptr, "baseTagAddr");  
+          Builder.CreateStore(ConstantInt::get(tagType, 0), baseTagAddr);
+
+          for (uint i_ld = 0; i_ld < loads.size(); ++i_ld) {
+            // Always get 0th pipe, since pipeWriteCall will be moved away the 0th position in F. 
+            CallInst *pipeWriteCall = getNthPipeCall(F, 0);
+            transformIdxKernel(F, AM, loads[i_ld], baseTagAddr, pipeWriteCall, false);
+          }
+          
+          // There is only one store idx pipe.
+          CallInst *storePipeWriteCall = getNthPipeCall(F, 0);
+          for (uint i_st = 0; i_st < stores.size(); ++i_st) {
+            transformIdxKernel(F, AM, stores[i_st], baseTagAddr, storePipeWriteCall, true);
+          }
+          
+          // Delete instruction using the base address of the store instructions.
+          // TODO: just replace base addr and loads with undef?
+          if (isSplitStores) {
+            for (auto st_i : stores) {
+              deleteStoresAfterI(F, AM, st_i);
+              deleteInstruction(st_i);
             }
           }
+        } 
 
+        if (!isAGU) {
           transformMainKernel(F, AM, report, stores, loads);
         }
       }

@@ -34,6 +34,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <algorithm>
 
 using namespace llvm;
 
@@ -132,9 +133,7 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
 }
 
 // Returns true if inst0 is control dependent (may_occur && !must_occur), 
-// where the control dependency depends {inst1}.
-// The control-dependent-store must_occur case is handled by doIfConversionForStore assumed
-// to be performed before calling this function.
+// where the control dependency depends on {inst1}.
 //
 // The motivation behind this check is to see, if the generation of store addresses can be hosited
 // into it's own kernel, without using the base address of the {st} instruction. 
@@ -142,10 +141,22 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
 // Go over all users of {onI} recursively:
 //  - if we hit a branch:
 //      - if the store is in any but not all of the BB dominated by the branch, return true
-bool isInst0ConditionalOnInst1(DominatorTree &DT, Instruction *inst0, Instruction *inst1) {
-  for (auto user : inst1->users()) {
-    auto userI = dyn_cast<Instruction>(user);
+// Record pairs into {checkedPairs} to prune the recursive search.
+bool isInst0ConditionalOnInst1(DominatorTree &DT, Instruction *inst0, Instruction *inst1, 
+                               SmallVector<SmallVector<Instruction *, 2>> &checkedPairs) {
+  SmallVector<Instruction *, 2> thisPair(2);
+  thisPair[0] = inst0;
+  thisPair[1] = inst1;
+  if (std::find(checkedPairs.begin(), checkedPairs.end(), thisPair) != checkedPairs.end())
+    return false;
+  
+  checkedPairs.emplace_back(thisPair);
 
+  for (auto user : inst1->users()) {
+    if (!isa<Instruction>(user))
+      continue;
+
+    auto userI = dyn_cast<Instruction>(user);
     if (auto brI = dyn_cast<BranchInst>(userI)) {
       bool atLeastOneDominatesStore = false;
       bool allDominateStore = true;
@@ -158,7 +169,7 @@ bool isInst0ConditionalOnInst1(DominatorTree &DT, Instruction *inst0, Instructio
         return true;
     }
 
-    return isInst0ConditionalOnInst1(DT, inst0, userI);
+    return isInst0ConditionalOnInst1(DT, inst0, userI, checkedPairs);
   }
 
   return false;
@@ -172,7 +183,8 @@ bool canSplitAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
   bool isAnyStoreControlDepOnBaseAddr = false;
   for (auto si : stores) {
     for (auto li : loads) {
-      isAnyStoreControlDepOnBaseAddr |= isInst0ConditionalOnInst1(DT, si, li);
+      SmallVector<SmallVector<Instruction *, 2>> checkedPairs;
+      isAnyStoreControlDepOnBaseAddr |= isInst0ConditionalOnInst1(DT, si, li, checkedPairs);
     }
   }
 
@@ -387,7 +399,9 @@ bool hoistLoadsOutOfBranches(Function &F, FunctionAnalysisManager &AM) {
       if (li0 == li1 || li0->getParent() == li1->getParent())
         continue;
 
-      if (isInst0ConditionalOnInst1(DT, li1, li0) && isSafeToMoveInto(li1, li0->getParent())) {
+      SmallVector<SmallVector<Instruction *, 2>> checkedPairs;
+      if (isInst0ConditionalOnInst1(DT, li1, li0, checkedPairs) && 
+          isSafeToMoveInto(li1, li0->getParent())) {
         moveIntoBB(li1, li0->getParent());
         isTransformed = true;
       }

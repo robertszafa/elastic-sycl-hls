@@ -88,8 +88,10 @@ void deleteSideEffectInstrAfter(Instruction* cutOffInst) {
   }
 }
 
-/// Given a {keepI} instruction, delete all stores in F where a {keepI} doesn't dependent on it.  
-void deleteStoresAfterI(Function &F, FunctionAnalysisManager &AM, Instruction *cutOffI) {
+/// Given a {cutOffI} instruction, delete all stores in F where a {keepI} doesn't dependent on it.  
+/// Don't delete an instruction if it's part of {preserveInstructions}.
+void deleteStoresAfterI(Function &F, FunctionAnalysisManager &AM, Instruction *cutOffI, 
+                        SmallVector<Instruction *> &preserveInstructions) {
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
 
   // First delete stores in the cutOffI's BB.
@@ -112,8 +114,12 @@ void deleteStoresAfterI(Function &F, FunctionAnalysisManager &AM, Instruction *c
     }
   }
 
-  for (Instruction *inst : instToDelete) 
-    deleteInstruction(inst);
+  for (Instruction *inst : instToDelete) {
+    if (std::find(preserveInstructions.begin(), preserveInstructions.end(), inst) ==
+        preserveInstructions.end()) {
+      deleteInstruction(inst);
+    }
+  }
 }
 
 /// Assumes F has one exit BB after the --mergereturn pass.
@@ -144,8 +150,9 @@ bool isControlDependent(Function &F, FunctionAnalysisManager &AM, Instruction *I
   return !(DT.dominates(I->getParent(), latchBB));
 }
 
-void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, Instruction *memInst, 
-                        Value *baseTagAddr, CallInst *pipeWriteCall, const bool isStore) {
+void transformAGU(Function &F, FunctionAnalysisManager &AM, Instruction *memInst,
+                  Value *baseTagAddr, CallInst *pipeWriteCall, const bool isStore,
+                  SmallVector<Instruction *> &preserveInst) {
   // {idx, tag} struct store instructions.
   SmallVector<StoreInst *, 2> storesToIdxTagStruct;
   for (auto user : pipeWriteCall->getArgOperand(0)->users()) {
@@ -184,12 +191,18 @@ void transformIdxKernel(Function &F, FunctionAnalysisManager &AM, Instruction *m
   auto baseTagPlusOne = Builder.CreateAdd(baseTagVal, ConstantInt::get(tagType, 1), "baseTagPlus1");
   if (isStore) {
     tagStore->setOperand(0, baseTagPlusOne);
-    Builder.CreateStore(baseTagPlusOne, baseTagAddr);
+    auto newTagStore = Builder.CreateStore(baseTagPlusOne, baseTagAddr);
+    preserveInst.emplace_back(newTagStore);
+    preserveInst.emplace_back(dyn_cast<Instruction>(baseTagPlusOne));
   }
   else {
     tagStore->setOperand(0, baseTagVal);
   }
 
+  // Ensure the created instructions are not deleted later.
+  preserveInst.emplace_back(tagStore);
+  preserveInst.emplace_back(idxStore);
+  preserveInst.emplace_back(dyn_cast<Instruction>(baseTagVal));
 }
 
 void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object &report,
@@ -291,10 +304,6 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
       // The names of kernels that we need to transform are guaranteed to begin with mainKernelName.
       if (std::equal(mainKernelName.begin(), mainKernelName.end(), thisKernelName.begin())) {
-        // Prepatory transformations, which were also done before analysis.
-        ifConversionForStores(F, AM);
-        hoistLoadsOutOfBranches(F, AM);
-
         // Collect the same load/store instructions as during analysis.
         SmallVector<Instruction *> loads;
         SmallVector<Instruction *> stores;
@@ -316,22 +325,27 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
           Value *baseTagAddr = Builder.CreateAlloca(tagType, nullptr, "baseTagAddr");  
           Builder.CreateStore(ConstantInt::get(tagType, 0), baseTagAddr);
 
+          SmallVector<Instruction *> preserveInst;
           for (uint i_ld = 0; i_ld < loads.size(); ++i_ld) {
-            // Always get 0th pipe, since pipeWriteCall will be moved away the 0th position in F. 
+            // Always get 0th pipe, since pipeWriteCall will be moved away the 0th position in F.
             CallInst *pipeWriteCall = getNthPipeCall(F, 0);
-            transformIdxKernel(F, AM, loads[i_ld], baseTagAddr, pipeWriteCall, false);
+            transformAGU(F, AM, loads[i_ld], baseTagAddr, pipeWriteCall, false, preserveInst);
           }
           for (uint i_st = 0; i_st < stores.size(); ++i_st) {
             CallInst *pipeWriteCall = getNthPipeCall(F, 0);
-            transformIdxKernel(F, AM, stores[i_st], baseTagAddr, pipeWriteCall, true);
+            transformAGU(F, AM, stores[i_st], baseTagAddr, pipeWriteCall, true, preserveInst);
           }
-          
+
           // Delete instruction using the base address of the store instructions.
           // TODO: just replace base addr and loads with undef?
           if (isSplitStores) {
             for (auto st_i : stores) {
-              deleteStoresAfterI(F, AM, st_i);
-              deleteInstruction(st_i);
+              // Make sure st_i wasn't already deleted
+              if (st_i->getParent() != nullptr ||
+                  std::find(preserveInst.begin(), preserveInst.end(), st_i) != preserveInst.end()) {
+                deleteStoresAfterI(F, AM, st_i, preserveInst);
+                deleteInstruction(st_i);
+              }
             }
           }
         } 

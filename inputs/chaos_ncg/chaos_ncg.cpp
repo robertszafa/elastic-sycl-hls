@@ -135,12 +135,12 @@ static auto exception_handler = [](sycl::exception_list e_list) {
 int main(int argc, char *argv[]) {
   // Get A_SIZE and forward/no-forward from args.
   // defaulats
-  uint ARRAY_SIZE = 64;
+  uint BO = 100;
   auto DATA_DISTR = data_distribution::ALL_WAIT;
   uint PERCENTAGE = 5;
   try {
     if (argc > 1) {
-      ARRAY_SIZE = uint(atoi(argv[1]));
+      BO = uint(atoi(argv[1]));
     }
     if (argc > 2) {
       DATA_DISTR = data_distribution(atoi(argv[2]));
@@ -174,37 +174,37 @@ int main(int argc, char *argv[]) {
     // Print out the device information used for the kernel code.
     std::cout << "Running on device: " << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<int> M(ARRAY_SIZE);
-    std::vector<int> buffer(ARRAY_SIZE);
+    std::vector<int> M(BO*3);
+    std::vector<int> buffer(BO*3);
 
     // init_data - no easy way to control ALL_WAIT, NO_WAIT, PERCENTAGE_WAIT
-    int I = 10, bo = 900, X = 250, Y = 250;
-    for (int i = 0; i < 2000; i++) {
-      M[i] = rand() % ARRAY_SIZE;
-      buffer[i] = rand() % ARRAY_SIZE;
+    int I = 10, X = 250, Y = 250;
+    for (int i = 0; i < BO*3; i++) {
+      M[i] = rand() % BO;
+      buffer[i] = rand() % BO;
     }
     // init_data
 
-    std::vector<int> buffer_cpu(ARRAY_SIZE);
+    std::vector<int> buffer_cpu(BO*3);
     std::copy(buffer.begin(), buffer.end(), buffer_cpu.begin());
 
     auto start = std::chrono::steady_clock::now();
     double kernel_time = 0;
 
-    kernel_time = chaos_ncg_kernel(q, I, bo, X, Y, 127, 41, M, buffer);
+    kernel_time = chaos_ncg_kernel(q, I, BO, X, Y, 127, 41, M, buffer);
 
     // Wait for all work to finish.
     q.wait();
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    chaos_ncg_cpu(I, bo, X, Y, 127, 41, M, buffer_cpu);
-    if (std::equal(buffer.begin(), buffer.end(), buffer_cpu.begin())) {
+    chaos_ncg_cpu(I, BO, X, Y, 127, 41, M, buffer_cpu);
+    if (std::equal(buffer.data(), buffer.data() + BO*2, buffer_cpu.data())) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed";
-      std::cout << " sum(A_fpga) = " << std::accumulate(buffer.begin(), buffer.end(), 0) << "\n";
-      std::cout << " sum(buffer_cpu) = " << std::accumulate(buffer_cpu.begin(), buffer_cpu.end(), 0) << "\n";
+      std::cout << " sum(fpga) = " << std::accumulate(buffer.data(), buffer.data() + BO*2, 0) << "\n";
+      std::cout << " sum(cpu) = " << std::accumulate(buffer_cpu.data(), buffer_cpu.data() + BO*2, 0) << "\n";
     }
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";

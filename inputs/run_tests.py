@@ -16,6 +16,8 @@ KERNEL_ASIZE_PAIRS = {
     'maximal_matching' : 1000000,
     'spmv' : 400,
     'bnn' : 1000000,
+    'vec_trans' : 1000000,
+    'chaos_ncg' : 1000000,
 }
 # Decrease domain sizes when running in simulation.
 KERNEL_ASIZE_PAIRS_SIM = {
@@ -27,6 +29,8 @@ KERNEL_ASIZE_PAIRS_SIM = {
     'maximal_matching' : 1000,
     'spmv' : 20,
     'bnn' : 100,
+    'vec_trans' : 1000,
+    'chaos_ncg' : 100,
 }
 
 DATA_DISTRIBUTIONS = {

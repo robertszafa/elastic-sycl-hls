@@ -23,13 +23,13 @@ SIMULATION_FLAGS := -Xssimulation -DFPGA=1
 # SIMULATION_FLAGS += -reuse-exe=$(BIN).fpga_sim
 
 
-.PHONY: host fpga_emu fpga 
+.PHONY: host fpga_emu fpga_hw
 
 all: host
 host: $(BIN)
 fpga_emu: $(BIN).fpga_emu
 fpga_sim: $(BIN).fpga_sim
-fpga: $(BIN).fpga
+fpga_hw: $(BIN).fpga_hw
 report: $(BIN).a 
 
 
@@ -42,7 +42,7 @@ $(BIN).fpga_emu: $(SRC) | bin
 $(BIN).fpga_sim: $(BIN).dev.o | bin
 	$(CXX) $(CXXFLAGS) -fintelfpga $< -o $@ $(SIMULATION_FLAGS)
 
-$(BIN).fpga: $(BIN).dev.o | bin
+$(BIN).fpga_hw: $(BIN).dev.o | bin
 	$(CXX) $(CXXFLAGS) -fintelfpga $< -o $@ $(HARDWARE_FLAGS)
 
 $(BIN).dev.o: $(SRC) | bin

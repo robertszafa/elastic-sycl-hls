@@ -1,4 +1,4 @@
-BENCHMARK := vec_trans
+BENCHMARK := spmv
 
 SRC := $(FILE)
 # HDR := ""

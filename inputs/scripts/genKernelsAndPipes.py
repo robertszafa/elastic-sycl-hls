@@ -13,7 +13,7 @@ import json
 
 # TODO: get queue name from llvm pass
 Q_NAME = 'q'
-STOREQ_HEADER = '#include "store_queue.hpp"'
+STOREQ_HEADER = '#include "store_queue.hpp"\n#include <type_traits>'
 
 # This has false positives but we use it only on strings that have a variable name at the beginning
 c_var_regex = r'([a-zA-Z_][a-zA-Z0-9_]*)'
@@ -24,7 +24,7 @@ def gen_store_queue_syntax(report, q_size):
     PIPE_DEPTH = 64
 
     return f'''
-    using val_type = {report['array_type']};
+    using val_type = std::remove_reference<decltype(* {report['array_name']})>::type;
     constexpr int kNumLoads = {report['num_loads']};
     constexpr int kNumStores = {report['num_stores']};
     constexpr int kQueueSize = {q_size};
@@ -186,6 +186,9 @@ if __name__ == '__main__':
     src_lines_with_storeq = insert_storeq_wait(src_lines_with_pipes_and_agu, insert_line_idx_kernels)
     
     new_filename = SRC_FNAME + '.tmp.cpp' 
+    if len(sys.argv) > 4:
+        new_filename = sys.argv[4]
+
     with open(new_filename, 'w') as f:
         f.write('\n'.join(src_lines_with_storeq))
 

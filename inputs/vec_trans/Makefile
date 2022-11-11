@@ -1,4 +1,4 @@
-BENCHMARK := vec_trans
+BENCHMARK := $(basename $(FILE))
 
 SRC := $(FILE)
 # HDR := ""

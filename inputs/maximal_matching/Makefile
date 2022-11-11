@@ -1,4 +1,4 @@
-BENCHMARK := maximal_matching
+BENCHMARK := $(basename $(FILE))
 
 SRC := $(FILE)
 # HDR := ""

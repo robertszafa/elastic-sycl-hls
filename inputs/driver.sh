@@ -47,17 +47,16 @@ echo "-- Running libStoreQueueTransform on refactored source"
 # Get IR of source with kernels and pipes instantiated. 
 ./scripts/compile_to_bc.sh "$1" $TMP_SRC_FILE
 ./scripts/prepare_ir.sh $TMP_SRC_FILE.bc
-# Transform each kernel to do only one correct work and write/read correct pipes.
 ~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libStoreQueueTransform.so \
-                         -passes=stq-transform $TMP_SRC_FILE.bc -o $TMP_SRC_FILE.bc.out
+                         -passes=stq-transform $TMP_SRC_FILE.bc -o $TMP_SRC_FILE.out.bc
 
 ###
 ### STAGE 5: Produce final binary.
 ###
 echo "-- Compiling into $FINAL_BINARY"
 # Cleanup the transformed IR. The transformation leaves a lot of dead code, unused kernel args, etc.
-./scripts/prepare_ir.sh $TMP_SRC_FILE.bc.out
-./scripts/compile_from_bc.sh $1 $TMP_SRC_FILE.bc.out $TMP_SRC_FILE $FINAL_BINARY
+./scripts/prepare_ir.sh $TMP_SRC_FILE.out.bc
+./scripts/compile_from_bc.sh $1 $TMP_SRC_FILE.out.bc $TMP_SRC_FILE $FINAL_BINARY
 
 
 echo "done"

@@ -1,4 +1,4 @@
-BENCHMARK := histogram_if_3
+BENCHMARK := $(basename $(FILE))
 
 SRC := $(FILE)
 # HDR := ""

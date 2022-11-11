@@ -1,4 +1,4 @@
-BENCHMARK := get_tanh
+BENCHMARK := $(basename $(FILE))
 
 SRC := $(FILE)
 # HDR := ""

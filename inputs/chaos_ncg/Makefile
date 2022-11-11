@@ -1,4 +1,4 @@
-BENCHMARK := chaos_ncg
+BENCHMARK := $(basename $(FILE))
 
 SRC := $(FILE)
 # HDR := ""

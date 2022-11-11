@@ -1,4 +1,4 @@
-BENCHMARK := bnn
+BENCHMARK := $(basename $(FILE))
 
 SRC := $(FILE)
 # HDR := ""

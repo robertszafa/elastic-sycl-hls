@@ -8,16 +8,16 @@ from pathlib import Path
 EXP_DATA_DIR = 'exp_data/'
 
 KERNEL_ASIZE_PAIRS = {
-    'histogram' : 1000000,
-    'histogram_if' : 1000000,
-    'histogram_if_2' : 1000000,
-    'histogram_if_3' : 1000000,
-    'get_tanh' : 1000000,
-    'maximal_matching' : 1000000,
-    'spmv' : 400,
-    'bnn' : 1000000,
-    'vec_trans' : 1000000,
-    'chaos_ncg' : 1000000,
+    'histogram' : 10000,
+    'histogram_if' : 10000,
+    'histogram_if_2' : 10000,
+    'histogram_if_3' : 10000,
+    'get_tanh' : 10000,
+    'maximal_matching' : 5000,
+    'spmv' : 100,
+    'bnn' : 100,
+    'vec_trans' : 10000,
+    'chaos_ncg' : 5000,
 }
 # Decrease domain sizes when running in simulation.
 KERNEL_ASIZE_PAIRS_SIM = {

@@ -66,26 +66,10 @@ CallInst* getNthPipeCall(Function &F, const int n) {
   return nullptr;
 }
 
-/// Delete any side-effect instructions and their users that come after {InstToDeleteAfter}.
-/// (Uses of deleteded Values are replaced with undefs).
-void deleteSideEffectInstrAfter(Instruction* cutOffInst) {
-  SmallVector<Instruction *> instToDelete;
-
-  bool isAfterCutoff = false;
-  BasicBlock *cutOffBB = cutOffInst->getParent();
-  for (Instruction &inst : cutOffBB->getInstList()) {
-    if (isAfterCutoff && (isa<StoreInst>(&inst) || isa<LoadInst>(&inst))) {
-      instToDelete.emplace_back(&inst);
-    } else if (cutOffInst->isIdenticalTo(&inst)) {
-      isAfterCutoff = true;
-    }
-  }
-
-  for (Instruction *inst : instToDelete) {
-    inst->dropAllReferences();
-    inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
-    inst->eraseFromParent();
-  }
+void deleteInstruction(Instruction *inst) {
+  inst->dropAllReferences();
+  inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
+  inst->eraseFromParent();
 }
 
 /// Given a {cutOffI} instruction, delete all stores in F where a {keepI} doesn't dependent on it.  
@@ -120,34 +104,6 @@ void deleteStoresAfterI(Function &F, FunctionAnalysisManager &AM, Instruction *c
       deleteInstruction(inst);
     }
   }
-}
-
-/// Assumes F has one exit BB after the --mergereturn pass.
-BasicBlock* getExitBB(Function &F) {
-  BasicBlock *exit = nullptr;
-  for (auto &BB : F) {
-    for (auto &I : BB) {
-      assert(!(isa<ReturnInst>(I) && exit != nullptr) && "Precondition of single exit BB violated\n");
-
-      if (isa<ReturnInst>(I) && exit == nullptr) {
-        exit = &BB;
-        continue;
-      }
-    }
-  }
-
-  return exit;
-}
-
-// Check if {I} is control dependent, i.e. is there a path going through L.latch without {I}?
-bool isControlDependent(Function &F, FunctionAnalysisManager &AM, Instruction *I) {
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  
-  Loop *L = getBBLoop(AM.getResult<LoopAnalysis>(F), I->getParent());
-  assert(L && "Instruction not part of loop in isControlDependent()\n");
-  auto latchBB = L->getLoopLatch();
-
-  return !(DT.dominates(I->getParent(), latchBB));
 }
 
 void transformAGU(Function &F, FunctionAnalysisManager &AM, Instruction *memInst,
@@ -205,7 +161,7 @@ void transformAGU(Function &F, FunctionAnalysisManager &AM, Instruction *memInst
   preserveInst.emplace_back(dyn_cast<Instruction>(baseTagVal));
 }
 
-void transformMainKernel(Function &F, FunctionAnalysisManager &AM, json::Object &report,
+void transformMainKernel(Function &F, FunctionAnalysisManager &AM,
                          SmallVector<Instruction *> &stores, SmallVector<Instruction *> &loads) {
   // Get pipe calls.
   SmallVector<CallInst*> loadPipeReadCalls(loads.size());
@@ -263,29 +219,7 @@ json::Value parseJsonReport() {
   return json::Value(nullptr);
 }
 
-/// return the number of instr from {instrs} that occur {beforeThisI} in {F}.
-/// Works even if instructions are in differnt basic blocks.
-int getNumInstrsBeforeThisInstr(const SmallVector<Instruction *> &instrs, Instruction *beforeThisI,
-                                Function &F) {  
-  int res = 0;
-  for (auto &BB : F) {
-    for (auto &I : BB) {
-      if (I.isIdenticalTo(beforeThisI))
-        return res;
-      
-      for (auto &instrsI : instrs) {
-        if (instrsI->isIdenticalTo(&I))
-          res++;
-      }
-    }
-  }
-
-  assert("{beforeThisI} not present in F.");
-  return res;
-}
-
 struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
-  const std::string loopRAWReportFilename = "loop-raw-report.json";
   json::Object report;
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
@@ -351,7 +285,7 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
         } 
 
         if (!isAGU) {
-          transformMainKernel(F, AM, report, stores, loads);
+          transformMainKernel(F, AM, stores, loads);
         }
       }
     }

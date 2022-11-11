@@ -114,13 +114,6 @@ def get_array_name(line_with_array, end_col):
     return array
 
 
-def llvm2ctype(llvm_type):
-    if llvm_type == 'i32':
-        return 'int'
-
-    return llvm_type
-
-
 def parse_report(report_fname, source_file_lines):
     try:
         with open(report_fname, 'r') as f:
@@ -130,7 +123,6 @@ def parse_report(report_fname, source_file_lines):
         report["kernel_name"] = report["kernel_class_name"].split(' ')[-1].split('::')[-1]
         report['array_name'] = get_array_name(source_file_lines[report['array_line']-1], 
                                               report['array_column'])
-        report['array_type'] = llvm2ctype(report['val_type'])
         report['spir_func_name'] = report["spir_func_name"].split('::')[0]
 
         return report

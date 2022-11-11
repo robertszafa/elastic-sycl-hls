@@ -47,19 +47,72 @@ json::Object generateReport(Function &F, SmallVector<Instruction *> &loads,
   if (callers.size() == 1) {
     report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
     report["spir_func_name"] = demangle(std::string(F.getName()));
-    report["num_copies"] = 1 + loads.size(); // 1 store idx kernel
     report["num_loads"] = loads.size();
     report["num_stores"] = stores.size();
     report["array_line"] = stores[0]->getDebugLoc().getLine();
     report["array_column"] = stores[0]->getDebugLoc()->getColumn();
-
-    std::string typeStr;
-    llvm::raw_string_ostream rso(typeStr);
-    stores[0]->getOperand(0)->getType()->print(rso);
-    report["val_type"] = rso.str();
   }
 
   return report;
+}
+
+// Returns true if inst0 is control dependent (may_occur && !must_occur), 
+// where the control dependency depends on {inst1}.
+//
+// The motivation behind this check is to see, if the generation of store addresses can be hosited
+// into it's own kernel, without using the base address of the {st} instruction. 
+// 
+// Go over all users of {onI} recursively:
+//  - if we hit a branch:
+//      - if the store is in any but not all of the BB dominated by the branch, return true
+// Record pairs into {checkedPairs} to prune the recursive search.
+bool isInst0ConditionalOnInst1(DominatorTree &DT, Instruction *inst0, Instruction *inst1, 
+                               SmallVector<SmallVector<Instruction *, 2>> &checkedPairs) {
+  SmallVector<Instruction *, 2> thisPair(2);
+  thisPair[0] = inst0;
+  thisPair[1] = inst1;
+  if (std::find(checkedPairs.begin(), checkedPairs.end(), thisPair) != checkedPairs.end())
+    return false;
+  
+  checkedPairs.emplace_back(thisPair);
+
+  for (auto user : inst1->users()) {
+    if (!isa<Instruction>(user))
+      continue;
+
+    auto userI = dyn_cast<Instruction>(user);
+    if (auto brI = dyn_cast<BranchInst>(userI)) {
+      bool atLeastOneDominatesStore = false;
+      bool allDominateStore = true;
+      for (auto succ : brI->successors()) {
+        allDominateStore &= DT.dominates(succ, inst0->getParent());
+        atLeastOneDominatesStore |= DT.dominates(succ, inst0->getParent());
+      }
+
+      if (atLeastOneDominatesStore && !allDominateStore) 
+        return true;
+    }
+
+    return isInst0ConditionalOnInst1(DT, inst0, userI, checkedPairs);
+  }
+
+  return false;
+}
+
+bool canSplitAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM, 
+                            SmallVector<Instruction *> &loads,
+                            SmallVector<Instruction *> &stores) {
+  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+
+  bool isAnyStoreControlDepOnBaseAddr = false;
+  for (auto si : stores) {
+    for (auto li : loads) {
+      SmallVector<SmallVector<Instruction *, 2>> checkedPairs;
+      isAnyStoreControlDepOnBaseAddr |= isInst0ConditionalOnInst1(DT, si, li, checkedPairs);
+    }
+  }
+
+  return !isAnyStoreControlDepOnBaseAddr;
 }
 
 void analyseRAW(Function &F, FunctionAnalysisManager &AM) {

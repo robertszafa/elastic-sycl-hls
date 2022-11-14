@@ -75,37 +75,33 @@ def make_plot(df, kernel, resource):
 
     fig_id = fig_id + 1
     # plot
-    fig = plt.figure(fig_id, figsize=(8, 6))
-    FONTSIZE = 18
+    plt.style.use(f'{EXP_DATA_DIR}/.plot_style.txt')
+    fig = plt.figure(fig_id)
 
-    annot_offset_x = 0.1
+    annot_offset_x = 0.08
     annot_offset_y = 200
 
     x_time = df['time']
-    plt.plot(x_time[0], df[resource][0], marker='o', label='Static Intel HLS', color=colors[0], mfc='w', markersize=8)
-    plt.text(x_time[0] + 0.05, df[resource][0] + annot_offset_y, f'Freq. {df["FREQ"][0]} MHz', fontsize=10)
+    plt.plot(x_time[0], df[resource][0], marker='o', label='Static Intel HLS')
+    plt.text(x_time[0] + annot_offset_x, df[resource][0] + annot_offset_y, f'Freq. {df["FREQ"][0]} MHz')
 
     for i, q in enumerate(Q_SIZES):
         x = x_time[i+1]
         y = df[resource][i+1]
 
+        label = None
         if i == 0:
-          plt.plot(x, y, marker='s', fillstyle='full', label=f'This Work', color=colors[1], mfc='w', markersize=8)
-        else:
-          plt.plot(x, y, marker='s', fillstyle='full', color=colors[1], mfc='w', markersize=8)
-        
-        plt.text(x + annot_offset_x, y + annot_offset_y, f'Queue Size {q}\nFreq. {df["FREQ"][i+1]} MHz', fontsize=10)
+            label = 'This Work'
+        plt.plot(x, y, marker='s', color='#b3de69', label=label)
+        plt.text(x + annot_offset_x, y + annot_offset_y, f'Queue Size {q}\nFreq. {df["FREQ"][i+1]} MHz')
 
-    xticks = [i for i in range(0, 6)]
-    plt.xticks(ticks=xticks, labels=xticks)
-    plt.ylim(min(df[resource]) - 500, max(df[resource]) + 1000)
+    # xticks = [i for i in range(0, 6)]
+    plt.xticks()
 
-    plt.xlabel('Time - ms', fontsize=FONTSIZE)
-    plt.ylabel(f'Resource - {resource}', fontsize=FONTSIZE)  # label the y axis
-
+    plt.xlabel('Time - ms')
+    plt.ylabel(f'Resource - {resource}')  # label the y axis
     # add the legend (will default to 'best' location)
-    plt.legend(fontsize=FONTSIZE)
-    
+    plt.legend()
 
     plt.savefig(f'{EXP_DATA_DIR}/qsizes_exp_{resource}_{kernel}.pdf')
 

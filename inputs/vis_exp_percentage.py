@@ -51,58 +51,6 @@ def get_ii(bin):
         print(bin, ' no ii')
         return 1
 
-def make_plot(filename, relative=True, y_label='Speedup (normalised)', title=''):
-    global fig_id
-    global BINS_STATIC
-    global BINS_DYNAMIC
-
-    fig_id = fig_id + 1
-
-    df = pd.read_csv(filename)
-    x = df['q_size']
-    y = df['static'].replace({0: np.nan})
-
-    x2 = df['q_size']
-    y2 = df['dynamic'].replace({0: np.nan})
-
-    if relative:
-        static_baseline = y[0]
-        y = [1 for _ in df['static']]
-        y2 = [static_baseline/val for val in y2]
-
-    # plot
-    fig = plt.figure(fig_id, figsize=(8, 8))
-    plt.semilogx(x2, y2, linestyle='-', marker='s', label='dynamic (forwarding)',
-                 color=colors[1], mfc='w', markersize=8)
-    plt.semilogx(x, y, linestyle='-', marker='o', label='static',
-                 color=colors[0], mfc='w', markersize=8)
-
-    # Add frequencies as
-    if not 'sim' in filename:
-        freq = get_freq(BINS_STATIC[0])
-        ii = get_ii(BINS_STATIC[0])
-        plt.text(x[len(x) - 1], y[len(y) - 1], f'{freq} MHz\nII={ii}', fontsize='x-small', fontstyle='italic')
-
-        for i in range(len(BINS_DYNAMIC)):
-            freq = get_freq(BINS_DYNAMIC[i])
-            ii = get_ii(BINS_DYNAMIC[i])
-            if not np.isnan(y2[i]):
-                plt.text(x2[i], y2[i], f'{freq} MHz\nII={ii}', fontsize='x-small', fontstyle='italic')
-
-
-    xticks = Q_SIZES_DYNAMIC
-    plt.xticks(ticks=xticks, labels=xticks)
-
-    plt.xlabel(r'Queue size', fontsize=14)
-    plt.ylabel(y_label, fontsize=14)  # label the y axis
-
-    # add the legend (will default to 'best' location)
-    plt.legend(fontsize=14)
-    plt.title(title)
-
-    plt.savefig(filename.replace('csv', 'png'), dpi=300, bbox_inches="tight")
-
-
 def make_plot_all_percentages(filename, kernel, relative=False, y_label='Speedup (normalised)', title=''):
     global fig_id
     global BINS_STATIC
@@ -122,24 +70,24 @@ def make_plot_all_percentages(filename, kernel, relative=False, y_label='Speedup
         y = [1 for _ in df['static']]
 
     # plot
-    fig = plt.figure(fig_id, figsize=(8, 6))
-    plt.plot(x, y, linestyle='-', marker='o', label='Static Intel HLS',
-                 color=colors[0], mfc='w', markersize=8)
-    plt.plot(x2, y2, linestyle='-', marker='s', 
-                 label=f'This Work',
-                 color=colors[1], mfc='w', markersize=8)
+    plt.style.use(f'{EXP_DATA_DIR}/.plot_style.txt')
+    fig = plt.figure(fig_id)
+    plt.plot(x, y, label='Static Intel HLS', marker='o')
+    plt.plot(x2, y2, label=f'This Work', marker='s')
 
-    xticks = PERCENTAGES_WAIT
+    xticks = []
+    for i, e in enumerate(PERCENTAGES_WAIT):
+        if i % 2 == 0:
+            xticks.append(e)
+
     plt.xticks(ticks=xticks, labels=xticks)
 
-    FONTSIZE = 18
-
-    plt.xlabel(r'True data hazard %', fontsize=FONTSIZE)
-    plt.ylabel(y_label, fontsize=FONTSIZE)  # label the y axis
+    plt.xlabel(r'True data hazard %')
+    plt.ylabel(y_label)  # label the y axis
+    plt.ylim(0)
 
     # add the legend (will default to 'best' location)
-    
-    plt.legend(bbox_to_anchor=(1, 0.9), loc="upper right", fontsize=FONTSIZE)
+    plt.legend()
     plt.title(title)
 
     plt.savefig(filename.replace('csv', 'pdf'))

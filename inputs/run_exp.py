@@ -14,14 +14,16 @@ TMP_FILE = f'.tmp_run_exp{str(time.time())[-5:]}.txt'
 Q_SIZES = [8]
 
 KERNEL_ASIZE_PAIRS = {
-    'histogram' : 1000000,
-    'histogram_if' : 1000000,
-    'spmv' : 1000,
-    'maximal_matching' : 1000000,
-    'get_tanh' : 1000000,
-    'bnn' : 1000,
-    'vec_trans' : 1000000,
-    'chaos_ncg' : 1000000,
+    'histogram' : 10000,
+    'histogram_if' : 10000,
+    'spmv' : 100,
+    'maximal_matching' : 5000,
+    'get_tanh' : 10000,
+    'get_tanh_double' : 10000,
+    'bnn' : 100,
+    'vec_trans' : 10000,
+    'chaos_ncg' : 5000,
+    'sssp' : 100,
 }
 # Decrease domain sizes when running in simulation.
 KERNEL_ASIZE_PAIRS_SIM = {
@@ -30,9 +32,11 @@ KERNEL_ASIZE_PAIRS_SIM = {
     'spmv' : 20,
     'maximal_matching' : 1000,
     'get_tanh' : 1000,
+    'get_tanh_double' : 1000,
     'bnn' : 100,
     'vec_trans' : 1000,
     'chaos_ncg' : 1000,
+    'sssp' : 50,
 }
 # For info.
 DATA_DISTRIBUTIONS = {

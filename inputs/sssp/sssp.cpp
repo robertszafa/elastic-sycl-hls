@@ -33,7 +33,6 @@ double sssp_kernel(queue & q, const std::vector<int> &h_G, std::vector<int> &h_c
         int mindistance = INT_MAX;
         int nextnode = 0;
         // nextnode gives the node at minimum distance
-        // #pragma unroll
         for (int i = 0; i < numNodes; i++) {
           if (distance[i] < mindistance && !visited[i]) {
             mindistance = distance[i];
@@ -43,7 +42,7 @@ double sssp_kernel(queue & q, const std::vector<int> &h_G, std::vector<int> &h_c
 
         // check if a better path exists through nextnode
         visited[nextnode] = 1;
-        // #pragma unroll
+        
         for (int i = 0; i < numNodes; i++) {
           if (!visited[i] && mindistance + cost[nextnode * numNodes + i] < distance[i]) {
             distance[i] = mindistance + cost[nextnode * numNodes + i];

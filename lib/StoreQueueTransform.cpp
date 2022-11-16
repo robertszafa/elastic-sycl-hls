@@ -250,9 +250,9 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
         bool isAGU = agu_kernel_match.size() > 0;
         // If we could not split the address generation from the compute, 
         // then we need to merge the AGU kernel into the main kernel.
-        bool isSplitStores = (report["split_stores"].getAsInteger().getValue() == 1);
+        bool isDecoupledAddress = (report["decouple_address"].getAsInteger().getValue() == 1);
 
-        if (isAGU || !isSplitStores) {
+        if (isAGU || !isDecoupledAddress) {
           // At AGU function entry, initialize a base tag to 0.
           IRBuilder<> Builder(F.getEntryBlock().getTerminator());
           auto tagType = Type::getInt32Ty(F.getContext());
@@ -272,7 +272,7 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 
           // Delete instruction using the base address of the store instructions.
           // TODO: just replace base addr and loads with undef?
-          if (isSplitStores) {
+          if (isDecoupledAddress) {
             for (auto st_i : stores) {
               // Make sure st_i wasn't already deleted
               if (st_i->getParent() != nullptr ||

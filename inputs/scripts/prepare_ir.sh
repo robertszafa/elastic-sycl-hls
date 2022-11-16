@@ -1,8 +1,14 @@
 #!/bin/bash
 
 # Perform a number of transformations to easy analysis.
- ~/git/llvm/build/bin/opt --mem2reg \
-                          --licm \
+
+# Our hoist-const-gep pass is similar to licm but we hoist GEPs with all constant indices 
+# (this captures SYCL pointers) to the entry BB of the function.
+ ~/git/llvm/build/bin/opt "$1" -o "$1" \
+                          --load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libHoistConstGep.so -passes=hoist-const-gep
+
+ ~/git/llvm/build/bin/opt "$1" -o "$1" \
+                          --mem2reg \
                           --lcssa \
                           --deadargelim-sycl \
                           --simplifycfg \
@@ -17,8 +23,6 @@
                           --sroa \
                           --gvn \
                           --mergereturn \
-                          "$1" -o "$1"
-                          # -polly-canonicalize -polly-simplify -polly-optree -polly-delicm -polly-simplify -polly-process-unprofitable -polly-opt-isl -polly-scops \
 
 # Get human readable bitcode
 ~/git/llvm/build/bin/llvm-dis "$1" -o "$1".ll

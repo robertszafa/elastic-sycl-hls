@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
     agu_kernel_body, agu_pipe_writes = add_agu_pipe_connections(kernel_body, report)
     main_kernel_pipes = gen_val_pipe_connections(report)
-    if not report['split_stores']:
+    if not report['decouple_address']:
         main_kernel_pipes =  agu_pipe_writes + main_kernel_pipes
     storeq_syntax = gen_store_queue_syntax(report, Q_SIZE)
 
@@ -170,7 +170,7 @@ if __name__ == '__main__':
                                    src_lines_with_pipes[:insert_line_idx_kernels] + \
                                    [storeq_syntax]
 
-    if report['split_stores']:
+    if report['decouple_address']:
         src_lines_with_pipes_and_agu += ["\n/// AGU", agu_kernel, "/// END AGU\n"]
 
     src_lines_with_pipes_and_agu += src_lines_with_pipes[insert_line_idx_kernels:]

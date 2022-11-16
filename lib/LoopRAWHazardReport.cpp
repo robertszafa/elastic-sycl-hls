@@ -99,13 +99,37 @@ bool isInst0ConditionalOnInst1(DominatorTree &DT, Instruction *inst0, Instructio
   return false;
 }
 
-bool canSplitAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM, 
-                            SmallVector<Instruction *> &loads,
-                            SmallVector<Instruction *> &stores) {
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+// void usedAfterBB()
 
+bool canDecoupleAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
+                                      SmallVector<Instruction *> &loads,
+                                      SmallVector<Instruction *> &stores) {
+  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+  auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
+  auto &DA = AM.getResult<DependenceAnalysis>(F);
+
+  SetVector<BasicBlock *> allBBs;
+  for (auto si : stores) 
+    allBBs.insert(si->getParent());
+  for (auto li : loads) 
+    allBBs.insert(li->getParent());
+
+  BasicBlock *lastBB = nullptr;
+  for (auto candidateBB : allBBs) {
+    // If candidate BB doesn't properly dominate any other BB, then it's the 
+    // last in function.entry->function.exit CFG path.
+    if (!std::any_of(allBBs.begin(), allBBs.end(),
+                     [&](BasicBlock *b) { return DT.properlyDominates(candidateBB, b); })) {
+      lastBB = candidateBB;
+      break;
+    }
+  }
+   
   bool isAnyStoreControlDepOnBaseAddr = false;
   for (auto si : stores) {
+    errs() << "\n";
+    auto siIdx = dyn_cast<StoreInst>(si)->getOperand(1);
+    errs() << "\n";
     for (auto li : loads) {
       SmallVector<SmallVector<Instruction *, 2>> checkedPairs;
       isAnyStoreControlDepOnBaseAddr |= isInst0ConditionalOnInst1(DT, si, li, checkedPairs);
@@ -125,9 +149,8 @@ void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
     json::Object report = generateReport(F, loads, stores);
     
     // Check if the store address generation can be split from the compute into a different kernel.
-    bool canSplitStores = canSplitAddressGenFromCompute(F, AM, loads, stores);
-    // report["split_stores"] = int(canSplitStores);
-    report["split_stores"] = int(0);
+    bool canDecoupleAddress = canDecoupleAddressGenFromCompute(F, AM, loads, stores);
+    report["decouple_address"] = int(canDecoupleAddress);
 
     outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n"; 
 
@@ -142,7 +165,7 @@ void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
       li->print(dbgs());
       dbgs() << "\n";
     }
-    dbgs() << "\nDecoupled address gen: " << canSplitStores << "\n---- DEBUG ----\n\n";
+    dbgs() << "\nDecoupled address gen: " << canDecoupleAddress << "\n---- DEBUG ----\n\n";
   } 
   else {
     errs() << "Warning: Report not generated - no RAW hazards.\n";  

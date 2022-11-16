@@ -3,6 +3,7 @@
 set(OPT_PASSES_PLUGINS
     StoreQueueTransform
     LoopRAWHazardReport
+    HoistConstGep
     )
 
 set(StoreQueueTransform_SOURCES
@@ -11,6 +12,8 @@ set(StoreQueueTransform_SOURCES
 set(LoopRAWHazardReport_SOURCES
   LoopRAWHazardReport.cpp)
 
+set(HoistConstGep_SOURCES
+  HoistConstGep.cpp)
 
 # CONFIGURE THE PLUGIN LIBRARIES
 # ==============================

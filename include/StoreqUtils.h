@@ -8,6 +8,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
 #include <llvm/ADT/DenseMap.h>
+#include <llvm/ADT/SetVector.h>
 #include <llvm/IR/BasicBlock.h>
 
 #include "llvm/Analysis/CFG.h"
@@ -40,11 +41,53 @@ using namespace llvm;
 
 namespace storeq {
 
-Instruction *getPointerBase(Instruction *pointerOperand) {
-  if (auto gep = dyn_cast<GetElementPtrInst>(pointerOperand)) 
-    return getPointerBase(dyn_cast<Instruction>(gep->getPointerOperand()));
+/// This function has the same functionality as ScalarEvolution.getPointerBase, but it returns 
+/// the Instruction representing the pointer base, not a SCEV.
+Instruction *getPointerBase(Value *pointerOperand) {
+  if (auto gep = dyn_cast<GetElementPtrInst>(pointerOperand)) {
+    if (gep->getPointerOperand() && !gep->hasAllConstantIndices())
+      return getPointerBase(dyn_cast<Instruction>(gep->getPointerOperand()));
+  }
 
-  return pointerOperand;
+  return dyn_cast<Instruction>(pointerOperand);
+}
+
+/// Return true if the {addr2InstMap} has a key equivalent to {instr}.
+bool isEquivalentInMap(const DenseMap<Instruction *, SetVector<Instruction *>> &addr2InstMap,
+                       const Instruction *instr) {
+  for (const auto &kv : addr2InstMap) {
+    if (kv.getFirst()->isIdenticalTo(instr)) 
+      return true;
+  }
+
+  return false;
+}
+
+/// Return values for the {instr} key in {addr2InstMap}.
+/// Return nullptr if {addr2InstMap} doesn't have the {instr} key.
+SetVector<Instruction *> *getEquivalentInMap(DenseMap<Instruction *, 
+                                             SetVector<Instruction *>> &addr2InstMap,
+                                             const Instruction *instr) {
+  for (auto &kv : addr2InstMap) {
+    if (kv.getFirst()->isIdenticalTo(instr)) 
+      return &kv.getSecond();
+  }
+
+  return nullptr;
+}
+
+/// Insert {instr} into the set associated with the {basePointer} key in {addr2InstMap}.
+/// If {addr2InstMap} doesn't have the {basePointer} key, then create it and insert there.
+void insertInMap(DenseMap<Instruction *, SetVector<Instruction *>> &addr2InstMap,
+                 Instruction *basePointer, Instruction *instr) {
+  for (const auto &kv : addr2InstMap) {
+    if (kv.getFirst()->isIdenticalTo(basePointer)) {
+      addr2InstMap[kv.getFirst()].insert(instr);
+      return;
+    }
+  }
+  
+  addr2InstMap[basePointer].insert(instr);
 }
 
 /// Collect all load and store instruction, and the their address values, that have a RAW
@@ -55,19 +98,19 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
   auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
 
   // Collect all base addresses that are stored to with an SE uncomputable index inside a loop.
-  DenseMap<const SCEV *, SmallVector<Instruction *>> memInstrs;
+  DenseMap<Instruction *, SetVector<Instruction *>> addr2InstMap;
+
   for (Loop *TopLevelLoop : LI) {
     for (Loop *L : depth_first(TopLevelLoop)) {
       for (auto &BB : L->getBlocks()) {
         for (auto &I : *BB) {
           if (auto si = dyn_cast<StoreInst>(&I)) {
             auto siPointerSE = SE.getSCEV(si->getPointerOperand());
-            if (!SE.hasComputableLoopEvolution(siPointerSE, L)) {
-              auto siPointerBaseSE = SE.getPointerBase(siPointerSE);
-              if (std::find(memInstrs[siPointerBaseSE].begin(), memInstrs[siPointerBaseSE].end(),
-                            &I) == memInstrs[siPointerBaseSE].end()) {
-                memInstrs[siPointerBaseSE].emplace_back(&I);
-              }
+            auto isInterestingRAW = !SE.hasComputableLoopEvolution(siPointerSE, L) &&
+                                    !SE.containsAddRecurrence(siPointerSE);
+            if (isInterestingRAW) {
+              auto siPointerBase = getPointerBase(si->getPointerOperand());
+              insertInMap(addr2InstMap, siPointerBase, &I);
             }
           }
         }
@@ -76,22 +119,17 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
   }
 
   // Collect loads seperately.
-  // TODO: check if loads and stores are part of the same loop?
-  // TODO: check if multiple loads are part of the same BB, and generate a single kernel for them?
   for (Loop *TopLevelLoop : LI) {
     for (Loop *L : depth_first(TopLevelLoop)) {
       for (auto &BB : L->getBlocks()) {
         for (auto &I : *BB) {
           if (auto li = dyn_cast<LoadInst>(&I)) {
-            auto liPointerSE = SE.getSCEV(li->getPointerOperand());
-            auto liPointerBaseSE = SE.getPointerBase(liPointerSE);
-            // Add if there is an offending store to the same base address.
-            if (memInstrs.find(liPointerBaseSE) != memInstrs.end()) {
-              // And if not added before.
-              if (std::find(memInstrs[liPointerBaseSE].begin(), memInstrs[liPointerBaseSE].end(),
-                            &I) == memInstrs[liPointerBaseSE].end()) {
-                memInstrs[liPointerBaseSE].emplace_back(&I);
-              }
+            auto pointerBaseInstr = getPointerBase(li->getPointerOperand());
+
+            // We are only intersted in loads where there is 
+            // a store to the the same base address.
+            if (auto bucketToInsert = getEquivalentInMap(addr2InstMap, pointerBaseInstr)) {
+              bucketToInsert->insert(&I);
             }
           }
         }
@@ -100,12 +138,19 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
   }
 
   // TODO: deal with stores/loads to multiple base adrresses (see SE.getUsedLoops(SCEV, Loops[])).
-  for (auto &kv : memInstrs) {
-    for (auto &I : kv.getSecond()) {
-      if (isa<LoadInst>(I)) 
-        loads.push_back(I);
-      else if (isa<StoreInst>(I))
-        stores.push_back(I);
+  for (auto &kv : addr2InstMap) {
+    // If a given base address has only a store, then there will be no RAW hazards.
+    bool anyLoads = std::any_of(kv.getSecond().begin(), kv.getSecond().end(),
+                                [](Instruction *i) { return isa<LoadInst>(i); });
+    bool anyStores = std::any_of(kv.getSecond().begin(), kv.getSecond().end(),
+                                 [](Instruction *i) { return isa<StoreInst>(i); });
+    if (anyLoads && anyStores) {
+      for (auto &I : kv.getSecond()) {
+        if (isa<LoadInst>(I)) 
+          loads.push_back(I);
+        else if (isa<StoreInst>(I))
+          stores.push_back(I);
+      }
     }
   }
 

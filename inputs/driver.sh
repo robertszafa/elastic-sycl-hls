@@ -7,7 +7,7 @@
 set -e
 
 SRC_FILE="$2"
-Q_SIZE="$3"
+Q_SIZE=${3:-8}
 
 TMP_SRC_FILE="$2".tmp.cpp
 SRC_FILE_BASENAME=`basename "$2"`

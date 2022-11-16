@@ -2,6 +2,7 @@
 
 # Perform a number of transformations to easy analysis.
  ~/git/llvm/build/bin/opt --mem2reg \
+                          --licm \
                           --lcssa \
                           --deadargelim-sycl \
                           --simplifycfg \
@@ -17,9 +18,7 @@
                           --gvn \
                           --mergereturn \
                           "$1" -o "$1"
-                          # --licm \
-                          # --loop-rotate \
-                          # --stats \
+                          # -polly-canonicalize -polly-simplify -polly-optree -polly-delicm -polly-simplify -polly-process-unprofitable -polly-opt-isl -polly-scops \
 
 # Get human readable bitcode
 ~/git/llvm/build/bin/llvm-dis "$1" -o "$1".ll

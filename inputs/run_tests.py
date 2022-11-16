@@ -18,6 +18,7 @@ KERNEL_ASIZE_PAIRS = {
     'bnn' : 100,
     'vec_trans' : 10000,
     'chaos_ncg' : 5000,
+    'sssp' : 100,
 }
 # Decrease domain sizes when running in simulation.
 KERNEL_ASIZE_PAIRS_SIM = {
@@ -31,6 +32,7 @@ KERNEL_ASIZE_PAIRS_SIM = {
     'bnn' : 100,
     'vec_trans' : 1000,
     'chaos_ncg' : 100,
+    'sssp' : 100,
 }
 
 DATA_DISTRIBUTIONS = {

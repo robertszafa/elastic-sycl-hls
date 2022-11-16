@@ -126,22 +126,23 @@ void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
     
     // Check if the store address generation can be split from the compute into a different kernel.
     bool canSplitStores = canSplitAddressGenFromCompute(F, AM, loads, stores);
-    report["split_stores"] = int(canSplitStores);
+    // report["split_stores"] = int(canSplitStores);
+    report["split_stores"] = int(0);
 
     outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n"; 
 
     // Degub prints.
-    dbgs() << "dbg: collected the following instructions\ndbg: Stores " << stores.size() << ":\n";
+    dbgs() << "---- DEBUG ----\nCollected instructions\nStores " << stores.size() << ":\n";
     for (auto &si : stores) {
       si->print(dbgs());
       dbgs() << "\n";
     }
-    dbgs() << "dbg: Loads " << loads.size() << ":\n";
+    dbgs() << "\nLoads " << loads.size() << ":\n";
     for (auto &li : loads) {
       li->print(dbgs());
       dbgs() << "\n";
     }
-    dbgs() << "dbg: canSplitStores " << canSplitStores << "\n";
+    dbgs() << "\nDecoupled address gen: " << canSplitStores << "\n---- DEBUG ----\n\n";
   } 
   else {
     errs() << "Warning: Report not generated - no RAW hazards.\n";  

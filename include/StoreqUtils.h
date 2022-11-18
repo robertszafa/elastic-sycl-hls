@@ -90,6 +90,19 @@ void insertInMap(DenseMap<Instruction *, SetVector<Instruction *>> &addr2InstMap
   addr2InstMap[basePointer].insert(instr);
 }
 
+/// Given a SCEV representing a memory address as a recurrence function,
+/// decide if the function is analyzable, i.e. can we predict  
+/// that {address} will never have the same value on two different iterations?
+bool isAddressAnalyzable(ScalarEvolution &SE, const Loop *L, const SCEV *address) {
+  if (SE.hasComputableLoopEvolution(address, L))
+    return true;
+
+  auto idxSE = SE.removePointerBase(address);
+  auto idxRange = SE.getUnsignedRange(idxSE);
+
+  return idxRange.isAllNonNegative();
+}
+
 /// Collect all load and store instruction, and the their address values, that have a RAW
 /// inter-iteration dependence whose scalar evolution is not computable.
 void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<Instruction *> &loads,
@@ -106,9 +119,8 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
         for (auto &I : *BB) {
           if (auto si = dyn_cast<StoreInst>(&I)) {
             auto siPointerSE = SE.getSCEV(si->getPointerOperand());
-            auto isInterestingRAW = !SE.hasComputableLoopEvolution(siPointerSE, L) &&
-                                    !SE.containsAddRecurrence(siPointerSE);
-            if (isInterestingRAW) {
+            
+            if (!isAddressAnalyzable(SE, L, siPointerSE)) {
               auto siPointerBase = getPointerBase(si->getPointerOperand());
               insertInMap(addr2InstMap, siPointerBase, &I);
             }

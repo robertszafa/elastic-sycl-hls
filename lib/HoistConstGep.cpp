@@ -57,7 +57,9 @@ bool hoistGepPass(Function &F, FunctionAnalysisManager &AM) {
   bool wasChanged = false;
 
   for (auto gep : gepsToHoist) {
-    if (DT.dominates(dyn_cast<Instruction>(gep->getOperand(0))->getParent(), entryBB)) {
+    auto gepOp0 = gep->getOperand(0);
+    if (isa<Instruction>(gepOp0) &&
+        DT.dominates(dyn_cast<Instruction>(gepOp0)->getParent(), entryBB)) {
       wasChanged = true;
       gep->moveBefore(entryBB->getTerminator());
     }

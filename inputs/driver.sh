@@ -55,7 +55,7 @@ echo "-- Running libStoreQueueTransform on refactored source"
 ###
 echo "-- Compiling into $FINAL_BINARY"
 # Cleanup the transformed IR. The transformation leaves a lot of dead code, unused kernel args, etc.
-./scripts/prepare_ir.sh $TMP_SRC_FILE.out.bc
+./scripts/cleanup_ir.sh $TMP_SRC_FILE.out.bc
 ./scripts/compile_from_bc.sh $1 $TMP_SRC_FILE.out.bc $TMP_SRC_FILE $FINAL_BINARY
 
 

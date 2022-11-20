@@ -99,44 +99,114 @@ bool isInst0ConditionalOnInst1(DominatorTree &DT, Instruction *inst0, Instructio
   return false;
 }
 
-// void usedAfterBB()
+bool isInUsersOf(Instruction *I0, Instruction *I1) {
+  for (auto user : I1->users()) {
+    if (dyn_cast<Instruction>(user) == I0)
+      return true;
+  }
 
+  return false;
+}
+
+SmallVector<Instruction *> getInstructionsUsedByI(Function &F, DominatorTree &DT, Instruction *I) {
+  SmallVector<Instruction *> result;
+  for (auto &BB : F) {
+    if (DT.properlyDominates(I->getParent(), &BB))
+      continue;
+
+    for (auto &bbI : BB) {
+      if (isInUsersOf(I, &bbI)) 
+        result.push_back(&bbI);
+    }
+  }
+
+  return result;
+}
+
+bool isAnyStoreControlDepOnAnyLoad(DominatorTree &DT, SmallVector<Instruction *> &loads,
+                                   SmallVector<Instruction *> &stores) {
+  for (auto si : stores) {
+    for (auto li : loads) {
+      SmallVector<SmallVector<Instruction *, 2>> checkedPairs;
+      if (isInst0ConditionalOnInst1(DT, si, li, checkedPairs))
+        return true;
+    }
+  }
+
+  return false;
+}
+
+/// Given load and store instructions, decide if the instructions that generate addresses for
+/// the loads and stores be decoupled from the rest of the instructions in function {F}. 
+/// If ANY of the address generation instructions cannot be decoupled, return false.
+///
+/// Algorithm for making the decision:
+/// 1. If any of the stores is control dependent on any of the loads, return false. 
+///    (This is because we cannot know if a given store address should be produced, without looking
+///     at the load value).
+/// 2. If any of the values producing a given address is needed in a basic block properly
+///    dominated by the last mem. instruction in the {F}.entry->{F}.exit path, returnb false.
 bool canDecoupleAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
                                       SmallVector<Instruction *> &loads,
                                       SmallVector<Instruction *> &stores) {
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
-  auto &DA = AM.getResult<DependenceAnalysis>(F);
 
-  SetVector<BasicBlock *> allBBs;
-  for (auto si : stores) 
-    allBBs.insert(si->getParent());
-  for (auto li : loads) 
-    allBBs.insert(li->getParent());
+  // All BBs that contain a mem. instruction are collected.
+  SetVector<BasicBlock *> allMemInstrBBs;
+  // All address generation instructions for the mem. instructions are collected,
+  // including parent nodes in the DDG.
+  SetVector<Instruction *> allAddressIntrs;
+  for (auto si : stores) {
+    allMemInstrBBs.insert(si->getParent());
+    auto siIdxI = dyn_cast<Instruction>(dyn_cast<Instruction>(si->getOperand(1))->getOperand(1));
+    allAddressIntrs.insert(siIdxI);
+    auto usedByLi = getInstructionsUsedByI(F, DT, siIdxI);
+    allAddressIntrs.insert(siIdxI);
+    for (auto &I : usedByLi)
+      allAddressIntrs.insert(I);
+  }
+  for (auto li : loads) {
+    allMemInstrBBs.insert(li->getParent());
+    auto liIdxI = dyn_cast<Instruction>(dyn_cast<Instruction>(li->getOperand(0))->getOperand(1));
+    auto usedByLi = getInstructionsUsedByI(F, DT, liIdxI);
+    allAddressIntrs.insert(liIdxI);
+    for (auto &I : usedByLi)
+      allAddressIntrs.insert(I);
+  }
 
+  // Get the last basic block in the function.entry->function.exit CFG path 
+  // from {allBBs} in the function dominator tree, i.e. the BB which 
+  // is not properly dominated by any other BB from {allBBs}.
   BasicBlock *lastBB = nullptr;
-  for (auto candidateBB : allBBs) {
-    // If candidate BB doesn't properly dominate any other BB, then it's the 
-    // last in function.entry->function.exit CFG path.
-    if (!std::any_of(allBBs.begin(), allBBs.end(),
+  for (auto candidateBB : allMemInstrBBs) {
+    if (!std::any_of(allMemInstrBBs.begin(), allMemInstrBBs.end(),
                      [&](BasicBlock *b) { return DT.properlyDominates(candidateBB, b); })) {
       lastBB = candidateBB;
       break;
     }
   }
-   
-  bool isAnyStoreControlDepOnBaseAddr = false;
-  for (auto si : stores) {
-    errs() << "\n";
-    auto siIdx = dyn_cast<StoreInst>(si)->getOperand(1);
-    errs() << "\n";
-    for (auto li : loads) {
-      SmallVector<SmallVector<Instruction *, 2>> checkedPairs;
-      isAnyStoreControlDepOnBaseAddr |= isInst0ConditionalOnInst1(DT, si, li, checkedPairs);
-    }
+
+  // Get all BBs which are properly dominated by the lastBB.
+  SetVector<BasicBlock *> dominatedByLastBB;
+  for (auto &BB : F) {
+    if (DT.properlyDominates(lastBB, &BB)) 
+      dominatedByLastBB.insert(&BB);
   }
 
-  return !isAnyStoreControlDepOnBaseAddr;
+  // If there is an any instruction in {dominatedByLastBB} which uses 
+  // any of the address generation instructions, return FALSE.
+  for (auto &I : allAddressIntrs) {
+    for (auto &useI : I->uses()) {
+      for (auto &dBB : dominatedByLastBB) {
+        if (useI->isUsedInBasicBlock(dBB))
+          return false;
+      }
+    }
+  }
+   
+  // TODO: If there is any instruction in {stores+loads} which depends (including control 
+  // dependence) on the value returned by any load, then return FALSE.
+  return !isAnyStoreControlDepOnAnyLoad(DT, loads, stores);
 }
 
 void analyseRAW(Function &F, FunctionAnalysisManager &AM) {

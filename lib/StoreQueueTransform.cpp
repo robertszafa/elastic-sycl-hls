@@ -106,9 +106,9 @@ void deleteStoresAfterI(Function &F, FunctionAnalysisManager &AM, Instruction *c
   }
 }
 
-void transformAGU(Function &F, FunctionAnalysisManager &AM, Instruction *memInst,
-                  Value *baseTagAddr, CallInst *pipeWriteCall, const bool isStore,
-                  SmallVector<Instruction *> &preserveInst) {
+void transformAddressGeneration(Function &F, FunctionAnalysisManager &AM, Instruction *memInst,
+                                Value *baseTagAddr, CallInst *pipeWriteCall,
+                                SmallVector<Instruction *> &preserveInst) {
   // {idx, tag} struct store instructions.
   SmallVector<StoreInst *, 2> storesToIdxTagStruct;
   for (auto user : pipeWriteCall->getArgOperand(0)->users()) {
@@ -130,8 +130,8 @@ void transformAGU(Function &F, FunctionAnalysisManager &AM, Instruction *memInst
   idxStore->moveBefore(pipeWriteCall);
 
   // Write the GEP value of the memInst into the pipeWrite idx field.
-  Value *memInstAddr = isStore ? dyn_cast<StoreInst>(memInst)->getPointerOperand()
-                               : dyn_cast<LoadInst>(memInst)->getPointerOperand();
+  Value *memInstAddr = isaStore(memInst) ? dyn_cast<StoreInst>(memInst)->getPointerOperand()
+                                         : dyn_cast<LoadInst>(memInst)->getPointerOperand();
   Value *idxVal = dyn_cast<GetElementPtrInst>(memInstAddr)->getOperand(1);
   auto idxTypeForPipe = idxStore->getOperand(0)->getType();
   // Ensure idx matches pipe idx type (we assume i32 is fine but we might have to check 
@@ -145,7 +145,7 @@ void transformAGU(Function &F, FunctionAnalysisManager &AM, Instruction *memInst
   auto tagType = tagStore->getOperand(0)->getType();
   Value *baseTagVal = Builder.CreateLoad(tagType, baseTagAddr, "baseTagVal");
   auto baseTagPlusOne = Builder.CreateAdd(baseTagVal, ConstantInt::get(tagType, 1), "baseTagPlus1");
-  if (isStore) {
+  if (isaStore(memInst)) {
     tagStore->setOperand(0, baseTagPlusOne);
     auto newTagStore = Builder.CreateStore(baseTagPlusOne, baseTagAddr);
     preserveInst.emplace_back(newTagStore);
@@ -238,54 +238,67 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
       // The names of kernels that we need to transform are guaranteed to begin with mainKernelName.
       if (std::equal(mainKernelName.begin(), mainKernelName.end(), thisKernelName.begin())) {
-        // Collect the same load/store instructions as during analysis.
-        SmallVector<Instruction *> loads;
-        SmallVector<Instruction *> stores;
-        getMemInstrsWithRAW(F, AM, loads, stores);
-
         // Find out if this F should be an AGU or Main kernel.
         std::regex agu_kernel_regex{mainKernelName + "_AGU", std::regex_constants::ECMAScript};
         std::smatch agu_kernel_match;
         std::regex_search(thisKernelName, agu_kernel_match, agu_kernel_regex);
-        bool isAGU = agu_kernel_match.size() > 0;
+        bool isAddressGenKernel = agu_kernel_match.size() > 0;
         // If we could not split the address generation from the compute, 
         // then we need to merge the AGU kernel into the main kernel.
         bool isDecoupledAddress = (report["decouple_address"].getAsInteger().getValue() == 1);
 
-        if (isAGU || !isDecoupledAddress) {
-          // At AGU function entry, initialize a base tag to 0.
-          IRBuilder<> Builder(F.getEntryBlock().getTerminator());
-          auto tagType = Type::getInt32Ty(F.getContext());
-          Value *baseTagAddr = Builder.CreateAlloca(tagType, nullptr, "baseTagAddr");  
-          Builder.CreateStore(ConstantInt::get(tagType, 0), baseTagAddr);
+        // Collect the same load/store instructions as during analysis.
+        SmallVector<SmallVector<Instruction*>> memInstrsAll = getRAWMemInstrs(F, AM);
 
-          SmallVector<Instruction *> preserveInst;
-          for (uint i_ld = 0; i_ld < loads.size(); ++i_ld) {
-            // Always get 0th pipe, since pipeWriteCall will be moved away the 0th position in F.
-            CallInst *pipeWriteCall = getNthPipeCall(F, 0);
-            transformAGU(F, AM, loads[i_ld], baseTagAddr, pipeWriteCall, false, preserveInst);
-          }
-          for (uint i_st = 0; i_st < stores.size(); ++i_st) {
-            CallInst *pipeWriteCall = getNthPipeCall(F, 0);
-            transformAGU(F, AM, stores[i_st], baseTagAddr, pipeWriteCall, true, preserveInst);
-          }
+        // Keep track of instructions created during the pass which should not be deleted.
+        SmallVector<Instruction *> preserveInst;
+        for (auto &memInstrs : memInstrsAll) {
+          SmallVector<Instruction*> stores = getStores(memInstrs);
+          SmallVector<Instruction*> loads = getLoads(memInstrs);
 
-          // Delete instruction using the base address of the store instructions.
-          // TODO: just replace base addr and loads with undef?
-          if (isDecoupledAddress) {
-            for (auto st_i : stores) {
-              // Make sure st_i wasn't already deleted
-              if (st_i->getParent() != nullptr ||
-                  std::find(preserveInst.begin(), preserveInst.end(), st_i) != preserveInst.end()) {
-                deleteStoresAfterI(F, AM, st_i, preserveInst);
-                deleteInstruction(st_i);
-              }
+          if (isAddressGenKernel || !isDecoupledAddress) {
+            // At AGU function entry, initialize a base tag to 0.
+            IRBuilder<> Builder(F.getEntryBlock().getTerminator());
+            auto tagType = Type::getInt32Ty(F.getContext());
+            Value *baseTagAddr = Builder.CreateAlloca(tagType);
+            Builder.CreateStore(ConstantInt::get(tagType, 0), baseTagAddr);
+
+            // First deal with loads, then stores.
+            for (auto &I : loads) {
+              // Always get 0th pipe, since pipeWriteCall will be moved away the 0th position in F.
+              CallInst *pipeWriteCall = getNthPipeCall(F, 0);
+              transformAddressGeneration(F, AM, I, baseTagAddr, pipeWriteCall, preserveInst);
+            }
+            for (auto &I : stores) {
+              // Always get 0th pipe, since pipeWriteCall will be moved away the 0th position in F.
+              CallInst *pipeWriteCall = getNthPipeCall(F, 0);
+              transformAddressGeneration(F, AM, I, baseTagAddr, pipeWriteCall, preserveInst);
             }
           }
-        } 
+          
+          if (!isAddressGenKernel) {
+            transformMainKernel(F, AM, stores, loads);
+          }
+        }
+          
+        if (isAddressGenKernel && isDecoupledAddress) {
+          // Get all stores for all base addresses.
+          SmallVector<Instruction*> allStores;
+          for (auto &memInstrs : memInstrsAll) {
+            for (auto &iS : getStores(memInstrs)) {
+              allStores.push_back(iS);
+            }
+          }
 
-        if (!isAGU) {
-          transformMainKernel(F, AM, stores, loads);
+          // And delete them, as well as any other store after that.
+          for (auto st_i : allStores) {
+            bool canDelete = std::find(preserveInst.begin(), preserveInst.end(), st_i) ==
+                             preserveInst.end();
+            if (st_i->getParent() != nullptr && canDelete) {
+              deleteStoresAfterI(F, AM, st_i, preserveInst);
+              deleteInstruction(st_i);
+            }
+          }
         }
       }
     }

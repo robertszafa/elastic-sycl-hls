@@ -22,6 +22,7 @@
 #include "llvm/IR/Value.h"
 
 #include "llvm/ADT/SmallVector.h"
+#include <llvm/ADT/SetVector.h>
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/CommandLine.h"
@@ -39,18 +40,25 @@ using namespace llvm;
 
 namespace storeq {
 
-json::Object generateReport(Function &F, SmallVector<Instruction *> &loads,
-                            SmallVector<Instruction *> &stores) {
+json::Object generateReport(Function &F, SmallVector<SmallVector<Instruction*>> &memInstrsAll) {
   json::Object report;
   auto callers = getCallerFunctions(F.getParent(), F);
+
   // A spir_func lambda is called only once from one kernel.
   if (callers.size() == 1) {
     report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
     report["spir_func_name"] = demangle(std::string(F.getName()));
-    report["num_loads"] = loads.size();
-    report["num_stores"] = stores.size();
-    report["array_line"] = stores[0]->getDebugLoc().getLine();
-    report["array_column"] = stores[0]->getDebugLoc()->getColumn();
+    json::Array base_addresses;
+    for (auto &memInstrs : memInstrsAll) {
+      llvm::json::Object thisBaseAddr;
+      thisBaseAddr["num_loads"] = std::count_if(memInstrs.begin(), memInstrs.end(), isaLoad);
+      thisBaseAddr["num_stores"] = std::count_if(memInstrs.begin(), memInstrs.end(), isaStore);
+      auto firstStore = *std::find_if(memInstrs.begin(), memInstrs.end(), isaStore);
+      thisBaseAddr["array_line"] = firstStore->getDebugLoc().getLine();
+      thisBaseAddr["array_column"] = firstStore->getDebugLoc()->getColumn();
+      base_addresses.push_back(std::move(thisBaseAddr));
+    }
+    report["base_addresses"] = std::move(base_addresses);
   }
 
   return report;
@@ -123,10 +131,12 @@ SmallVector<Instruction *> getInstructionsUsedByI(Function &F, DominatorTree &DT
   return result;
 }
 
-bool isAnyStoreControlDepOnAnyLoad(DominatorTree &DT, SmallVector<Instruction *> &loads,
-                                   SmallVector<Instruction *> &stores) {
-  for (auto si : stores) {
-    for (auto li : loads) {
+bool isAnyStoreControlDepOnAnyLoad(DominatorTree &DT, const SmallVector<Instruction *> &memInstrs) {
+  for (auto si : memInstrs) { // For all stores
+    if (!isaStore(si)) continue;
+    for (auto li : memInstrs) { // For all loads
+      if (!isaLoad(li)) continue;
+
       SmallVector<SmallVector<Instruction *, 2>> checkedPairs;
       if (isInst0ConditionalOnInst1(DT, si, li, checkedPairs))
         return true;
@@ -137,18 +147,17 @@ bool isAnyStoreControlDepOnAnyLoad(DominatorTree &DT, SmallVector<Instruction *>
 }
 
 /// Given load and store instructions, decide if the instructions that generate addresses for
-/// the loads and stores be decoupled from the rest of the instructions in function {F}. 
+/// the loads and stores be decoupled from the rest of the instructions in function {F}.
 /// If ANY of the address generation instructions cannot be decoupled, return false.
 ///
 /// Algorithm for making the decision:
-/// 1. If any of the stores is control dependent on any of the loads, return false. 
+/// 1. If any of the stores is control dependent on any of the loads, return false.
 ///    (This is because we cannot know if a given store address should be produced, without looking
 ///     at the load value).
 /// 2. If any of the values producing a given address is needed in a basic block properly
 ///    dominated by the last mem. instruction in the {F}.entry->{F}.exit path, returnb false.
 bool canDecoupleAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
-                                      SmallVector<Instruction *> &loads,
-                                      SmallVector<Instruction *> &stores) {
+                                      SmallVector<Instruction *> memInstrs) {
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
 
   // All BBs that contain a mem. instruction are collected.
@@ -156,20 +165,14 @@ bool canDecoupleAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
   // All address generation instructions for the mem. instructions are collected,
   // including parent nodes in the DDG.
   SetVector<Instruction *> allAddressIntrs;
-  for (auto si : stores) {
-    allMemInstrBBs.insert(si->getParent());
-    auto siIdxI = dyn_cast<Instruction>(dyn_cast<Instruction>(si->getOperand(1))->getOperand(1));
-    allAddressIntrs.insert(siIdxI);
-    auto usedByLi = getInstructionsUsedByI(F, DT, siIdxI);
-    allAddressIntrs.insert(siIdxI);
-    for (auto &I : usedByLi)
-      allAddressIntrs.insert(I);
-  }
-  for (auto li : loads) {
-    allMemInstrBBs.insert(li->getParent());
-    auto liIdxI = dyn_cast<Instruction>(dyn_cast<Instruction>(li->getOperand(0))->getOperand(1));
-    auto usedByLi = getInstructionsUsedByI(F, DT, liIdxI);
-    allAddressIntrs.insert(liIdxI);
+  for (auto I : memInstrs) {
+    allMemInstrBBs.insert(I->getParent());
+    auto idxI = isaStore(I)
+                ? dyn_cast<Instruction>(dyn_cast<Instruction>(I->getOperand(1))->getOperand(1))
+                : dyn_cast<Instruction>(dyn_cast<Instruction>(I->getOperand(0))->getOperand(1));
+    allAddressIntrs.insert(idxI);
+    auto usedByLi = getInstructionsUsedByI(F, DT, idxI);
+    allAddressIntrs.insert(idxI);
     for (auto &I : usedByLi)
       allAddressIntrs.insert(I);
   }
@@ -206,36 +209,45 @@ bool canDecoupleAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
    
   // TODO: If there is any instruction in {stores+loads} which depends (including control 
   // dependence) on the value returned by any load, then return FALSE.
-  return !isAnyStoreControlDepOnAnyLoad(DT, loads, stores);
+  return !isAnyStoreControlDepOnAnyLoad(DT, memInstrs);
 }
 
 void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
   // Get all memory loads and stores that form a RAW hazard dependence.
-  SmallVector<Instruction *> loads;
-  SmallVector<Instruction *> stores;
-  getMemInstrsWithRAW(F, AM, loads, stores);
+  SmallVector<SmallVector<Instruction *>> memInstrsAll = getRAWMemInstrs(F, AM);
 
-  if (stores.size() > 0) {
-    json::Object report = generateReport(F, loads, stores);
-    
+  if (memInstrsAll.size() > 0) {
+    json::Object report = generateReport(F, memInstrsAll);
+
     // Check if the store address generation can be split from the compute into a different kernel.
-    bool canDecoupleAddress = canDecoupleAddressGenFromCompute(F, AM, loads, stores);
+    bool canDecoupleAddress =
+        std::all_of(memInstrsAll.begin(), memInstrsAll.end(), [&](auto memInstrs) {
+          return canDecoupleAddressGenFromCompute(F, AM, memInstrs);
+        });
     report["decouple_address"] = int(canDecoupleAddress);
 
-    outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n"; 
+    outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n";
 
     // Degub prints.
-    dbgs() << "---- DEBUG ----\nCollected instructions\nStores " << stores.size() << ":\n";
-    for (auto &si : stores) {
-      si->print(dbgs());
-      dbgs() << "\n";
+    dbgs() << "**************** DEBUG ****************\n";
+    dbgs() << "Number of base addresses: " << memInstrsAll.size() << "\n";
+    dbgs() << "Decoupled address gen: " << canDecoupleAddress << "\n"; 
+    for (auto &memInstructions : memInstrsAll) {
+      SmallVector<Instruction*> stores = getStores(memInstructions);
+      SmallVector<Instruction*> loads = getLoads(memInstructions);
+
+      dbgs() << "\n-------------------------\nStores " << stores.size() << ":\n";
+      for (auto &si : stores) {
+        si->print(dbgs());
+        dbgs() << "\n";
+      }
+      dbgs() << "\nLoads " << loads.size() << ":\n";
+      for (auto &li : loads) {
+        li->print(dbgs());
+        dbgs() << "\n";
+      }
     }
-    dbgs() << "\nLoads " << loads.size() << ":\n";
-    for (auto &li : loads) {
-      li->print(dbgs());
-      dbgs() << "\n";
-    }
-    dbgs() << "\nDecoupled address gen: " << canDecoupleAddress << "\n---- DEBUG ----\n\n";
+    dbgs() << "\n**************** DEBUG ****************\n";
   } 
   else {
     errs() << "Warning: Report not generated - no RAW hazards.\n";  

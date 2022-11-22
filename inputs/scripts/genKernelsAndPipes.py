@@ -23,26 +23,31 @@ def gen_store_queue_syntax(report, q_size):
     IDX_TAG_TYPE = 'pair_t'
     PIPE_DEPTH = 64
 
-    return f'''
-    using val_type = std::remove_reference<decltype(* {report['array_name']})>::type;
-    constexpr int kNumLoads = {report['num_loads']};
-    constexpr int kNumStores = {report['num_stores']};
-    constexpr int kQueueSize = {q_size};
+    all_lsq_pipes = ""
 
-    using ld_idx_pipes = PipeArray<class ld_idx_pipes_class, {IDX_TAG_TYPE}, {PIPE_DEPTH}, kNumLoads>;
-    using ld_val_pipes = PipeArray<class ld_val_pipes_class, val_type, {PIPE_DEPTH}, kNumLoads>;
-    using st_idx_pipe = pipe<class st_idx_pipe_class, {IDX_TAG_TYPE}, {PIPE_DEPTH}>;
-    using st_val_pipe = pipe<class st_val_pipe_class, val_type, {PIPE_DEPTH}>;
-    using end_signal_pipe = pipe<class end_signal_pipe_class, int>;
-    
-    auto __array_device_ptr = sycl::device_ptr<val_type>({report['array_name']});
-    auto eventStoreQueue = StoreQueue<ld_idx_pipes, ld_val_pipes, kNumLoads, st_idx_pipe, st_val_pipe, 
-                                      end_signal_pipe, kQueueSize>({Q_NAME}, __array_device_ptr);
-    '''
+    for i_base, base_addr in enumerate(report['base_addresses']):
+        all_lsq_pipes += f'''
+        using val_type_{i_base} = std::remove_reference<decltype(* {base_addr['array_name']})>::type;
+        constexpr int kNumLoads_{i_base} = {base_addr['num_loads']};
+        constexpr int kNumStores_{i_base} = {base_addr['num_stores']};
+        constexpr int kQueueSize_{i_base} = {q_size};
+
+        using ld_idx_pipes_{i_base} = PipeArray<class ld_idx_pipes_{i_base}_class, {IDX_TAG_TYPE}, {PIPE_DEPTH}, kNumLoads_{i_base}>;
+        using ld_val_pipes_{i_base} = PipeArray<class ld_val_pipes_{i_base}_class, val_type_{i_base}, {PIPE_DEPTH}, kNumLoads_{i_base}>;
+        using st_idx_pipe_{i_base} = pipe<class st_idx_pipe_{i_base}_class, {IDX_TAG_TYPE}, {PIPE_DEPTH}>;
+        using st_val_pipe_{i_base} = pipe<class st_val_pipe_{i_base}_class, val_type_{i_base}, {PIPE_DEPTH}>;
+        using end_lsq_signal_pipe_{i_base} = pipe<class end_lsq_signal_pipe_{i_base}_class, int>;
+        
+        auto __array_device_ptr_{i_base} = sycl::device_ptr<val_type_{i_base}>({base_addr['array_name']});
+        auto eventStoreQueue_{i_base} = StoreQueue<ld_idx_pipes_{i_base}, ld_val_pipes_{i_base}, kNumLoads_{i_base}, st_idx_pipe_{i_base}, st_val_pipe_{i_base}, 
+                                        end_lsq_signal_pipe_{i_base}, kQueueSize_{i_base}>({Q_NAME}, __array_device_ptr_{i_base});
+        '''
+
+    return all_lsq_pipes
 
 
 def insert_storeq_wait(src, original_kernel_start):
-    """Given the src lines with inserted store queue call, insert a eventStoreQueue.wait() before
+    """Given the src lines with inserted store queue call, insert a eventStoreQueue_{i_base}.wait() before
     any device-> host data transfer"""
     insert_before_line = 0
     for i, line in enumerate(src):
@@ -52,17 +57,23 @@ def insert_storeq_wait(src, original_kernel_start):
             insert_before_line = i
             break
     
-    return src[:insert_before_line] + [f'eventStoreQueue.wait();'] + src[insert_before_line:]
+    lsq_event_wait_calls = []
+    for i_base in range(len(report['base_addresses'])):
+        lsq_event_wait_calls.append(f'eventStoreQueue_{i_base}.wait();')
+    
+    return src[:insert_before_line] + lsq_event_wait_calls + src[insert_before_line:]
 
 
 def add_agu_pipe_connections(kernel_body, report):
     kernel_body_lines = list(map(lambda x : x + '\n', kernel_body.split('\n')))
 
     agu_pipe_writes = []
-    for i in range(report['num_loads']):
-        agu_pipe_writes.append(f'ld_idx_pipes::PipeAt<{i}>::write({{0, 0}});\n')
-    for i in range(report['num_stores']):
-        agu_pipe_writes.append(f'st_idx_pipe::write({{0, 0}});\n')
+
+    for i_base, base_addr in enumerate(report['base_addresses']):
+        for i in range(base_addr['num_loads']):
+            agu_pipe_writes.append(f'ld_idx_pipes_{i_base}::PipeAt<{i}>::write({{0, 0}});\n')
+        for i in range(base_addr['num_stores']):
+            agu_pipe_writes.append(f'st_idx_pipe_{i_base}::write({{0, 0}});\n')
 
     agu_kernel_body = kernel_body_lines[:1] + agu_pipe_writes + kernel_body_lines[1:] 
     return agu_kernel_body, agu_pipe_writes
@@ -71,19 +82,27 @@ def add_agu_pipe_connections(kernel_body, report):
 def gen_val_pipe_connections(report):
     pipe_calls = []
 
-    for i in range(report['num_loads']):
-        pipe_calls.append(f'auto ld_val_pipe_rd_{i} = ld_val_pipes::PipeAt<{i}>::read();')
+    for i_base, base_addr in enumerate(report['base_addresses']):
+        # Merge address generation pipes with main kernel, if cannot decouple.
+        if not report['decouple_address']:
+            for i in range(base_addr['num_loads']):
+                pipe_calls.append(f'ld_idx_pipes_{i_base}::PipeAt<{i}>::write({{0, 0}});\n')
+            for i in range(base_addr['num_stores']):
+                pipe_calls.append(f'st_idx_pipe_{i_base}::write({{0, 0}});\n')
+            
+        for i in range(base_addr['num_loads']):
+            pipe_calls.append(f'auto ld_val_pipe_{i_base}_rd_{i} = ld_val_pipes_{i_base}::PipeAt<{i}>::read();')
 
-    for i in range(report['num_stores']):
-        pipe_calls.append(f'st_val_pipe::write(val_type());')
+        for i in range(base_addr['num_stores']):
+            pipe_calls.append(f'st_val_pipe_{i_base}::write(val_type_{i_base}());')
         
-    pipe_calls.append(f'int __total_store_req = 0;')
-    pipe_calls.append(f'end_signal_pipe::write(__total_store_req);')
+        pipe_calls.append(f'int __total_store_req_{i_base} = 0;')
+        pipe_calls.append(f'end_lsq_signal_pipe_{i_base}::write(__total_store_req_{i_base});')
     
     return pipe_calls
 
 
-def get_kernel_body(s):
+def get_kernel_body(s, kernel_name):
     body = ""
     m = re.findall(r'<\s*(?:class\s+)?' + kernel_name + r'\s*>\s*(\(.*?}\s*\)\s*;)', s, re.DOTALL)
     if m:
@@ -121,9 +140,10 @@ def parse_report(report_fname, source_file_lines):
 
         report = json.loads(str)
         report["kernel_name"] = report["kernel_class_name"].split(' ')[-1].split('::')[-1]
-        report['array_name'] = get_array_name(source_file_lines[report['array_line']-1], 
-                                              report['array_column'])
         report['spir_func_name'] = report["spir_func_name"].split('::')[0]
+        for base_addr in report['base_addresses']:
+            base_addr['array_name'] = get_array_name(source_file_lines[base_addr['array_line']-1], 
+                                                     base_addr['array_column'])
 
         return report
     except Exception as e:
@@ -145,22 +165,21 @@ if __name__ == '__main__':
 
     report = parse_report(sys.argv[1], source_file_lines)
 
-    kernel_name = report['kernel_name']
-    kernel_body = get_kernel_body(source_file)
-    agu_kernel_name = f'{kernel_name}_AGU'
+    kernel_body = get_kernel_body(source_file, report['kernel_name'])
+    agu_kernel_name = f'{report["kernel_name"]}_AGU'
     agu_kernel_class_decl = f'class {agu_kernel_name};'
 
     agu_kernel_body, agu_pipe_writes = add_agu_pipe_connections(kernel_body, report)
     main_kernel_pipes = gen_val_pipe_connections(report)
-    if not report['decouple_address']:
-        main_kernel_pipes =  agu_pipe_writes + main_kernel_pipes
+
     storeq_syntax = gen_store_queue_syntax(report, Q_SIZE)
 
     agu_kernel = f'{Q_NAME}.single_task<{agu_kernel_name}>{"".join(agu_kernel_body)}'
 
     insert_line_idx_kernels = get_line_of_pattern(source_file_lines, Q_NAME + r'\.submit')
 
-    main_kernel_lambda = r'(<\s*' + kernel_name + r'\s*>)|(<\s*class\s*' + kernel_name + r'\s*>)'
+    main_kernel_lambda = r'(<\s*' + report['kernel_name'] + \
+                         r'\s*>)|(<\s*class\s*' + report['kernel_name'] + r'\s*>)'
     insert_for_main_kernel_pipes = get_line_of_pattern(source_file_lines, main_kernel_lambda)
 
     src_lines_with_pipes = source_file_lines[:insert_for_main_kernel_pipes+1] + \

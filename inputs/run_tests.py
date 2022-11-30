@@ -19,6 +19,7 @@ KERNEL_ASIZE_PAIRS = {
     'vec_trans' : 10000,
     'chaos_ncg' : 5000,
     'sssp' : 100,
+    'sort' : 100,
 }
 # Decrease domain sizes when running in simulation.
 KERNEL_ASIZE_PAIRS_SIM = {
@@ -33,6 +34,7 @@ KERNEL_ASIZE_PAIRS_SIM = {
     'vec_trans' : 1000,
     'chaos_ncg' : 100,
     'sssp' : 100,
+    'sort' : 20,
 }
 
 DATA_DISTRIBUTIONS = {

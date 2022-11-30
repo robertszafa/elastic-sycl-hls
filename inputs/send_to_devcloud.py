@@ -13,6 +13,7 @@ KERNELS = [
     'chaos_ncg',
     'get_tanh_double',
     'sssp',
+    'sort',
 ]
 
 
@@ -46,7 +47,7 @@ if __name__ == '__main__':
             os.system(f'''export LOOP_RAW_REPORT={report_file} && ~/git/llvm/build/bin/opt \
                     -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libStoreQueueTransform.so \
                     -passes=stq-transform {src_file_tmp}.bc -o {src_file_tmp}.out.bc''')
-            os.system(f'./scripts/prepare_ir.sh {src_file_tmp}.out.bc')
+            os.system(f'./scripts/cleanup_ir.sh {src_file_tmp}.out.bc')
 
             os.system(
                 f'scp {src_file_tmp} {src_file_tmp}.out.bc {DEVCLOUD_LOGIN}:~/git/llvm-sycl-passes/inputs/{kernel}')

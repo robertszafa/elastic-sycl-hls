@@ -41,6 +41,22 @@ using namespace llvm;
 
 namespace storeq {
 
+auto isaLoad = [](auto i) { return isa<LoadInst>(i); };
+auto isaStore = [](auto i) { return isa<StoreInst>(i); };
+
+SmallVector<Instruction*> getLoads(const SmallVector<Instruction *> &memInstr) {
+  SmallVector<Instruction*> loads;
+  for (auto &I : memInstr)
+    if (isaLoad(I)) loads.push_back(I);
+  return loads;
+}
+SmallVector<Instruction*> getStores(const SmallVector<Instruction *> &memInstr) {
+  SmallVector<Instruction*> stores;
+  for (auto &I : memInstr)
+    if (isaStore(I)) stores.push_back(I);
+  return stores;
+}
+
 /// This function has the same functionality as ScalarEvolution.getPointerBase, but it returns 
 /// the Instruction representing the pointer base, not a SCEV.
 Instruction *getPointerBase(Value *pointerOperand) {
@@ -105,14 +121,14 @@ bool isAddressAnalyzable(ScalarEvolution &SE, const Loop *L, const SCEV *address
 
 /// Collect all load and store instruction, and the their address values, that have a RAW
 /// inter-iteration dependence whose scalar evolution is not computable.
-void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<Instruction *> &loads,
-                         SmallVector<Instruction *> &stores) {
+SmallVector<SmallVector<Instruction *>> getRAWMemInstrs(Function &F, FunctionAnalysisManager &AM) {
   auto &LI = AM.getResult<LoopAnalysis>(F);
   auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
+  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
 
   // Collect all base addresses that are stored to with an SE uncomputable index inside a loop.
   DenseMap<Instruction *, SetVector<Instruction *>> addr2InstMap;
-
+  SetVector<Instruction *> discardedStores;
   for (Loop *TopLevelLoop : LI) {
     for (Loop *L : depth_first(TopLevelLoop)) {
       for (auto &BB : L->getBlocks()) {
@@ -124,9 +140,21 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
               auto siPointerBase = getPointerBase(si->getPointerOperand());
               insertInMap(addr2InstMap, siPointerBase, &I);
             }
+            else {
+              discardedStores.insert(si);
+            }
           }
         }
       }
+    }
+  }
+
+  // Collect all stores previously discarded, if there was a different 
+  // unpredictable store to the same base address.
+  for (auto &I : discardedStores) {
+    auto siPointerBase = getPointerBase(dyn_cast<StoreInst>(I)->getPointerOperand());
+    if (auto bucketToInsert = getEquivalentInMap(addr2InstMap, siPointerBase)) {
+      bucketToInsert->insert(I);
     }
   }
 
@@ -149,23 +177,32 @@ void getMemInstrsWithRAW(Function &F, FunctionAnalysisManager &AM, SmallVector<I
     }
   }
 
-  // TODO: deal with stores/loads to multiple base adrresses (see SE.getUsedLoops(SCEV, Loops[])).
+  // Remove entries where there are only store instructions.
+  // If a given base address has only a store, then there will be no RAW hazards.
+  SmallVector<SmallVector<Instruction *>> collectedInstructions;
+  SmallVector<Instruction *> instructionKeys;
   for (auto &kv : addr2InstMap) {
-    // If a given base address has only a store, then there will be no RAW hazards.
-    bool anyLoads = std::any_of(kv.getSecond().begin(), kv.getSecond().end(),
-                                [](Instruction *i) { return isa<LoadInst>(i); });
-    bool anyStores = std::any_of(kv.getSecond().begin(), kv.getSecond().end(),
-                                 [](Instruction *i) { return isa<StoreInst>(i); });
-    if (anyLoads && anyStores) {
-      for (auto &I : kv.getSecond()) {
-        if (isa<LoadInst>(I)) 
-          loads.push_back(I);
-        else if (isa<StoreInst>(I))
-          stores.push_back(I);
-      }
+    if (std::any_of(kv.getSecond().begin(), kv.getSecond().end(), isaLoad)) {
+      instructionKeys.push_back(kv.getFirst());
+
+      SmallVector<Instruction*> iVec;
+      for (auto &I : kv.getSecond()) iVec.push_back(I);
+      collectedInstructions.push_back(iVec);
     }
   }
 
+  // Make sure the returned instructions are always in deterministic order (don't care what order).
+  // Use base address instruction dominance relation to sort the collected instructions.
+  SmallVector<int> sortingIndices(instructionKeys.size());
+  std::iota(sortingIndices.begin(), sortingIndices.end(), 0);
+  std::sort(sortingIndices.begin(), sortingIndices.end(),
+            [&](int a, int b) { return DT.dominates(instructionKeys[a], instructionKeys[b]); });
+  SmallVector<SmallVector<Instruction *>> collectedInstructionsSorted(collectedInstructions.size());
+  for (uint i=0; i<sortingIndices.size(); ++i) {
+    collectedInstructionsSorted[i] = collectedInstructions[sortingIndices[i]];
+  }
+
+  return collectedInstructionsSorted;
 }
 
 /// Given Function {F}, return all Functions that call {F}.

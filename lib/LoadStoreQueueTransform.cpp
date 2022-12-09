@@ -109,7 +109,7 @@ void deleteStoresAfterI(Function &F, FunctionAnalysisManager &AM, Instruction *c
 void transformAddressGeneration(Function &F, FunctionAnalysisManager &AM, Instruction *memInst,
                                 Value *baseTagAddr, CallInst *pipeWriteCall,
                                 SmallVector<Instruction *> &preserveInst) {
-  // {idx, tag} struct store instructions.
+  // {address, tag} request struct store instructions.
   SmallVector<StoreInst *, 2> storesToIdxTagStruct;
   for (auto user : pipeWriteCall->getArgOperand(0)->users()) {
     if (auto gep = dyn_cast<GetElementPtrInst>(user)) {
@@ -122,23 +122,21 @@ void transformAddressGeneration(Function &F, FunctionAnalysisManager &AM, Instru
     }
   }
   auto tagStore = storesToIdxTagStruct[0];
-  auto idxStore = storesToIdxTagStruct[1];
+  auto addressStore = storesToIdxTagStruct[1];
 
   // Move everything needed to setup the pipe write call to where the memInst occurs.
   pipeWriteCall->moveBefore(memInst);
   tagStore->moveBefore(pipeWriteCall);
-  idxStore->moveBefore(pipeWriteCall);
+  addressStore->moveBefore(pipeWriteCall);
 
-  // Write the GEP value of the memInst into the pipeWrite idx field.
+  // Write the address value of the memInst into the pipeWrite address field.
   Value *memInstAddr = isaStore(memInst) ? dyn_cast<StoreInst>(memInst)->getPointerOperand()
                                          : dyn_cast<LoadInst>(memInst)->getPointerOperand();
-  Value *idxVal = dyn_cast<GetElementPtrInst>(memInstAddr)->getOperand(1);
-  auto idxTypeForPipe = idxStore->getOperand(0)->getType();
-  // Ensure idx matches pipe idx type (we assume i32 is fine but we might have to check 
-  // properly in the future).
-  auto idxCasted = TruncInst::CreateTruncOrBitCast(idxVal, idxTypeForPipe, "",
-                                                   dyn_cast<Instruction>(idxStore));
-  idxStore->setOperand(0, idxCasted);
+  // Ensure address matches pipe idx type (we use i64 for the address field in the request).
+  auto typeForAddressPipe = addressStore->getOperand(0)->getType();
+  auto addressCastedToi64 = TruncInst::CreateBitOrPointerCast(memInstAddr, typeForAddressPipe, "",
+                                                              dyn_cast<Instruction>(addressStore));
+  addressStore->setOperand(0, addressCastedToi64);
 
   // Write baseTag into the pipeWrite idx field. If it's a store, increment the tag by one before.
   IRBuilder<> Builder(tagStore);
@@ -157,7 +155,7 @@ void transformAddressGeneration(Function &F, FunctionAnalysisManager &AM, Instru
 
   // Ensure the created instructions are not deleted later.
   preserveInst.emplace_back(tagStore);
-  preserveInst.emplace_back(idxStore);
+  preserveInst.emplace_back(addressStore);
   preserveInst.emplace_back(dyn_cast<Instruction>(baseTagVal));
 }
 
@@ -219,7 +217,7 @@ json::Value parseJsonReport() {
   return json::Value(nullptr);
 }
 
-struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
+struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
   json::Object report;
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
@@ -321,12 +319,12 @@ struct StoreQueueTransform : PassInfoMixin<StoreQueueTransform> {
 //-----------------------------------------------------------------------------
 // New PM Registration
 //-----------------------------------------------------------------------------
-llvm::PassPluginLibraryInfo getStoreQueueTransformPluginInfo() {
-  return {LLVM_PLUGIN_API_VERSION, "StoreQueueTransform", LLVM_VERSION_STRING, [](PassBuilder &PB) {
+llvm::PassPluginLibraryInfo getLoadStoreQueueTransformPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "LoadStoreQueueTransform", LLVM_VERSION_STRING, [](PassBuilder &PB) {
             PB.registerPipelineParsingCallback([](StringRef Name, FunctionPassManager &FPM,
                                                   ArrayRef<PassBuilder::PipelineElement>) {
-              if (Name == "stq-transform") {
-                FPM.addPass(StoreQueueTransform());
+              if (Name == "lsq-transform") {
+                FPM.addPass(LoadStoreQueueTransform());
                 return true;
               }
               return false;
@@ -337,7 +335,7 @@ llvm::PassPluginLibraryInfo getStoreQueueTransformPluginInfo() {
 // This is the core interface for pass plugins. It guarantees that 'opt' will
 // be able to recognize the pass via '-passes=stq-insert'
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginInfo() {
-  return getStoreQueueTransformPluginInfo();
+  return getLoadStoreQueueTransformPluginInfo();
 }
 
 } // end namespace storeq

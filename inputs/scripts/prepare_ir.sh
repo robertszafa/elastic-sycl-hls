@@ -2,6 +2,9 @@
 
 # Perform a number of transformations to easy analysis.
 
+ ~/git/llvm/build/bin/opt "$1" -o "$1" \
+                          --always-inline 
+
 # Our hoist-const-gep pass is similar to licm but we hoist GEPs with all constant indices 
 # (this captures SYCL pointers) to the entry BB of the function.
  ~/git/llvm/build/bin/opt "$1" -o "$1" \
@@ -23,6 +26,8 @@
                           --sroa \
                           --gvn \
                           --mergereturn \
+
+                          # scalar replacement of aggregates
 
 # Get human readable bitcode
 ~/git/llvm/build/bin/llvm-dis "$1" -o "$1".ll

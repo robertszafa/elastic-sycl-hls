@@ -1,13 +1,13 @@
 # THE LIST OF PLUGINS AND THE CORRESPONDING SOURCE FILES
 # ======================================================
 set(OPT_PASSES_PLUGINS
-    StoreQueueTransform
+    LoadStoreQueueTransform
     LoopRAWHazardReport
     HoistConstGep
     )
 
-set(StoreQueueTransform_SOURCES
-  StoreQueueTransform.cpp)
+set(LoadStoreQueueTransform_SOURCES
+  LoadStoreQueueTransform.cpp)
 
 set(LoopRAWHazardReport_SOURCES
   LoopRAWHazardReport.cpp)

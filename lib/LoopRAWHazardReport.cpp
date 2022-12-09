@@ -53,9 +53,13 @@ json::Object generateReport(Function &F, SmallVector<SmallVector<Instruction*>> 
       llvm::json::Object thisBaseAddr;
       thisBaseAddr["num_loads"] = std::count_if(memInstrs.begin(), memInstrs.end(), isaLoad);
       thisBaseAddr["num_stores"] = std::count_if(memInstrs.begin(), memInstrs.end(), isaStore);
-      auto firstStore = *std::find_if(memInstrs.begin(), memInstrs.end(), isaStore);
-      thisBaseAddr["array_line"] = firstStore->getDebugLoc().getLine();
-      thisBaseAddr["array_column"] = firstStore->getDebugLoc()->getColumn();
+      // TODO: deal with different types
+      std::string typeStr;
+      llvm::raw_string_ostream rso(typeStr);
+      memInstrs[0]->getOperand(0)->getType()->print(rso);
+      thisBaseAddr["array_type"] = typeStr;
+          // int(memInstrs[0]->getOperand(0)->getType()->getPrimitiveSizeInBits());
+
       base_addresses.push_back(std::move(thisBaseAddr));
     }
     report["base_addresses"] = std::move(base_addresses);
@@ -118,6 +122,9 @@ bool isInUsersOf(Instruction *I0, Instruction *I1) {
 
 SmallVector<Instruction *> getInstructionsUsedByI(Function &F, DominatorTree &DT, Instruction *I) {
   SmallVector<Instruction *> result;
+  if (!I)
+    return result;
+
   for (auto &BB : F) {
     if (DT.properlyDominates(I->getParent(), &BB))
       continue;

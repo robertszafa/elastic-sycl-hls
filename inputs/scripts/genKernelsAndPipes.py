@@ -20,14 +20,14 @@ c_var_regex = r'([a-zA-Z_][a-zA-Z0-9_]*)'
 
 
 def gen_store_queue_syntax(report, q_size):
-    IDX_TAG_TYPE = 'pair_t'
+    IDX_TAG_TYPE = 'request_lsq_t'
     PIPE_DEPTH = 64
 
     all_lsq_pipes = ""
 
     for i_base, base_addr in enumerate(report['base_addresses']):
         all_lsq_pipes += f'''
-        using val_type_{i_base} = std::remove_reference<decltype(* {base_addr['array_name']})>::type;
+        using val_type_{i_base} = {base_addr['array_type']};
         constexpr int kNumLoads_{i_base} = {base_addr['num_loads']};
         constexpr int kNumStores_{i_base} = {base_addr['num_stores']};
         constexpr int kQueueSize_{i_base} = {q_size};
@@ -38,9 +38,10 @@ def gen_store_queue_syntax(report, q_size):
         using st_val_pipe_{i_base} = pipe<class st_val_pipe_{i_base}_class, val_type_{i_base}, {PIPE_DEPTH}>;
         using end_lsq_signal_pipe_{i_base} = pipe<class end_lsq_signal_pipe_{i_base}_class, int>;
         
-        auto __array_device_ptr_{i_base} = sycl::device_ptr<val_type_{i_base}>({base_addr['array_name']});
-        auto eventStoreQueue_{i_base} = StoreQueue<ld_idx_pipes_{i_base}, ld_val_pipes_{i_base}, kNumLoads_{i_base}, st_idx_pipe_{i_base}, st_val_pipe_{i_base}, 
-                                        end_lsq_signal_pipe_{i_base}, kQueueSize_{i_base}>({Q_NAME}, __array_device_ptr_{i_base});
+        auto eventStoreQueue_{i_base} = 
+            LoadStoreQueue<val_type_{i_base}, ld_idx_pipes_{i_base}, ld_val_pipes_{i_base}, 
+                           st_idx_pipe_{i_base}, st_val_pipe_{i_base}, end_lsq_signal_pipe_{i_base}, 
+                           kNumLoads_{i_base}, kQueueSize_{i_base}>({Q_NAME});
         '''
 
     return all_lsq_pipes
@@ -132,8 +133,15 @@ def get_array_name(line_with_array, end_col):
 
     return array
 
+def llvm2ctype(llvmtype):
+    if llvmtype == 'i32':
+        return 'int'
+    elif llvmtype == 'i64':
+        return 'int64_t'
 
-def parse_report(report_fname, source_file_lines):
+    return llvmtype
+
+def parse_report(report_fname):
     try:
         with open(report_fname, 'r') as f:
             str = f.read()
@@ -141,9 +149,8 @@ def parse_report(report_fname, source_file_lines):
         report = json.loads(str)
         report["kernel_name"] = report["kernel_class_name"].split(' ')[-1].split('::')[-1]
         report['spir_func_name'] = report["spir_func_name"].split('::')[0]
-        for base_addr in report['base_addresses']:
-            base_addr['array_name'] = get_array_name(source_file_lines[base_addr['array_line']-1], 
-                                                     base_addr['array_column'])
+        for base_addr in report["base_addresses"]:
+            base_addr['array_type'] = llvm2ctype(base_addr['array_type'])
 
         return report
     except Exception as e:
@@ -163,7 +170,7 @@ if __name__ == '__main__':
         source_file = f.read()
     source_file_lines = source_file.splitlines()
 
-    report = parse_report(sys.argv[1], source_file_lines)
+    report = parse_report(sys.argv[1])
 
     kernel_body = get_kernel_body(source_file, report['kernel_name'])
     agu_kernel_name = f'{report["kernel_name"]}_AGU'

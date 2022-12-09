@@ -43,12 +43,12 @@ python3 scripts/genKernelsAndPipes.py $LOOP_REPORT_FILE $SRC_FILE $Q_SIZE
 ###
 ### STAGE 4: Fix IR inside kernels.
 ###
-echo "-- Running libStoreQueueTransform on refactored source"
+echo "-- Running lsq-transform on refactored source"
 # Get IR of source with kernels and pipes instantiated. 
 ./scripts/compile_to_bc.sh "$1" $TMP_SRC_FILE
 ./scripts/prepare_ir.sh $TMP_SRC_FILE.bc
-~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libStoreQueueTransform.so \
-                         -passes=stq-transform $TMP_SRC_FILE.bc -o $TMP_SRC_FILE.out.bc
+~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libLoadStoreQueueTransform.so \
+                         -passes=lsq-transform $TMP_SRC_FILE.bc -o $TMP_SRC_FILE.out.bc
 
 ###
 ### STAGE 5: Produce final binary.

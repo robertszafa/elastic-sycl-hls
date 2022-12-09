@@ -174,12 +174,11 @@ bool canDecoupleAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
   SetVector<Instruction *> allAddressIntrs;
   for (auto I : memInstrs) {
     allMemInstrBBs.insert(I->getParent());
-    auto idxI = isaStore(I)
-                ? dyn_cast<Instruction>(dyn_cast<Instruction>(I->getOperand(1))->getOperand(1))
-                : dyn_cast<Instruction>(dyn_cast<Instruction>(I->getOperand(0))->getOperand(1));
-    allAddressIntrs.insert(idxI);
-    auto usedByLi = getInstructionsUsedByI(F, DT, idxI);
-    allAddressIntrs.insert(idxI);
+    auto addressI = isaStore(I) ? dyn_cast<Instruction>(dyn_cast<Instruction>(I->getOperand(1)))
+                                : dyn_cast<Instruction>(dyn_cast<Instruction>(I->getOperand(0)));
+    allAddressIntrs.insert(addressI);
+    auto usedByLi = getInstructionsUsedByI(F, DT, addressI);
+    allAddressIntrs.insert(addressI);
     for (auto &I : usedByLi)
       allAddressIntrs.insert(I);
   }

@@ -134,7 +134,11 @@ def get_array_name(line_with_array, end_col):
     return array
 
 def llvm2ctype(llvmtype):
-    if llvmtype == 'i32':
+    if llvmtype == 'i8':
+        return 'int8_t'
+    elif llvmtype == 'i16':
+        return 'int16_t'
+    elif llvmtype == 'i32':
         return 'int'
     elif llvmtype == 'i64':
         return 'int64_t'

@@ -29,6 +29,7 @@
 #include "llvm/Support/Casting.h"
 #include <llvm/IR/Constant.h>
 #include <llvm/IR/InstrTypes.h>
+#include <llvm/IR/IntrinsicInst.h>
 #include <llvm/IR/Type.h>
 #include <llvm/Support/raw_ostream.h>
 
@@ -59,9 +60,18 @@ SmallVector<Instruction*> getStores(const SmallVector<Instruction *> &memInstr) 
 
 /// This function has the same functionality as ScalarEvolution.getPointerBase, but it returns 
 /// the Instruction representing the pointer base, not a SCEV.
+/// Relies on our previous pass that puts all GEPs (that get global memory pointers) into F.entry
 Instruction *getPointerBase(Value *pointerOperand) {
-  if (auto gep = dyn_cast<GetElementPtrInst>(pointerOperand)) {
-    if (gep->getPointerOperand() && !gep->hasAllConstantIndices())
+  const BasicBlock *entryBlockF =
+      &dyn_cast<Instruction>(pointerOperand)->getParent()->getParent()->getEntryBlock();
+  if (dyn_cast<Instruction>(pointerOperand)->getParent() == entryBlockF) {
+    // stop;
+  } else if (auto cast = dyn_cast<BitCastInst>(pointerOperand)) {
+    return getPointerBase(dyn_cast<Instruction>(cast->getOperand(0)));
+  } else if (auto load = dyn_cast<LoadInst>(pointerOperand)) {
+    return getPointerBase(dyn_cast<Instruction>(load->getOperand(0)));
+  } else if (auto gep = dyn_cast<GetElementPtrInst>(pointerOperand)) {
+    if (gep->getPointerOperand()) // hasAllConstantIndices())
       return getPointerBase(dyn_cast<Instruction>(gep->getPointerOperand()));
   }
 
@@ -102,7 +112,7 @@ void insertInMap(DenseMap<Instruction *, SetVector<Instruction *>> &addr2InstMap
       return;
     }
   }
-  
+
   addr2InstMap[basePointer].insert(instr);
 }
 
@@ -117,6 +127,66 @@ bool isAddressAnalyzable(ScalarEvolution &SE, const Loop *L, const SCEV *address
   auto idxRange = SE.getUnsignedRange(idxSE);
 
   return idxRange.isAllNonNegative();
+}
+
+/// Remove entries where there are only store instructions.
+/// Make sure the returned instructions are always in deterministic order (don't care what order).
+SmallVector<SmallVector<Instruction *>>
+filterInstrs(const DenseMap<Instruction *, SetVector<Instruction *>> &addr2InstMap,
+             DominatorTree &DT) {
+  SmallVector<SmallVector<Instruction *>> collectedInstructions;
+  SmallVector<Instruction *> instructionKeys;
+
+  // If a given base address has only a store, then there will be no RAW hazards.
+  for (auto &kv : addr2InstMap) {
+    if (std::any_of(kv.getSecond().begin(), kv.getSecond().end(), isaLoad)) {
+      instructionKeys.push_back(kv.getFirst());
+
+      SmallVector<Instruction *> iVec;
+      for (auto &I : kv.getSecond())
+        iVec.push_back(I);
+      collectedInstructions.push_back(iVec);
+    }
+  }
+
+  // Use base address instruction dominance relation to sort the collected instructions.
+  SmallVector<int> sortingIndices(instructionKeys.size());
+  std::iota(sortingIndices.begin(), sortingIndices.end(), 0);
+  std::sort(sortingIndices.begin(), sortingIndices.end(),
+            [&](int a, int b) { return DT.dominates(instructionKeys[a], instructionKeys[b]); });
+  SmallVector<SmallVector<Instruction *>> collectedInstructionsSorted(collectedInstructions.size());
+  for (uint i = 0; i < sortingIndices.size(); ++i)
+    collectedInstructionsSorted[i] = collectedInstructions[sortingIndices[i]];
+
+  return collectedInstructionsSorted;
+}
+
+SmallVector<SmallVector<Instruction *>>
+splitIntoTypedClusters(const SmallVector<SmallVector<Instruction *>> &instrs) {
+  SmallVector<SmallVector<Instruction *>> splitInstrClusters;
+
+  for (auto &memInstr : instrs) {
+    SmallVector<SmallVector<Instruction *>> types2instrs(memInstr.size());
+    int numTypes = 0;
+
+    // Preserve deterministic order across runs.
+    DenseMap<Type *, int> types2index;
+    for (auto &I : memInstr) {
+      auto type = isaStore(I) ? I->getOperand(0)->getType() : I->getType();
+      
+      if (types2index.find(type) == types2index.end()) {
+        types2index[type] = numTypes;
+        numTypes++;
+      } 
+      types2instrs[types2index[type]].push_back(I);
+    }
+
+    for (int i=0; i<numTypes; i++) {
+      splitInstrClusters.push_back(types2instrs[i]);
+    }
+  }
+
+  return splitInstrClusters;
 }
 
 /// Collect all load and store instruction, and the their address values, that have a RAW
@@ -144,6 +214,24 @@ SmallVector<SmallVector<Instruction *>> getRAWMemInstrs(Function &F, FunctionAna
               discardedStores.insert(si);
             }
           }
+          // else if (auto mcpyI = dyn_cast<MemCpyInst>(&I)) {
+          //   auto storeAddr = mcpyI->getOperand(0);
+          //   auto siPointerSE = SE.getSCEV(storeAddr);
+          //   errs() << "\n--\nMemCpyInst:\n";
+          //   mcpyI->print(errs());
+
+          //   if (!isAddressAnalyzable(SE, L, siPointerSE)) {
+          //     auto siPointerBase = getPointerBase(&F.getEntryBlock(), storeAddr);
+          //     insertInMap(addr2InstMap, siPointerBase, &I);
+          //     errs() << "\n== siPointerBase\n"; siPointerBase->print(errs());
+          //     errs() << "\n== is base in F.entry? " 
+          //            << (siPointerBase->getParent() == &F.getEntryBlock()) 
+          //            << "\n";
+          //   }
+          //   else {
+          //     discardedStores.insert(mcpyI);
+          //   }
+          // }
         }
       }
     }
@@ -152,7 +240,8 @@ SmallVector<SmallVector<Instruction *>> getRAWMemInstrs(Function &F, FunctionAna
   // Collect all stores previously discarded, if there was a different 
   // unpredictable store to the same base address.
   for (auto &I : discardedStores) {
-    auto siPointerBase = getPointerBase(dyn_cast<StoreInst>(I)->getPointerOperand());
+    auto siPointerBase = isaStore(I) ? getPointerBase(dyn_cast<StoreInst>(I)->getPointerOperand())
+                                     : getPointerBase(dyn_cast<MemCpyInst>(I)->getOperand(0));
     if (auto bucketToInsert = getEquivalentInMap(addr2InstMap, siPointerBase)) {
       bucketToInsert->insert(I);
     }
@@ -164,10 +253,12 @@ SmallVector<SmallVector<Instruction *>> getRAWMemInstrs(Function &F, FunctionAna
       for (auto &BB : L->getBlocks()) {
         for (auto &I : *BB) {
           if (auto li = dyn_cast<LoadInst>(&I)) {
-            auto pointerBaseInstr = getPointerBase(li->getPointerOperand());
+            // Ignore loads of pointers.
+            if (li->getType()->isPointerTy())
+              continue;
 
-            // We are only intersted in loads where there is 
-            // a store to the the same base address.
+            auto pointerBaseInstr = getPointerBase(li->getPointerOperand());
+            // We are only intersted in loads where there is a store to the the same base address.
             if (auto bucketToInsert = getEquivalentInMap(addr2InstMap, pointerBaseInstr)) {
               bucketToInsert->insert(&I);
             }
@@ -177,32 +268,11 @@ SmallVector<SmallVector<Instruction *>> getRAWMemInstrs(Function &F, FunctionAna
     }
   }
 
-  // Remove entries where there are only store instructions.
-  // If a given base address has only a store, then there will be no RAW hazards.
-  SmallVector<SmallVector<Instruction *>> collectedInstructions;
-  SmallVector<Instruction *> instructionKeys;
-  for (auto &kv : addr2InstMap) {
-    if (std::any_of(kv.getSecond().begin(), kv.getSecond().end(), isaLoad)) {
-      instructionKeys.push_back(kv.getFirst());
+  auto filteredInstructions = filterInstrs(addr2InstMap, DT);
 
-      SmallVector<Instruction*> iVec;
-      for (auto &I : kv.getSecond()) iVec.push_back(I);
-      collectedInstructions.push_back(iVec);
-    }
-  }
+  auto clusteredTypesInstructions = splitIntoTypedClusters(filteredInstructions);
 
-  // Make sure the returned instructions are always in deterministic order (don't care what order).
-  // Use base address instruction dominance relation to sort the collected instructions.
-  SmallVector<int> sortingIndices(instructionKeys.size());
-  std::iota(sortingIndices.begin(), sortingIndices.end(), 0);
-  std::sort(sortingIndices.begin(), sortingIndices.end(),
-            [&](int a, int b) { return DT.dominates(instructionKeys[a], instructionKeys[b]); });
-  SmallVector<SmallVector<Instruction *>> collectedInstructionsSorted(collectedInstructions.size());
-  for (uint i=0; i<sortingIndices.size(); ++i) {
-    collectedInstructionsSorted[i] = collectedInstructions[sortingIndices[i]];
-  }
-
-  return collectedInstructionsSorted;
+  return clusteredTypesInstructions;
 }
 
 /// Given Function {F}, return all Functions that call {F}.

@@ -1,18 +1,16 @@
+
+
 import sys
 import os
 import re
 import csv
-import time
-from scipy.stats import gmean
 from pathlib import Path
 
-
-EXP_DATA_DIR = 'exp_data/'
-SIM_CYCLES_FILE = 'simulation_raw.json'
-TMP_FILE = f'.tmp_run_exp{str(time.time())[-5:]}.txt'
+from constants import *
 
 Q_SIZES = [2, 4, 8, 16]
 
+# Only these two for this experiment
 KERNEL_ASIZE_PAIRS = {
     'histogram' : 10000,
     'spmv' : 100,
@@ -22,14 +20,6 @@ KERNEL_ASIZE_PAIRS_SIM = {
     'histogram' : 1000,
     'spmv' : 20,
 }
-# For info.
-DATA_DISTRIBUTIONS = {
-    0: 'all_wait',
-    1: 'no_wait',
-    2: 'percentage_wait',
-}
-
-PERCENTAGE_WAIT = 10
 
 
 def run_bin(bin, a_size, percentage=0):
@@ -93,16 +83,16 @@ if __name__ == '__main__':
             highest_speedup = {q : 0 for q in Q_SIZES}
             all_speedups = {q : [] for q in Q_SIZES}
 
-            BIN_STATIC = f'{kernel}/bin/{kernel}.{bin_ext}'
+            BIN_STATIC = f'{GIT_DIR}/inputs/{kernel}/bin/{kernel}.{bin_ext}'
             # static_time = run_bin(BIN_STATIC, a_size, percentage=PERCENTAGE_WAIT)
             writer.writerow(['static', 355])
 
             for qsize in Q_SIZES:
                 new_row = [qsize]
 
-                BIN_DYNAMIC = f'{kernel}/{kernel}.cpp_{qsize}qsize.tmp.cpp.{bin_ext}' 
+                BIN_DYNAMIC = f'{GIT_DIR}/inputs/{kernel}/{kernel}.cpp_{qsize}qsize.tmp.cpp.{bin_ext}' 
                 if qsize == 8:
-                    BIN_DYNAMIC = f'{kernel}/{kernel}.cpp.tmp.cpp_{qsize}qsize.{bin_ext}' 
+                    BIN_DYNAMIC = f'{GIT_DIR}/inputs/{kernel}/{kernel}.cpp.tmp.cpp_{qsize}qsize.{bin_ext}' 
 
                 dyn_time = run_bin(BIN_DYNAMIC, a_size, percentage=PERCENTAGE_WAIT)
 

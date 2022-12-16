@@ -1,20 +1,16 @@
+#!/usr/bin/env python3
+
 import re
 import csv
 import json
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import gmean
 from pathlib import Path
 
-# Keep parameters synced
-from run_exp import (EXP_DATA_DIR, Q_SIZES, KERNEL_ASIZE_PAIRS, PERCENTAGES_WAIT)
+from constants import *
 
-
-KERNELS = list(KERNEL_ASIZE_PAIRS.keys())
 Q_SIZE = 8
-
-
 
 # return ALUTs, REGs, RAMs, DSPs, Fmax
 def get_resources_whole_system(acl_quartus_report):
@@ -107,8 +103,8 @@ if __name__ == '__main__':
             kernel_row = [kernel]
 
             print('\n\n' + kernel)
-            resources_static = get_resources_only_kernels(f'{kernel}/bin/{kernel}.{bin_ext}.prj/reports/resources/quartus_data.js')
-            resources_dynamic = get_resources_only_kernels(f'{kernel}/{kernel}.cpp.tmp.cpp_{Q_SIZE}qsize.{bin_ext}.fpga.prj/reports/resources/quartus_data.js')
+            resources_static = get_resources_only_kernels(f'{GIT_DIR}/inputs/bin/{kernel}.{bin_ext}.prj/reports/resources/quartus_data.js')
+            resources_dynamic = get_resources_only_kernels(f'{GIT_DIR}/inputs/{kernel}.cpp.tmp.cpp_{Q_SIZE}qsize.{bin_ext}.fpga.prj/reports/resources/quartus_data.js')
 
             min_static, max_static = get_min_max_runtime(kernel, 'static')
             min_dynamic, max_dynamic = get_min_max_runtime(kernel, f'dynamic_{Q_SIZE}qsize')

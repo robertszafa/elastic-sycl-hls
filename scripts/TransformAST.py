@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 This script perdorms a source-to-source transformation on a sycl source containing 1 kernel.
 Given analysis info (see below), the script generates copies of the kernel, generates a call
@@ -135,13 +137,13 @@ def get_array_name(line_with_array, end_col):
 
 def llvm2ctype(llvmtype):
     if llvmtype == 'i8':
-        return 'int8_t'
+        return 'signed char'
     elif llvmtype == 'i16':
-        return 'int16_t'
+        return 'signed short'
     elif llvmtype == 'i32':
         return 'int'
     elif llvmtype == 'i64':
-        return 'int64_t'
+        return 'signed long int'
 
     return llvmtype
 

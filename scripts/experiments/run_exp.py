@@ -1,53 +1,15 @@
+#!/usr/bin/env python3
+
 import sys
 import os
 import re
 import csv
-import time
 from scipy.stats import gmean
 from pathlib import Path
 
-
-EXP_DATA_DIR = 'exp_data/'
-SIM_CYCLES_FILE = 'simulation_raw.json'
-TMP_FILE = f'.tmp_run_exp{str(time.time())[-5:]}.txt'
+from constants import *
 
 Q_SIZES = [8]
-
-KERNEL_ASIZE_PAIRS = {
-    'histogram' : 10000,
-    'histogram_if' : 10000,
-    'spmv' : 100,
-    'maximal_matching' : 5000,
-    'get_tanh' : 10000,
-    'get_tanh_double' : 10000,
-    'bnn' : 100,
-    'vec_trans' : 10000,
-    'chaos_ncg' : 5000,
-    'sssp' : 100,
-    'sort' : 100,
-}
-# Decrease domain sizes when running in simulation.
-KERNEL_ASIZE_PAIRS_SIM = {
-    'histogram' : 1000,
-    'histogram_if' : 1000,
-    'spmv' : 20,
-    'maximal_matching' : 1000,
-    'get_tanh' : 1000,
-    'get_tanh_double' : 1000,
-    'bnn' : 100,
-    'vec_trans' : 1000,
-    'chaos_ncg' : 1000,
-    'sssp' : 50,
-    'sort' : 20,
-}
-# For info.
-DATA_DISTRIBUTIONS = {
-    0: 'all_wait',
-    1: 'no_wait',
-    2: 'percentage_wait',
-}
-
-PERCENTAGES_WAIT = [0, 40, 80, 100]
 
 
 def run_bin(bin, a_size, percentage=0):
@@ -121,12 +83,12 @@ if __name__ == '__main__':
 
                 new_row = [percentage]
 
-                BIN_STATIC = f'{kernel}/bin/{kernel}.{bin_ext}'
+                BIN_STATIC = f'{GIT_DIR}/inputs/{kernel}/bin/{kernel}.{bin_ext}'
                 static_time = run_bin(BIN_STATIC, a_size, percentage=percentage)
                 new_row.append(static_time)
 
                 for q in Q_SIZES:
-                    BIN_DYNAMIC = f'{kernel}/{kernel}.cpp.tmp.cpp_{q}qsize.{bin_ext}' 
+                    BIN_DYNAMIC = f'{GIT_DIR}/inputs/{kernel}/{kernel}.cpp.tmp.cpp_{q}qsize.{bin_ext}' 
                     dyn_time = run_bin(BIN_DYNAMIC, a_size, percentage=percentage)
                     new_row.append(dyn_time)
 

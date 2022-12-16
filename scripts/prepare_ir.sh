@@ -2,8 +2,9 @@
 
 # Perform a number of transformations to easy analysis.
 
+#  Inline functions and optimize memcpys resulting from using structs.
  ~/git/llvm/build/bin/opt "$1" -o "$1" \
-                          --always-inline 
+                          --always-inline \
 
 # Our hoist-const-gep pass is similar to licm but we hoist GEPs with all constant indices 
 # (this captures SYCL pointers) to the entry BB of the function.
@@ -20,10 +21,11 @@
                           --instsimplify \
                           --aggressive-instcombine \
                           --interleaved-access \
+                          --memcpyopt \
+                          --sroa \
                           --dse \
                           --adce \
                           --dce \
-                          --sroa \
                           --gvn \
                           --mergereturn \
 
@@ -34,4 +36,3 @@
 
 # And demangle it.
 ~/git/llvm/build/bin/llvm-cxxfilt < "$1".ll > "$1".demangled.ll
-

@@ -1,14 +1,10 @@
-from cgitb import text
-import sys
 import re
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
-from pathlib import Path
 
-from run_qsizes_exp import KERNEL_ASIZE_PAIRS, Q_SIZES, EXP_DATA_DIR, PERCENTAGE_WAIT
-
+from run_qsizes_exp import KERNEL_ASIZE_PAIRS, Q_SIZES, EXP_DATA_DIR
+from constants import GIT_DIR
 
 Q_SIZE = 8
 
@@ -114,15 +110,15 @@ if __name__ == '__main__':
     for kernel in KERNEL_ASIZE_PAIRS.keys():
         time_res_file = f'{EXP_DATA_DIR}/qsizes_exp_{kernel}_{bin_type}.csv'
         df = pd.read_csv(time_res_file)
-        sta_res = get_resources_only_kernels(f'{kernel}/bin/{kernel}.fpga_hw.prj/reports/resources/quartus_data.js')
+        sta_res = get_resources_only_kernels(f'{GIT_DIR}/inputs/{kernel}/bin/{kernel}.fpga_hw.prj/reports/resources/quartus_data.js')
         
         ALMs = [int(sta_res['ALM'])]
         FREQs = [sta_res['FREQ']]
 
         for qsize in Q_SIZES:
-            BIN_DYNAMIC = f'{kernel}/{kernel}.cpp_{qsize}qsize.tmp.cpp.{bin_ext}' 
+            BIN_DYNAMIC = f'{GIT_DIR}/inputs/{kernel}/{kernel}.cpp_{qsize}qsize.tmp.cpp.{bin_ext}' 
             if qsize == 8:
-                BIN_DYNAMIC = f'{kernel}/{kernel}.cpp.tmp.cpp_{qsize}qsize.{bin_ext}' 
+                BIN_DYNAMIC = f'{GIT_DIR}/inputs/{kernel}/{kernel}.cpp.tmp.cpp_{qsize}qsize.{bin_ext}' 
             
             dyn_res = get_resources_only_kernels(f'{BIN_DYNAMIC}.fpga.prj/reports/resources/quartus_data.js')
 

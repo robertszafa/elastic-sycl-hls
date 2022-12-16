@@ -3,9 +3,8 @@ import re
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from pathlib import Path
 
-EXP_DATA_DIR = 'exp_data/'
+from constants import EXP_DATA_DIR
 
 KERNEL_ASIZE_PAIRS = {
     'histogram' : 10000,

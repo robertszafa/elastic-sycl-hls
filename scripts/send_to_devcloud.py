@@ -15,8 +15,8 @@ if __name__ == '__main__':
 
             src_file_tmp = f'{src_file}.tmp.cpp_{qsize}qsize'
 
-            basename_src_file_tmp = src_file_tmp.split('/')[1]
-            print(basename_src_file_tmp)
+            basename_src_file_tmp = src_file_tmp.split('/')[-1]
+
             integration_header = f'~/tmp/{basename_src_file_tmp}-integration-header.h'
             integration_footer = f'~/tmp/{basename_src_file_tmp}-integration-footer.h'
 
@@ -25,7 +25,7 @@ if __name__ == '__main__':
             os.system(f'''~/git/llvm/build/bin/opt -load-pass-plugin \
                         ~/git/llvm-sycl-passes/build/lib/libLoopRAWHazardReport.so \
                         -passes=loop-raw-report {src_file}.bc -o /dev/null > {report_file}''')
-            os.system(f'./TransformAST.py {report_file} {src_file} {qsize} {src_file_tmp}')
+            os.system(f'{GIT_DIR}/scripts/TransformAST.py {report_file} {src_file} {qsize} {src_file_tmp}')
 
             os.system(f'{GIT_DIR}/scripts/compile_to_bc.sh sim {src_file_tmp}')
             os.system(f'{GIT_DIR}/scripts/prepare_ir.sh {src_file_tmp}.bc')

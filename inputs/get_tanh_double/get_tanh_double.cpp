@@ -67,7 +67,7 @@ void init_data(std::vector<double> &A, std::vector<int> &addr_in, std::vector<in
 
     if (distr == data_distribution::ALL_WAIT) {
       addr_in[i] = std::max(i - 1, 0);
-      addr_out[i] = std::min(max(i + 1, 0), int(A.size()-1));
+      addr_out[i] = std::max(i - 1, 0);
     } else if (distr == data_distribution::NO_WAIT) {
       addr_in[i] = i;
       addr_out[i] = i;
@@ -106,6 +106,17 @@ static auto exception_handler = [](sycl::exception_list e_list) {
     }
   }
 };
+
+template<class T>
+typename std::enable_if<!std::numeric_limits<T>::is_integer, bool>::type
+    almost_equal(T x, T y)
+{
+    // the machine epsilon has to be scaled to the magnitude of the values used
+    // and multiplied by the desired precision in ULPs (units in the last place)
+    return std::fabs(x-y) <= std::numeric_limits<T>::epsilon() * std::fabs(x+y) * 2
+        // unless the result is subnormal
+        || std::fabs(x-y) < std::numeric_limits<T>::min();
+}
 
 int main(int argc, char *argv[]) {
   // Get A_SIZE and forward/no-forward from args.
@@ -169,12 +180,12 @@ int main(int argc, char *argv[]) {
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
     get_tanh_double_cpu(A_cpu, addr_in, addr_out);
-    if (std::equal(A.begin(), A.end(), A_cpu.begin())) {
+    if (std::equal(A.begin(), A.end(), A_cpu.begin(), almost_equal<double>)) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed";
-      std::cout << " sum(A_fpga) = " << std::accumulate(A.begin(), A.end(), 0) << "\n";
-      std::cout << " sum(A_cpu) = " << std::accumulate(A_cpu.begin(), A_cpu.end(), 0) << "\n";
+      std::cout << " sum(A_fpga) = " << std::accumulate(A.begin(), A.end(), 0.0) << "\n";
+      std::cout << " sum(A_cpu) = " << std::accumulate(A_cpu.begin(), A_cpu.end(), 0.0) << "\n";
     }
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";

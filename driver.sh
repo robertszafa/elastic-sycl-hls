@@ -43,7 +43,7 @@ python3 scripts/TransformAST.py $LOOP_REPORT_FILE $SRC_FILE $Q_SIZE
 ###
 ### STAGE 4: Fix IR inside kernels.
 ###
-echo "-- Running lsq-transform on refactored source"
+echo ">> Running lsq-transform"
 # Get IR of source with kernels and pipes instantiated. 
 ./scripts/compile_to_bc.sh "$1" $TMP_SRC_FILE
 ./scripts/prepare_ir.sh $TMP_SRC_FILE.bc
@@ -53,7 +53,7 @@ echo "-- Running lsq-transform on refactored source"
 ###
 ### STAGE 5: Produce final binary.
 ###
-echo "-- Compiling into $FINAL_BINARY"
+echo ">> Compiling $FINAL_BINARY"
 # Cleanup the transformed IR. The transformation leaves a lot of dead code, unused kernel args, etc.
 ./scripts/cleanup_ir.sh $TMP_SRC_FILE.out.bc
 ./scripts/compile_from_bc.sh $1 $TMP_SRC_FILE.out.bc $TMP_SRC_FILE $FINAL_BINARY

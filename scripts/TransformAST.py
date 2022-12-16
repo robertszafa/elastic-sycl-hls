@@ -13,13 +13,23 @@ import re
 import sys
 import json
 
+from constants import GIT_DIR
+
 # TODO: get queue name from llvm pass
 Q_NAME = 'q'
-STOREQ_HEADER = '#include "store_queue.hpp"\n#include <type_traits>'
+LSQ_FILE = f'{GIT_DIR}/lsq/LoadStoreQueue.hpp'
 
 # This has false positives but we use it only on strings that have a variable name at the beginning
 c_var_regex = r'([a-zA-Z_][a-zA-Z0-9_]*)'
 
+
+def get_lsq_src():
+    try:
+        with open(LSQ_FILE, 'r') as f:
+            return f.read()
+    except Exception as e:
+        print(e)
+        exit("ERROR getting lsq src")
 
 def gen_store_queue_syntax(report, q_size):
     IDX_TAG_TYPE = 'request_lsq_t'
@@ -198,7 +208,8 @@ if __name__ == '__main__':
     src_lines_with_pipes = source_file_lines[:insert_for_main_kernel_pipes+1] + \
                            main_kernel_pipes + source_file_lines[insert_for_main_kernel_pipes+1:]
 
-    src_lines_with_pipes_and_agu = [STOREQ_HEADER, agu_kernel_class_decl] + \
+    lsq_src = get_lsq_src()
+    src_lines_with_pipes_and_agu = [lsq_src, agu_kernel_class_decl] + \
                                    src_lines_with_pipes[:insert_line_idx_kernels] + \
                                    [storeq_syntax]
 
@@ -215,5 +226,3 @@ if __name__ == '__main__':
 
     with open(new_filename, 'w') as f:
         f.write('\n'.join(src_lines_with_storeq))
-
-    print(f'-- Refactored source file at {new_filename}')

@@ -1,7 +1,7 @@
 import os
 import time
 
-GIT_DIR = '~/git/llvm-sycl-passes/'
+GIT_DIR = os.environ['LLVM_SYCL_PASSES_DIR']
 EXP_DATA_DIR = f'{GIT_DIR}/inputs/experiments/results/'
 
 KERNEL_ASIZE_PAIRS = {
@@ -18,6 +18,7 @@ KERNEL_ASIZE_PAIRS = {
     'chaos_ncg' : 5000,
     'sssp' : 100,
     'sort' : 100,
+    'delaunay_triangulation' : 100,
 }
 # Decrease domain sizes when running in simulation.
 KERNEL_ASIZE_PAIRS_SIM = {
@@ -34,6 +35,7 @@ KERNEL_ASIZE_PAIRS_SIM = {
     'chaos_ncg' : 100,
     'sssp' : 100,
     'sort' : 20,
+    'delaunay_triangulation' : 20,
 }
 
 KERNELS = list(KERNEL_ASIZE_PAIRS.keys())
@@ -47,7 +49,7 @@ DATA_DISTRIBUTIONS = {
 PERCENTAGE_WAIT = 10
 PERCENTAGES_WAIT = [0, 40, 80, 100]
 
-SIM_CYCLES_FILE = 'simulation_raw.json'
-TMP_FILE = f'.tmp_run_exp{str(time.time())[-5:]}.txt'
+SIM_CYCLES_FILE = f'{GIT_DIR}/inputs/simulation_raw.json'
+TMP_FILE = f'{GIT_DIR}/inputs/.tmp_run_exp{str(time.time())[-5:]}.txt'
 
 DEVCLOUD_LOGIN = f'{os.environ["DEVCLOUD_USERNAME"]}@devcloud'

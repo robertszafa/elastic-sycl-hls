@@ -23,7 +23,7 @@ if __name__ == '__main__':
             os.system(f'{GIT_DIR}/scripts/compile_to_bc.sh sim {src_file}')
             os.system(f'{GIT_DIR}/scripts/prepare_ir.sh {src_file}.bc')
             os.system(f'''~/git/llvm/build/bin/opt -load-pass-plugin \
-                        ~/git/llvm-sycl-passes/build/lib/libLoopRAWHazardReport.so \
+                        ~/git/llvm-sycl-passes/build/lib/libLoadStoreQueueTransform.so \
                         -passes=loop-raw-report {src_file}.bc -o /dev/null > {report_file}''')
             os.system(f'{GIT_DIR}/scripts/TransformAST.py {report_file} {src_file} {qsize} {src_file_tmp}')
 

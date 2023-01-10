@@ -97,9 +97,10 @@ namespace dt {
 using namespace fpga_tools;
 using namespace sycl;
 
+class MainKernel;
 
-double delaunay_triangulation_kernel(queue &q, const std::vector<dt::Point2D<float>> &h_points,
-                                     std::vector<dt::Triangle> &h_triangles, const int numPoints) {
+double dt_k(queue &q, const std::vector<dt::Point2D<float>> &h_points,
+            std::vector<dt::Triangle> &h_triangles, const int numPoints) {
 
   dt::Point2D<float> *points = toDevice(h_points.data(), h_points.size(), q);
   dt::Triangle *triangles = toDevice(h_triangles.data(), h_triangles.size(), q);
@@ -107,12 +108,13 @@ double delaunay_triangulation_kernel(queue &q, const std::vector<dt::Point2D<flo
   dt::Edge *polygon = sycl::malloc_device<dt::Edge>(h_points.size()*3, q);
 
   auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<class MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
       int numTriangles = 1;
       for (int iP = 0; iP < numPoints; ++iP) {
         // std::vector<EdgeType> polygon;
         int numEdgesInPolygon = 0;
 
+        // [[intel::ivdep]]
         for (int iT = 0; iT < numTriangles; ++iT) {
           if (circumCircleContains(triangles[iT], points[iP], points)) {
             triangles[iT].isBad = true;
@@ -124,6 +126,7 @@ double delaunay_triangulation_kernel(queue &q, const std::vector<dt::Point2D<flo
 
         // Delete bad triangles.
         int numGoodTriangles = 0;
+        // [[intel::ivdep]]
         for (int iT = 0; iT < numTriangles; ++iT) {
           if (!triangles[iT].isBad)
             triangles[numGoodTriangles++] = triangles[iT];
@@ -131,6 +134,7 @@ double delaunay_triangulation_kernel(queue &q, const std::vector<dt::Point2D<flo
 
         // Mark bad polygons.
         for (int iE1 = 0; iE1 < numEdgesInPolygon; ++iE1) {
+          // [[intel::ivdep]]
           for (int iE2 = iE1 + 1; iE2 < numEdgesInPolygon; ++iE2) {
             if (almost_equal(polygon[iE1], polygon[iE2])) {
               polygon[iE1].isBad = true;
@@ -140,6 +144,7 @@ double delaunay_triangulation_kernel(queue &q, const std::vector<dt::Point2D<flo
         }
 
         // Add new triangles.
+        // [[intel::ivdep]]
         for (int iE = 0; iE < numEdgesInPolygon; ++iE) {
           if (!polygon[iE].isBad) {
             triangles[numGoodTriangles++] = {polygon[iE].fromPoint, polygon[iE].toPoint, iP, false};
@@ -282,7 +287,7 @@ int main(int argc, char *argv[]) {
     auto start = std::chrono::steady_clock::now();
     double kernel_time = 0;
 
-    kernel_time = delaunay_triangulation_kernel(q, points, triangles, N);
+    kernel_time = dt_k(q, points, triangles, N);
 
     // Wait for all work to finish.
     q.wait();

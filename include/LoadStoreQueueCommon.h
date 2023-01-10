@@ -1,5 +1,5 @@
-#ifndef STOREQ_UTILS_H
-#define STOREQ_UTILS_H
+#ifndef LOAD_STORE_QUEUE_ANALSYIS_H
+#define LOAD_STORE_QUEUE_ANALSYIS_H
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Instruction.h"
@@ -40,7 +40,7 @@
 
 using namespace llvm;
 
-namespace storeq {
+namespace lsqPass {
 
 auto isaLoad = [](auto i) { return isa<LoadInst>(i); };
 auto isaStore = [](auto i) { return isa<StoreInst>(i); };
@@ -214,6 +214,7 @@ SmallVector<SmallVector<Instruction *>> getRAWMemInstrs(Function &F, FunctionAna
               discardedStores.insert(si);
             }
           }
+          // Below is starter code to deal with non-scalirized structs (they use memcpys).
           // else if (auto mcpyI = dyn_cast<MemCpyInst>(&I)) {
           //   auto storeAddr = mcpyI->getOperand(0);
           //   auto siPointerSE = SE.getSCEV(storeAddr);

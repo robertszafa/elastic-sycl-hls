@@ -1,4 +1,4 @@
-#include "StoreqUtils.h"
+#include "LoadStoreQueueCommon.h"
 
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
@@ -43,7 +43,7 @@
 
 using namespace llvm;
 
-namespace storeq {
+namespace lsqPass {
 
 /// Assummes that the first n spir_func calls in F are pipe calls.
 CallInst* getNthPipeCall(Function &F, const int n) {
@@ -134,8 +134,8 @@ void transformAddressGeneration(Function &F, FunctionAnalysisManager &AM, Instru
                                          : dyn_cast<LoadInst>(memInst)->getPointerOperand();
   // Ensure address matches pipe idx type (we use i64 for the address field in the request).
   auto typeForAddressPipe = addressStore->getOperand(0)->getType();
-  auto addressCastedToi64 = TruncInst::CreateBitOrPointerCast(memInstAddr, typeForAddressPipe, "",
-                                                              dyn_cast<Instruction>(addressStore));
+  auto addressCastedToi64 = BitCastInst::CreatePointerCast(memInstAddr, typeForAddressPipe, "",
+                                                           dyn_cast<Instruction>(addressStore));
   addressStore->setOperand(0, addressCastedToi64);
 
   // Write baseTag into the pipeWrite idx field. If it's a store, increment the tag by one before.
@@ -338,4 +338,4 @@ extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginIn
   return getLoadStoreQueueTransformPluginInfo();
 }
 
-} // end namespace storeq
+} // end namespace lsqPass

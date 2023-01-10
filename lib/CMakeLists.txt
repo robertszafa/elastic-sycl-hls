@@ -2,15 +2,15 @@
 # ======================================================
 set(OPT_PASSES_PLUGINS
     LoadStoreQueueTransform
-    LoopRAWHazardReport
+    LoadStoreQueueAnalysis
     HoistConstGep
     )
 
 set(LoadStoreQueueTransform_SOURCES
   LoadStoreQueueTransform.cpp)
 
-set(LoopRAWHazardReport_SOURCES
-  LoopRAWHazardReport.cpp)
+set(LoadStoreQueueAnalysis_SOURCES
+  LoadStoreQueueAnalysis.cpp)
 
 set(HoistConstGep_SOURCES
   HoistConstGep.cpp)

@@ -63,12 +63,28 @@ message("LLVM STATUS:
   Targets     ${LLVM_TARGETS_TO_BUILD}"
 )
 
-# Set the LLVM header and library paths
-include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
-link_directories(${LLVM_LIBRARY_DIRS})
-add_definitions(${LLVM_DEFINITIONS})
+set(NOELLE_INCLUDE_DIRS "$ENV{HOME}/git/noelle/install/include")
+set(NOELLE_LIBRARY_DIRS "$ENV{HOME}/git/noelle/install/lib")
 
-#===============================================================================
+
+# Set the LLVM header and library paths
+include_directories(
+  SYSTEM 
+  ${LLVM_INCLUDE_DIRS} 
+  # "$ENV{HOME}/git/program-dependence-graph/include"
+  # ${NOELLE_INCLUDE_DIRS}
+)
+link_directories(
+  ${LLVM_LIBRARY_DIRS} 
+  # ${NOELLE_LIBRARY_DIRS}
+)
+add_definitions(
+  ${LLVM_DEFINITIONS}
+  # -D__STDC_LIMIT_MACROS
+  # -D__STDC_CONSTANT_MACROS
+)
+    
+  #===============================================================================
 # 3. LLVM-TUTOR BUILD CONFIGURATION
 #===============================================================================
 # Use the same C++ standard as LLVM does
@@ -108,4 +124,5 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 # available for the sub-projects.
 #===============================================================================
 add_subdirectory(lib)
+# add_subdirectory("$ENV{HOME}/git/program-dependence-graph")
 # add_subdirectory(test)

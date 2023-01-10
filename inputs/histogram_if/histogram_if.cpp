@@ -8,7 +8,7 @@
 
 #include <sycl/ext/intel/fpga_extensions.hpp>
 
-#include "store_queue.hpp"
+
 #include "memory_utils.hpp"
 
 using namespace sycl;

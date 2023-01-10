@@ -31,6 +31,9 @@
 
                           # scalar replacement of aggregates
 
+#  ~/git/llvm/build/bin/opt "$1" -o "$1" \
+#                           --load-pass-plugin ~/git/program-dependence-graph/build/libpdg.so -passes=dot-pdg
+
 # Get human readable bitcode
 ~/git/llvm/build/bin/llvm-dis "$1" -o "$1".ll
 

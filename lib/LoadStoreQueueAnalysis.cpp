@@ -1,4 +1,4 @@
-#include "StoreqUtils.h"
+#include "LoadStoreQueueCommon.h"
 
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
@@ -38,7 +38,7 @@
 
 using namespace llvm;
 
-namespace storeq {
+namespace lsqPass {
 
 json::Object generateReport(Function &F, SmallVector<SmallVector<Instruction*>> &memInstrsAll) {
   json::Object report;
@@ -68,8 +68,8 @@ json::Object generateReport(Function &F, SmallVector<SmallVector<Instruction*>> 
   return report;
 }
 
-// Returns true if inst0 is control dependent (may_occur && !must_occur), 
-// where the control dependency depends on {inst1}.
+// Returns true if instA is control dependent (may_occur && !must_occur), 
+// where the control dependency depends on {instB}.
 //
 // The motivation behind this check is to see, if the generation of store addresses can be hosited
 // into it's own kernel, without using the base address of the {st} instruction. 
@@ -78,17 +78,17 @@ json::Object generateReport(Function &F, SmallVector<SmallVector<Instruction*>> 
 //  - if we hit a branch:
 //      - if the store is in any but not all of the BB dominated by the branch, return true
 // Record pairs into {checkedPairs} to prune the recursive search.
-bool isInst0ConditionalOnInst1(DominatorTree &DT, Instruction *inst0, Instruction *inst1, 
-                               SmallVector<SmallVector<Instruction *, 2>> &checkedPairs) {
+bool isAConditionalOnB(DominatorTree &DT, Instruction *instA, Instruction *instB, 
+                       SmallVector<SmallVector<Instruction *, 2>> &checkedPairs) {
   SmallVector<Instruction *, 2> thisPair(2);
-  thisPair[0] = inst0;
-  thisPair[1] = inst1;
+  thisPair[0] = instA;
+  thisPair[1] = instB;
   if (std::find(checkedPairs.begin(), checkedPairs.end(), thisPair) != checkedPairs.end())
     return false;
   
   checkedPairs.emplace_back(thisPair);
 
-  for (auto user : inst1->users()) {
+  for (auto user : instB->users()) {
     if (!isa<Instruction>(user))
       continue;
 
@@ -97,15 +97,15 @@ bool isInst0ConditionalOnInst1(DominatorTree &DT, Instruction *inst0, Instructio
       bool atLeastOneDominatesStore = false;
       bool allDominateStore = true;
       for (auto succ : brI->successors()) {
-        allDominateStore &= DT.dominates(succ, inst0->getParent());
-        atLeastOneDominatesStore |= DT.dominates(succ, inst0->getParent());
+        allDominateStore &= DT.dominates(succ, instA->getParent());
+        atLeastOneDominatesStore |= DT.dominates(succ, instA->getParent());
       }
 
       if (atLeastOneDominatesStore && !allDominateStore) 
         return true;
     }
 
-    return isInst0ConditionalOnInst1(DT, inst0, userI, checkedPairs);
+    return isAConditionalOnB(DT, instA, userI, checkedPairs);
   }
 
   return false;
@@ -145,7 +145,7 @@ bool isAnyStoreControlDepOnAnyLoad(DominatorTree &DT, const SmallVector<Instruct
       if (!isaLoad(li)) continue;
 
       SmallVector<SmallVector<Instruction *, 2>> checkedPairs;
-      if (isInst0ConditionalOnInst1(DT, si, li, checkedPairs))
+      if (isAConditionalOnB(DT, si, li, checkedPairs))
         return true;
     }
   }
@@ -162,7 +162,7 @@ bool isAnyStoreControlDepOnAnyLoad(DominatorTree &DT, const SmallVector<Instruct
 ///    (This is because we cannot know if a given store address should be produced, without looking
 ///     at the load value).
 /// 2. If any of the values producing a given address is needed in a basic block properly
-///    dominated by the last mem. instruction in the {F}.entry->{F}.exit path, returnb false.
+///    dominated by the last mem. instruction in the {F}.entry->{F}.exit path, return false.
 bool canDecoupleAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
                                       SmallVector<Instruction *> memInstrs) {
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
@@ -218,7 +218,8 @@ bool canDecoupleAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
   return !isAnyStoreControlDepOnAnyLoad(DT, memInstrs);
 }
 
-void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
+/// Generate a report for memory instructions that need to be connected to a LSQ.
+void lsqAnalysis(Function &F, FunctionAnalysisManager &AM) {
   // Get all memory loads and stores that form a RAW hazard dependence.
   SmallVector<SmallVector<Instruction *>> memInstrsAll = getRAWMemInstrs(F, AM);
 
@@ -260,11 +261,11 @@ void analyseRAW(Function &F, FunctionAnalysisManager &AM) {
   }
 }
 
-struct LoopRAWHazardReport : PassInfoMixin<LoopRAWHazardReport> {
+struct LoadStoreQueueAnalysis : PassInfoMixin<LoadStoreQueueAnalysis> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) 
-      analyseRAW(F, AM);
+      lsqAnalysis(F, AM);
 
     return PreservedAnalyses::all();
   }
@@ -287,12 +288,12 @@ struct LoopRAWHazardReport : PassInfoMixin<LoopRAWHazardReport> {
 //-----------------------------------------------------------------------------
 // New PM Registration
 //-----------------------------------------------------------------------------
-llvm::PassPluginLibraryInfo getLoopRAWHazardReportPluginInfo() {
-  return {LLVM_PLUGIN_API_VERSION, "LoopRAWHazardReport", LLVM_VERSION_STRING, [](PassBuilder &PB) {
+llvm::PassPluginLibraryInfo getLoadStoreQueueAnalysisPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "LoadStoreQueueAnalysis", LLVM_VERSION_STRING, [](PassBuilder &PB) {
             PB.registerPipelineParsingCallback([](StringRef Name, FunctionPassManager &FPM,
                                                   ArrayRef<PassBuilder::PipelineElement>) {
               if (Name == "loop-raw-report") {
-                FPM.addPass(LoopRAWHazardReport());
+                FPM.addPass(LoadStoreQueueAnalysis());
                 return true;
               }
               return false;
@@ -302,7 +303,7 @@ llvm::PassPluginLibraryInfo getLoopRAWHazardReportPluginInfo() {
 
 // This is the core interface for pass plugins. It guarantees that 'opt' will find the pass.
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginInfo() {
-  return getLoopRAWHazardReportPluginInfo();
+  return getLoadStoreQueueAnalysisPluginInfo();
 }
 
-} // end namespace storeq
+} // end namespace lsqPass

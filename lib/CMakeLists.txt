@@ -8,11 +8,13 @@ set(OPT_PASSES_PLUGINS
 
 set(LoadStoreQueueTransform_SOURCES
   LoadStoreQueueTransform.cpp
+  DataHazardAnalysis.cpp
   CDG.cpp
   )
 
 set(LoadStoreQueueAnalysis_SOURCES
   LoadStoreQueueAnalysis.cpp
+  DataHazardAnalysis.cpp
   CDG.cpp
   )
 

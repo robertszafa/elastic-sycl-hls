@@ -1,4 +1,5 @@
-#include "LoadStoreQueueCommon.h"
+#include "CommonLLVM.h"
+#include "DataHazardAnalysis.h"
 
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
@@ -246,7 +247,11 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
         bool isDecoupledAddress = (report["decouple_address"].getAsInteger().getValue() == 1);
 
         // Collect the same load/store instructions as during analysis.
-        SmallVector<SmallVector<Instruction*>> memInstrsAll = getRAWMemInstrs(F, AM);
+        auto &LI = AM.getResult<LoopAnalysis>(F);
+        auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
+        auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+        auto *DHA = new DataHazardAnalysis(F, LI, SE, DT);
+        SmallVector<SmallVector<Instruction*>> memInstrsAll = DHA->getResult();
 
         // Keep track of instructions created during the pass which should not be deleted.
         SmallVector<Instruction *> preserveInst;

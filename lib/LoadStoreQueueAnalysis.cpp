@@ -1,4 +1,5 @@
-#include "LoadStoreQueueCommon.h"
+#include "CommonLLVM.h"
+#include "DataHazardAnalysis.h"
 
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
@@ -221,7 +222,12 @@ bool canDecoupleAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
 /// Generate a report for memory instructions that need to be connected to a LSQ.
 void lsqAnalysis(Function &F, FunctionAnalysisManager &AM) {
   // Get all memory loads and stores that form a RAW hazard dependence.
-  SmallVector<SmallVector<Instruction *>> memInstrsAll = getRAWMemInstrs(F, AM);
+  auto &LI = AM.getResult<LoopAnalysis>(F);
+  auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
+  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+  auto *DHA = new DataHazardAnalysis(F, LI, SE, DT);
+
+  SmallVector<SmallVector<Instruction *>> memInstrsAll = DHA->getResult();
 
   if (memInstrsAll.size() > 0) {
     json::Object report = generateReport(F, memInstrsAll);

@@ -7,10 +7,14 @@ set(OPT_PASSES_PLUGINS
     )
 
 set(LoadStoreQueueTransform_SOURCES
-  LoadStoreQueueTransform.cpp)
+  LoadStoreQueueTransform.cpp
+  CDG.cpp
+  )
 
 set(LoadStoreQueueAnalysis_SOURCES
-  LoadStoreQueueAnalysis.cpp)
+  LoadStoreQueueAnalysis.cpp
+  CDG.cpp
+  )
 
 set(HoistConstGep_SOURCES
   HoistConstGep.cpp)

@@ -313,6 +313,8 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
     AU.addRequiredID(LoopAnalysis::ID());
     AU.addRequiredID(ScalarEvolutionAnalysis::ID());
     AU.addRequiredID(DominatorTreeAnalysis::ID());
+    AU.addRequiredID(PostDominatorTreeAnalysis::ID());
+    AU.addRequiredID(DependenceAnalysis::ID());
   }
 };
 

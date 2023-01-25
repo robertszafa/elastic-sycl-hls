@@ -1,6 +1,9 @@
 #ifndef LOAD_STORE_QUEUE_ANALSYIS_H
 #define LOAD_STORE_QUEUE_ANALSYIS_H
 
+#include "llvm/Analysis/DDG.h"
+#include "CDG.h"
+
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -195,6 +198,12 @@ SmallVector<SmallVector<Instruction *>> getRAWMemInstrs(Function &F, FunctionAna
   auto &LI = AM.getResult<LoopAnalysis>(F);
   auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+  auto &DI = AM.getResult<DependenceAnalysis>(F);
+  auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
+
+  auto CDG = new ControlDependenceGraph(F, PDT);
+  auto DDG = new DataDependenceGraph(F, DI);
+
 
   // Collect all base addresses that are stored to with an SE uncomputable index inside a loop.
   DenseMap<Instruction *, SetVector<Instruction *>> addr2InstMap;

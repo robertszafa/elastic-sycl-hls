@@ -1,41 +1,17 @@
-#include "llvm/Analysis/DependenceAnalysis.h"
-#include "llvm/Analysis/LoopAnalysisManager.h"
-#include "llvm/Analysis/LoopInfo.h"
-#include "llvm/Analysis/PostDominators.h"
-#include "llvm/Analysis/ScalarEvolution.h"
-#include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
-
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/CallingConv.h"
 #include "llvm/IR/Dominators.h"
-#include "llvm/IR/Instruction.h"
+#include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/PassManager.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Value.h"
-#include "llvm/InitializePasses.h"
+
 #include "llvm/Pass.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
 
 #include "llvm/ADT/SmallVector.h"
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/CommandLine.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/Support/JSON.h"
-#include "llvm/Support/raw_ostream.h"
 
-#include <algorithm>
-#include <cassert>
-#include <regex>
-#include <string>
-#include <utility>
 
 using namespace llvm;
 
-namespace storeq {
+namespace llvm {
 
 bool hoistGepPass(Function &F, FunctionAnalysisManager &AM) {
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
@@ -115,4 +91,4 @@ llvmGetPassPluginInfo() {
   return getHoistContGepPluginInfo();
 }
 
-} // end namespace storeq
+} // end namespace llvm

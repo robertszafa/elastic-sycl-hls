@@ -13,12 +13,12 @@
 
 #include "llvm/ADT/DirectedGraph.h"
 #include "llvm/ADT/SmallVector.h"
+
+#include "llvm/Analysis/CFG.h"
 #include "llvm/Analysis/PostDominators.h"
 #include "llvm/IR/BasicBlock.h"
-#include "llvm/Pass.h"
-#include "llvm/IR/PassManager.h"
+#include "llvm/IR/Instructions.h"
 
-#include <algorithm>
 
 namespace llvm {
 class Function;

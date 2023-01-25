@@ -1,45 +1,12 @@
 #include "CommonLLVM.h"
 #include "DataHazardAnalysis.h"
 
-#include "llvm/Analysis/DependenceAnalysis.h"
-#include "llvm/Analysis/LoopAnalysisManager.h"
-#include "llvm/Analysis/LoopInfo.h"
-#include "llvm/Analysis/PostDominators.h"
-#include "llvm/Analysis/ScalarEvolution.h"
-#include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
-
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/CallingConv.h"
-#include "llvm/IR/Dominators.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/PassManager.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Value.h"
-#include "llvm/InitializePasses.h"
-#include "llvm/Pass.h"
-#include "llvm/Passes/PassBuilder.h"
-#include "llvm/Passes/PassPlugin.h"
-
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/Demangle/Demangle.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/CommandLine.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/Support/JSON.h"
-#include "llvm/Support/raw_ostream.h"
-#include <llvm/ADT/SetVector.h>
-
-#include <algorithm>
-#include <cassert>
 #include <regex>
 #include <string>
-#include <utility>
 
 using namespace llvm;
 
-namespace lsqPass {
+namespace llvm {
 
 /// Return a json object recording the data hazard analysis result.
 ///
@@ -182,28 +149,23 @@ bool isAnyStoreControlDepOnAnyLoad(
 }
 
 /// Given load and store instructions, decide if the instructions that generate
-/// addresses for the loads and stores be decoupled from the rest of the
+/// addresses for the loads and stores can be decoupled from the rest of the
 /// instructions in function {F}. If ANY of the address generation instructions
 /// cannot be decoupled, return false.
 ///
 /// Algorithm for making the decision:
 /// 1. If any of the stores is control dependent on any of the loads, return
-/// false.
-///    (This is because we cannot know if a given store address should be
-///    produced, without looking
-///     at the load value).
+///    false. (This is because we cannot know if a given store address should be
+///    produced, without looking at the load value).
 /// 2. If any of the values producing a given address is needed in a basic block
-/// properly
-///    dominated by the last mem. instruction in the {F}.entry->{F}.exit path,
-///    return false.
-bool canDecoupleAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
+///    properly dominated by the last mem. instruction in the 
+///    {F}.entry->{F}.exit path, return false.
+bool canDecoupleAddressGenFromCompute(Function &F, DominatorTree &DT,
                                       SmallVector<Instruction *> memInstrs) {
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-
-  // All BBs that contain a mem. instruction are collected.
-  SetVector<BasicBlock *> allMemInstrBBs;
-  // All address generation instructions for the mem. instructions are
+  // All BBs that contain an instruction \in {memInstr} are collected.
+  // Also all address generation instructions for the memInstrs are
   // collected, including parent nodes in the DDG.
+  SetVector<BasicBlock *> allMemInstrBBs;
   SetVector<Instruction *> allAddressIntrs;
   for (auto I : memInstrs) {
     allMemInstrBBs.insert(I->getParent());
@@ -256,30 +218,27 @@ bool canDecoupleAddressGenFromCompute(Function &F, FunctionAnalysisManager &AM,
   return !isAnyStoreControlDepOnAnyLoad(DT, memInstrs);
 }
 
-/// Generate a report for memory instructions that need to be connected to a
-/// LSQ.
-void dataHazardPrinter(Function &F, FunctionAnalysisManager &AM) {
+void dataHazardPrinter(Function &F, LoopInfo &LI, ScalarEvolution &SE,
+                       DominatorTree &DT) {
   // Get all memory loads and stores that form a RAW hazard dependence.
-  auto &LI = AM.getResult<LoopAnalysis>(F);
-  auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
   auto *DHA = new DataHazardAnalysis(F, LI, SE, DT);
   SmallVector<SmallVector<Instruction *>> memInstrsAll = DHA->getResult();
 
   if (memInstrsAll.size() > 0) {
     json::Object report = generateReport(F, memInstrsAll);
 
-    // Check if the store address generation can be split from the compute into
-    // a different kernel.
+    // Add "decouple_address: [1|0]" field to the report.
+    // Check if the store address generation can be split from the compute.
     bool canDecoupleAddress = std::all_of(
         memInstrsAll.begin(), memInstrsAll.end(), [&](auto memInstrs) {
-          return canDecoupleAddressGenFromCompute(F, AM, memInstrs);
+          return canDecoupleAddressGenFromCompute(F, DT, memInstrs);
         });
     report["decouple_address"] = int(canDecoupleAddress);
 
+    // Print json report to std::out.
     outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n";
 
-    // Degub prints.
+    // Print quick info to dbgs() stream.
     dbgs() << "\n************* Data Hazard Report *************\n";
     dbgs() << "Number of base addresses: " << memInstrsAll.size() << "\n";
     dbgs() << "Decoupled address gen: " << canDecoupleAddress << "\n";
@@ -305,11 +264,17 @@ void dataHazardPrinter(Function &F, FunctionAnalysisManager &AM) {
   }
 }
 
+/// Generate a report for memory instructions that form 
+/// a RAW inter-iteration data hazard.
 struct DataHazardAnalysisPrinter : PassInfoMixin<DataHazardAnalysisPrinter> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    if (F.getCallingConv() == CallingConv::SPIR_FUNC)
-      dataHazardPrinter(F, AM);
+    if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
+      auto &LI = AM.getResult<LoopAnalysis>(F);
+      auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
+      auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
+      dataHazardPrinter(F, LI, SE, DT);
+    }
 
     return PreservedAnalyses::all();
   }
@@ -353,4 +318,4 @@ llvmGetPassPluginInfo() {
   return getDataHazardAnalysisPrinterPluginInfo();
 }
 
-} // end namespace lsqPass
+} // end namespace llvm

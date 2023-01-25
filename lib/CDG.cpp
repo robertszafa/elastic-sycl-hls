@@ -4,23 +4,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/ADT/DepthFirstIterator.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/ADT/SetVector.h"
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/ADT/BreadthFirstIterator.h"
-#include "llvm/Analysis/PostDominators.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/CFG.h"
-#include "llvm/Analysis/CFG.h"
-
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/raw_ostream.h"
-#include <cassert>
-#include <cstddef>
-
 #include "CDG.h"
+
 
 using namespace llvm;
 

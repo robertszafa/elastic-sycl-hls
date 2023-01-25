@@ -1,22 +1,38 @@
 //===----------------------------------------------------------------------===//
 //
-// This file defines functions commonly used during LLVM passes.
+// This file defines functions commonly used during LLVM passes,
+// and common LLVM includes.
 //
 //===----------------------------------------------------------------------===//
 
 #ifndef COMMON_LLVM_H
 #define COMMON_LLVM_H
 
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Value.h"
-#include <llvm/IR/Instructions.h>
+// These are the LLVM analysis passes used.
+#include "llvm/Analysis/DependenceAnalysis.h"
+#include "llvm/Analysis/LoopInfo.h"
+#include "llvm/Analysis/PostDominators.h"
+#include "llvm/Analysis/ScalarEvolution.h"
+
+// This includes Instruction, Function, Value and other common IR. 
+#include "llvm/IR/IRBuilder.h"
+
+#include "llvm/Pass.h"
+#include "llvm/Passes/PassBuilder.h"
+#include "llvm/Passes/PassPlugin.h"
+
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/JSON.h"
+#include "llvm/Demangle/Demangle.h"
+
 
 using namespace llvm;
 
-// This file is included in several other filer.
-// Use an anonymous namespace.
+// This file is included in several other files.
+// Use an anonymous namespace to avoid multiple same definitions.
 namespace {
 
+/// Lambdas for easier use in range based algorithms.
 auto isaLoad = [](auto i) { return isa<LoadInst>(i); };
 auto isaStore = [](auto i) { return isa<StoreInst>(i); };
 

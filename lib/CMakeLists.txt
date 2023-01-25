@@ -2,8 +2,8 @@
 # ======================================================
 set(OPT_PASSES_PLUGINS
     LoadStoreQueueTransform
-    LoadStoreQueueAnalysis
-    HoistConstGep
+    DataHazardAnalysisPrinter
+    HoistConstantGepTransform
     )
 
 set(LoadStoreQueueTransform_SOURCES
@@ -12,14 +12,13 @@ set(LoadStoreQueueTransform_SOURCES
   CDG.cpp
   )
 
-set(LoadStoreQueueAnalysis_SOURCES
-  LoadStoreQueueAnalysis.cpp
+set(DataHazardAnalysisPrinter_SOURCES
+  DataHazardAnalysisPrinter.cpp
   DataHazardAnalysis.cpp
   CDG.cpp
   )
 
-set(HoistConstGep_SOURCES
-  HoistConstGep.cpp)
+set(HoistConstantGepTransform_SOURCES HoistConstantGepTransform.cpp)
 
 # CONFIGURE THE PLUGIN LIBRARIES
 # ==============================

@@ -9,7 +9,7 @@
 # Our hoist-const-gep pass is similar to licm but we hoist GEPs with all constant indices 
 # (this captures SYCL pointers) to the entry BB of the function.
  ~/git/llvm/build/bin/opt "$1" -o "$1" \
-                          --load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libHoistConstGep.so -passes=hoist-const-gep
+                          --load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libHoistConstantGepTransform.so -passes=hoist-const-gep
 
  ~/git/llvm/build/bin/opt "$1" -o "$1" \
                           --mem2reg \

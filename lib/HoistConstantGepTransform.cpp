@@ -1,14 +1,10 @@
+#include "llvm/Analysis/DependenceAnalysis.h"
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
-#include "llvm/Analysis/ScalarEvolution.h"
-#include "llvm/Analysis/DependenceAnalysis.h"
 #include "llvm/Analysis/PostDominators.h"
+#include "llvm/Analysis/ScalarEvolution.h"
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
 
-#include "llvm/Pass.h"
-#include "llvm/Passes/PassBuilder.h"
-#include "llvm/Passes/PassPlugin.h"
-#include "llvm/InitializePasses.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/Dominators.h"
@@ -18,6 +14,10 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
+#include "llvm/InitializePasses.h"
+#include "llvm/Pass.h"
+#include "llvm/Passes/PassBuilder.h"
+#include "llvm/Passes/PassPlugin.h"
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Demangle/Demangle.h"
@@ -37,17 +37,16 @@ using namespace llvm;
 
 namespace storeq {
 
-/// If a GEP instruction has all constant operators, then move it to the function entry.
 bool hoistGepPass(Function &F, FunctionAnalysisManager &AM) {
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
 
   auto entryBB = &F.getEntryBlock();
-  
+
   SmallVector<GetElementPtrInst *> gepsToHoist;
   for (auto &BB : F) {
     for (auto &I : BB) {
       if (auto gep = dyn_cast<GetElementPtrInst>(&I)) {
-        if (gep->hasAllConstantIndices() && gep->getParent() != entryBB) 
+        if (gep->hasAllConstantIndices() && gep->getParent() != entryBB)
           gepsToHoist.push_back(gep);
       }
     }
@@ -66,10 +65,16 @@ bool hoistGepPass(Function &F, FunctionAnalysisManager &AM) {
   return wasChanged;
 }
 
+/// If a GEP instruction has all constant operators, then move it to the
+/// function entry.
+/// 
+/// SYCL/OpenCL kernel arguments are represented as a structure of pointers
+/// in LLVM IR. So a kernel argument ends up as a GetElementPointer with 
+/// contant offsets into that structure. 
 struct HoistContGep : PassInfoMixin<HoistContGep> {
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     bool wasChanged = false;
-    if (F.getCallingConv() == CallingConv::SPIR_FUNC) 
+    if (F.getCallingConv() == CallingConv::SPIR_FUNC)
       wasChanged = hoistGepPass(F, AM);
 
     return wasChanged ? PreservedAnalyses::none() : PreservedAnalyses::all();
@@ -85,25 +90,28 @@ struct HoistContGep : PassInfoMixin<HoistContGep> {
   }
 };
 
-
 //-----------------------------------------------------------------------------
 // New PM Registration
 //-----------------------------------------------------------------------------
 llvm::PassPluginLibraryInfo getHoistContGepPluginInfo() {
-  return {LLVM_PLUGIN_API_VERSION, "HoistContGep", LLVM_VERSION_STRING, [](PassBuilder &PB) {
-            PB.registerPipelineParsingCallback([](StringRef Name, FunctionPassManager &FPM,
-                                                  ArrayRef<PassBuilder::PipelineElement>) {
-              if (Name == "hoist-const-gep") {
-                FPM.addPass(HoistContGep());
-                return true;
-              }
-              return false;
-            });
+  return {LLVM_PLUGIN_API_VERSION, "HoistContGep", LLVM_VERSION_STRING,
+          [](PassBuilder &PB) {
+            PB.registerPipelineParsingCallback(
+                [](StringRef Name, FunctionPassManager &FPM,
+                   ArrayRef<PassBuilder::PipelineElement>) {
+                  if (Name == "hoist-const-gep") {
+                    FPM.addPass(HoistContGep());
+                    return true;
+                  }
+                  return false;
+                });
           }};
 }
 
-// This is the core interface for pass plugins. It guarantees that 'opt' will find the pass.
-extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginInfo() {
+// This is the core interface for pass plugins. It guarantees that 'opt' will
+// find the pass.
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
   return getHoistContGepPluginInfo();
 }
 

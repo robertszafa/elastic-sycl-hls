@@ -29,8 +29,8 @@ FINAL_BINARY="$SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.fpga_$1"
 ### STAGE 2: Generate analysis json report.
 ###
 export LOOP_RAW_REPORT=$LOOP_REPORT_FILE
-~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libLoadStoreQueueAnalysis.so \
-                         -passes=loop-raw-report $SRC_FILE.bc -o /dev/null > $LOOP_REPORT_FILE
+~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libDataHazardAnalysisPrinter.so \
+                         -passes=data-hazard-report $SRC_FILE.bc -o /dev/null > $LOOP_REPORT_FILE
 
 ###
 ### STAGE 3: Generate kernel & pipe scaffolding code based on report. 

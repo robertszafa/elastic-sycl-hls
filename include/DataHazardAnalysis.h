@@ -13,23 +13,25 @@ namespace llvm {
 /// memory dependence whose scalar evolution is not computable.
 class DataHazardAnalysis  {
 public:
-  DataHazardAnalysis() = default;
-  DataHazardAnalysis(DataHazardAnalysis &G) = delete;
   explicit DataHazardAnalysis(Function &F, LoopInfo &LI, ScalarEvolution &SE,
                               DominatorTree &DT);
   ~DataHazardAnalysis();
 
   /// Return all memory instructions for each base address in the function
   /// which has at least one data hazard.
-  SmallVector<SmallVector<Instruction *>> getResult() {
-    return clusteredInstructions;
-  }
+  SmallVector<SmallVector<Instruction *>> getResult() { return hazardInstrs; }
+
+  SmallVector<bool> getDecoupligDecisions() { return decouplingDecisions; }
 
 private:
-  SmallVector<SmallVector<Instruction *>> clusteredInstructions;
- 
-};
+  /// Memory load and store instructions for each base address that is part
+  /// of a data hazard.
+  SmallVector<SmallVector<Instruction *>> hazardInstrs;
 
+  /// For each base address, a bool indicating if the address generation
+  /// instructions can be decoupled from F.
+  SmallVector<bool> decouplingDecisions;
+};
 
 } // end namespace llvm
 

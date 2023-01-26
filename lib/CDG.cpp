@@ -111,7 +111,7 @@ raw_ostream &llvm::operator<<(raw_ostream &OS, const CDGEdge &E) {
 
 bool ControlDependenceGraph::isControlDependent(const BasicBlock *B,
                                                 const BasicBlock *A,
-                                                const PostDominatorTree &PDT) {
+                                                PostDominatorTree &PDT) {
   if (PDT.properlyDominates(B, A))
     return false;
 
@@ -147,20 +147,18 @@ bool ControlDependenceGraph::isControlDependent(const BasicBlock *B,
   return false;
 }
 
-ControlDependenceGraph::ControlDependenceGraph(Function &F,
-                                               PostDominatorTree &PDT) {
+void ControlDependenceGraph::calculateCDG(Function &F, PostDominatorTree &PDT) {
   // Create a special node for the CDG root and a block node for each BB.
   auto &root = createRootNode();
   for (auto &BB : F)
     createBlockNode(&BB);
 
-  // Calculate control dependence edges betweem all CDG nodes. 
+  // Calculate control dependence edges between all CDG nodes.
   for (auto &BB : F) {
     auto BBN = getBlockNode(&BB);
     bool isControlDependentOnAny = false;
 
-    // :TODO: This search could be pruned. We only have to look at the blocks 
-    //        from which "BB" can be reached.
+    // TODO: Search can be pruned - only look at blocks reachable from BB.
     for (auto &predBB : F) {
       if (isControlDependent(&BB, &predBB, PDT)) {
         isControlDependentOnAny = true;
@@ -169,16 +167,9 @@ ControlDependenceGraph::ControlDependenceGraph(Function &F,
       }
     }
 
-    if (!isControlDependentOnAny) 
+    // Blocks guaranteed to be executed are directly reachable from the root.
+    if (!isControlDependentOnAny)
       createEdge(root, *BBN);
-  }
-}
-
-ControlDependenceGraph::~ControlDependenceGraph() {
-  for (auto *N : Nodes) {
-    for (auto *E : *N)
-      delete E;
-    delete N;
   }
 }
 
@@ -192,7 +183,7 @@ bool ControlDependenceGraph::addNode(CDGNode &N) {
   return true;
 }
 
-BlockCDGNode *ControlDependenceGraph::getBlockNode(BasicBlock *BB) {
+BlockCDGNode *ControlDependenceGraph::getBlockNode(const BasicBlock *BB) {
   auto nodeBBs =
       make_filter_range(Nodes, [](CDGNode *N) { return isa<BlockCDGNode>(N); });
   auto searchIter = find_if(nodeBBs, [&](auto N) {
@@ -203,8 +194,8 @@ BlockCDGNode *ControlDependenceGraph::getBlockNode(BasicBlock *BB) {
                                      : nullptr;
 }
 
-CDGEdge::EdgeKind ControlDependenceGraph::getEdgeKind(BasicBlock *A,
-                                                      BasicBlock *B) {
+CDGEdge::EdgeKind ControlDependenceGraph::getEdgeKind(const BasicBlock *A,
+                                                      const BasicBlock *B) {
   assert(isPotentiallyReachable(A, B) && "Blocks A and B are not connected.");
   
   const BranchInst *branchA = dyn_cast<BranchInst>(A->getTerminator());

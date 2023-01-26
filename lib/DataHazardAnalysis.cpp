@@ -8,6 +8,165 @@
 
 using namespace llvm;
 
+namespace llvm {
+
+// Returns true if instA is control dependent (may_occur && !must_occur),
+// where the control dependency depends on {instB}.
+//
+// The motivation behind this check is to see, if the generation of store
+// addresses can be hosited into it's own kernel, without using the base address
+// of the {st} instruction.
+//
+// Go over all users of {onI} recursively:
+//  - if we hit a branch:
+//      - if the store is in any but not all of the BB dominated by the branch,
+//      return true
+// Record pairs into {checkedPairs} to prune the recursive search.
+bool isAConditionalOnB(
+    DominatorTree &DT, Instruction *instA, Instruction *instB,
+    SmallVector<SmallVector<Instruction *, 2>> &checkedPairs) {
+  SmallVector<Instruction *, 2> thisPair(2);
+  thisPair[0] = instA;
+  thisPair[1] = instB;
+  if (llvm::find(checkedPairs, thisPair) != checkedPairs.end())
+    return false;
+
+  checkedPairs.emplace_back(thisPair);
+
+  for (auto user : instB->users()) {
+    if (!isa<Instruction>(user))
+      continue;
+
+    auto userI = dyn_cast<Instruction>(user);
+    if (auto brI = dyn_cast<BranchInst>(userI)) {
+      bool atLeastOneDominatesStore = false;
+      bool allDominateStore = true;
+      for (auto succ : brI->successors()) {
+        allDominateStore &= DT.dominates(succ, instA->getParent());
+        atLeastOneDominatesStore |= DT.dominates(succ, instA->getParent());
+      }
+
+      if (atLeastOneDominatesStore && !allDominateStore)
+        return true;
+    }
+
+    return isAConditionalOnB(DT, instA, userI, checkedPairs);
+  }
+
+  return false;
+}
+
+bool isAInUsersOfB(Instruction *A, Instruction *B) {
+  for (auto user : B->users()) {
+    if (dyn_cast<Instruction>(user) == A)
+      return true;
+  }
+
+  return false;
+}
+
+SmallVector<Instruction *>
+getInstructionsUsedByI(Function &F, DominatorTree &DT, Instruction *I) {
+  SmallVector<Instruction *> result;
+  if (!I)
+    return result;
+
+  for (auto &BB : F) {
+    if (DT.properlyDominates(I->getParent(), &BB))
+      continue;
+
+    for (auto &bbI : BB) {
+      if (isAInUsersOfB(I, &bbI))
+        result.push_back(&bbI);
+    }
+  }
+
+  return result;
+}
+
+bool isAnyStoreControlDepOnAnyLoad(
+    DominatorTree &DT, const SmallVector<Instruction *> &memInstrs) {
+  for (auto si : memInstrs) { // For all stores
+    if (!isaStore(si))
+      continue;
+    for (auto li : memInstrs) { // For all loads
+      if (!isaLoad(li))
+        continue;
+
+      SmallVector<SmallVector<Instruction *, 2>> checkedPairs;
+      if (isAConditionalOnB(DT, si, li, checkedPairs))
+        return true;
+    }
+  }
+
+  return false;
+}
+
+/// Given load and store instructions, decide if the instructions that generate
+/// addresses for the loads and stores can be decoupled from the rest of the
+/// instructions in function {F}. If ANY of the address generation instructions
+/// cannot be decoupled, return false.
+///
+/// Algorithm for making the decision:
+/// 1. If any of the stores is control dependent on any of the loads, return
+///    false. (This is because we cannot know if a given store address should be
+///    produced, without looking at the load value).
+/// 2. If any of the values producing a given address is needed in a basic block
+///    properly dominated by the last mem. instruction in the
+///    {F}.entry->{F}.exit path, return false.
+bool canDecoupleAddressFromAccess(Function &F, DominatorTree &DT,
+                                  SmallVector<Instruction *> memInstrs) {
+  // All BBs that contain an instruction \in {memInstr} are collected.
+  // Also all address generation instructions for the memInstrs are
+  // collected, including parent nodes in the DDG.
+  SetVector<BasicBlock *> allMemInstrBBs;
+  SetVector<Instruction *> allAddressIntrs;
+  for (auto I : memInstrs) {
+    allMemInstrBBs.insert(I->getParent());
+    auto addressI =
+        isaStore(I)
+            ? dyn_cast<Instruction>(dyn_cast<Instruction>(I->getOperand(1)))
+            : dyn_cast<Instruction>(dyn_cast<Instruction>(I->getOperand(0)));
+    allAddressIntrs.insert(addressI);
+    auto usedByLi = getInstructionsUsedByI(F, DT, addressI);
+    allAddressIntrs.insert(addressI);
+    for (auto &I : usedByLi)
+      allAddressIntrs.insert(I);
+  }
+
+  // Get the last basic block in the function.entry->function.exit CFG path
+  // from {allBBs} in the function dominator tree, i.e. the BB which
+  // is not properly dominated by any other BB from {allBBs}.
+  BasicBlock *lastBB = nullptr;
+  for (auto candidateBB : allMemInstrBBs) {
+    if (!llvm::any_of(allMemInstrBBs, [&](BasicBlock *b) {
+          return DT.properlyDominates(candidateBB, b);
+        })) {
+      lastBB = candidateBB;
+      break;
+    }
+  }
+
+  // Get all BBs which are properly dominated by the lastBB.
+  // If there is an any instruction in {dominatedByLastBB} which uses
+  // any of the address generation instructions, return FALSE.
+  SetVector<BasicBlock *> dominatedByLastBB;
+  for (auto &BB : F) {
+    if (DT.properlyDominates(lastBB, &BB))
+      dominatedByLastBB.insert(&BB);
+  }
+  for (auto &I : allAddressIntrs) {
+    for (auto &useI : I->uses()) {
+      for (auto &dBB : dominatedByLastBB) {
+        if (useI->isUsedInBasicBlock(dBB))
+          return false;
+      }
+    }
+  }
+
+  return !isAnyStoreControlDepOnAnyLoad(DT, memInstrs);
+}
+
 /// This function has the same functionality as ScalarEvolution.getPointerBase,
 /// but it returns the Instruction representing the pointer base, not a SCEV.
 /// Relies on our previous pass that puts all GEPs (that get global memory
@@ -85,7 +244,7 @@ SmallVector<SmallVector<Instruction *>> filterInstrs(
   // If a given base address has only a store, then there will be no RAW
   // hazards.
   for (auto &kv : addr2InstMap) {
-    if (std::any_of(kv.getSecond().begin(), kv.getSecond().end(), isaLoad)) {
+    if (llvm::any_of(kv.getSecond(), isaLoad)) {
       instructionKeys.push_back(kv.getFirst());
 
       SmallVector<Instruction *> iVec;
@@ -99,7 +258,7 @@ SmallVector<SmallVector<Instruction *>> filterInstrs(
   // instructions.
   SmallVector<int> sortingIndices(instructionKeys.size());
   std::iota(sortingIndices.begin(), sortingIndices.end(), 0);
-  std::sort(sortingIndices.begin(), sortingIndices.end(), [&](int a, int b) {
+  llvm::sort(sortingIndices, [&](int a, int b) {
     return DT.dominates(instructionKeys[a], instructionKeys[b]);
   });
   SmallVector<SmallVector<Instruction *>> collectedInstructionsSorted(
@@ -200,5 +359,11 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
 
   auto filteredInstructions = filterInstrs(addr2InstMap, DT);
 
-  clusteredInstructions = splitIntoTypedClusters(filteredInstructions);
+  hazardInstrs = splitIntoTypedClusters(filteredInstructions);
+
+  // For each base address, record if the address generation can be decoupled.
+  for (auto cluster : hazardInstrs) 
+    decouplingDecisions.push_back(canDecoupleAddressFromAccess(F, DT, cluster));
 }
+
+} // namespace llvm

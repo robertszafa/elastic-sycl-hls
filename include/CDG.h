@@ -1,11 +1,11 @@
 //===----------------------------------------------------------------------===//
 //
-// This file defines the Control-Dependence Graph (CDG) as presented in 
-// the in Ferrante et al. "The Program Dependence Graph and Its Use 
+// This file defines the Control-Dependence Graph (CDG) as presented in
+// the in Ferrante et al. "The Program Dependence Graph and Its Use
 // in Optimization".
 //
 // The class structure roughly follows LLVM's DDG analysis pass.
-// 
+//
 //===----------------------------------------------------------------------===//
 
 #ifndef CDG_H
@@ -18,7 +18,6 @@
 #include "llvm/Analysis/PostDominators.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Instructions.h"
-
 
 namespace llvm {
 class Function;
@@ -176,19 +175,16 @@ public:
   using NodeType = CDGNode;
   using EdgeType = CDGEdge;
 
-  ControlDependenceGraph() = default;
-  ControlDependenceGraph(const ControlDependenceGraph &G) = delete;
-  ControlDependenceGraph(ControlDependenceGraph &&G)
-      : CDGBase(std::move(G)) {}
-  explicit ControlDependenceGraph(Function &F, PostDominatorTree &PTD);
-  ~ControlDependenceGraph();
-    
-  /// Handle invalidation explicitly.
-  bool invalidate(Function &F, const PreservedAnalyses &PA,
-                  FunctionAnalysisManager::Invalidator &);
-
-  /// Return the label that is used to name this graph.
-  StringRef getName() const { return Name; }
+  explicit ControlDependenceGraph(Function &F, PostDominatorTree &PTD) {
+    calculateCDG(F, PTD);
+  }
+  ~ControlDependenceGraph() {
+    for (auto *N : Nodes) {
+      for (auto *E : *N)
+        delete E;
+      delete N;
+    }
+  }
 
   /// Return the root node of the graph.
   NodeType *getRoot() const {
@@ -198,28 +194,33 @@ public:
   }
   
   /// Return the BlockCDGNode for the BB, and nullptr otherwise.
-  BlockCDGNode *getBlockNode(BasicBlock *BB);
+  BlockCDGNode *getBlockNode(const BasicBlock *BB);
 
   /// Return the EdgeKind needed to be taken from A to reach B in the CFG
   /// (either true or false). 
-  CDGEdge::EdgeKind getEdgeKind(BasicBlock *A, BasicBlock *B);
+  CDGEdge::EdgeKind getEdgeKind(const BasicBlock *A, const BasicBlock *B);
+
+  /// Return true if block B is control dependent on block A.
+  /// This amounts to checking if there is an A->B edge in the CDG.
+  bool isControlDependent(const BasicBlock *B, const BasicBlock *A) {
+    auto BNode = getBlockNode(B), ANode = getBlockNode(A);
+    assert((ANode && BNode) && "Basic block not part of the CDG.");
+    return ANode->hasEdgeTo(*BNode);
+  }
+
+private:
+  /// A special node in the graph representing root of the CDG.
+  NodeType *Root = nullptr;
 
   /// Return true is B is control dependent on A, false otherwise.
-  /// B is control-dependent on A iff A determines whether B executes.
-  /// 
-  /// i.e.:
-  ///   - there exists a path from A to B such that every node 
+  /// B is control-dependent on A iff A determines whether B executes, i.e.:
+  ///   - there exists a path from A to B such that every node
   ///     in the path other than A & B is post-dominated by B
   ///   - A is not post-dominated by B
   bool isControlDependent(const BasicBlock *B, const BasicBlock *A,
-                          const PostDominatorTree &PTD);
+                          PostDominatorTree &PDT);
 
-private:
-  /// Name of the graph.
-  std::string Name;
-
-  /// A special node in the graph representing root of the CDG.
-  NodeType *Root = nullptr;
+  void calculateCDG(Function &F, PostDominatorTree &PTD);
 
   /// Add node \p N to the graph, if it's not added yet. 
   /// Return true if node is successfully added.

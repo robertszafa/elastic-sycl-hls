@@ -21,12 +21,12 @@ double bnn_kernel(queue &q, std::vector<int> &h_addr_in, std::vector<int> &h_add
                   std::vector<int> &h_in, std::vector<int> &h_data, std::vector<int> &h_mean, 
                   std::vector<int> &h_w, const int N, const int alpha) {
 
-  int *addr_in = toDevice(h_addr_in, q);
-  int *addr_out = toDevice(h_addr_out, q);
-  int *in = toDevice(h_in, q);
-  int *data = toDevice(h_data, q);
-  int *mean = toDevice(h_mean, q);
-  int *w = toDevice(h_w, q);
+  int *addr_in = fpga_tools::toDevice(h_addr_in, q);
+  int *addr_out = fpga_tools::toDevice(h_addr_out, q);
+  int *in = fpga_tools::toDevice(h_in, q);
+  int *data = fpga_tools::toDevice(h_data, q);
+  int *mean = fpga_tools::toDevice(h_mean, q);
+  int *w = fpga_tools::toDevice(h_w, q);
 
   auto event = q.submit([&](handler &hnd) {
     hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {

@@ -19,9 +19,9 @@ class MainKernel;
 
 double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges, std::vector<int> &h_vertices,
                                int *h_out, const int num_edges) {
-  const int *edges = toDevice(h_edges, q);
-  int *vertices = toDevice(h_vertices, q);
-  int *out = toDevice(h_out, 1, q);
+  const int *edges = fpga_tools::toDevice(h_edges, q);
+  int *vertices = fpga_tools::toDevice(h_vertices, q);
+  int *out = fpga_tools::toDevice(h_out, 1, q);
 
   auto event = q.submit([&](handler &hnd) {
     hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {

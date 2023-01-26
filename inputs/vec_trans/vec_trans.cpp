@@ -21,8 +21,8 @@ double vec_trans_kernel(queue &q, std::vector<int> &h_A, const std::vector<int> 
 
   const int N = h_A.size();
 
-  int *A = toDevice(h_A, q);
-  int *b = toDevice(h_b, q);
+  int *A = fpga_tools::toDevice(h_A, q);
+  int *b = fpga_tools::toDevice(h_b, q);
 
   auto event = q.submit([&](handler &hnd) {
     hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {

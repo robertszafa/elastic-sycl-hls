@@ -19,10 +19,10 @@ class MainKernel;
 double spmv_kernel(queue &q, std::vector<float> &h_matrix, const std::vector<int> &h_row,
                    const std::vector<int> &h_col, const std::vector<float> &h_a, const int M) {
 
-  float *matrix = toDevice(h_matrix, q);
-  int *row = toDevice(h_row, q);
-  int *col = toDevice(h_col, q);
-  float *a = toDevice(h_a, q);
+  float *matrix = fpga_tools::toDevice(h_matrix, q);
+  int *row = fpga_tools::toDevice(h_row, q);
+  int *col = fpga_tools::toDevice(h_col, q);
+  float *a = fpga_tools::toDevice(h_a, q);
 
   auto event = q.submit([&](handler &hnd) {
     hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {

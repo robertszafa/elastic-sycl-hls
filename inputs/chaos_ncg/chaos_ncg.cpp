@@ -18,8 +18,8 @@ class MainKernel;
 
 double chaos_ncg_kernel(queue &q, int I, int bo, int X, int Y, int params0, int params1, 
                         const std::vector<int> &h_M, std::vector<int> &h_buffer) {
-  int *M = toDevice(h_M, q);
-  int *buffer = toDevice(h_buffer, q);
+  int *M = fpga_tools::toDevice(h_M, q);
+  int *buffer = fpga_tools::toDevice(h_buffer, q);
 
   auto event = q.submit([&](handler &hnd) {
     hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {

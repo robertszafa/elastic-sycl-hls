@@ -102,8 +102,8 @@ class MainKernel;
 double dt_k(queue &q, const std::vector<dt::Point2D<float>> &h_points,
             std::vector<dt::Triangle> &h_triangles, const int numPoints) {
 
-  dt::Point2D<float> *points = toDevice(h_points.data(), h_points.size(), q);
-  dt::Triangle *triangles = toDevice(h_triangles.data(), h_triangles.size(), q);
+  dt::Point2D<float> *points = fpga_tools::toDevice(h_points.data(), h_points.size(), q);
+  dt::Triangle *triangles = fpga_tools::toDevice(h_triangles.data(), h_triangles.size(), q);
 
   dt::Edge *polygon = sycl::malloc_device<dt::Edge>(h_points.size()*3, q);
 

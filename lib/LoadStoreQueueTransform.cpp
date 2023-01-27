@@ -1,7 +1,11 @@
 #include "CommonLLVM.h"
 #include "DataHazardAnalysis.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <fstream>
+#include <iterator>
 #include <regex>
 
 using namespace llvm;
@@ -36,53 +40,54 @@ void deleteInstruction(Instruction *inst) {
   inst->eraseFromParent();
 }
 
-/// Given a {cutOffI} instruction, delete all stores in F where a {keepI}
-/// doesn't dependent on it. Don't delete an instruction if it's part of
-/// {preserveInstructions}.
-void deleteStoresAfterI(Function &F, FunctionAnalysisManager &AM,
-                        Instruction *cutOffI,
-                        SmallVector<Instruction *> &preserveInstructions) {
-  auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-
-  // First delete stores in the cutOffI's BB.
+/// Given a {cutOffI}, delete all stores in F except {preserveIs} instructions.
+void deleteStoresAfterI(Function &F, DominatorTree &DT, Instruction *cutOffI,
+                        SmallVector<Instruction *> &preserveIs) {
+  // First collect stores in the cutOffI's BB occuring after cutOffI.
   SmallVector<Instruction *> instToDelete;
   bool isAfterCutoff = false;
   BasicBlock *cutOffBB = cutOffI->getParent();
   for (Instruction &inst : cutOffBB->getInstList()) {
     if (isAfterCutoff && (isa<StoreInst>(&inst) || isa<LoadInst>(&inst))) {
-      instToDelete.emplace_back(&inst);
+      instToDelete.push_back(&inst);
     } else if (cutOffI->isIdenticalTo(&inst)) {
       isAfterCutoff = true;
     }
   }
 
-  // Now delete all stores in BB's dominated by cuttOffI.
+  // Next collect all stores in BB's dominated by cuttOffI's BB.
   for (auto &BB : F) {
     for (auto &I : BB) {
       if (isa<StoreInst>(&I) && DT.properlyDominates(cutOffBB, &BB))
-        instToDelete.emplace_back(&I);
+        instToDelete.push_back(&I);
     }
   }
 
-  for (Instruction *inst : instToDelete) {
-    if (std::find(preserveInstructions.begin(), preserveInstructions.end(),
-                  inst) == preserveInstructions.end()) {
-      deleteInstruction(inst);
-    }
-  }
+  // Finally, delete the collected instructions.
+  auto canBeDeleted = [&preserveIs](auto I) {
+    return llvm::find(preserveIs, I) == preserveIs.end();
+  };
+  llvm::map_range(llvm::make_filter_range(instToDelete, canBeDeleted),
+                  deleteInstruction);
 }
 
-void transformAddressGeneration(Function &F, FunctionAnalysisManager &AM,
-                                Instruction *memInst, Value *baseTagAddr,
-                                CallInst *pipeWriteCall,
-                                SmallVector<Instruction *> &preserveInst) {
-  // {address, tag} request struct store instructions.
+/// Given a memory instruction (load or store), change it to a sycl pipe write 
+/// instruction, where the value being written is the load/store address.
+/// Also, if the memInstr is a store, then increment the value at {baseTagAddr}.
+SmallVector<Instruction *>
+transformAddressGeneration(Function &F, FunctionAnalysisManager &AM,
+                           Instruction *memInst, Value *baseTagAddr,
+                           CallInst *pipeWriteCall) {
+  SmallVector<Instruction*> createdIs;
+
+  // The pipe writes a {address, tag} struct. Collect the store instructions
+  // writing to the struct.
   SmallVector<StoreInst *, 2> storesToIdxTagStruct;
   for (auto user : pipeWriteCall->getArgOperand(0)->users()) {
     if (auto gep = dyn_cast<GetElementPtrInst>(user)) {
       for (auto userGEP : gep->users()) {
         if (auto stInstr = dyn_cast<StoreInst>(userGEP)) {
-          storesToIdxTagStruct.emplace_back(stInstr);
+          storesToIdxTagStruct.push_back(stInstr);
           break;
         }
       }
@@ -91,8 +96,7 @@ void transformAddressGeneration(Function &F, FunctionAnalysisManager &AM,
   auto tagStore = storesToIdxTagStruct[0];
   auto addressStore = storesToIdxTagStruct[1];
 
-  // Move everything needed to setup the pipe write call to where the memInst
-  // occurs.
+  // Move everything needed to setup the pipe write call to memInst's location.
   pipeWriteCall->moveBefore(memInst);
   tagStore->moveBefore(pipeWriteCall);
   addressStore->moveBefore(pipeWriteCall);
@@ -101,15 +105,13 @@ void transformAddressGeneration(Function &F, FunctionAnalysisManager &AM,
   Value *memInstAddr = isaStore(memInst)
                            ? dyn_cast<StoreInst>(memInst)->getPointerOperand()
                            : dyn_cast<LoadInst>(memInst)->getPointerOperand();
-  // Ensure address matches pipe idx type (we use i64 for the address field in
-  // the request).
+  // Ensure address matches pipe idx type (we use i64). 
   auto typeForAddressPipe = addressStore->getOperand(0)->getType();
   auto addressCastedToi64 = BitCastInst::CreatePointerCast(
       memInstAddr, typeForAddressPipe, "", dyn_cast<Instruction>(addressStore));
   addressStore->setOperand(0, addressCastedToi64);
 
-  // Write baseTag into the pipeWrite idx field. If it's a store, increment the
-  // tag by one before.
+  // Write baseTag into struct.idx. If it's a store, increment the tag first.
   IRBuilder<> Builder(tagStore);
   auto tagType = tagStore->getOperand(0)->getType();
   Value *baseTagVal = Builder.CreateLoad(tagType, baseTagAddr, "baseTagVal");
@@ -118,41 +120,43 @@ void transformAddressGeneration(Function &F, FunctionAnalysisManager &AM,
   if (isaStore(memInst)) {
     tagStore->setOperand(0, baseTagPlusOne);
     auto newTagStore = Builder.CreateStore(baseTagPlusOne, baseTagAddr);
-    preserveInst.emplace_back(newTagStore);
-    preserveInst.emplace_back(dyn_cast<Instruction>(baseTagPlusOne));
+    createdIs.push_back(newTagStore);
+    createdIs.push_back(dyn_cast<Instruction>(baseTagPlusOne));
   } else {
     tagStore->setOperand(0, baseTagVal);
   }
+  createdIs.push_back(tagStore);
+  createdIs.push_back(addressStore);
+  createdIs.push_back(dyn_cast<Instruction>(baseTagVal));
 
-  // Ensure the created instructions are not deleted later.
-  preserveInst.emplace_back(tagStore);
-  preserveInst.emplace_back(addressStore);
-  preserveInst.emplace_back(dyn_cast<Instruction>(baseTagVal));
+  return createdIs;
 }
 
+/// Given store and load instructions, change them to read/write from/to
+/// sycl pipes.
 void transformMainKernel(Function &F, FunctionAnalysisManager &AM,
                          SmallVector<Instruction *> &stores,
                          SmallVector<Instruction *> &loads) {
-  // Get pipe calls.
+  // Collect pipe read instructions, pipe write instructions, 
+  // and the LSQ end signal pipe write instruction.
   SmallVector<CallInst *> loadPipeReadCalls(loads.size());
   SmallVector<CallInst *> storePipeWriteCalls(stores.size());
   CallInst *endSignalPipeWriteCall =
       getNthPipeCall(F, stores.size() + loads.size());
   Value *storeReqValPtr = endSignalPipeWriteCall->getOperand(0);
-
   for (size_t i = 0; i < loads.size(); ++i)
     loadPipeReadCalls[i] = getNthPipeCall(F, i);
   for (size_t i = 0; i < stores.size(); ++i)
     storePipeWriteCalls[i] = getNthPipeCall(F, i + loads.size());
 
-  // Replace load instructions with calls to pipe::read
+  // Replace load instructions with calls to pipe::read.
   for (size_t iLoad = 0; iLoad < loads.size(); ++iLoad) {
     loadPipeReadCalls[iLoad]->moveBefore(loads[iLoad]);
     Value *loadVal = dyn_cast<Value>(loads[iLoad]);
     loadVal->replaceAllUsesWith(loadPipeReadCalls[iLoad]);
   }
 
-  // Replace store instructions with calls to pipe::write
+  // Replace store instructions with calls to pipe::write.
   for (size_t iStore = 0; iStore < stores.size(); ++iStore) {
     storePipeWriteCalls[iStore]->moveAfter(stores[iStore]);
     stores[iStore]->setOperand(1, storePipeWriteCalls[iStore]->getOperand(0));
@@ -187,7 +191,7 @@ json::Value parseJsonReport() {
     return *Json;
   }
 
-  assert("Error parsing json loop-raw-report");
+  assert("No LOOP_RAW_REPORT environment value.");
   return json::Value(nullptr);
 }
 
@@ -212,33 +216,31 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
 
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
       // The names of kernels that we need to transform are guaranteed to begin
-      // with mainKernelName.
+      // with mainKernelName. NOTE: Check only mainKernelName.size() characters.
       if (std::equal(mainKernelName.begin(), mainKernelName.end(),
                      thisKernelName.begin())) {
-        // Find out if this F should be an AGU or Main kernel.
+        // Find out if this F should be an AGU or Main kernel, 
+        // or both if address generation is not decoupled.
         std::regex agu_kernel_regex{mainKernelName + "_AGU",
                                     std::regex_constants::ECMAScript};
         std::smatch agu_kernel_match;
         std::regex_search(thisKernelName, agu_kernel_match, agu_kernel_regex);
         bool isAddressGenKernel = agu_kernel_match.size() > 0;
-        // If we could not split the address generation from the compute,
-        // then we need to merge the AGU kernel into the main kernel.
         bool isDecoupledAddress =
-            (report["decouple_address"].getAsInteger().getValue() == 1);
+            report["decouple_address"].getAsInteger().getValue() == 1;
 
         // Collect the same load/store instructions as during analysis.
         auto &LI = AM.getResult<LoopAnalysis>(F);
         auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
         auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
         auto *DHA = new DataHazardAnalysis(F, LI, SE, DT);
-        SmallVector<SmallVector<Instruction *>> memInstrsAll = DHA->getResult();
+        auto dataHazardClusters = DHA->getResult();
 
-        // Keep track of instructions created during the pass which should not
-        // be deleted.
-        SmallVector<Instruction *> preserveInst;
-        for (auto &memInstrs : memInstrsAll) {
-          SmallVector<Instruction *> stores = getStores(memInstrs);
-          SmallVector<Instruction *> loads = getLoads(memInstrs);
+        // Keep track of instructions created during the pass.
+        SmallVector<Instruction *> preserveIs;
+        for (auto &dataHazards : dataHazardClusters) {
+          SmallVector<Instruction *> stores = getStores(dataHazards);
+          SmallVector<Instruction *> loads = getLoads(dataHazards);
 
           if (isAddressGenKernel || !isDecoupledAddress) {
             // At AGU function entry, initialize a base tag to 0.
@@ -247,43 +249,36 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
             Value *baseTagAddr = Builder.CreateAlloca(tagType);
             Builder.CreateStore(ConstantInt::get(tagType, 0), baseTagAddr);
 
-            // First deal with loads, then stores.
-            for (auto &I : loads) {
-              // Always get 0th pipe, since pipeWriteCall will be moved away the
-              // 0th position in F.
-              CallInst *pipeWriteCall = getNthPipeCall(F, 0);
-              transformAddressGeneration(F, AM, I, baseTagAddr, pipeWriteCall,
-                                         preserveInst);
-            }
-            for (auto &I : stores) {
-              // Always get 0th pipe, since pipeWriteCall will be moved away the
-              // 0th position in F.
-              CallInst *pipeWriteCall = getNthPipeCall(F, 0);
-              transformAddressGeneration(F, AM, I, baseTagAddr, pipeWriteCall,
-                                         preserveInst);
+            // First deal with loads because that's the order of pipes.
+            // The 0th pipe is always the next to be used.
+            // The address gen transformation deals with one instruction.
+            for (auto &I : llvm::concat<Instruction *>(loads, stores)) {
+              auto createdIs = transformAddressGeneration(F, AM, I, baseTagAddr,
+                                                         getNthPipeCall(F, 0));
+              llvm::concat<Instruction *>(preserveIs, createdIs);
             }
           }
 
           if (!isAddressGenKernel) {
+            // The main kernel transformation handles all instructions at once.
             transformMainKernel(F, AM, stores, loads);
           }
         }
 
+        // In the address generation kernel, delete all side effect instructions
+        // not part of our {preserveIs}. The rest will be deleted by DCE.
         if (isAddressGenKernel && isDecoupledAddress) {
-          // Get all stores for all base addresses.
+          // This includes the data hazard stores, so get those first.
           SmallVector<Instruction *> allStores;
-          for (auto &memInstrs : memInstrsAll) {
-            for (auto &iS : getStores(memInstrs)) {
+          for (auto &memInstrs : dataHazardClusters) {
+            for (auto &iS : getStores(memInstrs)) 
               allStores.push_back(iS);
-            }
           }
 
-          // And delete them, as well as any other store after that.
           for (auto st_i : allStores) {
-            bool canDelete = std::find(preserveInst.begin(), preserveInst.end(),
-                                       st_i) == preserveInst.end();
+            bool canDelete = llvm::find(preserveIs, st_i) == preserveIs.end();
             if (st_i->getParent() != nullptr && canDelete) {
-              deleteStoresAfterI(F, AM, st_i, preserveInst);
+              deleteStoresAfterI(F, DT, st_i, preserveIs);
               deleteInstruction(st_i);
             }
           }

@@ -233,74 +233,41 @@ bool isAddressAnalyzable(ScalarEvolution &SE, const Loop *L,
   return idxRange.isAllNonNegative();
 }
 
-/// Remove entries where there are only store instructions.
-/// Make sure the returned instructions are always in deterministic order.
-SmallVector<SmallVector<Instruction *>> filterInstrs(
-    const DenseMap<Instruction *, SetVector<Instruction *>> &addr2InstMap,
+/// Sort clusters of instructions based on the dominance relation
+/// of the isntructions producing the base address.
+SmallVector<SmallVector<Instruction *>> getSortedVectorClusters(
+    const DenseMap<Instruction *, SetVector<Instruction *>> &clusterMap,
     DominatorTree &DT) {
-  SmallVector<SmallVector<Instruction *>> collectedInstructions;
-  SmallVector<Instruction *> instructionKeys;
-
-  // If a given base address has only a store, then there will be no RAW
-  // hazards.
-  for (auto &kv : addr2InstMap) {
-    if (llvm::any_of(kv.getSecond(), isaLoad)) {
-      instructionKeys.push_back(kv.getFirst());
-
-      SmallVector<Instruction *> iVec;
-      for (auto &I : kv.getSecond())
-        iVec.push_back(I);
-      collectedInstructions.push_back(iVec);
-    }
+  // Break up map into two corresponding vectors.
+  SmallVector<Instruction *> baseAddrI;
+  SmallVector<SmallVector<Instruction *>> iClusters;
+  for (auto &kv : clusterMap) {
+    baseAddrI.push_back(kv.getFirst());
+    SmallVector<Instruction *> newCluster;
+    llvm::copy(kv.getSecond(), std::back_inserter(newCluster));
+    iClusters.push_back(newCluster);
   }
 
-  // Use base address instruction dominance relation to sort the collected
-  // instructions.
-  SmallVector<int> sortingIndices(instructionKeys.size());
+  // Use base address instruction dominance relation
+  // to sort the collected instructions.
+  SmallVector<int> sortingIndices(iClusters.size());
   std::iota(sortingIndices.begin(), sortingIndices.end(), 0);
   llvm::sort(sortingIndices, [&](int a, int b) {
-    return DT.dominates(instructionKeys[a], instructionKeys[b]);
+    return DT.dominates(baseAddrI[a], baseAddrI[b]);
   });
-  SmallVector<SmallVector<Instruction *>> collectedInstructionsSorted(
-      collectedInstructions.size());
+
+  // Create a new vector for the sorted instructions.
+  SmallVector<SmallVector<Instruction *>> iClustersSorted(iClusters.size());
   for (uint i = 0; i < sortingIndices.size(); ++i)
-    collectedInstructionsSorted[i] = collectedInstructions[sortingIndices[i]];
+    iClustersSorted[i] = iClusters[sortingIndices[i]];
 
-  return collectedInstructionsSorted;
-}
-
-SmallVector<SmallVector<Instruction *>>
-splitIntoTypedClusters(const SmallVector<SmallVector<Instruction *>> &instrs) {
-  SmallVector<SmallVector<Instruction *>> splitInstrClusters;
-
-  for (auto &memInstr : instrs) {
-    SmallVector<SmallVector<Instruction *>> types2instrs(memInstr.size());
-    int numTypes = 0;
-
-    // Preserve deterministic order across runs.
-    DenseMap<Type *, int> types2index;
-    for (auto &I : memInstr) {
-      auto type = isaStore(I) ? I->getOperand(0)->getType() : I->getType();
-
-      if (types2index.find(type) == types2index.end()) {
-        types2index[type] = numTypes;
-        numTypes++;
-      }
-      types2instrs[types2index[type]].push_back(I);
-    }
-
-    for (int i = 0; i < numTypes; i++) {
-      splitInstrClusters.push_back(types2instrs[i]);
-    }
-  }
-
-  return splitInstrClusters;
+  return iClustersSorted;
 }
 
 DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
                                        ScalarEvolution &SE, DominatorTree &DT) {
-  // Collect all base addresses that are stored to with an SE uncomputable index
-  // inside a loop.
+  // Collect all base addresses that are stored to 
+  // and that have an uncomputable Scalar Evolution index.
   DenseMap<Instruction *, SetVector<Instruction *>> addr2InstMap;
   SetVector<Instruction *> discardedStores;
   for (Loop *TopLevelLoop : LI) {
@@ -325,16 +292,12 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
   // Collect all stores previously discarded, if there was a different
   // unpredictable store to the same base address.
   for (auto &I : discardedStores) {
-    auto siPointerBase =
-        isaStore(I)
-            ? getPointerBase(dyn_cast<StoreInst>(I)->getPointerOperand())
-            : getPointerBase(dyn_cast<MemCpyInst>(I)->getOperand(0));
-    if (auto bucketToInsert = getEquivalentInMap(addr2InstMap, siPointerBase)) {
+    auto ptrBase = getPointerBase(dyn_cast<StoreInst>(I)->getPointerOperand());
+    if (auto bucketToInsert = getEquivalentInMap(addr2InstMap, ptrBase)) 
       bucketToInsert->insert(I);
-    }
   }
 
-  // Collect loads seperately.
+  // Collect loads seperately, once all unpredictable stores are known.
   for (Loop *TopLevelLoop : LI) {
     for (Loop *L : depth_first(TopLevelLoop)) {
       for (auto &BB : L->getBlocks()) {
@@ -345,8 +308,8 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
               continue;
 
             auto pointerBaseInstr = getPointerBase(li->getPointerOperand());
-            // We are only intersted in loads where there is a store to the the
-            // same base address.
+            // We are only intersted in loads where there 
+            // is a store to the the same base address.
             if (auto bucketToInsert =
                     getEquivalentInMap(addr2InstMap, pointerBaseInstr)) {
               bucketToInsert->insert(&I);
@@ -357,12 +320,16 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
     }
   }
 
-  auto filteredInstructions = filterInstrs(addr2InstMap, DT);
+  // Remove clusters that only have stores (no RAW hazard).
+  llvm::remove_if(addr2InstMap, [](auto kv) {
+    return llvm::all_of(kv.getSecond(), isaStore);
+  });
 
-  hazardInstrs = splitIntoTypedClusters(filteredInstructions);
+  // Take only the mem instrs and ensure the order is deterministic.
+  hazardInstrs = getSortedVectorClusters(addr2InstMap, DT);
 
-  // For each base address, record if the address generation can be decoupled.
-  for (auto cluster : hazardInstrs) 
+  // For each cluster, check if address generation can be decoupled from access.
+  for (auto cluster : hazardInstrs)
     decouplingDecisions.push_back(canDecoupleAddressFromAccess(F, DT, cluster));
 }
 

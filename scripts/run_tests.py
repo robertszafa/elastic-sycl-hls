@@ -35,6 +35,9 @@ def run_bin(bin, a_size, distr=0, percentage=0):
 
 if __name__ == '__main__':
     exec_type = sys.argv[1] # sim/emu/hw
+    is_debug = False
+    if len(sys.argv) > 2:
+        is_debug = sys.argv[2] == '-d'
 
     BIN_EXTENSION = 'fpga' 
     if 'sim' in exec_type:
@@ -46,9 +49,12 @@ if __name__ == '__main__':
     
     for kernel, a_size in KERNEL_ASIZE_PAIRS.items():
         print('\nKernel:', kernel)
-        os.system(f'{GIT_DIR}/driver.sh {exec_type} {GIT_DIR}/inputs/{kernel}/{kernel}.cpp 8 > {TMP_FILE} 2>&1')
-        BIN_DYNAMIC = f'{GIT_DIR}/inputs/{kernel}/bin/{kernel}.cpp.{BIN_EXTENSION}'
+        compile_cmd = f'{GIT_DIR}/driver.sh {exec_type} {GIT_DIR}/inputs/{kernel}/{kernel}.cpp 8'
+        if not is_debug:
+            compile_cmd += f' > {TMP_FILE} 2>&1'
+        os.system(compile_cmd)
 
+        BIN_DYNAMIC = f'{GIT_DIR}/inputs/{kernel}/bin/{kernel}.cpp.{BIN_EXTENSION}'
         for distr_idx, distr_name in DATA_DISTRIBUTIONS.items():
             dyn_time = run_bin(BIN_DYNAMIC, a_size, distr=distr_idx, percentage=PERCENTAGE_WAIT)
         

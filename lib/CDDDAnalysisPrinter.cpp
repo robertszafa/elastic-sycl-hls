@@ -47,6 +47,15 @@ SmallVector<unsigned int> parseBottleneckFile() {
   return result;
 }
 
+json::Object
+generateReport(Function &F,
+               SmallVector<SmallVector<Instruction *>> &dependenciesIn,
+               SmallVector<SmallVector<Instruction *>> &dependenciesOut) {
+  // TODO
+  json::Object report;
+  return report;
+}
+
 struct CDDDAnalysisPrinter : PassInfoMixin<CDDDAnalysisPrinter> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
@@ -55,21 +64,30 @@ struct CDDDAnalysisPrinter : PassInfoMixin<CDDDAnalysisPrinter> {
       assert(bottlenecLines.size() > 0 && "No bottlecks.");
 
       auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
+      auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
       auto &LI = AM.getResult<LoopAnalysis>(F);
-      auto CDG = new ControlDependenceGraph(F, PDT);
+      auto &DI = AM.getResult<DependenceAnalysis>(F);
+      std::unique_ptr<DataDependenceGraph> DDG(new DataDependenceGraph(F, DI));
+      std::unique_ptr<ControlDependenceGraph> CDG(
+          new ControlDependenceGraph(F, PDT));
+
+      SmallVector<Instruction *> ctrlDepBottlenecks;
 
       // For each bottleneck, check if it's a control dependent data dependency.
       for (unsigned int line : bottlenecLines) {
         auto bottleneckI = getInstructionForFileLine(F, PDT, line);
-        auto CDDD =
-            new ControlDependentDataDependencyAnalysis(F, *CDG, bottleneckI);
-        if (auto srcBB = CDDD->getControlDependencySource()) {
+        auto CDDD = new ControlDependentDataDependencyAnalysis(F, *CDG, *DDG,
+                                                               DT, bottleneckI);
+
+        if (auto srcBB = CDDD->getControlDependencySourceBlock()) {
+          bool srcAndSinkInSameLoop =
+              LI.getLoopFor(bottleneckI->getParent()) == LI.getLoopFor(srcBB);
           errs() << "Ctrl dep src block " << srcBB->getNameOrAsOperand()
-                 << "\n";
-          errs() << "Same loop as bottleneck "
-                 << (LI.getLoopFor(bottleneckI->getParent()) ==
-                     LI.getLoopFor(srcBB))
-                 << "\n";
+                 << "\nSame loop ? " << srcAndSinkInSameLoop << "\n";
+
+          if (srcAndSinkInSameLoop) {
+            ctrlDepBottlenecks.push_back(bottleneckI);
+          }
         }
       }
     }
@@ -84,6 +102,9 @@ struct CDDDAnalysisPrinter : PassInfoMixin<CDDDAnalysisPrinter> {
 
   void getAnalysisUsage(AnalysisUsage &AU) const {
     AU.addRequiredID(LoopAnalysis::ID());
+    AU.addRequiredID(DependenceAnalysis::ID());
+    AU.addRequiredID(PostDominatorTreeAnalysis::ID());
+    AU.addRequiredID(DominatorTreeAnalysis::ID());
   }
 };
 

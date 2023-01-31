@@ -3,7 +3,7 @@
 
 #include "CommonLLVM.h"
 #include "CDG.h"
-
+#include "llvm/Analysis/DDG.h"
 
 using namespace llvm;
 
@@ -13,7 +13,14 @@ class ControlDependentDataDependencyAnalysis {
 public:
   explicit ControlDependentDataDependencyAnalysis(Function &F,
                                                   ControlDependenceGraph &CDG,
-                                                  Instruction *interIterDep);
+                                                  DataDependenceGraph &DDG,
+                                                  DominatorTree &DT,
+                                                  Instruction *interIterDep) {
+    calculateControlDependencySource(F, CDG, interIterDep);
+    if (isControlDependent()) 
+      calculateInOutDependencies(F, DDG, DT, interIterDep);
+  }
+
   ~ControlDependentDataDependencyAnalysis();
 
   /// Return true if the analysis concluded that the data dependencies
@@ -23,12 +30,22 @@ public:
   }
 
   /// Return the source block of the control dependency.
-  BasicBlock *getControlDependencySource() {
+  BasicBlock *getControlDependencySourceBlock() {
     return controlDependencySourceBlock;
   }
 
 private:
   BasicBlock *controlDependencySourceBlock = nullptr;
+
+  SmallVector<Instruction *> dependenciesIn;
+  SmallVector<Instruction *> dependenciesOut;
+
+  void calculateControlDependencySource(Function &F,
+                                        ControlDependenceGraph &CDG,
+                                        Instruction *interIterDep);
+
+  void calculateInOutDependencies(Function &F, DataDependenceGraph &DDG,
+                                  DominatorTree &DT, Instruction *I);
 };
 
 } // end namespace llvm

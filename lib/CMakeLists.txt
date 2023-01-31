@@ -1,24 +1,31 @@
 # THE LIST OF PLUGINS AND THE CORRESPONDING SOURCE FILES
 # ======================================================
 set(OPT_PASSES_PLUGINS
-    LoadStoreQueueTransform
-    DataHazardAnalysisPrinter
     HoistConstantGepTransform
+    DataHazardAnalysisPrinter
+    LoadStoreQueueTransform
+    CDDDAnalysisPrinter
     )
 
-set(LoadStoreQueueTransform_SOURCES
-  LoadStoreQueueTransform.cpp
-  DataHazardAnalysis.cpp
-  CDG.cpp
-  )
+set(HoistConstantGepTransform_SOURCES HoistConstantGepTransform.cpp)
 
 set(DataHazardAnalysisPrinter_SOURCES
   DataHazardAnalysisPrinter.cpp
   DataHazardAnalysis.cpp
   CDG.cpp
-  )
+)
 
-set(HoistConstantGepTransform_SOURCES HoistConstantGepTransform.cpp)
+set(LoadStoreQueueTransform_SOURCES
+  LoadStoreQueueTransform.cpp
+  DataHazardAnalysis.cpp
+  CDG.cpp
+)
+
+set(CDDDAnalysisPrinter_SOURCES
+  CDDDAnalysisPrinter.cpp
+  CDDDAnalysis.cpp
+  CDG.cpp
+)
 
 # CONFIGURE THE PLUGIN LIBRARIES
 # ==============================

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# $1 - sim/emu/hw
+# $2 - source filename
+
+set -e
+
+SRC_FILE="$2"
+SRC_FILE_BASENAME=`basename "$SRC_FILE"`
+BENCHMARK="${SRC_FILE_BASENAME%.*}"
+SRC_FILE_DIR=`dirname "$2"`
+
+BOTTLENECK_JSON_FILE="$SRC_FILE_DIR/bin/$BENCHMARK.prj/reports/lib/json/bottleneck.json" 
+BOTTLENECK_LINES_FILE="$SRC_FILE_DIR/bin/$BENCHMARK.prj/bottleneck-lines.txt"
+
+###
+### STAGE 1: Generate report.
+###
+cd $SRC_FILE_DIR 
+make report FILE=$SRC_FILE_BASENAME > /dev/null
+cd - > /dev/null
+# dpcpp -std=c++17 -O2 -fintelfpga -c $SRC_FILE \
+#   -I/home/rob/git/sycl-playground/include \
+#   -o $SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.dev.o -DFPGA=1 > /dev/null
+# dpcpp -std=c++17 -O2 -fintelfpga -fsycl-link \
+#   -I/home/rob/git/sycl-playground/include \
+#   $SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.dev.o -o \
+#   $SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.a -Xshardware > /dev/null
+
+###
+### STAGE 3: Get line numbers of data dependency bottlenecks.
+###
+./scripts/GetDataDependencyBottlenecks.py $BOTTLENECK_JSON_FILE > $BOTTLENECK_LINES_FILE
+export BOTTLENECK_LINES_FILE=$BOTTLENECK_LINES_FILE
+
+###
+### STAGE 4: Generate control dependent data dependency analysis report.
+###
+# STAGE 4.1: Generate LLVM IR.
+./scripts/compile_to_bc.sh "$1" $SRC_FILE
+./scripts/prepare_ir.sh $SRC_FILE.bc
+# STAGE 4.2: Run CDDD pass.
+~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libCDDDAnalysisPrinter.so \
+                         -passes=cddd-bottlenecks $SRC_FILE.bc -o /dev/null 

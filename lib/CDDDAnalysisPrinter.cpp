@@ -1,21 +1,77 @@
 #include "CommonLLVM.h"
 #include "CDDDAnalysis.h"
 #include "CDG.h"
+#include "llvm/Analysis/DependenceAnalysis.h"
+#include "llvm/IR/Dominators.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <regex>
 #include <string>
+#include <fstream>
+#include <sstream>
 
 using namespace llvm;
 
 namespace llvm {
 
+/// Given a source file line in function {F}, return the corresponding
+/// LLVM instruction using DebugLoc metadata. If there are multiple such 
+/// instructions, return the last one based on the post dominance relation.
+Instruction *getInstructionForFileLine(Function &F, PostDominatorTree &PDT,
+                                       unsigned int line) {
+  Instruction *result = nullptr;
+
+  for (auto &BB : F) {
+    for (auto &I : BB) {
+      if (I.getDebugLoc()->getLine() == line) {
+        if (result == nullptr || PDT.dominates(&I, result))
+          result = &I;
+      }
+    }
+  }
+
+  return result;
+}
+
+/// Return lines from getenv(BOTTLENECK_LINES_FILE) as a vector of ints.
+SmallVector<unsigned int> parseBottleneckFile() {
+  SmallVector<unsigned int> result;
+
+  if (const char *fname = std::getenv("BOTTLENECK_LINES_FILE")) {
+    std::ifstream infile(fname);
+    int line;
+    while (infile >> line)
+      result.push_back(line);
+  }
+
+  return result;
+}
+
 struct CDDDAnalysisPrinter : PassInfoMixin<CDDDAnalysisPrinter> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
+      SmallVector<unsigned int> bottlenecLines = parseBottleneckFile();
+      assert(bottlenecLines.size() > 0 && "No bottlecks.");
+
       auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
+      auto &LI = AM.getResult<LoopAnalysis>(F);
       auto CDG = new ControlDependenceGraph(F, PDT);
-      auto CDDD = new ControlDependentDataDependencyAnalysis(F, *CDG);
+
+      // For each bottleneck, check if it's a control dependent data dependency.
+      for (unsigned int line : bottlenecLines) {
+        auto bottleneckI = getInstructionForFileLine(F, PDT, line);
+        auto CDDD =
+            new ControlDependentDataDependencyAnalysis(F, *CDG, bottleneckI);
+        if (auto srcBB = CDDD->getControlDependencySource()) {
+          errs() << "Ctrl dep src block " << srcBB->getNameOrAsOperand()
+                 << "\n";
+          errs() << "Same loop as bottleneck "
+                 << (LI.getLoopFor(bottleneckI->getParent()) ==
+                     LI.getLoopFor(srcBB))
+                 << "\n";
+        }
+      }
     }
 
     return PreservedAnalyses::all();
@@ -26,7 +82,9 @@ struct CDDDAnalysisPrinter : PassInfoMixin<CDDDAnalysisPrinter> {
   // all functions with optnone.
   static bool isRequired() { return true; }
 
-  void getAnalysisUsage(AnalysisUsage &AU) const {}
+  void getAnalysisUsage(AnalysisUsage &AU) const {
+    AU.addRequiredID(LoopAnalysis::ID());
+  }
 };
 
 //-----------------------------------------------------------------------------

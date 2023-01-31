@@ -2,57 +2,32 @@
 #include "CommonLLVM.h"
 #include "CDDDAnalysis.h"
 #include "CDG.h"
-#include "llvm/Support/raw_ostream.h"
-
-#include <cassert>
-#include <fstream>
-#include <sstream>
 
 using namespace llvm;
 
 namespace llvm {
 
-SmallVector<Instruction *> getInstructionsForFileLine(Function &F,
-                                                      unsigned int line) {
-  SmallVector<Instruction *> result;
-
-  for (auto &BB : F) {
-    for (auto &I : BB) {
-      if (I.getDebugLoc()->getLine() == line)
-        result.push_back(&I);
-    }
-  }
-
-  return result;
-}
-
-SmallVector<unsigned int> parseBottleneckFile() {
-  SmallVector<unsigned int> result;
-
-  if (const char *fname = std::getenv("BOTTLENECK_LINES_FILE")) {
-    std::ifstream infile(fname);
-    int line;
-    while (infile >> line)
-      result.push_back(line);      
-
-  }
-
-  return result;
-}
-
 ControlDependentDataDependencyAnalysis::ControlDependentDataDependencyAnalysis(
-    Function &F, ControlDependenceGraph &CDG) {
-  auto bottlenecLines = parseBottleneckFile();
-  assert(bottlenecLines.size() > 0 && "No bottlecks.");
+    Function &F, ControlDependenceGraph &CDG, Instruction *interIterDep) {
+  // If there is an edge from the CDG root to the parent of {interIterDep},
+  // then {interIterDep} is not control dependent.
+  auto cdgNode = CDG.getBlockNode(interIterDep->getParent());
+  if (CDG.getRoot()->hasEdgeTo(*cdgNode))
+    return;
 
-  for (unsigned int line : bottlenecLines) {
-    auto bottleneckIs = getInstructionsForFileLine(F, line);
-    errs() << "Instructions for line " << line << "\n";
-    for (auto &I : bottleneckIs) {
-      I->print(errs());
-      errs() << "\n";
+  // interIterDep is control dependent on some block. Find out the source block.
+  for (auto &N : CDG) {
+    // We already checked the root.
+    if (isa<RootCDGNode>(N))
+      continue;
+
+    SmallVector<CDGEdge *, 2> edgesToNode;
+    N->findEdgesTo(*cdgNode, edgesToNode);
+    if (edgesToNode.size() > 0) {
+      this->controlDependencySourceBlock =
+          dyn_cast<BlockCDGNode>(N)->getBasicBlock();
+      break;
     }
-    errs() << "\n";
   }
 }
 

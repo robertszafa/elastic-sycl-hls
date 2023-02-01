@@ -1,19 +1,19 @@
 
-#include "CommonLLVM.h"
 #include "CDDDAnalysis.h"
 #include "CDG.h"
+#include "CommonLLVM.h"
 
 using namespace llvm;
 
 namespace llvm {
 
-void ControlDependentDataDependencyAnalysis::calculateControlDependencySource(
+BasicBlock *ControlDependentDataDependencyAnalysis::getControlDependencySource(
     Function &F, ControlDependenceGraph &CDG, Instruction *interIterDep) {
   // If there is an edge from the CDG root to the parent of {interIterDep},
   // then {interIterDep} is not control dependent.
   auto cdgNode = CDG.getBlockNode(interIterDep->getParent());
   if (CDG.getRoot()->hasEdgeTo(*cdgNode))
-    return;
+    return nullptr;
 
   // interIterDep is control dependent on some block. Find out the source block.
   for (auto &N : CDG) {
@@ -23,39 +23,50 @@ void ControlDependentDataDependencyAnalysis::calculateControlDependencySource(
 
     SmallVector<CDGEdge *, 2> edgesToNode;
     N->findEdgesTo(*cdgNode, edgesToNode);
-    if (edgesToNode.size() > 0) {
-      controlDependencySourceBlock = dyn_cast<BlockCDGNode>(N)->getBasicBlock();
-      return;
-    }
-  }
-}
-
-template <typename T>
-T *getDDGNodeForInstruction(DataDependenceGraph &DDG, Instruction *I) {
-  for (auto &N : DDG) {
-    if (!isa<T>(N))
-      continue;
-
-    SmallVector<Instruction *> Is;
-    N->collectInstructions([](auto v) { return isa<Instruction>(v); }, Is);
-
-    if (llvm::find(Is, I) != Is.end())
-      return dyn_cast<T>(N);
+    if (edgesToNode.size() > 0)
+      return dyn_cast<BlockCDGNode>(N)->getBasicBlock();
   }
 
   return nullptr;
 }
 
-void ControlDependentDataDependencyAnalysis::calculateInOutDependencies(
-    Function &F, DataDependenceGraph &DDG, DominatorTree &DT, Instruction *I) {
-  // errs() << DDG << "\n****************************\n";
-  auto piBlock = getDDGNodeForInstruction<PiBlockDDGNode>(DDG, I);
-  assert(piBlock && "No DDG pi block node for the instruction.");
+SmallVector<Instruction *>
+ControlDependentDataDependencyAnalysis::getIncomingUses(Function &F,
+                                                        BasicBlock *BB) {
+  SmallVector<Instruction *> result;
 
-  errs() << *piBlock << "\n";
+  auto isUserInBB = [BB](auto User) {
+    if (auto UserI = dyn_cast<Instruction>(User))
+      return UserI->getParent() == BB;
+    return false;
+  };
 
-  // TODO: Given the DDG piblock, calculate the required in and out pipes.
-  //       Dominance info is probably not needed if we have the DDG.
+  for (auto &otherBB : F) {
+    for (auto &I : otherBB) {
+      if (&otherBB != BB && llvm::any_of(I.users(), isUserInBB))
+        result.push_back(&I);
+    }
+  }
+
+  return result;
+}
+
+SmallVector<Instruction *>
+ControlDependentDataDependencyAnalysis::getOutgoingDefs(Function &F,
+                                                        BasicBlock *BB) {
+  SmallVector<Instruction *> result;
+
+  for (auto &I : *BB) {
+    for (auto User : I.users()) {
+      if (auto UserI = dyn_cast<Instruction>(User)) {
+        if (UserI->getParent() != BB) {
+          result.push_back(UserI);
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 } // end namespace llvm

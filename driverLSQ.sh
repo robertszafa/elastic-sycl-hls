@@ -22,8 +22,8 @@ FINAL_BINARY="$SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.fpga_$1"
 ###
 ### STAGE 1: Get IR of original source and prepare it for mem dep analysis.
 ###
-./scripts/compile_to_bc.sh "$1" $SRC_FILE
-./scripts/prepare_ir.sh $SRC_FILE.bc
+./scripts/compilation/compile_to_bc.sh "$1" $SRC_FILE
+./scripts/compilation/prepare_ir.sh $SRC_FILE.bc
 
 ###
 ### STAGE 2: Generate analysis json report.
@@ -38,15 +38,15 @@ export LOOP_RAW_REPORT=$LOOP_REPORT_FILE
 # Given json report, make kernel copies and pipe read/write calls from correct kernels.
 # Output from this source-to-source transformation will be in $SRC_FILE.tmp.cpp
 # TODO: use clang AST Transormer
-python3 scripts/TransformAST.py $LOOP_REPORT_FILE $SRC_FILE $Q_SIZE
+python3 scripts/ASTTransformLSQ.py $LOOP_REPORT_FILE $SRC_FILE $TMP_SRC_FILE $Q_SIZE
 
 ###
 ### STAGE 4: Fix IR inside kernels.
 ###
 echo ">> Running lsq-transform"
 # Get IR of source with kernels and pipes instantiated. 
-./scripts/compile_to_bc.sh "$1" $TMP_SRC_FILE
-./scripts/prepare_ir.sh $TMP_SRC_FILE.bc
+./scripts/compilation/compile_to_bc.sh "$1" $TMP_SRC_FILE
+./scripts/compilation/prepare_ir.sh $TMP_SRC_FILE.bc
 ~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libLoadStoreQueueTransform.so \
                          -passes=lsq-transform $TMP_SRC_FILE.bc -o $TMP_SRC_FILE.out.bc
 
@@ -55,8 +55,8 @@ echo ">> Running lsq-transform"
 ###
 echo ">> Compiling $FINAL_BINARY"
 # Cleanup the transformed IR. The transformation leaves a lot of dead code, unused kernel args, etc.
-./scripts/cleanup_ir.sh $TMP_SRC_FILE.out.bc
-./scripts/compile_from_bc.sh $1 $TMP_SRC_FILE.out.bc $TMP_SRC_FILE $FINAL_BINARY
+./scripts/compilation/cleanup_ir.sh $TMP_SRC_FILE.out.bc
+./scripts/compilation/compile_from_bc.sh $1 $TMP_SRC_FILE.out.bc $TMP_SRC_FILE $FINAL_BINARY
 
 
 echo "done"

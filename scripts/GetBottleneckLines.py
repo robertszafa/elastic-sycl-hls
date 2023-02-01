@@ -6,11 +6,8 @@ operations that cause a data dependency bottlenck.
 I.e. an operation that increases the II of a loop.
 """
 
-import re
 import sys
 import json
-
-from constants import GIT_DIR
 
 
 def get_json_report(report_fname):
@@ -30,6 +27,7 @@ if __name__ == '__main__':
     bottlenecks = get_json_report(sys.argv[1])['bottlenecks']
 
     # TODO: Nodes or details['loop feedback that lowered II]?
+    # TODO: Only take 'data dependencies'?
     for bottleneck in bottlenecks:
         # TODO: Only get last node or more?
         print(bottleneck['nodes'][-1]['debug'][0][0]['line'])

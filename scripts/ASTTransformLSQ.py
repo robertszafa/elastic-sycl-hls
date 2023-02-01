@@ -11,17 +11,12 @@ This transformation could be implemented in clang to make it more robust (ASTTre
 
 import re
 import sys
-import json
 
 from constants import GIT_DIR
+from ASTCommon import *
 
-# TODO: get queue name from llvm pass
-Q_NAME = 'q'
+
 LSQ_FILE = f'{GIT_DIR}/lsq/LoadStoreQueue.hpp'
-
-# This has false positives but we use it only on strings that have a variable name at the beginning
-c_var_regex = r'([a-zA-Z_][a-zA-Z0-9_]*)'
-
 
 def get_lsq_src():
     try:
@@ -115,17 +110,6 @@ def gen_val_pipe_connections(report):
     return pipe_calls
 
 
-def get_kernel_body(s, kernel_name):
-    body = ""
-    m = re.findall(r'<\s*(?:class\s+)?' + kernel_name + r'\s*>\s*(\(.*?}\s*\)\s*;)', s, re.DOTALL)
-    if m:
-        body = m[0]
-    else:
-        exit("Failed match kernel body.")
-
-    return body
-
-
 # Point before the first call to q.submit
 def get_line_of_pattern(source_file_lines, re_pattern):
     """Line of last pattern ocurrence."""
@@ -137,50 +121,13 @@ def get_line_of_pattern(source_file_lines, re_pattern):
     return insert_line
 
 
-def get_array_name(line_with_array, end_col):
-    array = ""
-    m = re.findall(c_var_regex, str(line_with_array[:end_col]))
-    if m:
-        array = m[0]
-
-    return array
-
-def llvm2ctype(llvmtype):
-    if llvmtype == 'i8':
-        return 'signed char'
-    elif llvmtype == 'i16':
-        return 'signed short'
-    elif llvmtype == 'i32':
-        return 'int'
-    elif llvmtype == 'i64':
-        return 'signed long int'
-
-    return llvmtype
-
-def parse_report(report_fname):
-    try:
-        with open(report_fname, 'r') as f:
-            str = f.read()
-
-        report = json.loads(str)
-        report["kernel_name"] = report["kernel_class_name"].split(' ')[-1].split('::')[-1]
-        report['spir_func_name'] = report["spir_func_name"].split('::')[0]
-        for base_addr in report["base_addresses"]:
-            base_addr['array_type'] = llvm2ctype(base_addr['array_type'])
-
-        return report
-    except Exception as e:
-        exit("Error parsing analysis report " + report_fname)
-
-
-
-
 if __name__ == '__main__':
-    if len(sys.argv) < 4:
-        sys.exit("USAGE: ./prog LOOP_REPORT_FILE SRC_FILE Q_SIZE")
+    if len(sys.argv) < 5:
+        sys.exit("USAGE: ./prog LOOP_REPORT_FILE SRC_FILE NEW_SRC_FILE Q_SIZE")
 
     SRC_FNAME = sys.argv[2]
-    Q_SIZE = sys.argv[3]
+    NEW_SRC_FILENAME = sys.argv[3]
+    Q_SIZE = sys.argv[4]
 
     with open(SRC_FNAME, 'r') as f:
         source_file = f.read()
@@ -220,9 +167,8 @@ if __name__ == '__main__':
     
     src_lines_with_storeq = insert_storeq_wait(src_lines_with_pipes_and_agu, insert_line_idx_kernels)
     
-    new_filename = SRC_FNAME + '.tmp.cpp' 
     if len(sys.argv) > 4:
-        new_filename = sys.argv[4]
+        NEW_SRC_FILENAME = sys.argv[4]
 
-    with open(new_filename, 'w') as f:
+    with open(NEW_SRC_FILENAME, 'w') as f:
         f.write('\n'.join(src_lines_with_storeq))

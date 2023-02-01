@@ -48,11 +48,41 @@ SmallVector<unsigned int> parseBottleneckFile() {
 }
 
 json::Object
-generateReport(Function &F,
+generateReport(Function &F, SmallVector<Instruction *> &bottlenecksI,
                SmallVector<SmallVector<Instruction *>> &dependenciesIn,
                SmallVector<SmallVector<Instruction *>> &dependenciesOut) {
-  // TODO
   json::Object report;
+
+  auto getInstructionTypeAsString = [](Instruction *I) {
+    std::string resultString;
+    llvm::raw_string_ostream rso(resultString);
+    I->getType()->print(rso);
+    return resultString;
+  };
+
+  if (bottlenecksI.size() > 0) {
+    auto callers = getCallerFunctions(F.getParent(), F);
+    report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
+    report["spir_func_name"] = demangle(std::string(F.getName()));
+
+    json::Array kernelDependencies;
+    for (size_t i = 0; i < bottlenecksI.size(); ++i) {
+      json::Array thisKernelDepsIn;
+      json::Array thisKernelDepsOut;
+      llvm::transform(dependenciesIn[i], std::back_inserter(thisKernelDepsIn),
+                      getInstructionTypeAsString);
+      llvm::transform(dependenciesOut[i], std::back_inserter(thisKernelDepsOut),
+                      getInstructionTypeAsString);
+
+      llvm::json::Object thisKernel;
+      thisKernel["in"] = std::move(thisKernelDepsIn);
+      thisKernel["out"] = std::move(thisKernelDepsOut);
+      kernelDependencies.push_back(std::move(thisKernel));
+    }
+
+    report["kernel_dependencies"] = std::move(kernelDependencies);
+  }
+
   return report;
 }
 
@@ -69,20 +99,26 @@ struct CDDDAnalysisPrinter : PassInfoMixin<CDDDAnalysisPrinter> {
           new ControlDependenceGraph(F, PDT));
 
       SmallVector<Instruction *> ctrlDepBottlenecks;
+      SmallVector<SmallVector<Instruction *>> dependenciesIn;
+      SmallVector<SmallVector<Instruction *>> dependenciesOut;
 
       // For each bottleneck, check if it's a control dependent data dependency.
       for (unsigned int line : bottlenecLines) {
         auto bottleneckI = getInstructionForFileLine(F, PDT, line);
         auto CDDD = new ControlDependentDataDependencyAnalysis(F, *CDG, LI,
                                                                bottleneckI);
-
         if (CDDD->isCtrlDepInsideLoop()) {
-          errs() << "Ctrl dep src block "
-                 << CDDD->getCtrlDepSrcBlock()->getNameOrAsOperand() << "\n";
-
           ctrlDepBottlenecks.push_back(bottleneckI);
+          dependenciesIn.push_back(CDDD->getDependenciesIn());
+          dependenciesOut.push_back(CDDD->getDependenciesOut());
         }
       }
+
+      auto report = generateReport(F, ctrlDepBottlenecks, dependenciesIn,
+                                   dependenciesOut);
+      
+      // Print report to stdout to be picked up by later tools.
+      outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n";
     }
 
     return PreservedAnalyses::all();

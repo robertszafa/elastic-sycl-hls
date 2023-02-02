@@ -14,51 +14,41 @@ import sys
 from constants import GIT_DIR
 from ASTCommon import *
 
-
 LSQ_FILE = f'{GIT_DIR}/lsq/LoadStoreQueue.hpp'
+LSQ_REQUEST_TYPE = 'request_lsq_t'
+PIPE_DEPTH = 64
 
 def get_lsq_src():
     try:
         with open(LSQ_FILE, 'r') as f:
-            return f.read()
+            return f.read().splitlines()
     except Exception as e:
         print(e)
         exit("ERROR getting lsq src")
 
-def gen_store_queue_syntax(report, q_size):
-    IDX_TAG_TYPE = 'request_lsq_t'
-    PIPE_DEPTH = 64
-
-    all_lsq_pipes = ""
+def gen_lsq_kernel_call(report, q_size):
+    result = []
 
     for i_base, base_addr in enumerate(report['base_addresses']):
-        all_lsq_pipes += f'''
+        result.append(f'''
         using val_type_{i_base} = {llvm2ctype(base_addr['array_type'])};
-        constexpr int kNumLoads_{i_base} = {base_addr['num_loads']};
-        constexpr int kNumStores_{i_base} = {base_addr['num_stores']};
-        constexpr int kQueueSize_{i_base} = {q_size};
 
-        using ld_idx_pipes_{i_base} = PipeArray<class ld_idx_pipes_{i_base}_class, {IDX_TAG_TYPE}, {PIPE_DEPTH}, kNumLoads_{i_base}>;
-        using ld_val_pipes_{i_base} = PipeArray<class ld_val_pipes_{i_base}_class, val_type_{i_base}, {PIPE_DEPTH}, kNumLoads_{i_base}>;
-        using st_idx_pipe_{i_base} = pipe<class st_idx_pipe_{i_base}_class, {IDX_TAG_TYPE}, {PIPE_DEPTH}>;
-        using st_val_pipe_{i_base} = pipe<class st_val_pipe_{i_base}_class, val_type_{i_base}, {PIPE_DEPTH}>;
-        using end_lsq_signal_pipe_{i_base} = pipe<class end_lsq_signal_pipe_{i_base}_class, int>;
-        
-        auto eventStoreQueue_{i_base} = 
-            LoadStoreQueue<val_type_{i_base}, ld_idx_pipes_{i_base}, ld_val_pipes_{i_base}, 
-                           st_idx_pipe_{i_base}, st_val_pipe_{i_base}, end_lsq_signal_pipe_{i_base}, 
-                           kNumLoads_{i_base}, kQueueSize_{i_base}>({Q_NAME});
-        '''
+        auto lsqEvent_{i_base} = 
+            LoadStoreQueue<val_type_{i_base}, pipes_ld_address_{i_base}, pipes_ld_val_{i_base}, 
+                           pipe_st_address_{i_base}, pipe_st_val_{i_base}, pipe_end_lsq_signal_{i_base}, 
+                           {base_addr['num_loads']}, {q_size}>({Q_NAME});
+        ''')    
 
-    return all_lsq_pipes
+    return result
 
-
-def insert_storeq_wait(src, original_kernel_start):
-    """Given the src lines with inserted store queue call, insert a eventStoreQueue_{i_base}.wait() before
-    any device-> host data transfer"""
+def add_lsq_event_wait(src):
+    """
+    Given the src lines with inserted store queue call, insert 
+    eventStoreQueue_{i_base}.wait() before any device-> host data transfer.
+    """
     insert_before_line = 0
     for i, line in enumerate(src):
-        if i < original_kernel_start:
+        if i < get_qsubmit_line(src):
             continue
         if f'{Q_NAME}.memcpy' in line or f'{Q_NAME}.copy' in line:
             insert_before_line = i
@@ -66,47 +56,38 @@ def insert_storeq_wait(src, original_kernel_start):
     
     lsq_event_wait_calls = []
     for i_base in range(len(report['base_addresses'])):
-        lsq_event_wait_calls.append(f'eventStoreQueue_{i_base}.wait();')
+        lsq_event_wait_calls.append(f'lsqEvent_{i_base}.wait();')
     
     return src[:insert_before_line] + lsq_event_wait_calls + src[insert_before_line:]
 
-
-def add_agu_pipe_connections(kernel_body, report):
-    kernel_body_lines = list(map(lambda x : x + '\n', kernel_body.split('\n')))
-
-    agu_pipe_writes = []
-
-    for i_base, base_addr in enumerate(report['base_addresses']):
-        for i in range(base_addr['num_loads']):
-            agu_pipe_writes.append(f'ld_idx_pipes_{i_base}::PipeAt<{i}>::write({{0, 0}});\n')
-        for i in range(base_addr['num_stores']):
-            agu_pipe_writes.append(f'st_idx_pipe_{i_base}::write({{0, 0}});\n')
-
-    agu_kernel_body = kernel_body_lines[:1] + agu_pipe_writes + kernel_body_lines[1:] 
-    return agu_kernel_body, agu_pipe_writes
-
-
-def gen_val_pipe_connections(report):
-    pipe_calls = []
+def gen_pipes(report):
+    address_pipes = []
+    ld_value_pipes = []
+    st_value_pipes = []
+    lsq_signal_pipes = []
 
     for i_base, base_addr in enumerate(report['base_addresses']):
-        # Merge address generation pipes with main kernel, if cannot decouple.
-        if not report['decouple_address']:
-            for i in range(base_addr['num_loads']):
-                pipe_calls.append(f'ld_idx_pipes_{i_base}::PipeAt<{i}>::write({{0, 0}});\n')
-            for i in range(base_addr['num_stores']):
-                pipe_calls.append(f'st_idx_pipe_{i_base}::write({{0, 0}});\n')
-            
-        for i in range(base_addr['num_loads']):
-            pipe_calls.append(f'auto ld_val_pipe_{i_base}_rd_{i} = ld_val_pipes_{i_base}::PipeAt<{i}>::read();')
+        val_type = llvm2ctype(base_addr['array_type'])
 
-        for i in range(base_addr['num_stores']):
-            pipe_calls.append(f'st_val_pipe_{i_base}::write(val_type_{i_base}());')
-        
-        pipe_calls.append(f'int __total_store_req_{i_base} = 0;')
-        pipe_calls.append(f'end_lsq_signal_pipe_{i_base}::write(__total_store_req_{i_base});')
-    
-    return pipe_calls
+        ld_address_pipe_array = SyclPipe(
+            f'pipes_ld_address_{i_base}', LSQ_REQUEST_TYPE, base_addr['num_loads'], PIPE_DEPTH)
+        ld_val_pipe_array = SyclPipe(
+            f'pipes_ld_val_{i_base}', val_type, base_addr['num_loads'], PIPE_DEPTH)
+
+        # multiple store requests and values are merged onto one pipe
+        st_address_pipe = SyclPipe(
+            f'pipe_st_address_{i_base}', LSQ_REQUEST_TYPE, depth=PIPE_DEPTH, write_repeat=base_addr['num_stores'])
+        st_val_pipe = SyclPipe(
+            f'pipe_st_val_{i_base}', val_type, depth=PIPE_DEPTH, write_repeat=base_addr['num_stores'])
+
+        address_pipes.append(ld_address_pipe_array)
+        address_pipes.append(st_address_pipe)
+        ld_value_pipes.append(ld_val_pipe_array)
+        st_value_pipes.append(st_val_pipe)
+
+        lsq_signal_pipes.append(SyclPipe(f'pipe_end_lsq_signal_{i_base}', 'int'))
+
+    return address_pipes, ld_value_pipes, st_value_pipes, lsq_signal_pipes
 
 
 if __name__ == '__main__':
@@ -118,42 +99,47 @@ if __name__ == '__main__':
     Q_SIZE = sys.argv[4]
 
     with open(SRC_FNAME, 'r') as f:
-        source_file = f.read()
-    source_file_lines = source_file.splitlines()
+        src_string = f.read()
+    src_lines = src_string.splitlines()
 
     report = parse_report(sys.argv[1])
 
-    kernel_body = get_kernel_body(source_file_lines, report['kernel_name'])
-    agu_kernel_name = f'{report["kernel_name"]}_AGU'
-    agu_kernel_class_decl = f'class {agu_kernel_name};'
+    # Generate pipes given the report.
+    address_pipes, ld_value_pipes, st_value_pipes, lsq_signal_pipes = gen_pipes(report)
+    all_pipes = address_pipes + ld_value_pipes + st_value_pipes + lsq_signal_pipes
 
-    agu_kernel_body, agu_pipe_writes = add_agu_pipe_connections(kernel_body, report)
-    main_kernel_pipes = gen_val_pipe_connections(report)
+    # Insert pipe type declarations into the src file.
+    src_with_pipe_decl = add_pipe_declarations(src_lines, all_pipes)
 
-    storeq_syntax = gen_store_queue_syntax(report, Q_SIZE)
+    for i_base, base_address in enumerate(report['base_addresses']):
+        # Generate AGU kernel if decouple flag is set, otherwise AGU will be empty.
+        # The AGU kernel name will be forward declared to avoid mangling.
+        kernelAGU = gen_kernel_copy(src_lines, report['kernel_name'], f"{report['kernel_name']}_AGU_{i_base}")
+        kernelAGU_declaration = [f"class {report['kernel_name']}_AGU_{i_base};"] if report['decouple_address'] else []
+        kernelAGU_with_pipe_ops = add_pipe_ops(kernelAGU, [], address_pipes + lsq_signal_pipes) if report['decouple_address'] else []
 
-    agu_kernel = f'{Q_NAME}.single_task<{agu_kernel_name}>{"".join(agu_kernel_body)}'
+        # Add ld value reads and st value writes to original kernel. 
+        src_with_pipe_decl_and_ops = add_pipe_ops(src_with_pipe_decl, ld_value_pipes, st_value_pipes)
 
-    insert_line_idx_kernels = get_line_of_pattern(source_file_lines, Q_NAME + r'\.submit')
+        # If decoupled flag not set, also add address pipe writes to the original kernel.
+        if not report['decouple_address']:  # TODO: decoupling decision per each base
+            src_with_pipe_decl_and_ops = add_pipe_ops(src_with_pipe_decl_and_ops, [], address_pipes + lsq_signal_pipes)
 
-    main_kernel_lambda = r'(<\s*' + report['kernel_name'] + \
-                         r'\s*>)|(<\s*class\s*' + report['kernel_name'] + r'\s*>)'
-    insert_for_main_kernel_pipes = get_line_of_pattern(source_file_lines, main_kernel_lambda)
+        # Add lsq kernel call.
+        lsq_call = gen_lsq_kernel_call(report, Q_SIZE)
+        src_with_pipe_decl_and_ops_and_lsq = insert_before_line(
+            src_with_pipe_decl_and_ops, get_qsubmit_line(src_with_pipe_decl_and_ops), lsq_call)
 
-    src_lines_with_pipes = source_file_lines[:insert_for_main_kernel_pipes+1] + \
-                           main_kernel_pipes + source_file_lines[insert_for_main_kernel_pipes+1:]
+        # Combine the created AGU kernel with the original kernel.
+        combined_original_agu_pipes = insert_before_line(
+            src_with_pipe_decl_and_ops_and_lsq, get_qsubmit_line(src_with_pipe_decl_and_ops_and_lsq), kernelAGU_with_pipe_ops)
 
-    lsq_src = get_lsq_src()
-    src_lines_with_pipes_and_agu = [lsq_src, agu_kernel_class_decl] + \
-                                   src_lines_with_pipes[:insert_line_idx_kernels] + \
-                                   [storeq_syntax]
+        # Add call to wait for LSQ kernel completion.
+        combined_original_agu_pipes = add_lsq_event_wait(combined_original_agu_pipes)
 
-    if report['decouple_address']:
-        src_lines_with_pipes_and_agu += ["\n/// AGU", agu_kernel, "/// END AGU\n"]
+        # Combine all kernels together with the LSQ kernel.
+        all_combined = get_lsq_src() + kernelAGU_declaration + combined_original_agu_pipes
 
-    src_lines_with_pipes_and_agu += src_lines_with_pipes[insert_line_idx_kernels:]
+        with open(NEW_SRC_FILENAME, 'w') as f:
+            f.write('\n'.join(all_combined))
     
-    src_lines_with_storeq = insert_storeq_wait(src_lines_with_pipes_and_agu, insert_line_idx_kernels)
-    
-    with open(NEW_SRC_FILENAME, 'w') as f:
-        f.write('\n'.join(src_lines_with_storeq))

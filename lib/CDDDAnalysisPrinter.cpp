@@ -75,12 +75,12 @@ generateReport(Function &F, SmallVector<Instruction *> &bottlenecksI,
                       getInstructionTypeAsString);
 
       llvm::json::Object thisKernel;
-      thisKernel["in"] = std::move(thisKernelDepsIn);
-      thisKernel["out"] = std::move(thisKernelDepsOut);
+      thisKernel["dependencies_in"] = std::move(thisKernelDepsIn);
+      thisKernel["dependencies_out"] = std::move(thisKernelDepsOut);
       kernelDependencies.push_back(std::move(thisKernel));
     }
 
-    report["kernel_dependencies"] = std::move(kernelDependencies);
+    report["bottlenecks"] = std::move(kernelDependencies);
   }
 
   return report;

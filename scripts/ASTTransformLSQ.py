@@ -9,7 +9,6 @@ together (sycl pipes are just types/class names).
 This transformation could be implemented in clang to make it more robust (ASTTreeTransform, etc.). 
 """
 
-import re
 import sys
 
 from constants import GIT_DIR
@@ -34,7 +33,7 @@ def gen_store_queue_syntax(report, q_size):
 
     for i_base, base_addr in enumerate(report['base_addresses']):
         all_lsq_pipes += f'''
-        using val_type_{i_base} = {base_addr['array_type']};
+        using val_type_{i_base} = {llvm2ctype(base_addr['array_type'])};
         constexpr int kNumLoads_{i_base} = {base_addr['num_loads']};
         constexpr int kNumStores_{i_base} = {base_addr['num_stores']};
         constexpr int kQueueSize_{i_base} = {q_size};
@@ -110,17 +109,6 @@ def gen_val_pipe_connections(report):
     return pipe_calls
 
 
-# Point before the first call to q.submit
-def get_line_of_pattern(source_file_lines, re_pattern):
-    """Line of last pattern ocurrence."""
-    insert_line = -1
-    for i, line in enumerate(source_file_lines):
-        if re.findall(re_pattern, line):
-            insert_line = i
-
-    return insert_line
-
-
 if __name__ == '__main__':
     if len(sys.argv) < 5:
         sys.exit("USAGE: ./prog LOOP_REPORT_FILE SRC_FILE NEW_SRC_FILE Q_SIZE")
@@ -135,7 +123,7 @@ if __name__ == '__main__':
 
     report = parse_report(sys.argv[1])
 
-    kernel_body = get_kernel_body(source_file, report['kernel_name'])
+    kernel_body = get_kernel_body(source_file_lines, report['kernel_name'])
     agu_kernel_name = f'{report["kernel_name"]}_AGU'
     agu_kernel_class_decl = f'class {agu_kernel_name};'
 
@@ -167,8 +155,5 @@ if __name__ == '__main__':
     
     src_lines_with_storeq = insert_storeq_wait(src_lines_with_pipes_and_agu, insert_line_idx_kernels)
     
-    if len(sys.argv) > 4:
-        NEW_SRC_FILENAME = sys.argv[4]
-
     with open(NEW_SRC_FILENAME, 'w') as f:
         f.write('\n'.join(src_lines_with_storeq))

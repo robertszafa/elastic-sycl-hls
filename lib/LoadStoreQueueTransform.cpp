@@ -1,6 +1,7 @@
 #include "CommonLLVM.h"
 #include "DataHazardAnalysis.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/iterator_range.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -71,7 +72,7 @@ void deleteStoresAfterI(Function &F, DominatorTree &DT, Instruction *cutOffI,
                   deleteInstruction);
 }
 
-/// Given a memory instruction (load or store), change it to a sycl pipe write 
+/// Given a memory instruction (load or store), change it to a sycl pipe write
 /// instruction, where the value being written is the load/store address.
 /// Also, if the memInstr is a store, then increment the value at {baseTagAddr}.
 SmallVector<Instruction *> transformAddressGeneration(Function &F,
@@ -105,7 +106,7 @@ SmallVector<Instruction *> transformAddressGeneration(Function &F,
   Value *memInstAddr = isaStore(memInst)
                            ? dyn_cast<StoreInst>(memInst)->getPointerOperand()
                            : dyn_cast<LoadInst>(memInst)->getPointerOperand();
-  // Ensure address matches pipe idx type (we use i64). 
+  // Ensure address matches pipe idx type (we use i64).
   auto typeForAddressPipe = addressStore->getOperand(0)->getType();
   auto addressCastedToi64 = BitCastInst::CreatePointerCast(
       memInstAddr, typeForAddressPipe, "", dyn_cast<Instruction>(addressStore));
@@ -202,6 +203,11 @@ json::Value parseJsonReport() {
 struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
   json::Object report;
 
+  /// Keeps track of the number of data hazard clusters that were processed.
+  /// This is needed when transforming multiple address generation kernels,
+  /// where each kernel generates addresses for a different cluster.
+  int clusterIdx = 0;
+
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     Module *M = F.getParent();
 
@@ -223,7 +229,7 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
       // with mainKernelName. NOTE: Check only mainKernelName.size() characters.
       if (std::equal(mainKernelName.begin(), mainKernelName.end(),
                      thisKernelName.begin())) {
-        // Find out if this F should be an AGU or Main kernel, 
+        // Find out if this F should be an AGU or Main kernel,
         // or both if address generation is not decoupled.
         std::regex agu_kernel_regex{mainKernelName + "_AGU",
                                     std::regex_constants::ECMAScript};
@@ -240,9 +246,18 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
         auto *DHA = new DataHazardAnalysis(F, LI, SE, DT);
         auto dataHazardClusters = DHA->getResult();
 
+        // If we are processing a single AGU kernel, then we need to
+        // look only at one data hazard cluster.
+        auto dataHazardRange =
+            isDecoupledAddress && isAddressGenKernel
+                ? llvm::make_range(dataHazardClusters.begin() + clusterIdx,
+                                   dataHazardClusters.begin() + clusterIdx + 1)
+                : dataHazardClusters;
+        clusterIdx += int(isDecoupledAddress && isAddressGenKernel);
+
         // Keep track of instructions created during the pass.
         SmallVector<Instruction *> preserveIs;
-        for (auto &dataHazards : dataHazardClusters) {
+        for (auto &dataHazards : dataHazardRange) {
           SmallVector<Instruction *> stores = getStores(dataHazards);
           SmallVector<Instruction *> loads = getLoads(dataHazards);
 

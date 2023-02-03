@@ -26,7 +26,7 @@ def get_lsq_src():
         print(e)
         exit("ERROR getting lsq src")
 
-def gen_lsq_kernel_call(report, q_size):
+def gen_lsq_kernel_calls(report, q_size):
     result = []
 
     for i_base, base_addr in enumerate(report['base_addresses']):
@@ -61,7 +61,8 @@ def add_lsq_event_wait(src):
     return src[:insert_before_line] + lsq_event_wait_calls + src[insert_before_line:]
 
 def gen_pipes(report):
-    address_pipes = []
+    ld_address_pipes = []
+    st_address_pipes = []
     ld_value_pipes = []
     st_value_pipes = []
     lsq_signal_pipes = []
@@ -80,14 +81,14 @@ def gen_pipes(report):
         st_val_pipe = SyclPipe(
             f'pipe_st_val_{i_base}', val_type, depth=PIPE_DEPTH, write_repeat=base_addr['num_stores'])
 
-        address_pipes.append(ld_address_pipe_array)
-        address_pipes.append(st_address_pipe)
+        ld_address_pipes.append(ld_address_pipe_array)
+        st_address_pipes.append(st_address_pipe)
         ld_value_pipes.append(ld_val_pipe_array)
         st_value_pipes.append(st_val_pipe)
 
         lsq_signal_pipes.append(SyclPipe(f'pipe_end_lsq_signal_{i_base}', 'int'))
 
-    return address_pipes, ld_value_pipes, st_value_pipes, lsq_signal_pipes
+    return ld_address_pipes, st_address_pipes, ld_value_pipes, st_value_pipes, lsq_signal_pipes
 
 
 if __name__ == '__main__':
@@ -105,41 +106,61 @@ if __name__ == '__main__':
     report = parse_report(sys.argv[1])
 
     # Generate pipes given the report.
-    address_pipes, ld_value_pipes, st_value_pipes, lsq_signal_pipes = gen_pipes(report)
-    all_pipes = address_pipes + ld_value_pipes + st_value_pipes + lsq_signal_pipes
+    ld_address_pipes, st_address_pipes, ld_value_pipes, st_value_pipes, lsq_signal_pipes = gen_pipes(report)
+    all_pipes = ld_address_pipes + st_address_pipes + ld_value_pipes + st_value_pipes + lsq_signal_pipes
 
     # Insert pipe type declarations into the src file.
     src_with_pipe_decl = add_pipe_declarations(src_lines, all_pipes)
 
-    for i_base, base_address in enumerate(report['base_addresses']):
-        # Generate AGU kernel if decouple flag is set, otherwise AGU will be empty.
-        # The AGU kernel name will be forward declared to avoid mangling.
-        kernelAGU = gen_kernel_copy(src_lines, report['kernel_name'], f"{report['kernel_name']}_AGU_{i_base}")
-        kernelAGU_declaration = [f"class {report['kernel_name']}_AGU_{i_base};"] if report['decouple_address'] else []
-        kernelAGU_with_pipe_ops = add_pipe_ops(kernelAGU, [], address_pipes + lsq_signal_pipes) if report['decouple_address'] else []
+    # Insert call to LSQ kernels
+    lsq_calls = gen_lsq_kernel_calls(report, Q_SIZE)
+    src_with_pipe_decl_and_lsq_calls = insert_before_qsubmit(src_with_pipe_decl, lsq_calls)
 
-        # Add ld value reads and st value writes to original kernel. 
-        src_with_pipe_decl_and_ops = add_pipe_ops(src_with_pipe_decl, ld_value_pipes, st_value_pipes)
+    # Generate load value and store value pipes.
+    val_pipe_ops = []
+    for i_base in range(len(report['base_addresses'])):
+        val_pipe_ops.append(ld_value_pipes[i_base].read_op())
+        val_pipe_ops.append(st_value_pipes[i_base].write_op())
 
-        # If decoupled flag not set, also add address pipe writes to the original kernel.
-        if not report['decouple_address']:  # TODO: decoupling decision per each base
-            src_with_pipe_decl_and_ops = add_pipe_ops(src_with_pipe_decl_and_ops, [], address_pipes + lsq_signal_pipes)
+    # Generate LSQ reqeust pipes and end signal pipes.
+    lsq_pipe_ops = []
+    # The AGU kernel name is forward declared to avoid mangling.
+    agu_kernel_declarations = []
+    for i_base in range(len(report['base_addresses'])):
+        this_base = []
+        this_base.append(ld_address_pipes[i_base].write_op()) 
+        this_base.append(st_address_pipes[i_base].write_op())
+        this_base.append(lsq_signal_pipes[i_base].write_op())
 
-        # Add lsq kernel call.
-        lsq_call = gen_lsq_kernel_call(report, Q_SIZE)
-        src_with_pipe_decl_and_ops_and_lsq = insert_before_line(
-            src_with_pipe_decl_and_ops, get_qsubmit_line(src_with_pipe_decl_and_ops), lsq_call)
+        lsq_pipe_ops.append(this_base)
+        agu_kernel_declarations.append(f"class {report['kernel_name']}_AGU_{i_base};")
 
-        # Combine the created AGU kernel with the original kernel.
-        combined_original_agu_pipes = insert_before_line(
-            src_with_pipe_decl_and_ops_and_lsq, get_qsubmit_line(src_with_pipe_decl_and_ops_and_lsq), kernelAGU_with_pipe_ops)
+    # Add ld value reads and st value writes to original kernel. 
+    src_with_pipe_decl_lsq_calls_and_val_pipes = insert_after_qsubmit(src_with_pipe_decl_and_lsq_calls, val_pipe_ops)
 
-        # Add call to wait for LSQ kernel completion.
-        combined_original_agu_pipes = add_lsq_event_wait(combined_original_agu_pipes)
+    # Create address generation kernel if decoupled flag is set.
+    # Add lsq pipe ops to it. If flag not set, add them to orginal kernel.
+    agu_kernels = []
+    if report['decouple_address']:  # TODO: decoupling decision per each base
+        for i_base, base_addr in enumerate(report['base_addresses']):
+            agu_kernel = gen_kernel_copy(src_lines, report['kernel_name'], f"{report['kernel_name']}_AGU_{i_base}")
+            agu_kernel_str = "\n".join(insert_after_qsubmit(agu_kernel, lsq_pipe_ops[i_base]))
+            agu_kernels.append(agu_kernel_str)
+    else:  
+        flat_lsq_pipe_ops = list(map(lambda l: "\n".join(l), lsq_pipe_ops))
+        src_with_pipe_decl_lsq_calls_and_val_pipes = insert_after_qsubmit(
+            src_with_pipe_decl_lsq_calls_and_val_pipes, flat_lsq_pipe_ops)
 
-        # Combine all kernels together with the LSQ kernel.
-        all_combined = get_lsq_src() + kernelAGU_declaration + combined_original_agu_pipes
+    # Combine the created AGU kernel with the original kernel (no-op if AGU is empty).
+    combined_original_agu_pipes = insert_before_qsubmit(
+        src_with_pipe_decl_lsq_calls_and_val_pipes, agu_kernels)
 
-        with open(NEW_SRC_FILENAME, 'w') as f:
-            f.write('\n'.join(all_combined))
+    # Add call to wait for LSQ kernel completion.
+    combined_original_agu_pipes = add_lsq_event_wait(combined_original_agu_pipes)
+
+    # Combine all kernels together with the LSQ kernel.
+    all_combined = get_lsq_src() + agu_kernel_declarations + combined_original_agu_pipes
+
+    with open(NEW_SRC_FILENAME, 'w') as f:
+        f.write('\n'.join(all_combined))
     

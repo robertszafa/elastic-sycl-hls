@@ -58,7 +58,10 @@ class SyclPipe:
 
 def gen_kernel_copy(src_lines, kernel_name, copy_name):
     kernel_body = get_kernel_body(src_lines, kernel_name)
-    return f'{Q_NAME}.single_task<{copy_name}>{"".join(kernel_body)}'.splitlines()
+    return f'''\n/* THIS IS A COPY */
+    {Q_NAME}.submit([&](handler &hnd) {{
+        hnd.single_task<{copy_name}>{"".join(kernel_body)}
+    }});\n\n'''.splitlines()
 
 def add_pipe_ops(src_lines, read_pipes, write_pipes):
     read_ops = [p.read_op() for p in read_pipes]
@@ -70,11 +73,19 @@ def add_pipe_declarations(src_lines, pipes):
     declarations = [p.declaration() for p in pipes]
     return insert_before_line(src_lines, get_qsubmit_line(src_lines), declarations)
 
+def insert_before_qsubmit(src_lines, new_lines):
+    line_num = get_qsubmit_line(src_lines)
+    return src_lines[:line_num] + new_lines + src_lines[line_num:] 
+
+def insert_after_qsubmit(src_lines, new_lines):
+    line_num = get_qsubmit_line(src_lines)
+    return src_lines[:line_num+2] + new_lines + src_lines[line_num+2:] 
+
 def insert_before_line(src_lines, line_num, new_lines):
-    return src_lines[:line_num] + new_lines +src_lines[line_num:] 
+    return src_lines[:line_num] + new_lines + src_lines[line_num:] 
 
 def insert_after_line(src_lines, line_num, new_lines):
-    return src_lines[:line_num+1] + new_lines +src_lines[line_num+1:] 
+    return src_lines[:line_num+2] + new_lines + src_lines[line_num+2:] 
 
 def get_kernel_body(src_lines, kernel_name):
     src_string = "\n".join(src_lines)

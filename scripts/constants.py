@@ -23,6 +23,7 @@ KERNEL_ASIZE_PAIRS = {
 # Decrease domain sizes when running in simulation.
 KERNEL_ASIZE_PAIRS_SIM = {
     'histogram' : 1000,
+    'histogram_2_addresses' : 1000,
     'histogram_if' : 1000,
     'histogram_if_2' : 1000,
     'histogram_if_3' : 1000,

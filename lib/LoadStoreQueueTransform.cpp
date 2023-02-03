@@ -1,5 +1,5 @@
 #include "CommonLLVM.h"
-#include "DataHazardAnalysis.h"
+
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/iterator_range.h"
 #include "llvm/Support/Debug.h"
@@ -31,6 +31,22 @@ CallInst *getNthPipeCall(Function &F, const int n) {
       }
     }
   }
+
+  return nullptr;
+}
+
+CallInst *getPipeCall(Function &F, json::Object pipeInfo) {
+  /*
+        {
+          "pipe_name": "pipe_ld_val_0_0..",
+          "struct_id": 0
+        },
+        {
+          "pipe_name": "pipe_st_val_0..",
+          "struct_id": -1
+        }
+  */
+  // -1 means it's not a PipeArray
 
   return nullptr;
 }
@@ -183,7 +199,7 @@ void addEndLsqSignalPipeWrite(Function &F, CallInst *endSignalPipeWrite,
   endSignalPipeWrite->eraseFromParent();
 }
 
-/// Given json file name, return llvm::json::Value
+/// Given a json file name, return llvm::json::Value.
 json::Value parseJsonReport() {
   if (const char *fname = std::getenv("LOOP_RAW_REPORT")) {
     std::ifstream t(fname);
@@ -198,6 +214,49 @@ json::Value parseJsonReport() {
 
   assert("No LOOP_RAW_REPORT environment value.");
   return json::Value(nullptr);
+}
+
+/// Collect data hazard instructions (loads and stores) in {F}
+/// given a json report from a DataHazardAnalysis pass.
+SmallVector<SmallVector<Instruction *>>
+collectInstructionCluster(json::Object report, Function &F) {
+  /// Lambda to collect instructions from {F} given an array of descriptions.
+  auto getIsFromArray = [&F](json::Array instrDescriptions)  {
+    SmallVector<Instruction *> result;
+
+    for (json::Value &iVal : instrDescriptions) {
+      auto iObj = *iVal.getAsObject();
+      auto bbIdx = int(iObj["basic_block_idx"].getAsInteger().getValue());
+      auto instrIdx = int(iObj["instruction_idx"].getAsInteger().getValue());
+
+      // Given indexes of children in parents, arrive at the right instruction.
+      auto BB = getChildWithIndex<Function, BasicBlock>(&F, bbIdx);
+      auto I = getChildWithIndex<BasicBlock, Instruction>(BB, instrIdx);
+
+      result.push_back(I);
+    }
+
+    return result;
+  };
+
+  SmallVector<SmallVector<Instruction *>> clusters;
+  // Go over each base_address json value.
+  for (json::Value &baseAddr : *report["base_addresses"].getAsArray()) {
+    auto baseAddrObj = *baseAddr.getAsObject();
+
+    // Collect load store instructions for this base address (loads first).
+    SmallVector<Instruction *> thisClusterIs;
+    llvm::append_range(
+        thisClusterIs,
+        getIsFromArray(*baseAddrObj["load_instructions"].getAsArray()));
+    llvm::append_range(
+        thisClusterIs,
+        getIsFromArray(*baseAddrObj["store_instructions"].getAsArray()));
+
+    clusters.push_back(thisClusterIs);
+  }
+
+  return clusters;
 }
 
 struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
@@ -240,18 +299,13 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
             report["decouple_address"].getAsInteger().getValue() == 1;
 
         // Collect the same load/store instructions as during analysis.
-        auto &LI = AM.getResult<LoopAnalysis>(F);
-        auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
-        auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-        auto *DHA = new DataHazardAnalysis(F, LI, SE, DT);
-        auto dataHazardClusters = DHA->getResult();
-
+        auto dataHazardClusters = collectInstructionCluster(report, F);
         // If we are processing a single AGU kernel, then we need to
         // look only at one data hazard cluster.
+        auto thisClusterPtr = dataHazardClusters.begin() + clusterIdx;
         auto dataHazardRange =
             isDecoupledAddress && isAddressGenKernel
-                ? llvm::make_range(dataHazardClusters.begin() + clusterIdx,
-                                   dataHazardClusters.begin() + clusterIdx + 1)
+                ? llvm::make_range(thisClusterPtr, thisClusterPtr + 1)
                 : dataHazardClusters;
         clusterIdx += int(isDecoupledAddress && isAddressGenKernel);
 
@@ -288,6 +342,7 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
 
         // In the address generation kernel, delete all side effect instructions
         // not part of our {preserveIs}. The rest will be deleted by DCE.
+        auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
         if (isAddressGenKernel && isDecoupledAddress) {
           // This includes the data hazard stores, so get those first.
           SmallVector<Instruction *> allStores;
@@ -316,11 +371,7 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
   static bool isRequired() { return true; }
 
   void getAnalysisUsage(AnalysisUsage &AU) const {
-    AU.addRequiredID(LoopAnalysis::ID());
-    AU.addRequiredID(ScalarEvolutionAnalysis::ID());
     AU.addRequiredID(DominatorTreeAnalysis::ID());
-    AU.addRequiredID(PostDominatorTreeAnalysis::ID());
-    AU.addRequiredID(DependenceAnalysis::ID());
   }
 };
 

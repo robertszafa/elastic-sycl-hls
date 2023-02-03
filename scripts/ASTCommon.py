@@ -66,8 +66,7 @@ def gen_kernel_copy(src_lines, kernel_name, copy_name):
 def add_pipe_ops(src_lines, read_pipes, write_pipes):
     read_ops = [p.read_op() for p in read_pipes]
     write_ops = [p.write_op() for p in write_pipes]
-    line_inside_kernel = get_qsubmit_line(src_lines) + 1
-    return insert_after_line(src_lines, line_inside_kernel, read_ops + write_ops)
+    return insert_after_qsubmit(src_lines, read_ops + write_ops)
     
 def add_pipe_declarations(src_lines, pipes):
     declarations = [p.declaration() for p in pipes]

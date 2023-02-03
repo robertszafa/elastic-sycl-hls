@@ -34,8 +34,8 @@ def gen_lsq_kernel_calls(report, q_size):
         using val_type_{i_base} = {llvm2ctype(base_addr['array_type'])};
 
         auto lsqEvent_{i_base} = 
-            LoadStoreQueue<val_type_{i_base}, pipes_ld_address_{i_base}, pipes_ld_val_{i_base}, 
-                           pipe_st_address_{i_base}, pipe_st_val_{i_base}, pipe_end_lsq_signal_{i_base}, 
+            LoadStoreQueue<val_type_{i_base}, pipes_ld_req_{i_base}, pipes_ld_val_{i_base}, 
+                           pipe_st_req_{i_base}, pipe_st_val_{i_base}, pipe_end_lsq_signal_{i_base}, 
                            {base_addr['num_loads']}, {q_size}>({Q_NAME});
         ''')    
 
@@ -71,13 +71,13 @@ def gen_pipes(report):
         val_type = llvm2ctype(base_addr['array_type'])
 
         ld_address_pipe_array = SyclPipe(
-            f'pipes_ld_address_{i_base}', LSQ_REQUEST_TYPE, base_addr['num_loads'], PIPE_DEPTH)
+            f'pipes_ld_req_{i_base}', LSQ_REQUEST_TYPE, base_addr['num_loads'], PIPE_DEPTH)
         ld_val_pipe_array = SyclPipe(
             f'pipes_ld_val_{i_base}', val_type, base_addr['num_loads'], PIPE_DEPTH)
 
         # multiple store requests and values are merged onto one pipe
         st_address_pipe = SyclPipe(
-            f'pipe_st_address_{i_base}', LSQ_REQUEST_TYPE, depth=PIPE_DEPTH, write_repeat=base_addr['num_stores'])
+            f'pipe_st_req_{i_base}', LSQ_REQUEST_TYPE, depth=PIPE_DEPTH, write_repeat=base_addr['num_stores'])
         st_val_pipe = SyclPipe(
             f'pipe_st_val_{i_base}', val_type, depth=PIPE_DEPTH, write_repeat=base_addr['num_stores'])
 
@@ -106,8 +106,18 @@ if __name__ == '__main__':
     report = parse_report(sys.argv[1])
 
     # Generate pipes given the report.
-    ld_address_pipes, st_address_pipes, ld_value_pipes, st_value_pipes, lsq_signal_pipes = gen_pipes(report)
-    all_pipes = ld_address_pipes + st_address_pipes + ld_value_pipes + st_value_pipes + lsq_signal_pipes
+    ld_req_pipes, st_req_pipes, ld_val_pipes, st_val_pipes, lsq_signal_pipes = gen_pipes(report)
+    all_pipes = ld_req_pipes + st_req_pipes + ld_val_pipes + st_val_pipes + lsq_signal_pipes
+
+    for i_base, base_addr in enumerate(report['base_addresses']):
+        base_addr["kernel_agu_name"] = f"kernel_address_{i_base}" if report[
+            'decouple_address'] else report['kernel_name']
+        base_addr["pipes_ld_req"] = [{'name': p.name, 'struct_id': i, 'load_instruction': base_addr['load_instructions'][i]} for p in ld_req_pipes for i in range(p.amount) ]
+        base_addr["pipes_ld_val"] = [{'name': p.name, 'struct_id': i} for p in ld_val_pipes for i in range(p.amount) ]
+        base_addr["pipes_st_req"] = [{'name': p.name, 'struct_id': -1} for p in st_req_pipes]
+        base_addr["pipes_st_val"] = [{'name': p.name, 'struct_id': -1} for p in st_val_pipes]
+    
+    print(report)
 
     # Insert pipe type declarations into the src file.
     src_with_pipe_decl = add_pipe_declarations(src_lines, all_pipes)
@@ -119,8 +129,8 @@ if __name__ == '__main__':
     # Generate load value and store value pipes.
     val_pipe_ops = []
     for i_base in range(len(report['base_addresses'])):
-        val_pipe_ops.append(ld_value_pipes[i_base].read_op())
-        val_pipe_ops.append(st_value_pipes[i_base].write_op())
+        val_pipe_ops.append(ld_val_pipes[i_base].read_op())
+        val_pipe_ops.append(st_val_pipes[i_base].write_op())
 
     # Generate LSQ reqeust pipes and end signal pipes.
     lsq_pipe_ops = []
@@ -128,8 +138,8 @@ if __name__ == '__main__':
     agu_kernel_declarations = []
     for i_base in range(len(report['base_addresses'])):
         this_base = []
-        this_base.append(ld_address_pipes[i_base].write_op()) 
-        this_base.append(st_address_pipes[i_base].write_op())
+        this_base.append(ld_req_pipes[i_base].write_op()) 
+        this_base.append(st_req_pipes[i_base].write_op())
         this_base.append(lsq_signal_pipes[i_base].write_op())
 
         lsq_pipe_ops.append(this_base)

@@ -8,24 +8,20 @@ using namespace llvm;
 
 namespace llvm {
 
+/// Given an instruction, return a json object with its description. E.g.:
+///   {"basic_block_idx": 8, "instruction_idx": 9}
+json::Object genJsonForInstruction(Instruction *I) {
+  llvm::json::Object obj;
+  auto iBB = I->getParent();
+  obj["basic_block_idx"] = getIndexOfChild(iBB->getParent(), iBB);
+  obj["instruction_idx"] = getIndexOfChild(iBB, I);
+
+  return obj;
+}
+
 /// Return a json object recording the data hazard analysis result.
-///
-// Example report for histogram_if:
-// {
-//   "base_addresses": [
-//     {
-//       "array_type": "float",
-//       "num_loads": 1,
-//       "num_stores": 1
-//     }
-//   ],
-//   "decouple_address": 1,
-//   "kernel_class_name": "typeinfo name for MainKernel",
-//   "spir_func_name": "histogram_if_kernel(cl::sycl::queue&, ...)"
-// }
-json::Object
-generateReport(Function &F,
-               SmallVector<SmallVector<Instruction *>> &memInstrsAll) {
+json::Object genReport(Function &F,
+                       SmallVector<SmallVector<Instruction *>> &iClustsers) {
   json::Object report;
   auto callers = getCallerFunctions(F.getParent(), F);
 
@@ -33,17 +29,32 @@ generateReport(Function &F,
   if (callers.size() == 1) {
     report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
     report["spir_func_name"] = demangle(std::string(F.getName()));
+
     json::Array base_addresses;
-    for (auto &memInstrs : memInstrsAll) {
+    // For each instruction cluster, create a 'base_address' json object
+    // that describes the hazardous instructions, decoupling decision, types...
+    for (auto &instrCluster : iClustsers) {
+      SmallVector<Instruction *> loads = getLoads(instrCluster);
+      SmallVector<Instruction *> stores = getStores(instrCluster);
+
       llvm::json::Object thisBaseAddr;
-      thisBaseAddr["num_loads"] = llvm::count_if(memInstrs, isaLoad);
-      thisBaseAddr["num_stores"] = llvm::count_if(memInstrs, isaStore);
-      // TODO: deal with different types
+      thisBaseAddr["num_loads"] = loads.size();
+      thisBaseAddr["num_stores"] = stores.size();
+
       std::string typeStr;
       llvm::raw_string_ostream rso(typeStr);
-      memInstrs[0]->getOperand(0)->getType()->print(rso);
+      instrCluster[0]->getOperand(0)->getType()->print(rso);
       thisBaseAddr["array_type"] = typeStr;
-      // int(memInstrs[0]->getOperand(0)->getType()->getPrimitiveSizeInBits());
+
+      json::Array loadIs;
+      for (auto &iLd : loads) 
+        loadIs.push_back(std::move(genJsonForInstruction(iLd)));
+      thisBaseAddr["load_instructions"] = std::move(loadIs);
+
+      json::Array storeIs;
+      for (auto &iSt : stores) 
+        storeIs.push_back(std::move(genJsonForInstruction(iSt)));
+      thisBaseAddr["store_instructions"] = std::move(storeIs);
 
       base_addresses.push_back(std::move(thisBaseAddr));
     }
@@ -61,7 +72,7 @@ void dataHazardPrinter(Function &F, LoopInfo &LI, ScalarEvolution &SE,
   auto decouplingDecisions = DHA->getDecoupligDecisions();
 
   if (hazardInstrs.size() > 0) {
-    json::Object report = generateReport(F, hazardInstrs);
+    json::Object report = genReport(F, hazardInstrs);
 
     // TODO: Treat each base address decouplig separately.
     int canDecoupleAddress =

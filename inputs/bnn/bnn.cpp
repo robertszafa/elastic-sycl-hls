@@ -28,31 +28,28 @@ double bnn_kernel(queue &q, std::vector<int> &h_addr_in, std::vector<int> &h_add
   int *mean = fpga_tools::toDevice(h_mean, q);
   int *w = fpga_tools::toDevice(h_w, q);
 
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-      /////////////////////////////////// KERNEL CODE /////////////////////////////////////////////
-      for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-          int x = i * N + j;
-          int lut = in[x] ^ w[x];
-          data[addr_in[x]] += lut * alpha;
-        }
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    for (int i = 0; i < N; i++) {
+      for (int j = 0; j < N; j++) {
+        int x = i * N + j;
+        int lut = in[x] ^ w[x];
+        data[addr_in[x]] += lut * alpha;
+      }
 
-        if (i == (N-1)) {
-          for (int k = 0; k < N; k++) {
-            int y = i * N + k;
-            int m = mean[y];
-            int temp = data[addr_out[y]];
-            int z;
-            if (temp > 0)
-              z = temp - m;
-            else
-              z = temp + m;
-            data[addr_out[y]] = z;
-          }
+      if (i == (N - 1)) {
+        for (int k = 0; k < N; k++) {
+          int y = i * N + k;
+          int m = mean[y];
+          int temp = data[addr_out[y]];
+          int z;
+          if (temp > 0)
+            z = temp - m;
+          else
+            z = temp + m;
+          data[addr_out[y]] = z;
         }
       }
-    });
+    }
   });
 
   event.wait();

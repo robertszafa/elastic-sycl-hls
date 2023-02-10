@@ -25,17 +25,15 @@ double get_tanh_double_kernel(queue &q, std::vector<double> &h_A, const std::vec
   int* addr_in = fpga_tools::toDevice(h_addr_in, q);
   int* addr_out = fpga_tools::toDevice(h_addr_out, q);
 
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-      double result, is_neg, beta;
-      for (int i = 0; i < array_size; i++) {
-        beta = A[addr_in[i]];
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    double result, is_neg, beta;
+    for (int i = 0; i < array_size; i++) {
+      beta = A[addr_in[i]];
 
-        result = ((beta*beta+19.52381)*beta*beta+3.704762)*beta;
+      result = ((beta * beta + 19.52381) * beta * beta + 3.704762) * beta;
 
-        A[addr_out[i]] = result;
-      }
-    });
+      A[addr_out[i]] = result;
+    }
   });
 
   event.wait();

@@ -24,27 +24,23 @@ double histogram_if_kernel(queue &q, const std::vector<int> &h_idx, const std::v
   float *hist = fpga_tools::toDevice(h_hist, q);
   int *weight = fpga_tools::toDevice(h_weight, q);
 
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-      /////////////////////////////////// KERNEL CODE /////////////////////////////////////////////
-      for (int i = 0; i < array_size; ++i) {
-        auto wt = weight[i];
-        auto idx_scalar = idx[i];
-        auto x = hist[idx_scalar];
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    for (int i = 0; i < array_size; ++i) {
+      auto wt = weight[i];
+      auto idx_scalar = idx[i];
+      auto x = hist[idx_scalar];
 
-        if (wt > 0) {
-          hist[idx_scalar] = x + 10.0;
-        } else if (wt == 0) {
-          if (idx_scalar == 1)
-            hist[idx_scalar] = x * 2.0;
-          else
-            hist[idx_scalar] = x - 20.0;
-        } else {
-          hist[idx_scalar] = x - 10.0;
-        }
+      if (wt > 0) {
+        hist[idx_scalar] = x + 10.0;
+      } else if (wt == 0) {
+        if (idx_scalar == 1)
+          hist[idx_scalar] = x * 2.0;
+        else
+          hist[idx_scalar] = x - 20.0;
+      } else {
+        hist[idx_scalar] = x - 10.0;
       }
-      /////////////////////////////////// KERNEL CODE /////////////////////////////////////////////
-    });
+    }
   });
 
   event.wait();

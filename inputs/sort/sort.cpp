@@ -21,20 +21,18 @@ double sort_kernel(queue & q, std::vector<int> &h_arr) {
   int *arr = fpga_tools::toDevice(h_arr, q);
   const int n = h_arr.size();
 
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-      int i, j;
-      for (i = 0; i < n - 1; i++) {
-        for (j = 0; j < n - i - 1; j++) {
-          auto left = arr[j];
-          auto right = arr[j + 1];
-          if (left > right) {
-            arr[j] = right;
-            arr[j+1] = left;
-          }
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    int i, j;
+    for (i = 0; i < n - 1; i++) {
+      for (j = 0; j < n - i - 1; j++) {
+        auto left = arr[j];
+        auto right = arr[j + 1];
+        if (left > right) {
+          arr[j] = right;
+          arr[j + 1] = left;
         }
       }
-    });
+    }
   });
 
   event.wait();

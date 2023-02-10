@@ -23,29 +23,27 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges, std::v
   int *vertices = fpga_tools::toDevice(h_vertices, q);
   int *out = fpga_tools::toDevice(h_out, 1, q);
 
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-      int i = 0;
-      int out_scalar = 0;
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    int i = 0;
+    int out_scalar = 0;
 
-      while (i < num_edges) {
-        int j = i * 2;
+    while (i < num_edges) {
+      int j = i * 2;
 
-        int e1 = edges[j];
-        int e2 = edges[j + 1];
+      int e1 = edges[j];
+      int e2 = edges[j + 1];
 
-        if ((vertices[e1] < 0) && (vertices[e2] < 0)) {
-          vertices[e1] = e2;
-          vertices[e2] = e1;
+      if ((vertices[e1] < 0) && (vertices[e2] < 0)) {
+        vertices[e1] = e2;
+        vertices[e2] = e1;
 
-          out_scalar = out_scalar + 1;
-        }
-
-        i = i + 1;
+        out_scalar = out_scalar + 1;
       }
 
-      *out = out_scalar;
-    });
+      i = i + 1;
+    }
+
+    *out = out_scalar;
   });
 
   event.wait();

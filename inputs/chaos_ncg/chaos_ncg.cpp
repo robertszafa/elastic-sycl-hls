@@ -21,32 +21,30 @@ double chaos_ncg_kernel(queue &q, int I, int bo, int X, int Y, int params0, int 
   int *M = fpga_tools::toDevice(h_M, q);
   int *buffer = fpga_tools::toDevice(h_buffer, q);
 
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-      int bound = 2 * bo;
-      int p0 = params0;
-      int p1 = params1;
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    int bound = 2 * bo;
+    int p0 = params0;
+    int p1 = params1;
 
-      for (int i = 0; i < bound; i += 2) {
-        int a = M[I + i - 2], b = M[I + i + 2];
-        int b0 = buffer[a], b1 = buffer[b];
-        p0 ^= b0, p1 ^= b1;
-        p1 ^= (Y << (p0 % 17) | Y >> (16 - p0 % 17));
-        p0 ^= p1;
-        p1 += (X & p0);
-        int out0 = b0 - p1;
-        p0 += (X << (p1 % 17) | X >> (16 - p1 % 17));
-        p1 += p0;
-        p0 += (Y & p1);
-        int out1 = b1 + p0;
-        int pp0 = p0;
-        int pp1 = p1;
-        buffer[a] = out0;
-        p0 = pp0;
-        p1 = pp1;
-        buffer[b] = out1;
-      }
-    });
+    for (int i = 0; i < bound; i += 2) {
+      int a = M[I + i - 2], b = M[I + i + 2];
+      int b0 = buffer[a], b1 = buffer[b];
+      p0 ^= b0, p1 ^= b1;
+      p1 ^= (Y << (p0 % 17) | Y >> (16 - p0 % 17));
+      p0 ^= p1;
+      p1 += (X & p0);
+      int out0 = b0 - p1;
+      p0 += (X << (p1 % 17) | X >> (16 - p1 % 17));
+      p1 += p0;
+      p0 += (Y & p1);
+      int out1 = b1 + p0;
+      int pp0 = p0;
+      int pp1 = p1;
+      buffer[a] = out0;
+      p0 = pp0;
+      p1 = pp1;
+      buffer[b] = out1;
+    }
   });
 
   event.wait();

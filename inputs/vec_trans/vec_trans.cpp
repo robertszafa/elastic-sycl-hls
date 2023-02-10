@@ -24,14 +24,16 @@ double vec_trans_kernel(queue &q, std::vector<int> &h_A, const std::vector<int> 
   int *A = fpga_tools::toDevice(h_A, q);
   int *b = fpga_tools::toDevice(h_b, q);
 
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-      for (int i = 0; i < N; i++) {
-        int d = A[i];
-        A[b[i]] = (((((((d + 112) * d + 23) * d + 36) * d + 82) * d + 127) * d + 2) * d + 20) * d +
-                  100;
-      }
-    });
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    for (int i = 0; i < N; i++) {
+      int d = A[i];
+      A[b[i]] =
+          (((((((d + 112) * d + 23) * d + 36) * d + 82) * d + 127) * d + 2) *
+               d +
+           20) *
+              d +
+          100;
+    }
   });
 
   event.wait();

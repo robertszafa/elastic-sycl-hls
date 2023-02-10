@@ -26,33 +26,31 @@ double sssp_kernel(queue & q, const std::vector<int> &h_G, std::vector<int> &h_c
   int *visited = fpga_tools::toDevice(h_visited, q);
   int *pred = fpga_tools::toDevice(h_pred, q);
 
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-      int count = 1;
-      while (count < numNodes - 1) {
-        int mindistance = INT_MAX;
-        int nextnode = 0;
-        // nextnode gives the node at minimum distance
-        for (int i = 0; i < numNodes; i++) {
-          if (distance[i] < mindistance && !visited[i]) {
-            mindistance = distance[i];
-            nextnode = i;
-          }
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    int count = 1;
+    while (count < numNodes - 1) {
+      int mindistance = INT_MAX;
+      int nextnode = 0;
+      // nextnode gives the node at minimum distance
+      for (int i = 0; i < numNodes; i++) {
+        if (distance[i] < mindistance && !visited[i]) {
+          mindistance = distance[i];
+          nextnode = i;
         }
-
-        // check if a better path exists through nextnode
-        visited[nextnode] = 1;
-        
-        for (int i = 0; i < numNodes; i++) {
-          if (!visited[i] && mindistance + cost[nextnode * numNodes + i] < distance[i]) {
-            distance[i] = mindistance + cost[nextnode * numNodes + i];
-            pred[i] = nextnode;
-          }
-        }
-        count++;
       }
 
-    });
+      // check if a better path exists through nextnode
+      visited[nextnode] = 1;
+
+      for (int i = 0; i < numNodes; i++) {
+        if (!visited[i] &&
+            mindistance + cost[nextnode * numNodes + i] < distance[i]) {
+          distance[i] = mindistance + cost[nextnode * numNodes + i];
+          pred[i] = nextnode;
+        }
+      }
+      count++;
+    }
   });
 
   event.wait();

@@ -27,20 +27,16 @@ double histogram_2_addresses_kernel(queue &q, const std::vector<int> &h_idx,
   int *idx2 = fpga_tools::toDevice(h_idx2, q);
   auto *hist2 = fpga_tools::toDevice(h_hist2, q);
 
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-      /////////////////////////////////// KERNEL CODE /////////////////////////////////////////////
-      for (int i = 0; i < array_size; ++i) {
-        auto idx_scalar = idx[i];
-        auto x = hist[idx_scalar];
-        hist[idx_scalar] = x + 10.0;
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    for (int i = 0; i < array_size; ++i) {
+      auto idx_scalar = idx[i];
+      auto x = hist[idx_scalar];
+      hist[idx_scalar] = x + 10.0;
 
-        auto idx_scalar2 = idx2[i];
-        auto x2 = hist2[idx_scalar2];
-        hist2[idx_scalar2] = x2 + 3;
-      }
-      /////////////////////////////////// KERNEL CODE /////////////////////////////////////////////
-    });
+      auto idx_scalar2 = idx2[i];
+      auto x2 = hist2[idx_scalar2];
+      hist2[idx_scalar2] = x2 + 3;
+    }
   });
 
   event.wait();

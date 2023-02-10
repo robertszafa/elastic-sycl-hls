@@ -49,7 +49,7 @@ if __name__ == '__main__':
     
     for kernel, a_size in KERNEL_ASIZE_PAIRS.items():
         print('\nKernel:', kernel)
-        compile_cmd = f'{GIT_DIR}/driver.sh {exec_type} {GIT_DIR}/inputs/{kernel}/{kernel}.cpp 8'
+        compile_cmd = f'{GIT_DIR}/driverLSQ.sh {exec_type} {GIT_DIR}/inputs/{kernel}/{kernel}.cpp 8'
         if not is_debug:
             compile_cmd += f' > {TMP_FILE} 2>&1'
         os.system(compile_cmd)

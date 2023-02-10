@@ -24,18 +24,12 @@ double spmv_kernel(queue &q, std::vector<float> &h_matrix, const std::vector<int
   int *col = fpga_tools::toDevice(h_col, q);
   float *a = fpga_tools::toDevice(h_a, q);
 
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-      for (int k = 1; k < M; k++) {
-        for (int p = 0; p < M; p++) {
-          matrix[k * M + row[p]] += a[p] * matrix[(k - 1) * M + col[p]];
-
-          // auto tmp = PipelinedLSU::load(sycl::device_ptr<float>(matrix + (k * M + row[p])));
-          // tmp += a[p] * PipelinedLSU::load(sycl::device_ptr<float>(matrix + ((k - 1) * M + col[p])));
-          // PipelinedLSU::store(sycl::device_ptr<float>(matrix + (k * M + row[p])), tmp);
-        }
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    for (int k = 1; k < M; k++) {
+      for (int p = 0; p < M; p++) {
+        matrix[k * M + row[p]] += a[p] * matrix[(k - 1) * M + col[p]];
       }
-    });
+    }
   });
 
   event.wait();

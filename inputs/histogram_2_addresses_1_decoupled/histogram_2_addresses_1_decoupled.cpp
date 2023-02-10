@@ -8,7 +8,6 @@
 
 #include <sycl/ext/intel/fpga_extensions.hpp>
 
-
 #include "memory_utils.hpp"
 
 using namespace sycl;
@@ -16,27 +15,36 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-double histogram_if_kernel(queue &q, const std::vector<int> &h_idx, const std::vector<int> &h_weight,
-                           std::vector<float> &h_hist) {
+double histogram_2_addresses_1_decoupled_kernel(queue &q,
+                                                const std::vector<int> &h_idx,
+                                                std::vector<float> &h_hist,
+                                                const std::vector<int> &h_idx2,
+                                                std::vector<int> &h_hist2) {
   const int array_size = h_idx.size();
 
   int *idx = fpga_tools::toDevice(h_idx, q);
   float *hist = fpga_tools::toDevice(h_hist, q);
-  int* weight = fpga_tools::toDevice(h_weight, q);
 
-  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < array_size; ++i) {
-      auto wt = weight[i];
-      auto idx_scalar = idx[i];
-      auto x = hist[idx_scalar];
+  int *idx2 = fpga_tools::toDevice(h_idx2, q);
+  auto *hist2 = fpga_tools::toDevice(h_hist2, q);
 
-      if (wt > 0)
-        hist[idx_scalar] = x + 10.0;
-    }
-  });
+  auto event = q.single_task<MainKernel>(
+      [=]() [[intel::kernel_args_restrict]] {
+        for (int i = 0; i < array_size; ++i) {
+          auto idx_scalar = idx[i];
+          auto x = hist[idx_scalar];
+          hist[idx_scalar] = x + 10.0;
+
+          auto idx_scalar2 = idx2[i];
+          auto x2 = hist2[idx_scalar2];
+          if (x2 > 0) // this cannot be decoupled.
+            hist2[idx_scalar2] = x2 + 3;
+        }
+      });
 
   event.wait();
   q.copy(hist, h_hist.data(), h_hist.size()).wait();
+  q.copy(hist2, h_hist2.data(), h_hist2.size()).wait();
 
   sycl::free(idx, q);
   sycl::free(hist, q);
@@ -48,38 +56,34 @@ double histogram_if_kernel(queue &q, const std::vector<int> &h_idx, const std::v
   return time_in_ms;
 }
 
-void histogram_if_cpu(const int *idx, const int *weight, float *hist, const int N) {
+void histogram_cpu(const int *idx, float *hist, const int *idx2, int *hist2,
+                   const int N) {
   for (int i = 0; i < N; ++i) {
-    auto wt = weight[i];
     auto idx_scalar = idx[i];
     auto x = hist[idx_scalar];
+    hist[idx_scalar] = x + 10.0;
 
-    if (wt > 0)
-      hist[idx_scalar] = x + 10.0;
+    auto idx_scalar2 = idx2[i];
+    auto x2 = hist2[idx_scalar2];
+    hist2[idx_scalar2] = x2 + 3;
   }
 }
 
 enum data_distribution { ALL_WAIT, NO_WAIT, PERCENTAGE_WAIT };
-void init_data(std::vector<int> &feature, std::vector<int> &weight, std::vector<float> &hist,
-               const data_distribution distr, const int percentage) {
+void init_data(std::vector<int> &feature, const data_distribution distr,
+               const int percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 100);
   auto dice = std::bind (distribution, generator);
 
   int counter=0;
   for (int i = 0; i < feature.size(); i++) {
-    if (distr == data_distribution::ALL_WAIT) {
+    if (distr == data_distribution::ALL_WAIT) 
       feature[i] = (feature.size() >= 4) ? i % 4 : 0;
-    }
-    else if (distr == data_distribution::NO_WAIT) {
+    else if (distr == data_distribution::NO_WAIT) 
       feature[i] = i;
-    }
-    else {
+    else 
       feature[i] = (dice() <= percentage) ? feature[std::max(i-1, 0)] : i;
-    }
-
-    weight[i] = (i % 2 == 0) ? 1 : 0;
-    hist[i] = 0.0;
   }
 }
 
@@ -139,31 +143,39 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: " << q.get_device().get_info<info::device::name>() << "\n";
 
     std::vector<int> feature(ARRAY_SIZE);
-    std::vector<int> weight(ARRAY_SIZE);
-    std::vector<float> hist(ARRAY_SIZE);
+    std::vector<int> feature2(ARRAY_SIZE);
+    std::vector<float> hist(ARRAY_SIZE, 0.0);
+    std::vector<int> hist2(ARRAY_SIZE, 0);
     std::vector<float> hist_cpu(ARRAY_SIZE);
+    std::vector<int> hist2_cpu(ARRAY_SIZE);
 
-    init_data(feature, weight, hist, DATA_DISTR, PERCENTAGE);
+    init_data(feature, DATA_DISTR, PERCENTAGE);
+    init_data(feature2, DATA_DISTR, PERCENTAGE);
     std::copy(hist.begin(), hist.end(), hist_cpu.begin());
+    std::copy(hist2.begin(), hist2.end(), hist2_cpu.begin());
 
     auto start = std::chrono::steady_clock::now();
     double kernel_time = 0;
 
-    kernel_time = histogram_if_kernel(q, feature, weight, hist);
+    kernel_time = histogram_2_addresses_1_decoupled_kernel(q, feature, hist, feature2, hist2);
 
     // Wait for all work to finish.
     q.wait();
 
-    histogram_if_cpu(feature.data(), weight.data(), hist_cpu.data(), hist_cpu.size());
+    histogram_cpu(feature.data(), hist_cpu.data(), feature2.data(),
+                  hist2_cpu.data(), hist_cpu.size());
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    if (std::equal(hist.begin(), hist.end(), hist_cpu.begin())) {
+    if (std::equal(hist.begin(), hist.end(), hist_cpu.begin()) &&
+        std::equal(hist2.begin(), hist2.end(), hist2_cpu.begin())) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed\n";
       std::cout << "sum(fpga) = " << std::accumulate(hist.begin(), hist.end(), 0.0) << "\n";
-      std::cout << "sum(cpu) = " << std::accumulate(hist_cpu.begin(), hist_cpu.end(), 0.0) << "\n";
+      std::cout << "sum(cpu) = " << std::accumulate(hist_cpu.begin(), hist_cpu.end(), 0.0) << "\n--\n";
+      std::cout << "sum(fpga) = " << std::accumulate(hist2.begin(), hist2.end(), 0.0) << "\n";
+      std::cout << "sum(cpu) = " << std::accumulate(hist2_cpu.begin(), hist2_cpu.end(), 0.0) << "\n";
     }
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";

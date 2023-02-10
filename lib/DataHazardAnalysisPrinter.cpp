@@ -19,6 +19,17 @@ json::Object genJsonForInstruction(Instruction *I) {
   return obj;
 }
 
+/// Return the line associated witht he return from {F}.
+int getReturnLine(Function &F) {
+  for (auto &BB : llvm::reverse(F)) {
+    if (auto retI = dyn_cast<ReturnInst>(BB.getTerminator())) {
+      return retI->getDebugLoc().getLine();
+    }
+  }
+
+  return -1;
+}
+
 /// Return a json object recording the data hazard analysis result.
 json::Object genReport(Function &F,
                        SmallVector<SmallVector<Instruction *>> &iClustsers) {
@@ -29,6 +40,8 @@ json::Object genReport(Function &F,
   if (callers.size() == 1) {
     report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
     report["spir_func_name"] = demangle(std::string(F.getName()));
+    report["kernel_start_line"] = callers[0]->getSubprogram()->getLine();
+    report["kernel_end_line"] = getReturnLine(F);
 
     json::Array base_addresses;
     // For each instruction cluster, create a 'base_address' json object

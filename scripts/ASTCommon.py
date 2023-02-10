@@ -3,11 +3,11 @@
 import re
 import json
 
-# TODO: get queue name from llvm pass
-Q_NAME = 'q'
-
-# This has false positives but we use it only on strings that have a variable name at the beginning
 C_VAR_REGEX = r'([a-zA-Z_][a-zA-Z0-9_]*)'
+
+# This regexes is guaranteed to be run on a line "... = {QUEUE}.single_task<..."
+# i.e. there will be a space before {QUEUE}
+QUEUE_NAME_REGEX = r"\s+" + C_VAR_REGEX + r"\.single_task<"
 
 class SyclPipe:
     def __init__(self, name, ctype, amount=None, depth=None, write_repeat=None, write_value=None):
@@ -56,50 +56,29 @@ class SyclPipe:
         return self.name
 
 
-def gen_kernel_copy(src_lines, kernel_name, copy_name):
-    kernel_body = get_kernel_body(src_lines, kernel_name)
-    return f'''\n/* THIS IS A COPY */
-    {Q_NAME}.submit([&](handler &hnd) {{
-        hnd.single_task<{copy_name}>{"".join(kernel_body)}
-    }});\n\n'''.splitlines()
-
-def add_pipe_ops(src_lines, read_pipes, write_pipes):
-    read_ops = [p.read_op() for p in read_pipes]
-    write_ops = [p.write_op() for p in write_pipes]
-    return insert_after_qsubmit(src_lines, read_ops + write_ops)
-    
-def add_pipe_declarations(src_lines, pipes):
-    declarations = [p.declaration() for p in pipes]
-    return insert_before_line(src_lines, get_qsubmit_line(src_lines), declarations)
-
-def insert_before_qsubmit(src_lines, new_lines):
-    line_num = get_qsubmit_line(src_lines)
-    return src_lines[:line_num] + new_lines + src_lines[line_num:] 
-
-def insert_after_qsubmit(src_lines, new_lines):
-    line_num = get_qsubmit_line(src_lines)
-    return src_lines[:line_num+2] + new_lines + src_lines[line_num+2:] 
+def gen_kernel_copy(q_name, kernel_body, kernel_copy_name):
+    kernel_body_str = "\n".join(kernel_body)
+    return f'''{q_name}.single_task<{kernel_copy_name}>([=]() [[intel::kernel_args_restrict]] {{
+            {kernel_body_str}
+        }});\n'''.splitlines()
 
 def insert_before_line(src_lines, line_num, new_lines):
-    return src_lines[:line_num] + new_lines + src_lines[line_num:] 
+    # Remember lines start at 1; python lists start at 0
+    return src_lines[:line_num-1] + new_lines + src_lines[line_num-1:] 
 
 def insert_after_line(src_lines, line_num, new_lines):
-    return src_lines[:line_num+2] + new_lines + src_lines[line_num+2:] 
+    # Remember lines start at 1; python lists start at 0
+    return src_lines[:line_num] + new_lines + src_lines[line_num:] 
 
-def get_kernel_body(src_lines, kernel_name):
-    src_string = "\n".join(src_lines)
-    body = ""
-    m = re.findall(r'<\s*(?:class\s+)?' + kernel_name +
-                   r'\s*>\s*(\(.*?}\s*\)\s*;)', src_string, re.DOTALL)
+def get_kernel_body(src_lines, start_line, end_line):
+    return src_lines[start_line : end_line-1]
+
+def get_queue_name(line):
+    m = re.findall(QUEUE_NAME_REGEX, line)
     if m:
-        body = m[0]
-    else:
-        exit("Failed match kernel body.")
+        return m[0]
 
-    return body
-
-def get_qsubmit_line(src_lines):
-    return get_line_of_pattern(src_lines, Q_NAME + r'\.submit')
+    exit("ERROR getting queue name.")
 
 # Point before the first call to q.submit
 def get_line_of_pattern(src_lines, re_pattern):
@@ -110,14 +89,6 @@ def get_line_of_pattern(src_lines, re_pattern):
             insert_line = i
 
     return insert_line
-
-def get_array_name(line_with_array, end_col):
-    array = ""
-    m = re.findall(C_VAR_REGEX, str(line_with_array[:end_col]))
-    if m:
-        array = m[0]
-
-    return array
 
 def llvm2ctype(llvmtype):
     if llvmtype == 'i8':

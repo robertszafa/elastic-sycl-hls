@@ -77,6 +77,35 @@ getStores(const SmallVector<Instruction *> &memInstr) {
   return callers;
 }
 
+/// Return the index of {child} inside of the default traverse of {parent}. 
+/// Returns -1 if not found.
+template <typename T1, typename T2> 
+[[maybe_unused]] int getIndexOfChild(T1 *Parent, T2 *Child) {
+  int idx = -1;
+  for (auto &ch : *Parent) {
+    idx++;
+    if (&ch == Child)
+      break;
+  }
+  
+  return idx;
+}
+
+/// Return the Child at {idx} in {Parent}. Return a nullptr if out of bounds.
+template <typename T1, typename T2> 
+[[maybe_unused]] T2 *getChildWithIndex(T1 *Parent, int idx) {
+  int i = 0;
+  for (auto &ch : *Parent) {
+    if (i == idx)
+      return &ch;
+    i++;
+  }
+  
+  return nullptr;
+}
+
+
+
 } // namespace
 
 #endif

@@ -1,7 +1,7 @@
 ## Overview
 This repository contains the source file of llvm passes intended to be run on SYCL/OpenCL FPGA code.
 The passes are developed out-of-tree, and intended to be loaded as a .so by the llvm _opt_ tool.
-The inputs/driver.sh scripts demonstrates how the passes can be integrated into a compile cycle.
+The driverLSQ.sh script demonstrates how the passes can be integrated into a compile cycle.
 
 ---
 
@@ -33,6 +33,6 @@ The inputs/driver.sh scripts demonstrates how the passes can be integrated into 
 
 ---
 
-## Run:
+## Run LSQ transformation:
 
-`driver.sh emu|sim|hw file [2|4|8|16|...]`
+`driverLSQ.sh emu|sim|hw file [2|4|8|16|... (default 8)]`

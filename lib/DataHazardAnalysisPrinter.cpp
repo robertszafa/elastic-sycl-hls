@@ -31,8 +31,7 @@ int getReturnLine(Function &F) {
 }
 
 /// Return a json object recording the data hazard analysis result.
-json::Object genReport(Function &F,
-                       SmallVector<SmallVector<Instruction *>> &iClustsers) {
+json::Object genReport(Function &F, DataHazardAnalysis &DHA) {
   json::Object report;
   auto callers = getCallerFunctions(F.getParent(), F);
 
@@ -46,13 +45,17 @@ json::Object genReport(Function &F,
     json::Array base_addresses;
     // For each instruction cluster, create a 'base_address' json object
     // that describes the hazardous instructions, decoupling decision, types...
-    for (auto &instrCluster : iClustsers) {
+    for (size_t iC = 0; iC < DHA.getResult().size(); ++iC) {
+      auto instrCluster = DHA.getResult()[iC];
+
       SmallVector<Instruction *> loads = getLoads(instrCluster);
       SmallVector<Instruction *> stores = getStores(instrCluster);
 
       llvm::json::Object thisBaseAddr;
       thisBaseAddr["num_loads"] = loads.size();
       thisBaseAddr["num_stores"] = stores.size();
+
+      thisBaseAddr["decouple_address"] = DHA.getDecoupligDecisions()[iC];
 
       std::string typeStr;
       llvm::raw_string_ostream rso(typeStr);
@@ -81,30 +84,21 @@ void dataHazardPrinter(Function &F, LoopInfo &LI, ScalarEvolution &SE,
                        DominatorTree &DT) {
   // Get all memory loads and stores that form a RAW hazard dependence.
   auto *DHA = new DataHazardAnalysis(F, LI, SE, DT);
-  auto hazardInstrs = DHA->getResult();
-  auto decouplingDecisions = DHA->getDecoupligDecisions();
 
-  if (hazardInstrs.size() > 0) {
-    json::Object report = genReport(F, hazardInstrs);
-
-    // TODO: Treat each base address decouplig separately.
-    int canDecoupleAddress =
-        int(llvm::all_of(decouplingDecisions, [](auto e) { return e; }));
-    report["decouple_address"] = canDecoupleAddress;
+  if (DHA->getResult().size() > 0) {
+    json::Object report = genReport(F, *DHA);
 
     // Print json report to std::out.
     outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n";
 
     // Print quick info to dbgs() stream.
     dbgs() << "\n************* Data Hazard Report *************\n";
-    dbgs() << "Number of base addresses: " << hazardInstrs.size() << "\n";
-    dbgs() << "Decoupled address gen: " << canDecoupleAddress << "\n";
-    for (auto &memInstructions : hazardInstrs) {
-      SmallVector<Instruction *> stores = getStores(memInstructions);
-      SmallVector<Instruction *> loads = getLoads(memInstructions);
+    dbgs() << "Number of base addresses: " << DHA->getResult().size() << "\n";
+    for (size_t iC = 0; iC < DHA->getResult().size(); ++iC) {
+      SmallVector<Instruction *> stores = getStores(DHA->getResult()[iC]);
+      SmallVector<Instruction *> loads = getLoads(DHA->getResult()[iC]);
 
-      dbgs() << "\n-------------------------\nStores " << stores.size()
-             << ":\n";
+      dbgs() << "\n----------------\nStores " << stores.size() << ":\n";
       for (auto &si : stores) {
         si->print(dbgs());
         dbgs() << "\n";
@@ -114,6 +108,8 @@ void dataHazardPrinter(Function &F, LoopInfo &LI, ScalarEvolution &SE,
         li->print(dbgs());
         dbgs() << "\n";
       }
+      dbgs() << "\nDecoupled address generation: "
+             << DHA->getDecoupligDecisions()[iC] << ":\n";
     }
     dbgs() << "************* Data Hazard Report *************\n\n";
   } else {

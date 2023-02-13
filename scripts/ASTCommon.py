@@ -11,7 +11,9 @@ QUEUE_NAME_REGEX = r"\s+" + C_VAR_REGEX + r"\.single_task<"
 
 class SyclPipe:
     def __init__(self, name, ctype, amount=None, depth=None, write_repeat=None, write_value=None):
-        self.name = name
+        # using {name} = pipe<class {class_name}, {ctype}>
+        self.name = name                    # The short name.
+        self.class_name = name + "_class"   # The actual class name.
         self.ctype = ctype
         self.amount = amount
         self.depth = depth
@@ -20,13 +22,13 @@ class SyclPipe:
     
     def declaration(self):
         if self.amount is not None and self.depth is not None:
-            return f'using {self.name} = PipeArray<class {self.name}_class, {self.ctype}, {self.depth}, {self.amount}>;'
+            return f'using {self.name} = PipeArray<class {self.class_name}, {self.ctype}, {self.depth}, {self.amount}>;'
         elif self.amount is not None:
-            return f'using {self.name} = PipeArray<class {self.name}_class, {self.ctype}, {self.amount}>;'
+            return f'using {self.name} = PipeArray<class {self.class_name}, {self.ctype}, {self.amount}>;'
         elif self.depth is not None:
-            return f'using {self.name} = pipe<class {self.name}_class, {self.ctype}, {self.depth}>;'
+            return f'using {self.name} = pipe<class {self.class_name}, {self.ctype}, {self.depth}>;'
         else: # no amount and no depth specified
-            return f'using {self.name} = pipe<class {self.name}_class, {self.ctype}>;'
+            return f'using {self.name} = pipe<class {self.class_name}, {self.ctype}>;'
 
     def write_op(self):
         value = self.write_value if self.write_value is not None else f'{self.ctype}{{}}'

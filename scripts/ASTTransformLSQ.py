@@ -28,14 +28,20 @@ def get_lsq_src():
 
 def gen_lsq_kernel_calls(report, q_name, q_size):
     result = []
+    lsq_events = []
 
     for i_base, base_addr in enumerate(report['base_addresses']):
-        # TODO: We might need to add a wait() call to the event objects returned by the LSQ
         result.append(f'''
-        LoadStoreQueue<{llvm2ctype(base_addr['array_type'])}, pipes_ld_req_{i_base}, pipes_ld_val_{i_base}, 
-                        pipe_st_req_{i_base}, pipe_st_val_{i_base}, pipe_end_lsq_signal_{i_base}, 
-                        {base_addr['num_loads']}, {q_size}>({q_name});
-        ''')    
+        auto lsqEvent_{i_base} = 
+            LoadStoreQueue<{llvm2ctype(base_addr['array_type'])}, pipes_ld_req_{i_base}, pipes_ld_val_{i_base}, 
+                           pipe_st_req_{i_base}, pipe_st_val_{i_base}, pipe_end_lsq_signal_{i_base}, 
+                           {base_addr['num_loads']}, {q_size}>({q_name});
+        ''')
+        lsq_events.append(f'lsqEvent_{i_base}')
+    
+    # The lsq wait calls might be superflous but add them to make sure.
+    for e in lsq_events:
+        result.append(f'{e}.wait();')
 
     return result
 
@@ -69,20 +75,25 @@ def gen_pipes(report):
 
     return ld_address_pipes, st_address_pipes, ld_value_pipes, st_value_pipes, lsq_signal_pipes
 
-
-def add_pipe_names_to_report(report, ld_req_pipes, ld_val_pipes, st_req_pipes, st_val_pipes):
+# Given various pipes, associate them with the instructions in report, and
+# add this mapping to the report.
+def add_pipe_names_to_report(report, ld_req_pipes, ld_val_pipes, st_req_pipes, st_val_pipes, lsq_signal_pipes):
+    # Pipes that are part of a PipeArray have an additional field 'struct_id'.
+    # We also have a 'repeat_id' field to differentiate between multiple calls
+    # to the same pipe.
     for i_base, base_addr in enumerate(report['base_addresses']):
-        base_addr["kernel_agu_name"] = f"kernel_address_{i_base}" if report[
-            'decouple_address'] else report['kernel_name']
-        base_addr["pipes_ld_req"] = [{'name': p.name, 'struct_id': i, 'load_instruction':
-                                      base_addr['load_instructions'][i]} for p in ld_req_pipes for i in range(p.amount)]
-        base_addr["pipes_ld_val"] = [
-            {'name': p.name, 'struct_id': i} for p in ld_val_pipes for i in range(p.amount)]
+        base_addr["pipes_ld_req"] = [{'name': ld_req_pipes[i_base].class_name, 'struct_id': i, 'repeat_id': 0, 'instruction':
+                                      base_addr['load_instructions'][i]} for i in range(ld_req_pipes[i_base].amount)]
+        base_addr["pipes_ld_val"] = [{'name': ld_val_pipes[i_base].class_name, 'struct_id': i, 'repeat_id': 0, 'instruction':
+                                      base_addr['load_instructions'][i]} for i in range(ld_val_pipes[i_base].amount)]
+
         # struct id -1 if not a pipe array.
-        base_addr["pipes_st_req"] = [
-            {'name': p.name, 'struct_id': -1} for p in st_req_pipes]
-        base_addr["pipes_st_val"] = [
-            {'name': p.name, 'struct_id': -1} for p in st_val_pipes]
+        base_addr["pipes_st_req"] = [{'name': st_req_pipes[i_base].class_name, 'struct_id': -1, 'repeat_id': i, 'instruction':
+                                      base_addr['store_instructions'][i]} for i in range(st_req_pipes[i_base].write_repeat)]
+        base_addr["pipes_st_val"] = [{'name': st_val_pipes[i_base].class_name, 'struct_id': -1, 'repeat_id': i, 'instruction':
+                                      base_addr['store_instructions'][i]} for i in range(st_val_pipes[i_base].write_repeat)]
+        
+        base_addr["pipe_end_lsq"] = {'name': lsq_signal_pipes[i_base].class_name, 'struct_id': -1, 'repeat_id': 0}
 
 
 if __name__ == '__main__':
@@ -107,12 +118,16 @@ if __name__ == '__main__':
     Q_NAME = get_queue_name(src_lines[kernel_start_line-1])
 
     # Generate pipes given the report.
+    # There is one pipe object per cluster in each list.
+    # It is up to the pipe object to hold info on the actual amount of pipes
+    # (this is done using a CYL PipeArray), and the amount of read/write ops.
     ld_req_pipes, st_req_pipes, ld_val_pipes, st_val_pipes, lsq_signal_pipes = gen_pipes(report)
     all_pipes = ld_req_pipes + st_req_pipes + ld_val_pipes + st_val_pipes + lsq_signal_pipes
 
     # Make it easier for the later LLVM transformation to find the required pipe
     # ops and the associated instruction.
-    add_pipe_names_to_report(report, ld_req_pipes, ld_val_pipes, st_req_pipes, st_val_pipes)
+    add_pipe_names_to_report(
+        report, ld_req_pipes, ld_val_pipes, st_req_pipes, st_val_pipes, lsq_signal_pipes)
 
     # Insert pipe type declarations into the src file.
     pipe_declarations = [p.declaration() for p in all_pipes] 
@@ -152,16 +167,17 @@ if __name__ == '__main__':
     # Create address generation kernel if decoupled flag is set.
     # Add lsq pipe ops to it. If flag not set, add them to orginal kernel.
     agu_kernels = []
-    if report['decouple_address']:  # TODO: decoupling decision per each base
-        for i_base, base_addr in enumerate(report['base_addresses']):
+    for i_base, base_addr in enumerate(report['base_addresses']):
+        if base_addr['decouple_address']:
+            base_addr["kernel_agu_name"] = f"{report['kernel_name']}_AGU_{i_base}"
             agu_kernel = gen_kernel_copy(Q_NAME, kernel_body, f"{report['kernel_name']}_AGU_{i_base}")
             agu_kernel_str = "\n".join(insert_after_line(agu_kernel, 1, lsq_pipe_ops[i_base]))
             agu_kernels.append(agu_kernel_str)
-    else:  
-        flat_lsq_pipe_ops = list(map(lambda l: "\n".join(l), lsq_pipe_ops))
-        src_with_pipe_decl_lsq_calls_and_val_pipes = insert_after_line(
-            src_with_pipe_decl_lsq_calls_and_val_pipes, kernel_start_line, flat_lsq_pipe_ops)
-        kernel_end_line += len(flat_lsq_pipe_ops)
+        else:  
+            base_addr["kernel_agu_name"] = report['kernel_name']
+            src_with_pipe_decl_lsq_calls_and_val_pipes = insert_after_line(
+                src_with_pipe_decl_lsq_calls_and_val_pipes, kernel_start_line, lsq_pipe_ops[i_base])
+            kernel_end_line += len(lsq_pipe_ops[i_base])
 
     # Combine the created AGU kernel with the original kernel (no-op if AGU is empty).
     combined_original_agu_pipes = insert_before_line(
@@ -177,4 +193,4 @@ if __name__ == '__main__':
     with open(NEW_SRC_FILENAME, 'w') as f:
         f.write('\n'.join(all_combined))
     with open(JSON_REPORT_FNAME, 'w') as f:
-        json.dump(report, f)
+        json.dump(report, f, indent=4, sort_keys=True)

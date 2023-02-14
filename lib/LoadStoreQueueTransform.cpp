@@ -5,10 +5,6 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <fstream>
-#include <iterator>
-#include <regex>
-
 using namespace llvm;
 
 namespace llvm {
@@ -16,60 +12,7 @@ namespace llvm {
 /// A mapping between a pipe read/write and a load/store that it will replace.
 using Pipe2Inst = std::pair<CallInst *, Instruction *>;
 
-/// Return the pipe call instruction corresponding to the pipeInfo json obj.
-CallInst *getPipeCall(Function &F, json::Object pipeInfo) {
-  auto pipeName = std::string(pipeInfo["name"].getAsString().getValue());
-  auto structId = int(pipeInfo["struct_id"].getAsInteger().getValue());
-  auto repeatId = int(pipeInfo["repeat_id"].getAsInteger().getValue());
-
-  /// Lambda. Returns true, if {call} is a pipe call.
-  auto isaPipe = [] (std::string call) { 
-    const std::string PIPE_CALL = "cl::sycl::ext::intel::pipe";
-    return std::equal(PIPE_CALL.begin(), PIPE_CALL.end(), call.begin());
-  };
-  /// Lambda. Returns true if {call} is a call to our pipe.
-  auto isThisPipe = [&pipeName, &structId] (std::string call) { 
-    std::regex pipe_regex{pipeName, std::regex_constants::ECMAScript};
-    std::smatch pipe_match;
-    std::regex_search(call, pipe_match, pipe_regex);
-
-    std::regex struct_regex{"StructId<" + std::to_string(structId) + "ul>", 
-                            std::regex_constants::ECMAScript};
-    std::smatch struct_match;
-    std::regex_search(call, struct_match, struct_regex);
-
-    // If structId < 0, then this is not a pipe array and don't check the id.
-    if ((pipe_match.size() > 0 && structId < 0) || 
-        (pipe_match.size() > 0 && struct_match.size() > 0)) {
-      return true;
-    }
-
-    return false;
-  };
-
-  // Go through every instruction in {F} to find the desired pipe call.
-  // Pipe info specifies which Nth call to the same pipe we should return.
-  int callsSoFar = 0;
-  for (auto &bb : F) {
-    for (auto &instruction : bb) {
-      if (CallInst *callInst = dyn_cast<CallInst>(&instruction)) {
-        if (Function *f = callInst->getCalledFunction()) {
-          auto fName = demangle(std::string(f->getName()));
-          if (f->getCallingConv() == CallingConv::SPIR_FUNC && isaPipe(fName) &&
-              isThisPipe(fName)) {
-            if (repeatId == callsSoFar)
-              return callInst;
-            else
-              callsSoFar++;
-          }
-        }
-      }
-    }
-  }
-
-  assert(false && "Pipe for given {pipeInfo} not found.");
-  return nullptr;
-}
+const std::string ENVIRONMENT_VARIBALE_REPORT = "LOOP_RAW_REPORT";
 
 /// Delete {inst} from it's function.
 void deleteInstruction(Instruction *inst) {
@@ -109,6 +52,20 @@ void deleteStoresAfterI(Function &F, DominatorTree &DT, Instruction *cutOffI,
                   deleteInstruction);
 }
 
+/// Delete {storesToDel} in F and any store instruction dominated by all
+/// instructions in {storesToDel}. Don't delete instructions from {exceptions.}
+void deleteInstructionsInAGU(Function &F, DominatorTree &DT,
+                             SmallVector<Instruction *> &storesToDel,
+                             SmallVector<Instruction *> &exceptions) {
+  for (auto st_i : storesToDel) {
+    bool canDelete = llvm::find(exceptions, st_i) == exceptions.end();
+    if (st_i->getParent() != nullptr && canDelete) {
+      deleteStoresAfterI(F, DT, st_i, exceptions);
+      deleteInstruction(st_i);
+    }
+  }
+}
+
 /// Given a {pipeWrite} writing to a LSQ request, collect the stores to the
 /// address field and tag field of the LSQ request.
 void collectLsqReqStructStores(const CallInst *pipeWrite, StoreInst *&tagStore,
@@ -127,20 +84,6 @@ void collectLsqReqStructStores(const CallInst *pipeWrite, StoreInst *&tagStore,
 
   tagStore = storesToLsqReqStruct[0];
   addressStore = storesToLsqReqStruct[1];
-}
-
-/// Delete {storesToDel} in F and any store instruction dominated by all
-/// instructions in {storesToDel}. Don't delete instructions from {exceptions.}
-void deleteInstructionsInAGU(Function &F, DominatorTree &DT,
-                             SmallVector<Instruction *> &storesToDel,
-                             SmallVector<Instruction *> &exceptions) {
-  for (auto st_i : storesToDel) {
-    bool canDelete = llvm::find(exceptions, st_i) == exceptions.end();
-    if (st_i->getParent() != nullptr && canDelete) {
-      deleteStoresAfterI(F, DT, st_i, exceptions);
-      deleteInstruction(st_i);
-    }
-  }
 }
 
 /// Given a memory instruction (load or store), change it to a sycl pipe write
@@ -231,39 +174,6 @@ void addEndLsqPipeWrite(Function &F, CallInst *endLsqPipe, Value *baseTag) {
   endLsqPipe->eraseFromParent();
 }
 
-/// Given a json file name, return llvm::json::Value.
-json::Value parseJsonReport() {
-  if (const char *fname = std::getenv("LOOP_RAW_REPORT")) {
-    std::ifstream t(fname);
-    std::stringstream buffer;
-    buffer << t.rdbuf();
-
-    auto Json = json::parse(llvm::StringRef(buffer.str()));
-    assert(Json && "Error parsing json loop-raw-report");
-
-    return *Json;
-  }
-
-  assert("No LOOP_RAW_REPORT environment value.");
-  return json::Value(nullptr);
-}
-
-/// Return the sycl kernel name for this function, or "" if not a kernel.
-std::string getKernelName(Function &F) {
-    auto callers = getCallerFunctions(F.getParent(), F);
-    if (callers.size() == 0)
-      return "";
-
-    // Get the "MainKernel" bit in "typeinfo name for MainKernel".
-    auto fullName = demangle(std::string(callers[0]->getName()));
-    size_t lastSpace = 0;
-    for (size_t i=0; i<fullName.size(); ++i) {
-      if (fullName[i] == ' ')
-        lastSpace = i;
-    }
-    return std::string(fullName.begin() + lastSpace + 1, fullName.end());
-}
-
 /// Collect mappings between instructions (loads and stores) in {F}, and sycl
 /// pipe call instructions, based on the info from the json report.
 void collectPipe2InstMappings(json::Object &report, Function &F,
@@ -280,14 +190,8 @@ void collectPipe2InstMappings(json::Object &report, Function &F,
       // Given the pipe name, find the pipe call instruction.
       auto mapDescrObj = *mapDescr.getAsObject();
       auto pipeCall = getPipeCall(F, mapDescrObj);
-
       // Given indexes of children in parents, arrive at the right instruction.
-      auto iDescr = *mapDescrObj["instruction"].getAsObject();
-      auto bbIdx = int(iDescr["basic_block_idx"].getAsInteger().getValue());
-      auto instrIdx = int(iDescr["instruction_idx"].getAsInteger().getValue());
-      auto BB = getChildWithIndex<Function, BasicBlock>(&F, bbIdx);
-      auto I = getChildWithIndex<BasicBlock, Instruction>(BB, instrIdx);
-
+      auto I = getInstruction(F, *mapDescrObj["instruction"].getAsObject());
       result.push_back({pipeCall, I});
     }
 
@@ -323,13 +227,25 @@ void collectPipe2InstMappings(json::Object &report, Function &F,
   }
 }
 
+/// Return all store instructions for all base addresses in the json {report}.
+SmallVector<Instruction *> getAllStores(json::Object &report, Function &F) {
+  SmallVector<Instruction *> result;
+  for (json::Value &baseAddr : *report["base_addresses"].getAsArray()) {
+    auto baseAddrOb = *baseAddr.getAsObject();
+    for (json::Value &storeI : *baseAddrOb["store_instructions"].getAsArray())
+      result.push_back(getInstruction(F, *storeI.getAsObject()));
+  }
+
+  return result;
+}
+
 struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
   json::Object report;
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     // Read in report once.
     if (report.empty())
-      report = *parseJsonReport().getAsObject();
+      report = *parseJsonReport(ENVIRONMENT_VARIBALE_REPORT).getAsObject();
     
     // Determine if this is our original kernel, an AGU kernel, or neither.
     std::string thisKernelName = getKernelName(F);
@@ -341,10 +257,11 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
       return PreservedAnalyses::all();
     }
 
-    // Collect mappings between ld/st instructions and the pipe read/writes
-    // that will replace them.
+    // Collect mappings between ld/st instructions and the pipe read/writes that
+    // will replace them. Also collect all hazard strores for any base address.
     SmallVector<Pipe2Inst> ldReqs, ldVals, stReqs, stVals;
     collectPipe2InstMappings(report, F, isMain, ldReqs, ldVals, stReqs, stVals);
+    SmallVector<Instruction *> dataHazardStores = getAllStores(report, F);
 
     // IR builder for the address tag.
     IRBuilder<> Builder(F.getEntryBlock().getTerminator());
@@ -383,9 +300,6 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
     // In the address generation kernel, delete all side effect instructions
     // not part of our {preserveIs}. The rest will be deleted by DCE.
     if (!isMain) {
-      SmallVector<Instruction *> dataHazardStores;
-      llvm::transform(stReqs, std::back_inserter(dataHazardStores),
-                      [](auto P2I) { return P2I.second; });
       deleteInstructionsInAGU(F, AM.getResult<DominatorTreeAnalysis>(F), 
                               dataHazardStores, preserveIs);
     }

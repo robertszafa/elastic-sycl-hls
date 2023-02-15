@@ -28,19 +28,18 @@ double histogram_2_addresses_1_decoupled_kernel(queue &q,
   int *idx2 = fpga_tools::toDevice(h_idx2, q);
   auto *hist2 = fpga_tools::toDevice(h_hist2, q);
 
-  auto event = q.single_task<MainKernel>(
-      [=]() [[intel::kernel_args_restrict]] {
-        for (int i = 0; i < array_size; ++i) {
-          auto idx_scalar = idx[i];
-          auto x = hist[idx_scalar];
-          hist[idx_scalar] = x + 10.0;
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    for (int i = 0; i < array_size; ++i) {
+      auto idx_scalar = idx[i];
+      auto x = hist[idx_scalar];
+      hist[idx_scalar] = x + 10.0;
 
-          auto idx_scalar2 = idx2[i];
-          auto x2 = hist2[idx_scalar2];
-          if (x2 > 0) // this cannot be decoupled.
-            hist2[idx_scalar2] = x2 + 3;
-        }
-      });
+      auto idx_scalar2 = idx2[i];
+      auto x2 = hist2[idx_scalar2];
+      if (x2 > 0) // this cannot be decoupled.
+        hist2[idx_scalar2] = x2 + 3;
+    }
+  });
 
   event.wait();
   q.copy(hist, h_hist.data(), h_hist.size()).wait();
@@ -48,6 +47,8 @@ double histogram_2_addresses_1_decoupled_kernel(queue &q,
 
   sycl::free(idx, q);
   sycl::free(hist, q);
+  sycl::free(idx2, q);
+  sycl::free(hist2, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -65,7 +66,8 @@ void histogram_cpu(const int *idx, float *hist, const int *idx2, int *hist2,
 
     auto idx_scalar2 = idx2[i];
     auto x2 = hist2[idx_scalar2];
-    hist2[idx_scalar2] = x2 + 3;
+    if (x2 > 0) // this cannot be decoupled.
+      hist2[idx_scalar2] = x2 + 3;
   }
 }
 
@@ -143,10 +145,10 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: " << q.get_device().get_info<info::device::name>() << "\n";
 
     std::vector<int> feature(ARRAY_SIZE);
-    std::vector<int> feature2(ARRAY_SIZE);
     std::vector<float> hist(ARRAY_SIZE, 0.0);
-    std::vector<int> hist2(ARRAY_SIZE, 0);
     std::vector<float> hist_cpu(ARRAY_SIZE);
+    std::vector<int> feature2(ARRAY_SIZE);
+    std::vector<int> hist2(ARRAY_SIZE, 0);
     std::vector<int> hist2_cpu(ARRAY_SIZE);
 
     init_data(feature, DATA_DISTR, PERCENTAGE);
@@ -174,8 +176,8 @@ int main(int argc, char *argv[]) {
       std::cout << "Failed\n";
       std::cout << "sum(fpga) = " << std::accumulate(hist.begin(), hist.end(), 0.0) << "\n";
       std::cout << "sum(cpu) = " << std::accumulate(hist_cpu.begin(), hist_cpu.end(), 0.0) << "\n--\n";
-      std::cout << "sum(fpga) = " << std::accumulate(hist2.begin(), hist2.end(), 0.0) << "\n";
-      std::cout << "sum(cpu) = " << std::accumulate(hist2_cpu.begin(), hist2_cpu.end(), 0.0) << "\n";
+      std::cout << "sum(fpga) = " << std::accumulate(hist2.begin(), hist2.end(), 0) << "\n";
+      std::cout << "sum(cpu) = " << std::accumulate(hist2_cpu.begin(), hist2_cpu.end(), 0) << "\n";
     }
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";

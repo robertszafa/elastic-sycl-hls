@@ -49,10 +49,10 @@ class SyclPipe:
         if self.amount is not None: # Array of pipes
             res = ''
             for idx in range(self.amount):
-                res += f'auto _ld_res_{self.name}_{idx} = {self.name}::PipeAt<{idx}>::read();\n'
+                res += f'auto _rd_val_{self.name}_{idx} = {self.name}::PipeAt<{idx}>::read();\n'
             return res
 
-        return f'auto _ld_res_{self.name} = {self.name}::read();\n'
+        return f'auto _rd_val_{self.name} = {self.name}::read();\n'
     
     def __str__(self):
         return self.name

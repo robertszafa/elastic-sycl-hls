@@ -16,17 +16,6 @@ json::Object genJsonForInstruction(Instruction *I) {
   return obj;
 }
 
-/// Return the line associated witht he return from {F}.
-int getReturnLine(Function &F) {
-  for (auto &BB : llvm::reverse(F)) {
-    if (auto retI = dyn_cast<ReturnInst>(BB.getTerminator())) {
-      return retI->getDebugLoc().getLine();
-    }
-  }
-
-  return -1;
-}
-
 /// Return a json object recording the data hazard analysis result.
 json::Object genReport(Function &F, DataHazardAnalysis &DHA) {
   json::Object report;

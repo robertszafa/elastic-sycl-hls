@@ -96,6 +96,17 @@ getStores(const SmallVector<Instruction *> &memInstr) {
     return std::string(fullName.begin() + lastSpace + 1, fullName.end());
 }
 
+/// Return the line associated witht the return from {F}.
+[[maybe_unused]] int getReturnLine(Function &F) {
+  for (auto &BB : llvm::reverse(F)) {
+    if (auto retI = dyn_cast<ReturnInst>(BB.getTerminator())) {
+      return retI->getDebugLoc().getLine();
+    }
+  }
+
+  return -1;
+}
+
 /// Return the index of {child} inside of the default traverse of {parent}. 
 /// Returns -1 if not found.
 template <typename T1, typename T2> 

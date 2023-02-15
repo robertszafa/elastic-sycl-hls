@@ -64,6 +64,8 @@ generateReport(Function &F, SmallVector<Instruction *> &bottlenecksI,
     auto callers = getCallerFunctions(F.getParent(), F);
     report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
     report["spir_func_name"] = demangle(std::string(F.getName()));
+    report["kernel_start_line"] = callers[0]->getSubprogram()->getLine();
+    report["kernel_end_line"] = getReturnLine(F);
 
     json::Array kernelDependencies;
     for (size_t i = 0; i < bottlenecksI.size(); ++i) {
@@ -77,6 +79,7 @@ generateReport(Function &F, SmallVector<Instruction *> &bottlenecksI,
       llvm::json::Object thisKernel;
       thisKernel["dependencies_in"] = std::move(thisKernelDepsIn);
       thisKernel["dependencies_out"] = std::move(thisKernelDepsOut);
+      thisKernel["id"] = i;
       kernelDependencies.push_back(std::move(thisKernel));
     }
 

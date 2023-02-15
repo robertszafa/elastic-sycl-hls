@@ -1,14 +1,6 @@
 #include "CommonLLVM.h"
 #include "CDDDAnalysis.h"
 #include "CDG.h"
-#include "llvm/Analysis/DependenceAnalysis.h"
-#include "llvm/IR/Dominators.h"
-#include "llvm/Support/raw_ostream.h"
-
-#include <regex>
-#include <string>
-#include <fstream>
-#include <sstream>
 
 using namespace llvm;
 
@@ -53,11 +45,18 @@ generateReport(Function &F, SmallVector<Instruction *> &bottlenecksI,
                SmallVector<SmallVector<Instruction *>> &dependenciesOut) {
   json::Object report;
 
-  auto getInstructionTypeAsString = [](Instruction *I) {
-    std::string resultString;
-    llvm::raw_string_ostream rso(resultString);
+  /// Given an Instruction, return a JSON object:
+  ///   {'instruction': {'instr_idx': \d, 'bb_idx': \d}, 'type': I.getType() }.
+  auto getJsonForInstructionAndAddType = [](Instruction *I) -> json::Object {
+    json::Object res;
+    res["instruction"] = genJsonForInstruction(I);
+
+    std::string typeStr;
+    llvm::raw_string_ostream rso(typeStr);
     I->getType()->print(rso);
-    return resultString;
+    res["type"] = typeStr;
+
+    return res;
   };
 
   if (bottlenecksI.size() > 0) {
@@ -72,15 +71,16 @@ generateReport(Function &F, SmallVector<Instruction *> &bottlenecksI,
       json::Array thisKernelDepsIn;
       json::Array thisKernelDepsOut;
       llvm::transform(dependenciesIn[i], std::back_inserter(thisKernelDepsIn),
-                      getInstructionTypeAsString);
+                      getJsonForInstructionAndAddType);
       llvm::transform(dependenciesOut[i], std::back_inserter(thisKernelDepsOut),
-                      getInstructionTypeAsString);
+                      getJsonForInstructionAndAddType);
 
-      llvm::json::Object thisKernel;
-      thisKernel["dependencies_in"] = std::move(thisKernelDepsIn);
-      thisKernel["dependencies_out"] = std::move(thisKernelDepsOut);
-      thisKernel["id"] = i;
-      kernelDependencies.push_back(std::move(thisKernel));
+      json::Object thisKernelOb;
+      thisKernelOb["dependencies_in"] = std::move(thisKernelDepsIn);
+      thisKernelOb["dependencies_out"] = std::move(thisKernelDepsOut);
+      thisKernelOb["id"] = i;
+
+      kernelDependencies.push_back(std::move(thisKernelOb));
     }
 
     report["bottlenecks"] = std::move(kernelDependencies);

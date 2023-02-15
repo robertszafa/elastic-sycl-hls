@@ -151,6 +151,17 @@ template <typename T1, typename T2>
   return json::Value(nullptr);
 }
 
+/// Given an instruction, return a json object with its description. E.g.:
+///   {"basic_block_idx": 8, "instruction_idx": 9}
+[[maybe_unused]] json::Object genJsonForInstruction(Instruction *I) {
+  llvm::json::Object obj;
+  auto iBB = I->getParent();
+  obj["basic_block_idx"] = getIndexOfChild(iBB->getParent(), iBB);
+  obj["instruction_idx"] = getIndexOfChild(iBB, I);
+
+  return obj;
+}
+
 /// Return the instruction corresponding to {iDesc}: BB index and Instr index.
 [[maybe_unused]] Instruction *getInstruction(Function &F, json::Object iDescr) {
   auto bbIdx = int(iDescr["basic_block_idx"].getAsInteger().getValue());
@@ -164,8 +175,11 @@ template <typename T1, typename T2>
 /// Return the pipe call instruction corresponding to the pipeInfo json obj.
 [[maybe_unused]] CallInst *getPipeCall(Function &F, json::Object pipeInfo) {
   auto pipeName = std::string(pipeInfo["name"].getAsString().getValue());
-  auto structId = int(pipeInfo["struct_id"].getAsInteger().getValue());
-  auto repeatId = int(pipeInfo["repeat_id"].getAsInteger().getValue());
+  // If no struct_id or repeat_id, then use defaults.
+  auto structIdOptional = pipeInfo["struct_id"].getAsInteger();
+  auto structId = structIdOptional ? structIdOptional.getValue() : -1;
+  auto repeatIdOptional = pipeInfo["repeat_id"].getAsInteger();
+  auto repeatId = repeatIdOptional ? repeatIdOptional.getValue() : 0;
 
   /// Lambda. Returns true, if {call} is a pipe call.
   auto isaPipe = [] (std::string call) { 

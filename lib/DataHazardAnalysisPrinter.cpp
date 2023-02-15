@@ -5,17 +5,6 @@ using namespace llvm;
 
 namespace llvm {
 
-/// Given an instruction, return a json object with its description. E.g.:
-///   {"basic_block_idx": 8, "instruction_idx": 9}
-json::Object genJsonForInstruction(Instruction *I) {
-  llvm::json::Object obj;
-  auto iBB = I->getParent();
-  obj["basic_block_idx"] = getIndexOfChild(iBB->getParent(), iBB);
-  obj["instruction_idx"] = getIndexOfChild(iBB, I);
-
-  return obj;
-}
-
 /// Return a json object recording the data hazard analysis result.
 json::Object genReport(Function &F, DataHazardAnalysis &DHA) {
   json::Object report;

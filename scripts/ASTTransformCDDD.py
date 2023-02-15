@@ -29,15 +29,17 @@ def gen_pipes_for_dependencies(bottleneck):
     dep_in_pipes = []
     dep_out_pipes = []
 
-    for i_d, data_type_llvm in enumerate(bottleneck['dependencies_in']):
-        data_type = llvm2ctype(data_type_llvm)
-        name = f'pipe_{data_type}_kernel{bottleneck["id"]}_in{i_d}'
-        dep_in_pipes.append(SyclPipe(name, data_type))
+    for i_d, dep in enumerate(bottleneck['dependencies_in']):
+        data_type = llvm2ctype(dep["type"])
+        p = SyclPipe(f'pipe_{data_type}_kernel{bottleneck["id"]}_in{i_d}', data_type)
+        dep_in_pipes.append(p)
+        dep["pipe"] = {"name": p.class_name, 'struct_id': -1, 'repeat_id': 0}
 
-    for i_d, data_type_llvm in enumerate(bottleneck['dependencies_out']):
-        data_type = llvm2ctype(data_type_llvm)
-        name = f'pipe_{data_type}_kernel{bottleneck["id"]}_out{i_d}'
-        dep_out_pipes.append(SyclPipe(name, data_type))
+    for i_d, dep in enumerate(bottleneck['dependencies_out']):
+        data_type = llvm2ctype(dep["type"])
+        p = SyclPipe(f'pipe_{data_type}_kernel{bottleneck["id"]}_out{i_d}', data_type)
+        dep_out_pipes.append(p)
+        dep["pipe"] = {"name": p.class_name, 'struct_id': -1, 'repeat_id': 0}
 
     return dep_in_pipes, dep_out_pipes
 
@@ -90,6 +92,7 @@ if __name__ == '__main__':
     kernel_copies_with_pipes = []
     for i, bottleneck in enumerate(report["bottlenecks"]):
         kernel_copy_name = f"{report['kernel_name']}_copy_{bottleneck['id']}"
+        bottleneck['kernel_copy_name'] = kernel_copy_name
         kernel_copy = gen_kernel_copy(Q_NAME, kernel_body, kernel_copy_name)
         kernel_copy_with_dep_pipes = insert_after_line(
             kernel_copy, 1, dep_in_pipe_reads[i] + dep_out_pipe_writes[i])
@@ -108,5 +111,10 @@ if __name__ == '__main__':
     all_combined = kernel_copies_class_declarations + insert_before_line(
         src_with_pipe_declarations_and_pipe_ops, kernel_start_line, kernel_copies_with_pipes)
     
+    # The end result is a transformed NEW_SRC_FILENAME and 
+    # the original json report with added pipe_name: instruction mappings.
     with open(NEW_SRC_FILENAME, 'w') as f:
         f.write('\n'.join(all_combined))
+    with open(JSON_REPORT_FNAME, 'w') as f:
+        json.dump(report, f, indent=2)
+

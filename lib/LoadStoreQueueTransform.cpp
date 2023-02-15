@@ -9,9 +9,6 @@ using namespace llvm;
 
 namespace llvm {
 
-/// A mapping between a pipe read/write and a load/store that it will replace.
-using Pipe2Inst = std::pair<CallInst *, Instruction *>;
-
 const std::string ENVIRONMENT_VARIBALE_REPORT = "LOOP_RAW_REPORT";
 
 /// Delete {inst} from it's function.
@@ -182,22 +179,6 @@ void collectPipe2InstMappings(json::Object &report, Function &F,
                               SmallVector<Pipe2Inst> &ldValMaps,
                               SmallVector<Pipe2Inst> &stReqMaps,
                               SmallVector<Pipe2Inst> &stValMaps) {
-  /// Lambda to collect instructions from {F} given an array of descriptions.
-  auto collectMaps = [&F](json::Array mapDescriptions) {
-    SmallVector<Pipe2Inst, 2> result;
-
-    for (json::Value &mapDescr : mapDescriptions) {
-      // Given the pipe name, find the pipe call instruction.
-      auto mapDescrObj = *mapDescr.getAsObject();
-      auto pipeCall = getPipeCall(F, mapDescrObj);
-      // Given indexes of children in parents, arrive at the right instruction.
-      auto I = getInstruction(F, *mapDescrObj["instruction"].getAsObject());
-      result.push_back({pipeCall, I});
-    }
-
-    return result;
-  };
-
   // Go over each base_address json value, and collect mappings. For the address
   // gen kernel (AGU), we only need ld/st request pipes. Note that if the
   // address generation is not decoupled, then {kernel_agu_name} ==
@@ -209,21 +190,25 @@ void collectPipe2InstMappings(json::Object &report, Function &F,
       if (aguName != getKernelName(F))
         continue;
 
-      llvm::append_range(ldReqMaps,
-                         collectMaps(*baseAddrOb["pipes_ld_req"].getAsArray()));
-      llvm::append_range(stReqMaps,
-                         collectMaps(*baseAddrOb["pipes_st_req"].getAsArray()));
+      llvm::append_range(
+          ldReqMaps,
+          getPipe2InstMaps(F, *baseAddrOb["pipes_ld_req"].getAsArray()));
+      llvm::append_range(
+          stReqMaps,
+          getPipe2InstMaps(F, *baseAddrOb["pipes_st_req"].getAsArray()));
   }
 
   // The main kernel gets the value pipes.
   if (isMainKernel) {
-    for (json::Value &baseAddr : *report["base_addresses"].getAsArray()) {
-      auto baseAddrOb = *baseAddr.getAsObject();
-      llvm::append_range(stValMaps, 
-                         collectMaps(*baseAddrOb["pipes_st_val"].getAsArray()));
-      llvm::append_range(ldValMaps, 
-                         collectMaps(*baseAddrOb["pipes_ld_val"].getAsArray()));
-    }
+      for (json::Value &baseAddr : *report["base_addresses"].getAsArray()) {
+        auto baseAddrOb = *baseAddr.getAsObject();
+        llvm::append_range(
+            stValMaps,
+            getPipe2InstMaps(F, *baseAddrOb["pipes_st_val"].getAsArray()));
+        llvm::append_range(
+            ldValMaps,
+            getPipe2InstMaps(F, *baseAddrOb["pipes_ld_val"].getAsArray()));
+      }
   }
 }
 

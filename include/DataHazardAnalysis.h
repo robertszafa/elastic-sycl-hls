@@ -14,7 +14,7 @@ namespace llvm {
 class DataHazardAnalysis  {
 public:
   explicit DataHazardAnalysis(Function &F, LoopInfo &LI, ScalarEvolution &SE,
-                              DominatorTree &DT);
+                              PostDominatorTree &PDT);
   ~DataHazardAnalysis();
 
   /// Return all memory instructions for each base address in the function

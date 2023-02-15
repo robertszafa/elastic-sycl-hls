@@ -1,176 +1,127 @@
 #include "CommonLLVM.h"
 #include "DataHazardAnalysis.h"
+#include "CDG.h"
 
 #include <numeric>
-#include <sstream>
-#include <string>
-
 
 using namespace llvm;
 
 namespace llvm {
 
-// Returns true if instA is control dependent (may_occur && !must_occur),
-// where the control dependency depends on {instB}.
-//
-// The motivation behind this check is to see, if the generation of store
-// addresses can be hosited into it's own kernel, without using the base address
-// of the {st} instruction.
-//
-// Go over all users of {onI} recursively:
-//  - if we hit a branch:
-//      - if the store is in any but not all of the BB dominated by the branch,
-//      return true
-// Record pairs into {checkedPairs} to prune the recursive search.
-bool isAConditionalOnB(
-    DominatorTree &DT, Instruction *instA, Instruction *instB,
-    SmallVector<SmallVector<Instruction *, 2>> &checkedPairs) {
-  SmallVector<Instruction *, 2> thisPair(2);
-  thisPair[0] = instA;
-  thisPair[1] = instB;
-  if (llvm::find(checkedPairs, thisPair) != checkedPairs.end())
-    return false;
+/// Return true, if there is a possibility that {src} could be executed on any
+/// of the def-use path leading to {dst}.
+bool isInDefUsePath(Instruction *src, Instruction *dst) {
+  SmallVector<Instruction *> workList, doneList;
+  workList.push_back(dst);
 
-  checkedPairs.emplace_back(thisPair);
+  // Work up the def-use chain of {dst} until hitting {src} or arriving the the
+  // F.entry. Special treatment of phi nodes: add terminating instructions of
+  // the incoming basic blocks to the worklist (if {src} is in the def-use chain
+  // of the terminator, then there is a possibility that it will be executed on
+  // the path to {dst}.
+  while (!workList.empty()) {
+    auto currDst = workList.pop_back_val();
+    doneList.push_back(currDst);
 
-  for (auto user : instB->users()) {
-    if (!isa<Instruction>(user))
-      continue;
+    // Case 1: There is a direct data dependency, so this def-use chain exists: 
+    // F.entry ~> .. ~> {src} .. ~> {dst}
+    for (auto &Use : currDst->operands()) {
+      if (auto UseI = dyn_cast<Instruction>(Use.get())) {
+        if (UseI == src)
+          return true;
 
-    auto userI = dyn_cast<Instruction>(user);
-    if (auto brI = dyn_cast<BranchInst>(userI)) {
-      bool atLeastOneDominatesStore = false;
-      bool allDominateStore = true;
-      for (auto succ : brI->successors()) {
-        allDominateStore &= DT.dominates(succ, instA->getParent());
-        atLeastOneDominatesStore |= DT.dominates(succ, instA->getParent());
+        if (!llvm::is_contained(doneList, UseI))
+          workList.push_back(UseI);
       }
-
-      if (atLeastOneDominatesStore && !allDominateStore)
-        return true;
     }
 
-    return isAConditionalOnB(DT, instA, userI, checkedPairs);
+    // Case 2: Some value in {dst} def-use chain is a phi node and the
+    // terminator of the incoming basic block has {src} in this def-use chain.
+    if (auto dstPhi = dyn_cast<PHINode>(currDst)) {
+      for (auto incomingBB : dstPhi->blocks()) {
+        if (!llvm::is_contained(doneList, incomingBB->getTerminator()))
+          workList.push_back(incomingBB->getTerminator());
+      }
+    }
   }
 
   return false;
 }
 
-bool isAInUsersOfB(Instruction *A, Instruction *B) {
-  for (auto user : B->users()) {
-    if (dyn_cast<Instruction>(user) == A)
-      return true;
-  }
+/// TODO: use the function defined in CDG.cpp
+BasicBlock *getControlDependencySource(Function &F, ControlDependenceGraph &CDG,
+                                       Instruction *I) {
+  // If there is an edge from the CDG root to the parent of {interIterDep},
+  // then {interIterDep} is not control dependent.
+  auto cdgNode = CDG.getBlockNode(I->getParent());
+  if (CDG.getRoot()->hasEdgeTo(*cdgNode))
+    return nullptr;
 
-  return false;
-}
-
-SmallVector<Instruction *>
-getInstructionsUsedByI(Function &F, DominatorTree &DT, Instruction *I) {
-  SmallVector<Instruction *> result;
-  if (!I)
-    return result;
-
-  for (auto &BB : F) {
-    if (DT.properlyDominates(I->getParent(), &BB))
+  // interIterDep is control dependent on some block. Find out the source block.
+  for (auto &N : CDG) {
+    // We already checked the root.
+    if (isa<RootCDGNode>(N))
       continue;
 
-    for (auto &bbI : BB) {
-      if (isAInUsersOfB(I, &bbI))
-        result.push_back(&bbI);
-    }
+    SmallVector<CDGEdge *, 2> edgesToNode;
+    N->findEdgesTo(*cdgNode, edgesToNode);
+    if (edgesToNode.size() > 0)
+      return dyn_cast<BlockCDGNode>(N)->getBasicBlock();
   }
 
-  return result;
+  return nullptr;
 }
 
-bool isAnyStoreControlDepOnAnyLoad(
-    DominatorTree &DT, const SmallVector<Instruction *> &memInstrs) {
-  for (auto si : memInstrs) { // For all stores
-    if (!isaStore(si))
-      continue;
-    for (auto li : memInstrs) { // For all loads
-      if (!isaLoad(li))
-        continue;
-
-      SmallVector<SmallVector<Instruction *, 2>> checkedPairs;
-      if (isAConditionalOnB(DT, si, li, checkedPairs))
-        return true;
-    }
-  }
-
-  return false;
-}
-
-/// Given load and store instructions, decide if the instructions that generate
-/// addresses for the loads and stores can be decoupled from the rest of the
-/// instructions in function {F}. If ANY of the address generation instructions
-/// cannot be decoupled, return false.
+/// Return true if the address generation instructions for the loads and stores
+/// in {cluster} can be decoupled into it's own function, such that the new
+/// function doesn't contain any of the load or store instructions.
 ///
-/// Algorithm for making the decision:
-/// 1. If any of the stores is control dependent on any of the loads, return
-///    false. (This is because we cannot know if a given store address should be
-///    produced, without looking at the load value).
-/// 2. If any of the values producing a given address is needed in a basic block
-///    properly dominated by the last mem. instruction in the
-///    {F}.entry->{F}.exit path, return false.
-bool canDecoupleAddressFromAccess(Function &F, DominatorTree &DT,
-                                  SmallVector<Instruction *> memInstrs) {
-  // All BBs that contain an instruction \in {memInstr} are collected.
-  // Also all address generation instructions for the memInstrs are
-  // collected, including parent nodes in the DDG.
-  SetVector<BasicBlock *> allMemInstrBBs;
-  SetVector<Instruction *> allAddressIntrs;
-  for (auto I : memInstrs) {
-    allMemInstrBBs.insert(I->getParent());
-    auto addressI =
-        isaStore(I)
-            ? dyn_cast<Instruction>(dyn_cast<Instruction>(I->getOperand(1)))
-            : dyn_cast<Instruction>(dyn_cast<Instruction>(I->getOperand(0)));
-    allAddressIntrs.insert(addressI);
-    auto usedByLi = getInstructionsUsedByI(F, DT, addressI);
-    allAddressIntrs.insert(addressI);
-    for (auto &I : usedByLi)
-      allAddressIntrs.insert(I);
-  }
-
-  // Get the last basic block in the function.entry->function.exit CFG path
-  // from {allBBs} in the function dominator tree, i.e. the BB which
-  // is not properly dominated by any other BB from {allBBs}.
-  BasicBlock *lastBB = nullptr;
-  for (auto candidateBB : allMemInstrBBs) {
-    if (!llvm::any_of(allMemInstrBBs, [&](BasicBlock *b) {
-          return DT.properlyDominates(candidateBB, b);
-        })) {
-      lastBB = candidateBB;
-      break;
-    }
-  }
-
-  // Get all BBs which are properly dominated by the lastBB.
-  // If there is an any instruction in {dominatedByLastBB} which uses
-  // any of the address generation instructions, return FALSE.
-  SetVector<BasicBlock *> dominatedByLastBB;
-  for (auto &BB : F) {
-    if (DT.properlyDominates(lastBB, &BB))
-      dominatedByLastBB.insert(&BB);
-  }
-  for (auto &I : allAddressIntrs) {
-    for (auto &useI : I->uses()) {
-      for (auto &dBB : dominatedByLastBB) {
-        if (useI->isUsedInBasicBlock(dBB))
+/// There are two cases where decoupling is not possible.
+///
+/// Case 1: The store instruction is control dependent, and the terminator
+/// instruction def-use chain path contains the load value. For example:
+///   for i:N
+///       x = data[idx[i]]
+///       if (x > 0) data[idx[i]] = f(x)
+///
+/// Case 2: The store address value depends on the the value returned
+/// by a load. Is the load value needed to generate a store address?
+/// This could be a data dependency:
+///   for i:N
+///       x = data[idx[i]]
+///       data[g(x)] = f(x)
+/// Or a transcient control-dependency:
+///   for i:N
+///       thisIdx = idx[i]
+///       x = data[thisIdx]
+///       if (x > 0) thisIdx += 1
+///       data[thisIdx] = f(x)
+bool canDecoupleAddressGen(Function &F, ControlDependenceGraph &CDG,
+                           SmallVector<Instruction *> &cluster) {
+  // Check all ld/st pairs. If any of address cannot be decoupled, return false.
+  for (auto si : llvm::make_filter_range(cluster, isaStore)) {
+    for (auto li : llvm::make_filter_range(cluster, isaLoad)) {
+      // Case 1
+      if (auto ctrlDepSrcBB = getControlDependencySource(F, CDG, si)) {
+        if (isInDefUsePath(li, ctrlDepSrcBB->getTerminator()))
           return false;
       }
+
+      // Case 2
+      auto storeAddressI =
+          dyn_cast<Instruction>(dyn_cast<StoreInst>(si)->getOperand(1));
+      if (isInDefUsePath(li, storeAddressI))
+        return false;
     }
   }
 
-  return !isAnyStoreControlDepOnAnyLoad(DT, memInstrs);
+  return true;
 }
 
 /// This function has the same functionality as ScalarEvolution.getPointerBase,
 /// but it returns the Instruction representing the pointer base, not a SCEV.
-/// Relies on our previous pass that puts all GEPs (that get global memory
-/// pointers) into F.entry
+/// It relies on our previous pass that puts all GEPs (that get global memory
+/// pointers) into the F.entry block.
 Instruction *getPointerBase(Value *pointerOperand) {
   const BasicBlock *entryBlockF = &dyn_cast<Instruction>(pointerOperand)
                                        ->getParent()
@@ -233,11 +184,12 @@ bool isAddressAnalyzable(ScalarEvolution &SE, const Loop *L,
   return idxRange.isAllNonNegative();
 }
 
-/// Sort clusters of instructions based on the dominance relation
-/// of the isntructions producing the base address.
+/// Sort clusters of instructions based on the postdominance relation
+/// of the instructions producing the base address. We don't care about the
+/// actual sorting relation, as long as it gives some ordering.
 SmallVector<SmallVector<Instruction *>> getSortedVectorClusters(
     const DenseMap<Instruction *, SetVector<Instruction *>> &clusterMap,
-    DominatorTree &DT) {
+    PostDominatorTree &PDT) {
   // Break up map into two corresponding vectors.
   SmallVector<Instruction *> baseAddrI;
   SmallVector<SmallVector<Instruction *>> iClusters;
@@ -253,7 +205,7 @@ SmallVector<SmallVector<Instruction *>> getSortedVectorClusters(
   SmallVector<int> sortingIndices(iClusters.size());
   std::iota(sortingIndices.begin(), sortingIndices.end(), 0);
   llvm::sort(sortingIndices, [&](int a, int b) {
-    return DT.dominates(baseAddrI[a], baseAddrI[b]);
+    return PDT.dominates(baseAddrI[b], baseAddrI[a]);
   });
 
   // Create a new vector for the sorted instructions.
@@ -265,8 +217,9 @@ SmallVector<SmallVector<Instruction *>> getSortedVectorClusters(
 }
 
 DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
-                                       ScalarEvolution &SE, DominatorTree &DT) {
-  // Collect all base addresses that are stored to 
+                                       ScalarEvolution &SE,
+                                       PostDominatorTree &PDT) {
+  // Collect all base addresses that are stored to
   // and that have an uncomputable Scalar Evolution index.
   DenseMap<Instruction *, SetVector<Instruction *>> addr2InstMap;
   SetVector<Instruction *> discardedStores;
@@ -326,11 +279,12 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
   });
 
   // Take only the mem instrs and ensure the order is deterministic.
-  hazardInstrs = getSortedVectorClusters(addr2InstMap, DT);
+  hazardInstrs = getSortedVectorClusters(addr2InstMap, PDT);
 
   // For each cluster, check if address generation can be decoupled from access.
-  for (auto cluster : hazardInstrs)
-    decouplingDecisions.push_back(canDecoupleAddressFromAccess(F, DT, cluster));
+  auto CDG = new ControlDependenceGraph(F, PDT);
+  for (auto cluster : hazardInstrs) 
+    decouplingDecisions.push_back(canDecoupleAddressGen(F, *CDG, cluster));
 }
 
 } // namespace llvm

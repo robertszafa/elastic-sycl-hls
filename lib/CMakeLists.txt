@@ -12,6 +12,7 @@ set(HoistConstantGepTransform_SOURCES HoistConstantGepTransform.cpp)
 set(DataHazardAnalysisPrinter_SOURCES
   DataHazardAnalysisPrinter.cpp
   DataHazardAnalysis.cpp
+  CDG.cpp
 )
 
 set(LoadStoreQueueTransform_SOURCES

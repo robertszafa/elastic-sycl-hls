@@ -1,9 +1,6 @@
 #include "CommonLLVM.h"
 #include "DataHazardAnalysis.h"
 
-#include <regex>
-#include <string>
-
 using namespace llvm;
 
 namespace llvm {
@@ -81,9 +78,9 @@ json::Object genReport(Function &F, DataHazardAnalysis &DHA) {
 }
 
 void dataHazardPrinter(Function &F, LoopInfo &LI, ScalarEvolution &SE,
-                       DominatorTree &DT) {
+                       PostDominatorTree &PDT) {
   // Get all memory loads and stores that form a RAW hazard dependence.
-  auto *DHA = new DataHazardAnalysis(F, LI, SE, DT);
+  auto *DHA = new DataHazardAnalysis(F, LI, SE, PDT);
 
   if (DHA->getResult().size() > 0) {
     json::Object report = genReport(F, *DHA);
@@ -125,8 +122,8 @@ struct DataHazardAnalysisPrinter : PassInfoMixin<DataHazardAnalysisPrinter> {
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
       auto &LI = AM.getResult<LoopAnalysis>(F);
       auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
-      auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
-      dataHazardPrinter(F, LI, SE, DT);
+      auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
+      dataHazardPrinter(F, LI, SE, PDT);
     }
 
     return PreservedAnalyses::all();
@@ -140,7 +137,7 @@ struct DataHazardAnalysisPrinter : PassInfoMixin<DataHazardAnalysisPrinter> {
   void getAnalysisUsage(AnalysisUsage &AU) const {
     AU.addRequiredID(LoopAnalysis::ID());
     AU.addRequiredID(ScalarEvolutionAnalysis::ID());
-    AU.addRequiredID(DominatorTreeAnalysis::ID());
+    AU.addRequiredID(PostDominatorTreeAnalysis::ID());
   }
 };
 

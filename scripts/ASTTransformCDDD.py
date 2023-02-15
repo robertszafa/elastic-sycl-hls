@@ -12,19 +12,18 @@ from ASTCommon import *
 
 def gen_pipes_for_dependencies(bottleneck):
     """
-    Given a json object (example below), generate pipe instances for the
+    Given a json object (example below), return pipe instances for the
     dependencies.
 
     The bottleneck json looks like this:
-    {
-      "dependencies_in": [
-        "float",
-        "i32"
-      ],
-      "dependencies_out": [
-        "float"
-      ]
-    }
+    "dependencies_in": [
+        {
+          "instruction": {...},
+          "type": "float",
+        },      
+    ]
+
+    Also add the names of the generated pipes to the dependencies.
     """
     dep_in_pipes = []
     dep_out_pipes = []
@@ -33,13 +32,13 @@ def gen_pipes_for_dependencies(bottleneck):
         data_type = llvm2ctype(dep["type"])
         p = SyclPipe(f'pipe_{data_type}_kernel{bottleneck["id"]}_in{i_d}', data_type)
         dep_in_pipes.append(p)
-        dep["pipe"] = {"name": p.class_name, 'struct_id': -1, 'repeat_id': 0}
+        dep["name"] = p.class_name
 
     for i_d, dep in enumerate(bottleneck['dependencies_out']):
         data_type = llvm2ctype(dep["type"])
         p = SyclPipe(f'pipe_{data_type}_kernel{bottleneck["id"]}_out{i_d}', data_type)
         dep_out_pipes.append(p)
-        dep["pipe"] = {"name": p.class_name, 'struct_id': -1, 'repeat_id': 0}
+        dep["name"] = p.class_name
 
     return dep_in_pipes, dep_out_pipes
 

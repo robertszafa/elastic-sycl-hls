@@ -13,6 +13,8 @@ SRC_FILE_DIR=`dirname "$2"`
 CANONICALIZED_SRC_FILE="$2".format.cpp
 AST_TRANSFORMED_SRC_FILE="$2".tmp.cpp
 
+FINAL_BINARY="$SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.fpga_$1"
+
 BOTTLENECK_JSON_FILE="$SRC_FILE_DIR/bin/$BENCHMARK.prj/reports/lib/json/bottleneck.json" 
 BOTTLENECK_LINES_FILE="$SRC_FILE_DIR/bin/$BENCHMARK.prj/bottleneck-lines.txt"
 CDDD_REPORT_FILE="$SRC_FILE_DIR/cddd-report.json"
@@ -49,6 +51,7 @@ export BOTTLENECK_LINES_FILE=$BOTTLENECK_LINES_FILE
 # STAGE 4.2: Run CDDD pass.
 ~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libCDDDAnalysisPrinter.so \
                          -passes=cddd-bottlenecks $CANONICALIZED_SRC_FILE.bc -o /dev/null > $CDDD_REPORT_FILE
+export CDDD_REPORT_FILE=$CDDD_REPORT_FILE
 
 ###
 ### STAGE 5: Generate kernel & pipe scaffolding code based on report. 
@@ -61,6 +64,20 @@ mv $AST_TRANSFORMED_SRC_FILE.tmp $AST_TRANSFORMED_SRC_FILE
 ###
 ### STAGE 6: Swap the bottleneck instructions for pipe rd/write operations. 
 ###
+./scripts/compilation/compile_to_bc.sh "$1" $AST_TRANSFORMED_SRC_FILE
+./scripts/compilation/prepare_ir.sh $AST_TRANSFORMED_SRC_FILE.bc
+~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libCDDDTransform.so \
+                         -passes=cddd-transform $AST_TRANSFORMED_SRC_FILE.bc -o $AST_TRANSFORMED_SRC_FILE.out.bc
+
+###
+### STAGE 7: Produce final binary.
+###
+echo ">> Compiling $FINAL_BINARY"
+# Cleanup the transformed IR. The transformation leaves a lot of dead code, unused kernel args, etc.
+./scripts/compilation/cleanup_ir.sh $AST_TRANSFORMED_SRC_FILE.out.bc
+./scripts/compilation/compile_from_bc.sh $1 $AST_TRANSFORMED_SRC_FILE.out.bc $AST_TRANSFORMED_SRC_FILE $FINAL_BINARY
+
+
 
 # Remove created temporaried, if the "-d" flag was not supplied.
 if [[ "$*" != *"-d"* ]] 

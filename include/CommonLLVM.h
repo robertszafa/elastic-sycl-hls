@@ -35,6 +35,9 @@ using namespace llvm;
 // Use an anonymous namespace to avoid multiple same definitions.
 namespace {
 
+/// A mapping between a pipe read/write and a load/store that it will replace.
+using Pipe2Inst = std::pair<CallInst *, Instruction *>;
+
 /// Lambdas for easier use in range based algorithms.
 auto isaLoad = [](auto i) { return isa<LoadInst>(i); };
 auto isaStore = [](auto i) { return isa<StoreInst>(i); };
@@ -228,6 +231,36 @@ template <typename T1, typename T2>
 
   assert(false && "Pipe for given {pipeInfo} not found.");
   return nullptr;
+}
+
+/// Given a json array with objects describing pipe to instruction objects,
+/// return a vector of such Pipe2Inst mappings.
+///
+/// Example {mapDescriptions}:
+///   {
+///     "instruction": {
+///       "basic_block_idx": 1,
+///       "instruction_idx": 0
+///     },
+///     "type": "float",
+///     "name": "pipe_float_kernel0_in0_class",
+///     "repeat_id": 0,
+///     "struct_id": -1
+///   }
+[[maybe_unused]] SmallVector<Pipe2Inst>
+getPipe2InstMaps(Function &F, json::Array &mapDescriptions) {
+  SmallVector<Pipe2Inst> result;
+
+  for (json::Value &mapDescr : mapDescriptions) {
+    // Given the pipe name, find the pipe call instruction.
+    auto mapDescrObj = *mapDescr.getAsObject();
+    auto pipeCall = getPipeCall(F, mapDescrObj);
+    // Given indexes of children in parents, arrive at the right instruction.
+    auto I = getInstruction(F, *mapDescrObj["instruction"].getAsObject());
+    result.push_back({pipeCall, I});
+  }
+
+  return result;
 }
 
 } // namespace

@@ -5,6 +5,7 @@ set(OPT_PASSES_PLUGINS
     DataHazardAnalysisPrinter
     LoadStoreQueueTransform
     CDDDAnalysisPrinter
+    CDDDTransform
     )
 
 set(HoistConstantGepTransform_SOURCES HoistConstantGepTransform.cpp)
@@ -23,6 +24,10 @@ set(CDDDAnalysisPrinter_SOURCES
   CDDDAnalysisPrinter.cpp
   CDDDAnalysis.cpp
   CDG.cpp
+)
+
+set(CDDDTransform_SOURCES
+  CDDDTransform.cpp
 )
 
 # CONFIGURE THE PLUGIN LIBRARIES

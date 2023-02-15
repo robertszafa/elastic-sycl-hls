@@ -48,30 +48,6 @@ bool isInDefUsePath(Instruction *src, Instruction *dst) {
   return false;
 }
 
-/// TODO: use the function defined in CDG.cpp
-BasicBlock *getControlDependencySource(Function &F, ControlDependenceGraph &CDG,
-                                       Instruction *I) {
-  // If there is an edge from the CDG root to the parent of {interIterDep},
-  // then {interIterDep} is not control dependent.
-  auto cdgNode = CDG.getBlockNode(I->getParent());
-  if (CDG.getRoot()->hasEdgeTo(*cdgNode))
-    return nullptr;
-
-  // interIterDep is control dependent on some block. Find out the source block.
-  for (auto &N : CDG) {
-    // We already checked the root.
-    if (isa<RootCDGNode>(N))
-      continue;
-
-    SmallVector<CDGEdge *, 2> edgesToNode;
-    N->findEdgesTo(*cdgNode, edgesToNode);
-    if (edgesToNode.size() > 0)
-      return dyn_cast<BlockCDGNode>(N)->getBasicBlock();
-  }
-
-  return nullptr;
-}
-
 /// Return true if the address generation instructions for the loads and stores
 /// in {cluster} can be decoupled into it's own function, such that the new
 /// function doesn't contain any of the load or store instructions.
@@ -102,7 +78,7 @@ bool canDecoupleAddressGen(Function &F, ControlDependenceGraph &CDG,
   for (auto si : llvm::make_filter_range(cluster, isaStore)) {
     for (auto li : llvm::make_filter_range(cluster, isaLoad)) {
       // Case 1
-      if (auto ctrlDepSrcBB = getControlDependencySource(F, CDG, si)) {
+      if (auto ctrlDepSrcBB = CDG.getControlDependencySource(si)) {
         if (isInDefUsePath(li, ctrlDepSrcBB->getTerminator()))
           return false;
       }

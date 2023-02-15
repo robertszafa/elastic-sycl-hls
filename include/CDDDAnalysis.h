@@ -19,7 +19,7 @@ public:
                                                   ControlDependenceGraph &CDG,
                                                   LoopInfo &LI,
                                                   Instruction *bottleneckI) {
-    if (auto ctrlDepSrc = getControlDependencySource(F, CDG, bottleneckI)) {
+    if (auto ctrlDepSrc = CDG.getControlDependencySource(bottleneckI)) {
       ctrlDepSrcBlock = ctrlDepSrc;
 
       if (LI.getLoopFor(ctrlDepSrc) ==
@@ -55,10 +55,6 @@ private:
 
   SmallVector<Instruction *> dependenciesIn;
   SmallVector<Instruction *> dependenciesOut;
-
-  BasicBlock *getControlDependencySource(Function &F,
-                                         ControlDependenceGraph &CDG,
-                                         Instruction *depI);
 
   SmallVector<Instruction *> getIncomingUses(Function &F, BasicBlock *BB);
   SmallVector<Instruction *> getOutgoingDefs(Function &F, BasicBlock *BB);

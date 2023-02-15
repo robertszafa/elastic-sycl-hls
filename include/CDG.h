@@ -208,6 +208,9 @@ public:
     return ANode->hasEdgeTo(*BNode);
   }
 
+  /// Return a pointer to the basic block which is the source of the control
+  /// dependence of {I} basic block. Return nullptr if not control dependent.
+  BasicBlock *getControlDependencySource(Instruction *I);
 private:
   /// A special node in the graph representing root of the CDG.
   NodeType *Root = nullptr;

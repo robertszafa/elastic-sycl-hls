@@ -8,22 +8,24 @@ const std::string ENVIRONMENT_VARIBALE_REPORT = "CDDD_REPORT_FILE";
 
 /// Collect mappings between instructions (loads and stores) in {F}, and sycl
 /// pipe call instructions, based on the info from the json report.
-void collectPipe2InstMappings(json::Object &report, Function &F,
-                              bool isMainKernel, SmallVector<Pipe2Inst> &depIn,
-                              SmallVector<Pipe2Inst> &depOut) {
+void collectPipe2InstMappings(json::Object &report, Function &F, bool isMain,
+                              SmallVector<Pipe2Inst> &depIn,
+                              SmallVector<Pipe2Inst> &depOut,
+                              SmallVector<CallInst *> &predPipes) {
   for (json::Value &bottleneck : *report["bottlenecks"].getAsArray()) {
     auto bottleneckOb = *bottleneck.getAsObject();
-    // If looking for pipes for a specific kernel copy: 
+    // If looking for pipes for a specific kernel copy, then ignore the rest.
     auto copyName = bottleneckOb["kernel_copy_name"].getAsString().getValue();
-    if (!isMainKernel && copyName != getKernelName(F))
+    if (!isMain && copyName != getKernelName(F))
       continue;
 
-    llvm::append_range(
-        depIn,
-        getPipe2InstMaps(F, *bottleneckOb["dependencies_in"].getAsArray()));
-    llvm::append_range(
-        depOut,
-        getPipe2InstMaps(F, *bottleneckOb["dependencies_out"].getAsArray()));
+    auto inDepsArray = *bottleneckOb["dependencies_in"].getAsArray();
+    auto outDepsArray = *bottleneckOb["dependencies_out"].getAsArray();
+    llvm::append_range(depIn, getPipe2InstMaps(F, inDepsArray));
+    llvm::append_range(depOut, getPipe2InstMaps(F, outDepsArray));
+
+    auto predPipeObject = *bottleneckOb["pred_pipe"].getAsObject();
+    predPipes.push_back(getPipeCall(F, predPipeObject));
   }
 }
 
@@ -32,7 +34,7 @@ struct CDDDTransform : PassInfoMixin<CDDDTransform> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     // Read in report once.
-    if (report.empty())
+    if (report.empty()) 
       report = *parseJsonReport(ENVIRONMENT_VARIBALE_REPORT).getAsObject();
 
     // Determine if this is our original kernel, a copy kernel, or neither.
@@ -46,10 +48,29 @@ struct CDDDTransform : PassInfoMixin<CDDDTransform> {
       return PreservedAnalyses::all();
     }
 
-    // Collect mappings between ld/st instructions and the pipe read/writes that
-    // will replace them. Also collect all hazard strores for any base address.
+    // Collect mappings between bottleneck instructions and the pipe read/writes
+    // that will replace them. The main kernel needs to know all of these
+    // mappings, whereas the kernels where individsual bottlenecks are decoupled
+    // into need to only know about their mappings.
     SmallVector<Pipe2Inst> depIn, depOut;
-    collectPipe2InstMappings(report, F, isMain, depIn, depOut);
+    SmallVector<CallInst *> predPipes;
+    collectPipe2InstMappings(report, F, isMain, depIn, depOut, predPipes);
+
+    errs() << "\n\n-- isMain? " << isMain << "\n";
+
+    // TODO: look at depIn, depOut
+    errs() << "\nDepIn:\n";
+    for (auto &in : depIn) {
+      errs() << "\nI: ";
+      in.second->print(errs());
+    }
+    errs() << "\n\nDepOut:\n";
+    for (auto &out : depOut) {
+      errs() << "\nI: ";
+      out.second->print(errs());
+    }
+    errs() << "\n\nPredPipe:\n";
+    predPipes[0]->print(errs());
 
     return PreservedAnalyses::none();
   }

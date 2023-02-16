@@ -13,7 +13,8 @@ from ASTCommon import *
 def gen_pipes_for_dependencies(bottleneck):
     """
     Given a json object (example below), return pipe instances for the
-    dependencies.
+    dependencies. Also add a pipe for the predicate that will govern the 
+    execution of the kernel with the bottleneck.
 
     The bottleneck json looks like this:
     "dependencies_in": [
@@ -27,6 +28,13 @@ def gen_pipes_for_dependencies(bottleneck):
     """
     dep_in_pipes = []
     dep_out_pipes = []
+    pred_pipes = []
+
+    # There will be 2 writes per pred_pipe in the main kernel. One triggering 
+    # the execution of the bottleneck kernel, and one for terminating it.
+    p = SyclPipe(f'pipe_pred_kernel{bottleneck["id"]}', 'bool', write_repeat=2)
+    pred_pipes.append(p)
+    bottleneck['pred_pipe'] = {'name': p.class_name}
 
     for i_d, dep in enumerate(bottleneck['dependencies_in']):
         data_type = llvm2ctype(dep["type"])
@@ -40,7 +48,7 @@ def gen_pipes_for_dependencies(bottleneck):
         dep_out_pipes.append(p)
         dep["name"] = p.class_name
 
-    return dep_in_pipes, dep_out_pipes
+    return dep_in_pipes, dep_out_pipes, pred_pipes
 
 
 
@@ -66,14 +74,16 @@ if __name__ == '__main__':
 
     dep_in_pipes = [] 
     dep_out_pipes = []
+    pred_pipes = []
     for bottleneck in report["bottlenecks"]:
-        in_pipes, out_pipes = gen_pipes_for_dependencies(bottleneck)
+        in_pipes, out_pipes, this_pred_pipe = gen_pipes_for_dependencies(bottleneck)
         dep_in_pipes.append(in_pipes)
         dep_out_pipes.append(out_pipes)
+        pred_pipes.append(this_pred_pipe)
 
     # Insert pipe type declarations just before the main kernel.
     pipe_declarations = [p.declaration() for i_b in range(
-        NUM_BOTTLENECKS) for p in dep_in_pipes[i_b] + dep_out_pipes[i_b]]
+        NUM_BOTTLENECKS) for p in dep_in_pipes[i_b] + dep_out_pipes[i_b] + pred_pipes[i_b]]
     src_with_pipe_declarations = insert_before_line(
         src_lines, kernel_start_line, pipe_declarations)
     kernel_start_line += len(pipe_declarations)
@@ -84,6 +94,8 @@ if __name__ == '__main__':
     dep_in_pipe_writes = [[p.write_op() for p in this_deps] for this_deps in dep_in_pipes]
     dep_out_pipe_reads = [[p.read_op() for p in this_deps] for this_deps in dep_out_pipes]
     dep_out_pipe_writes = [[p.write_op() for p in this_deps] for this_deps in dep_out_pipes]
+    pred_pipe_reads = [[p.read_op() for p in this_pred] for this_pred in pred_pipes]
+    pred_pipe_writes = [[p.write_op() for p in this_pred] for this_pred in pred_pipes]
     
     # Create a copy of the main kernel for each bottleneck.
     # Insert dep_in_pipe reads and dep_out_pipe write calls into the copy kernel.
@@ -94,14 +106,14 @@ if __name__ == '__main__':
         bottleneck['kernel_copy_name'] = kernel_copy_name
         kernel_copy = gen_kernel_copy(Q_NAME, kernel_body, kernel_copy_name)
         kernel_copy_with_dep_pipes = insert_after_line(
-            kernel_copy, 1, dep_in_pipe_reads[i] + dep_out_pipe_writes[i])
+            kernel_copy, 1, dep_in_pipe_reads[i] + dep_out_pipe_writes[i] + pred_pipe_reads[i])
         kernel_copies_with_pipes.append("\n".join(kernel_copy_with_dep_pipes))
         kernel_copies_class_declarations.append(f"class {kernel_copy_name};")
     
     # Dually, for each bottleneck, insert dep_in_pipe writes and 
     # dep_out_pipe read calls into the original kernel.
     all_pipe_ops_in_main = [pipe_op for i in range(
-        NUM_BOTTLENECKS) for pipe_op in dep_in_pipe_reads[i] + dep_out_pipe_writes[i]]
+        NUM_BOTTLENECKS) for pipe_op in dep_in_pipe_reads[i] + dep_out_pipe_writes[i] + pred_pipe_writes[i]]
     src_with_pipe_declarations_and_pipe_ops = insert_after_line(
         src_with_pipe_declarations, kernel_start_line, all_pipe_ops_in_main)
     kernel_end_line += len(all_pipe_ops_in_main)

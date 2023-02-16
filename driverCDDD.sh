@@ -29,7 +29,7 @@ CDDD_REPORT_FILE="$SRC_FILE_DIR/cddd-report.json"
 ### STAGE 1: Generate report.
 ###
 # Use makefile during testing to not wait for report generation all the time
-# cd $SRC_FILE_DIR && make report FILE=$CANONICALIZED_SRC_FILE > /dev/null && cd - > /dev/null
+# cd $SRC_FILE_DIR && make report FILE=$BENCHMARK.cpp.format.cpp > /dev/null 2>&1 && cd - > /dev/null
 dpcpp -std=c++17 -O2 -fintelfpga -c $CANONICALIZED_SRC_FILE -Ilsq \
   -o $SRC_FILE_DIR/bin/$BENCHMARK.dev.o -DFPGA=1 > /dev/null 2>&1
 dpcpp -std=c++17 -O2 -fintelfpga -fsycl-link -Ilsq \

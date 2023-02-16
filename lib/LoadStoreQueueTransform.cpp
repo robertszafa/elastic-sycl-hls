@@ -11,13 +11,6 @@ namespace llvm {
 
 const std::string ENVIRONMENT_VARIBALE_REPORT = "LOOP_RAW_REPORT";
 
-/// Delete {inst} from it's function.
-void deleteInstruction(Instruction *inst) {
-  inst->dropAllReferences();
-  inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
-  inst->eraseFromParent();
-}
-
 /// Given a {cutOffI}, delete all stores in F except {preserveIs} instructions.
 void deleteStoresAfterI(Function &F, DominatorTree &DT, Instruction *cutOffI,
                         SmallVector<Instruction *> &preserveIs) {
@@ -65,7 +58,7 @@ void deleteInstructionsInAGU(Function &F, DominatorTree &DT,
 
 /// Given a {pipeWrite} writing to a LSQ request, collect the stores to the
 /// address field and tag field of the LSQ request.
-void collectLsqReqStructStores(const CallInst *pipeWrite, StoreInst *&tagStore,
+void collectPairStructStores(const CallInst *pipeWrite, StoreInst *&tagStore,
                                StoreInst *&addressStore) {
   SmallVector<StoreInst *, 2> storesToLsqReqStruct;
   for (auto user : pipeWrite->getArgOperand(0)->users()) {
@@ -86,15 +79,15 @@ void collectLsqReqStructStores(const CallInst *pipeWrite, StoreInst *&tagStore,
 /// Given a memory instruction (load or store), change it to a sycl pipe write
 /// instruction, where the value being written is the load/store address.
 /// Also, if the memInstr is a store, then increment the value at {baseTagAddr}.
-SmallVector<Instruction *> instr2PipeLsqReqChange(Function &F,
+SmallVector<Instruction *> instr2PipeReqChange(Function &F,
                                                   Instruction *memInst,
                                                   CallInst *pipeWrite,
-                                                  Value *baseTag) {
-  SmallVector<Instruction *> createdIs;
+                                                  Value *tagAddr) {
+  SmallVector<Instruction *> createdSts;
 
   // The pipe writes a {address, tag} struct. 
   StoreInst *tagStore, *addressStore;
-  collectLsqReqStructStores(pipeWrite, tagStore, addressStore);
+  collectPairStructStores(pipeWrite, tagStore, addressStore);
 
   // Move everything needed to setup the pipe write call to memInst's location.
   pipeWrite->moveBefore(memInst);
@@ -114,23 +107,20 @@ SmallVector<Instruction *> instr2PipeLsqReqChange(Function &F,
   // Write baseTag into struct.idx. If it's a store, increment the tag first.
   IRBuilder<> Builder(tagStore);
   auto tagType = tagStore->getOperand(0)->getType();
-  Value *baseTagVal = Builder.CreateLoad(tagType, baseTag, "baseTagVal");
-  auto baseTagPlusOne = Builder.CreateAdd(
-      baseTagVal, ConstantInt::get(tagType, 1), "baseTagPlus1");
+  Value *tagVal = Builder.CreateLoad(tagType, tagAddr, "baseTagVal");
+  auto tagPlusOne = Builder.CreateAdd(tagVal, ConstantInt::get(tagType, 1));
   if (isaStore(memInst)) {
-    tagStore->setOperand(0, baseTagPlusOne);
-    auto newTagStore = Builder.CreateStore(baseTagPlusOne, baseTag);
-    createdIs.push_back(newTagStore);
-    createdIs.push_back(dyn_cast<Instruction>(baseTagPlusOne));
+    tagStore->setOperand(0, tagPlusOne);
+    auto newTagStore = Builder.CreateStore(tagPlusOne, tagAddr);
+    createdSts.push_back(newTagStore);
   } else {
-    tagStore->setOperand(0, baseTagVal);
+    tagStore->setOperand(0, tagVal);
   }
 
-  createdIs.push_back(tagStore);
-  createdIs.push_back(addressStore);
-  createdIs.push_back(dyn_cast<Instruction>(baseTagVal));
+  createdSts.push_back(tagStore);
+  createdSts.push_back(addressStore);
 
-  return createdIs;
+  return createdSts;
 }
 
 /// Given a load instruction, swap it for a pipe read.
@@ -147,28 +137,88 @@ void stInstr2PipeValChange(Function &F, Instruction *stI, CallInst *pipeWrite) {
   stI->setOperand(1, pipeWrite->getOperand(0));
 }
 
-/// Given an {endLsqPipe} pipe write, ensure it is moved before
-/// every function return, and the {baseTag} value is written to its operand.
-void addEndLsqPipeWrite(Function &F, CallInst *endLsqPipe, Value *baseTag) {
+/// Given a store instuction, swap it for a tagged value pipe write.
+SmallVector<Instruction *> stInstr2PipeTaggedValChange(Function &F,
+                                                       Instruction *stI,
+                                                       CallInst *pipeWrite,
+                                                       Value *tagAddr) {
+  // Stores into the tagged value struct.
+  StoreInst *tagStore, *valStore;
+  collectPairStructStores(pipeWrite, tagStore, valStore);
+  auto tagType = tagStore->getOperand(0)->getType();
+
+  IRBuilder<> IR(stI);
+  LoadInst *tagVal = IR.CreateLoad(Type::getInt32Ty(IR.getContext()), tagAddr);
+  auto tagPlusOne = IR.CreateAdd(tagVal, ConstantInt::get(tagType, 1));
+  auto tagStoreToTag = IR.CreateStore(tagPlusOne, tagAddr);
+  auto tagStoreToPipe = IR.CreateStore(tagPlusOne, tagStore->getOperand(1));
+  pipeWrite->moveAfter(stI);
+
+  // Instead of storing value to memory, store into the valStore struct member.
+  stI->setOperand(1, valStore->getOperand(1));
+
+  SmallVector<Instruction *> createdSts;
+  createdSts.push_back(tagStoreToTag);
+  createdSts.push_back(tagStoreToPipe);
+  return createdSts;
+}
+
+/// Given an {endPipe} pipe write, ensure it is moved before
+/// every function return, and the tag value is written to its operand.
+void addEndSignalPipeWrite(Function &F, CallInst *endPipe, Value *tagAddr) {
   // The end signal pipe should be written to before every function exit.
   // In practice, our kernels have one exit.
   for (auto &BB : F) {
     for (auto &I : BB) {
       if (isa<ReturnInst>(I)) {
-        auto thisEndSignalPipeWrite = endLsqPipe->clone();
+        auto thisEndSignalPipeWrite = endPipe->clone();
         thisEndSignalPipeWrite->insertBefore(&I);
 
         // Load the baseTag and store the value to the pipe operand.
         IRBuilder<> IR(thisEndSignalPipeWrite);
         LoadInst *ldBaseTag =
-            IR.CreateLoad(Type::getInt32Ty(IR.getContext()), baseTag);
-        Value *endSignalValuePtr = endLsqPipe->getOperand(0);
+            IR.CreateLoad(Type::getInt32Ty(IR.getContext()), tagAddr);
+        Value *endSignalValuePtr = endPipe->getOperand(0);
         IR.CreateStore(ldBaseTag, endSignalValuePtr);
       }
     }
   }
 
-  endLsqPipe->eraseFromParent();
+  endPipe->eraseFromParent();
+}
+
+/// Given {F}, insert an LSQ end_signal pipe call that carries the final {tag}
+/// value, if {F} was is address gen. kernel. Also, if {F} is the main kernel,
+/// add end_signal pipe writes to Mux kernels for each base address (if exist).
+void addAllEndSignals(Function &F, bool isMain, json::Object &report,
+                      Value *tagReqAddr, SmallVector<Value *> &tagValAddrs) {
+  int i_baseAddr = 0;
+  for (json::Value &baseAddr : *report["base_addresses"].getAsArray()) {
+    auto baseAddrOb = *baseAddr.getAsObject();
+    auto aguName = baseAddrOb["kernel_agu_name"].getAsString().getValue();
+
+    // The kernel that sends lsq requests terminates the LSQ kernel
+    // and the mux kernel for lsq store requests (if it exists).
+    if (aguName == getKernelName(F)) {
+      auto endLsqPipe = *baseAddrOb["pipe_end_lsq"].getAsObject();
+      addEndSignalPipeWrite(F, getPipeCall(F, endLsqPipe), tagReqAddr);
+
+      if (baseAddrOb["insert_st_mux"].getAsBoolean().getValue()) {
+        auto endReqMuxPipe = *baseAddrOb["pipe_end_mux_streq"].getAsObject();
+        addEndSignalPipeWrite(F, getPipeCall(F, endReqMuxPipe), tagReqAddr);
+      }
+    }
+
+    // The main kernel terminates the mux kernel for store values (for each base
+    // addr that has a mux).
+    if (isMain && baseAddrOb["insert_st_mux"].getAsBoolean().getValue()) {
+      auto endValMuxPipe = *baseAddrOb["pipe_end_mux_stval"].getAsObject();
+      addEndSignalPipeWrite(F, getPipeCall(F, endValMuxPipe),
+                            tagValAddrs[i_baseAddr]);
+    }
+
+    i_baseAddr++;
+  }
 }
 
 /// Collect mappings between instructions (loads and stores) in {F}, and sycl
@@ -224,6 +274,44 @@ SmallVector<Instruction *> getAllStores(json::Object &report, Function &F) {
   return result;
 }
 
+/// Create an int32 val using alloca at the beginning of {F} and initialize it 
+/// with {initVal}. Return its address.
+Value *createTag(Function &F, int initVal = 0) {
+  IRBuilder<> Builder(F.getEntryBlock().getTerminator());
+  auto tagType = Type::getInt32Ty(F.getContext());
+  Value *tagAddr = Builder.CreateAlloca(tagType);
+  Builder.CreateStore(ConstantInt::get(tagType, initVal), tagAddr);
+  return tagAddr;
+}
+
+/// Create a tag for each base_addr with a mux, or nullptr if mux not needed.
+SmallVector<Value *> createTagsForStValues(json::Object &report, Function &F) {
+  SmallVector<Value *> tagAddrs;
+  for (auto &baseAddr : *report["base_addresses"].getAsArray()) {
+    auto baseAddrOb = *baseAddr.getAsObject();
+    Value *tagAddr = baseAddrOb["insert_st_mux"].getAsBoolean().getValue()
+                         ? createTag(F)
+                         : nullptr;
+    tagAddrs.push_back(tagAddr);
+  }
+
+  return tagAddrs;
+}
+
+/// Repeat each {val} {report[num_stores]} times.
+SmallVector<Value *> repeatNumStores(SmallVector<Value *> &vals,
+                                     json::Object &report) {
+  SmallVector<Value *> repeated;
+  int i_val = 0;
+  for (auto &baseAddr : *report["base_addresses"].getAsArray()) {
+    auto baseAddrOb = *baseAddr.getAsObject();
+    int numStores = baseAddrOb["num_stores"].getAsInteger().getValue();
+    llvm::append_range(repeated, SmallVector<Value *>(numStores, vals[i_val]));
+  }
+
+  return repeated;
+}
+
 struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
   json::Object report;
 
@@ -246,47 +334,49 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
     // will replace them. Also collect all hazard strores for any base address.
     SmallVector<Pipe2Inst> ldReqs, ldVals, stReqs, stVals;
     collectPipe2InstMappings(report, F, isMain, ldReqs, ldVals, stReqs, stVals);
+    // Snapshot of the data hazard store instructions that will be deleted.
     SmallVector<Instruction *> dataHazardStores = getAllStores(report, F);
 
-    // IR builder for the address tag.
-    IRBuilder<> Builder(F.getEntryBlock().getTerminator());
-    auto tagType = Type::getInt32Ty(F.getContext());
-    Value *baseTag = Builder.CreateAlloca(tagType);
-    Builder.CreateStore(ConstantInt::get(tagType, 0), baseTag);
-
-    // Collect instructions which manipulate the address tag inserted into {F}.
-    SmallVector<Instruction *> preserveIs;
+    // Collect stores created during the which should not be deleted.
+    SmallVector<Instruction *> preserveSt;
+    // Need a tag if this is a kernel that writes LSQ request pipes.
+    Value *tagReqAddr = createTag(F);
+    // Also need a tag if this is a kernel that writes several store values.
+    SmallVector<Value *> tagValAddrs = createTagsForStValues(report, F);
+    // For convenience, a 1:1 mapping between stVals and rptdTagValAddrs.
+    SmallVector<Value *> rptdTagValAddrs = repeatNumStores(tagValAddrs, report);
 
     // Given the Pipe2Inst maps, change the IR data instructions for pipe calls.
-    for (auto &P2I : ldReqs) {
-      llvm::append_range(preserveIs, instr2PipeLsqReqChange(
-                                         F, P2I.second, P2I.first, baseTag));
+    // LSQ requests:
+    for (auto &P2I : llvm::concat<Pipe2Inst>(ldReqs, stReqs)) {
+      auto newIs = instr2PipeReqChange(F, P2I.second, P2I.first, tagReqAddr);
+      llvm::append_range(preserveSt, newIs);
     }
-    for (auto &P2I : stReqs) {
-      llvm::append_range(preserveIs, instr2PipeLsqReqChange(
-                                         F, P2I.second, P2I.first, baseTag));
-    }
+
+    // Loads from the LSQ into the main kernel.
     for (auto &P2I : ldVals)
       ldInstr2PipeValChange(F, P2I.second, P2I.first);
-    for (auto &P2I : stVals)
-      stInstr2PipeValChange(F, P2I.second, P2I.first);
 
-    // The lsq_end_signal pipes should be in the same kernel as the lsq reqs.
-    for (json::Value &baseAddr : *report["base_addresses"].getAsArray()) {
-      auto baseAddrOb = *baseAddr.getAsObject();
-      auto aguName = baseAddrOb["kernel_agu_name"].getAsString().getValue();
-      auto endPipeObj = *baseAddrOb["pipe_end_lsq"].getAsObject();
-
-      if (aguName == thisKernelName) {
-        addEndLsqPipeWrite(F, getPipeCall(F, endPipeObj), baseTag);
+    // Store values into the LSQ (or routed through a Mux).
+    for (auto &P2I : stVals) {
+      if (auto tagAddr = rptdTagValAddrs[std::distance(stVals.begin(), &P2I)]) {
+        auto newIs =
+            stInstr2PipeTaggedValChange(F, P2I.second, P2I.first, tagAddr);
+        llvm::append_range(preserveSt, newIs);
+      } else {
+        stInstr2PipeValChange(F, P2I.second, P2I.first);
       }
     }
+
+    // Add end signal pipe calls to LSQ (if this F writes LSQ requests) &
+    // to muxes (if muxes exist).
+    addAllEndSignals(F, isMain, report, tagReqAddr, tagValAddrs);
 
     // In the address generation kernel, delete all side effect instructions
     // not part of our {preserveIs}. The rest will be deleted by DCE.
     if (!isMain) {
       deleteInstructionsInAGU(F, AM.getResult<DominatorTreeAnalysis>(F), 
-                              dataHazardStores, preserveIs);
+                              dataHazardStores, preserveSt);
     }
 
     return PreservedAnalyses::none();

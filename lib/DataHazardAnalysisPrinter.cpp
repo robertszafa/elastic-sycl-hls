@@ -67,26 +67,17 @@ void dataHazardPrinter(Function &F, LoopInfo &LI, ScalarEvolution &SE,
     outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n";
 
     // Print quick info to dbgs() stream.
-    dbgs() << "\n************* Data Hazard Report *************\n";
-    dbgs() << "Number of base addresses: " << DHA->getResult().size() << "\n";
+    dbgs() << "\n--- Data Hazard Report ------------------------------------\n";
     for (size_t iC = 0; iC < DHA->getResult().size(); ++iC) {
       SmallVector<Instruction *> stores = getStores(DHA->getResult()[iC]);
       SmallVector<Instruction *> loads = getLoads(DHA->getResult()[iC]);
 
-      dbgs() << "\n----------------\nStores " << stores.size() << ":\n";
-      for (auto &si : stores) {
-        si->print(dbgs());
-        dbgs() << "\n";
-      }
-      dbgs() << "\nLoads " << loads.size() << ":\n";
-      for (auto &li : loads) {
-        li->print(dbgs());
-        dbgs() << "\n";
-      }
-      dbgs() << "\nDecoupled address generation: "
-             << DHA->getDecoupligDecisions()[iC] << ":\n";
+      dbgs() << "Address " << iC << ": " << stores.size() << " stores, "
+             << loads.size() << " loads, address gen "
+             << (DHA->getDecoupligDecisions()[iC] ? "is" : "is NOT")
+             << " decoupled.\n";
     }
-    dbgs() << "************* Data Hazard Report *************\n\n";
+    dbgs() << "-----------------------------------------------------------\n\n";
   } else {
     errs() << "Warning: Report not generated - no RAW hazards.\n";
   }

@@ -15,15 +15,18 @@ AST_TRANSFORMED_SRC_FILE="$2".tmp.cpp
 
 FINAL_BINARY="$SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.fpga_$1"
 
-BOTTLENECK_JSON_FILE="$SRC_FILE_DIR/bin/$BENCHMARK.prj/reports/lib/json/bottleneck.json" 
-BOTTLENECK_LINES_FILE="$SRC_FILE_DIR/bin/$BENCHMARK.prj/bottleneck-lines.txt"
+BOTTLENECK_JSON_FILE="$SRC_FILE_DIR/bin/$BENCHMARK.cpp.format.prj/reports/lib/json/bottleneck.json" 
+BOTTLENECK_LINES_FILE="$SRC_FILE_DIR/bin/$BENCHMARK.cpp.format.prj/bottleneck-lines.txt"
 CDDD_REPORT_FILE="$SRC_FILE_DIR/cddd-report.json"
 
 ###
 ### STAGE 0: Ensure canonical kernel call. queue.single_task<> submission on one line, no empty lines.
 ###
-~/git/llvm/build/bin/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}" \
-                                  $SRC_FILE > $CANONICALIZED_SRC_FILE
+if [ ! -f $CANONICALIZED_SRC_FILE ]; then
+  # Don't recreating the file if exists so at to not trigger the make rule every time.
+  $LT_LLVM_INSTALL_DIR/build/bin/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}" \
+                                    $SRC_FILE > $CANONICALIZED_SRC_FILE
+fi
 
 ###
 ### STAGE 1: Generate report.
@@ -39,7 +42,7 @@ dpcpp -std=c++17 -O2 -fintelfpga -fsycl-link -Ilsq \
 ###
 ### STAGE 3: Get line numbers of data dependency bottlenecks.
 ###
-./scripts/GetBottleneckLines.py $BOTTLENECK_JSON_FILE > $BOTTLENECK_LINES_FILE
+./scripts/cddd/GetBottleneckLines.py $BOTTLENECK_JSON_FILE > $BOTTLENECK_LINES_FILE
 export BOTTLENECK_LINES_FILE=$BOTTLENECK_LINES_FILE
 
 ###
@@ -49,16 +52,16 @@ export BOTTLENECK_LINES_FILE=$BOTTLENECK_LINES_FILE
 ./scripts/compilation/compile_to_bc.sh "$1" $CANONICALIZED_SRC_FILE
 ./scripts/compilation/prepare_ir.sh $CANONICALIZED_SRC_FILE.bc
 # STAGE 4.2: Run CDDD pass.
-~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libCDDDAnalysisPrinter.so \
-                         -passes=cddd-bottlenecks $CANONICALIZED_SRC_FILE.bc -o /dev/null > $CDDD_REPORT_FILE
+$LT_LLVM_INSTALL_DIR/build/bin/opt -load-pass-plugin $LLVM_SYCL_PASSES_DIR/build/lib/libCDDDAnalysisPrinter.so \
+                                   -passes=cddd-bottlenecks $CANONICALIZED_SRC_FILE.bc -o /dev/null > $CDDD_REPORT_FILE
 export CDDD_REPORT_FILE=$CDDD_REPORT_FILE
 
 ###
 ### STAGE 5: Generate kernel & pipe scaffolding code based on report. 
 ###
-python3 scripts/ASTTransformCDDD.py $CDDD_REPORT_FILE $CANONICALIZED_SRC_FILE $AST_TRANSFORMED_SRC_FILE
+python3 scripts/ast/ASTTransformCDDD.py $CDDD_REPORT_FILE $CANONICALIZED_SRC_FILE $AST_TRANSFORMED_SRC_FILE
 # Make the AST transformed code pretty
-~/git/llvm/build/bin/clang-format $AST_TRANSFORMED_SRC_FILE > $AST_TRANSFORMED_SRC_FILE.tmp
+$LT_LLVM_INSTALL_DIR/build/bin/clang-format $AST_TRANSFORMED_SRC_FILE > $AST_TRANSFORMED_SRC_FILE.tmp
 mv $AST_TRANSFORMED_SRC_FILE.tmp $AST_TRANSFORMED_SRC_FILE
 
 ###
@@ -66,8 +69,8 @@ mv $AST_TRANSFORMED_SRC_FILE.tmp $AST_TRANSFORMED_SRC_FILE
 ###
 ./scripts/compilation/compile_to_bc.sh "$1" $AST_TRANSFORMED_SRC_FILE
 ./scripts/compilation/prepare_ir.sh $AST_TRANSFORMED_SRC_FILE.bc
-~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libCDDDTransform.so \
-                         -passes=cddd-transform $AST_TRANSFORMED_SRC_FILE.bc -o $AST_TRANSFORMED_SRC_FILE.out.bc
+$LT_LLVM_INSTALL_DIR/build/bin/opt -load-pass-plugin $LLVM_SYCL_PASSES_DIR/build/lib/libCDDDTransform.so \
+                                   -passes=cddd-transform $AST_TRANSFORMED_SRC_FILE.bc -o $AST_TRANSFORMED_SRC_FILE.out.bc
 
 ###
 ### STAGE 7: Produce final binary.

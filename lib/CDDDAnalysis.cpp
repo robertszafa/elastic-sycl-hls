@@ -7,6 +7,7 @@ using namespace llvm;
 
 namespace llvm {
 
+/// Given {BB} return all instructions used in {BB} but defined in other blocks.
 SmallVector<Instruction *>
 ControlDependentDataDependencyAnalysis::getIncomingUses(Function &F,
                                                         BasicBlock *BB) {
@@ -20,7 +21,7 @@ ControlDependentDataDependencyAnalysis::getIncomingUses(Function &F,
 
   for (auto &otherBB : F) {
     for (auto &I : otherBB) {
-      if (&otherBB != BB && llvm::any_of(I.users(), isUserInBB))
+      if (&otherBB != BB && llvm::any_of(I.users(), isUserInBB)) 
         result.push_back(&I);
     }
   }
@@ -28,6 +29,7 @@ ControlDependentDataDependencyAnalysis::getIncomingUses(Function &F,
   return result;
 }
 
+/// Given {BB} return all instructions defined in {BB} and used in other blocks.
 SmallVector<Instruction *>
 ControlDependentDataDependencyAnalysis::getOutgoingDefs(Function &F,
                                                         BasicBlock *BB) {
@@ -37,7 +39,8 @@ ControlDependentDataDependencyAnalysis::getOutgoingDefs(Function &F,
     for (auto User : I.users()) {
       if (auto UserI = dyn_cast<Instruction>(User)) {
         if (UserI->getParent() != BB) {
-          result.push_back(UserI);
+          result.push_back(&I);
+          break;
         }
       }
     }

@@ -1,6 +1,8 @@
 #ifndef __METAPROGRAMMING_UTILS_HPP__
 #define __METAPROGRAMMING_UTILS_HPP__
 
+#include <CL/sycl.hpp>
+
 #include <type_traits>
 #include <utility>
 

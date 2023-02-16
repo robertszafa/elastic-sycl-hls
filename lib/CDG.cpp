@@ -147,10 +147,10 @@ bool ControlDependenceGraph::isControlDependent(const BasicBlock *B,
   return false;
 }
 
-BasicBlock *ControlDependenceGraph::getControlDependencySource(Instruction *I) {
+BasicBlock *ControlDependenceGraph::getControlDependencySource(BasicBlock *BB) {
   // If there is an edge from the CDG root to the parent of {interIterDep},
   // then {interIterDep} is not control dependent.
-  auto cdgNode = this->getBlockNode(I->getParent());
+  auto cdgNode = this->getBlockNode(BB);
   if (this->getRoot()->hasEdgeTo(*cdgNode))
     return nullptr;
 

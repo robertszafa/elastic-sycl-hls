@@ -18,15 +18,15 @@ public:
   explicit ControlDependentDataDependencyAnalysis(Function &F,
                                                   ControlDependenceGraph &CDG,
                                                   LoopInfo &LI,
-                                                  Instruction *bottleneckI) {
-    if (auto ctrlDepSrc = CDG.getControlDependencySource(bottleneckI)) {
+                                                  BasicBlock *bottleneckBB) {
+    if (auto ctrlDepSrc = CDG.getControlDependencySource(bottleneckBB)) {
       ctrlDepSrcBlock = ctrlDepSrc;
 
       if (LI.getLoopFor(ctrlDepSrc) ==
-          LI.getLoopFor(bottleneckI->getParent())) {
+          LI.getLoopFor(bottleneckBB)) {
         ctrlDepInsideLoopFlag = true;
-        dependenciesIn = getIncomingUses(F, bottleneckI->getParent());
-        dependenciesOut = getOutgoingDefs(F, bottleneckI->getParent());
+        dependenciesIn = getIncomingUses(F, bottleneckBB);
+        dependenciesOut = getOutgoingDefs(F, bottleneckBB);
       }
     }
   }

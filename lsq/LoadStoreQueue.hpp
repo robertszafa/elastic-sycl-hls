@@ -8,9 +8,6 @@ Store queue with early execution of loads when all preceding stores have calcula
 #ifndef __STORE_QUEUE_HPP__
 #define __STORE_QUEUE_HPP__
 
-#include "CL/sycl/access/access.hpp"
-#include "CL/sycl/builtins.hpp"
-#include "CL/sycl/properties/accessor_properties.hpp"
 #include <CL/sycl.hpp>
 
 #include <sycl/ext/intel/fpga_extensions.hpp>

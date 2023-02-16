@@ -60,6 +60,20 @@ getStores(const SmallVector<Instruction *> &memInstr) {
   return stores;
 }
 
+/// Given a {val}, store it into the operand of the {pipe} write.
+[[maybe_unused]] void storeValIntoPipe(Value *val, CallInst *pipe) {
+  auto pipeOperandAddress = pipe->getOperand(0);
+  IRBuilder<> Builder(pipe);
+  Builder.CreateStore(val, pipeOperandAddress);
+}
+
+/// Delete {inst} from it's function.
+[[maybe_unused]] void deleteInstruction(Instruction *inst) {
+  inst->dropAllReferences();
+  inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
+  inst->eraseFromParent();
+}
+
 /// Given Function {F}, return all Functions that call {F}.
 [[maybe_unused]] SmallVector<Function *> getCallerFunctions(Module *M,
                                                             Function &F) {
@@ -99,14 +113,23 @@ getStores(const SmallVector<Instruction *> &memInstr) {
     return std::string(fullName.begin() + lastSpace + 1, fullName.end());
 }
 
+/// Return the Basic Block with the return instruction from {F}. {F} is assumed
+/// to have a single return, if not, then the first block is returned.
+[[maybe_unused]] BasicBlock *getReturnBlock(Function &F) {
+    for (auto &BB : llvm::reverse(F)) {
+      if (BB.getTerminator() && isa<ReturnInst>(BB.getTerminator())) 
+        return &BB;
+    }
+
+    return nullptr;
+}
+
 /// Return the line associated witht the return from {F}.
 [[maybe_unused]] int getReturnLine(Function &F) {
-  for (auto &BB : llvm::reverse(F)) {
-    if (auto retI = dyn_cast<ReturnInst>(BB.getTerminator())) {
-      return retI->getDebugLoc().getLine();
-    }
-  }
+  if (auto retBB = getReturnBlock(F))
+      return retBB->getTerminator()->getDebugLoc().getLine();
 
+  assert(false && "Did not find return statement in function.");
   return -1;
 }
 
@@ -184,10 +207,10 @@ template <typename T1, typename T2>
   auto repeatIdOptional = pipeInfo["repeat_id"].getAsInteger();
   auto repeatId = repeatIdOptional ? repeatIdOptional.getValue() : 0;
 
-  /// Lambda. Returns true, if {call} is a pipe call.
+  /// Lambda. Returns true, if {PIPE_CALL} is a substring of {call}.
   auto isaPipe = [] (std::string call) { 
-    const std::string PIPE_CALL = "cl::sycl::ext::intel::pipe";
-    return std::equal(PIPE_CALL.begin(), PIPE_CALL.end(), call.begin());
+    const std::string PIPE_CALL = "ext::intel::pipe";
+    return call.find(PIPE_CALL) != std::string::npos;
   };
   /// Lambda. Returns true if {call} is a call to our pipe.
   auto isThisPipe = [&pipeName, &structId] (std::string call) { 

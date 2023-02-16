@@ -6,6 +6,22 @@ using namespace llvm;
 
 namespace llvm {
 
+/// Given a vector of instruction chains, return all unique Basic Blocks.
+SmallVector<BasicBlock *>
+getBBsFromChains(SmallVector<SmallVector<Instruction *>> &instructionChain,
+                 PostDominatorTree &PDT) {
+  SmallVector<BasicBlock *> result;
+
+  for (auto chain : instructionChain) {
+    for (auto I : chain) {
+      if (!is_contained(result, I->getParent()))
+        result.push_back(I->getParent());
+    }
+  }
+
+  return result;
+}
+
 /// Given a source file line in function {F}, return the corresponding
 /// LLVM instruction using DebugLoc metadata. If there are multiple such 
 /// instructions, return the last one based on the post dominance relation.
@@ -25,22 +41,54 @@ Instruction *getInstructionForFileLine(Function &F, PostDominatorTree &PDT,
   return result;
 }
 
-/// Return lines from getenv(BOTTLENECK_LINES_FILE) as a vector of ints.
-SmallVector<unsigned int> parseBottleneckFile() {
-  SmallVector<unsigned int> result;
-
-  if (const char *fname = std::getenv("BOTTLENECK_LINES_FILE")) {
-    std::ifstream infile(fname);
-    int line;
-    while (infile >> line)
-      result.push_back(line);
+/// Given a vector of vectors of lines {instructionChain} return a vector of
+/// vectors of instructions, where each instruction corresponds to the line.
+SmallVector<SmallVector<Instruction *>>
+getInstructionChains(Function &F, PostDominatorTree &PDT,
+                     SmallVector<SmallVector<unsigned int>> &instructionChain) {
+  SmallVector<SmallVector<Instruction *>> result;
+  for (auto chain : instructionChain) {
+    SmallVector<Instruction *> thisInstructionChain;
+    for (auto line : chain) {
+      if (auto I = getInstructionForFileLine(F, PDT, line))
+        thisInstructionChain.push_back(I);
+    }
+    result.push_back(thisInstructionChain);
   }
 
   return result;
 }
 
+/// Return lines from getenv(BOTTLENECK_LINES_FILE) as a vector of ints.
+SmallVector<SmallVector<unsigned int>> parseBottleneckFile() {
+  SmallVector<SmallVector<unsigned int>> result(1);
+
+  if (const char *fname = std::getenv("BOTTLENECK_LINES_FILE")) {
+    std::ifstream infile(fname);
+    int line;
+    int i = 0;
+    while (infile >> line) {
+      if (infile.peek() == '\n') {
+        infile.ignore();
+        i++;
+        result.push_back(SmallVector<unsigned int>());
+      }
+      else if (infile.peek() == ' ') {
+        infile.ignore();
+      }
+
+      result[i].push_back(line);
+    }
+  }
+
+  if (result[result.size() - 1].size() == 0)
+    result.erase(&result[result.size() - 1]);
+
+  return result;
+}
+
 json::Object
-generateReport(Function &F, SmallVector<Instruction *> &bottlenecksI,
+generateReport(Function &F, SmallVector<BasicBlock *> &bottleneckBBs,
                SmallVector<SmallVector<Instruction *>> &dependenciesIn,
                SmallVector<SmallVector<Instruction *>> &dependenciesOut) {
   json::Object report;
@@ -59,7 +107,7 @@ generateReport(Function &F, SmallVector<Instruction *> &bottlenecksI,
     return res;
   };
 
-  if (bottlenecksI.size() > 0) {
+  if (bottleneckBBs.size() > 0) {
     auto callers = getCallerFunctions(F.getParent(), F);
     report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
     report["spir_func_name"] = demangle(std::string(F.getName()));
@@ -67,7 +115,7 @@ generateReport(Function &F, SmallVector<Instruction *> &bottlenecksI,
     report["kernel_end_line"] = getReturnLine(F);
 
     json::Array kernelDependencies;
-    for (size_t i = 0; i < bottlenecksI.size(); ++i) {
+    for (size_t i = 0; i < bottleneckBBs.size(); ++i) {
       json::Array thisKernelDepsIn;
       json::Array thisKernelDepsOut;
       llvm::transform(dependenciesIn[i], std::back_inserter(thisKernelDepsIn),
@@ -79,6 +127,8 @@ generateReport(Function &F, SmallVector<Instruction *> &bottlenecksI,
       thisKernelOb["dependencies_in"] = std::move(thisKernelDepsIn);
       thisKernelOb["dependencies_out"] = std::move(thisKernelDepsOut);
       thisKernelOb["id"] = i;
+      thisKernelOb["basic_block_idx"] =
+          getIndexOfChild(bottleneckBBs[i]->getParent(), bottleneckBBs[i]);
 
       kernelDependencies.push_back(std::move(thisKernelOb));
     }
@@ -93,25 +143,35 @@ struct CDDDAnalysisPrinter : PassInfoMixin<CDDDAnalysisPrinter> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
-      SmallVector<unsigned int> bottlenecLines = parseBottleneckFile();
-      assert(bottlenecLines.size() > 0 && "No bottlecks.");
+      // For each bottleneck in the report, collect instruction lines.
+      SmallVector<SmallVector<unsigned int>> bottleneckChainLines =
+          parseBottleneckFile();
+      assert(bottleneckChainLines.size() > 0 && "No bottlenecks.");
 
       auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
       auto &LI = AM.getResult<LoopAnalysis>(F);
       std::unique_ptr<ControlDependenceGraph> CDG(
           new ControlDependenceGraph(F, PDT));
 
-      SmallVector<Instruction *> ctrlDepBottlenecks;
-      SmallVector<SmallVector<Instruction *>> dependenciesIn;
-      SmallVector<SmallVector<Instruction *>> dependenciesOut;
+      // For each bottleneck, collect the instructions corresponding to lines.
+      SmallVector<SmallVector<Instruction *>> instrBottleneckChains =
+          getInstructionChains(F, PDT, bottleneckChainLines);
+      // For all bottleneck, collect basic blocks containing above instructions.
+      SmallVector<BasicBlock *> bottleneckBBs =
+          getBBsFromChains(instrBottleneckChains, PDT);
+      // Ensure the bottleneck BBs start from the end.
+      llvm::sort(bottleneckBBs,
+                 [&PDT](auto b1, auto b2) { return !PDT.dominates(b2, b1); });
 
       // For each bottleneck, check if it's a control dependent data dependency.
-      for (unsigned int line : bottlenecLines) {
-        auto bottleneckI = getInstructionForFileLine(F, PDT, line);
+      // If yes, collect in/out SSA values for that block.
+      SmallVector<BasicBlock *> ctrlDepBottlenecks;
+      SmallVector<SmallVector<Instruction *>> dependenciesIn, dependenciesOut;
+      for (auto bottleneckBB : bottleneckBBs) {
         auto CDDD = new ControlDependentDataDependencyAnalysis(F, *CDG, LI,
-                                                               bottleneckI);
+                                                               bottleneckBB);
         if (CDDD->isCtrlDepInsideLoop()) {
-          ctrlDepBottlenecks.push_back(bottleneckI);
+          ctrlDepBottlenecks.push_back(bottleneckBB);
           dependenciesIn.push_back(CDDD->getDependenciesIn());
           dependenciesOut.push_back(CDDD->getDependenciesOut());
         }

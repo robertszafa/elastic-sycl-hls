@@ -22,12 +22,12 @@ LOOP_REPORT_FILE="$SRC_FILE_DIR/loop-raw-report.json"
 
 mkdir -p "$SRC_FILE_DIR/bin"
 
-FINAL_BINARY="$SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.fpga_$1"
+FINAL_BINARY="$SRC_FILE_DIR/bin/${SRC_FILE_BASENAME%.*}.lsq_$Q_SIZE.fpga_$1"
 
 ###
 ### STAGE 0: Ensure a canonical kernel call: queue.single_task<> submission on one line, no empty lines.
 ###
-~/git/llvm/build/bin/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}" $SRC_FILE > $CANONICALIZED_SRC_FILE
+$LT_LLVM_INSTALL_DIR/build/bin/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}" $SRC_FILE > $CANONICALIZED_SRC_FILE
 
 ###
 ### STAGE 1: Get IR of original source and prepare it for mem dep analysis.
@@ -39,8 +39,8 @@ FINAL_BINARY="$SRC_FILE_DIR/bin/$SRC_FILE_BASENAME.fpga_$1"
 ### STAGE 2: Generate analysis json report.
 ###
 export LOOP_RAW_REPORT=$LOOP_REPORT_FILE
-~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libDataHazardAnalysisPrinter.so \
-                         -passes=data-hazard-report $CANONICALIZED_SRC_FILE.bc -o /dev/null > $LOOP_REPORT_FILE
+$LT_LLVM_INSTALL_DIR/build/bin/opt -load-pass-plugin $LLVM_SYCL_PASSES_DIR/build/lib/libDataHazardAnalysisPrinter.so \
+                                   -passes=data-hazard-report $CANONICALIZED_SRC_FILE.bc -o /dev/null > $LOOP_REPORT_FILE
 
 ###
 ### STAGE 3: Generate kernel & pipe scaffolding code based on report. 
@@ -48,9 +48,9 @@ export LOOP_RAW_REPORT=$LOOP_REPORT_FILE
 # Given json report, make kernel copies and pipe read/write calls from correct kernels.
 # The json report provides a precise src location range for the kernel body.
 # Nothing else is required (no variable/array names, etc.).
-python3 scripts/ASTTransformLSQ.py $LOOP_REPORT_FILE $CANONICALIZED_SRC_FILE $AST_TRANSFORMED_SRC_FILE $Q_SIZE
+python3 scripts/ast/ASTTransformLSQ.py $LOOP_REPORT_FILE $CANONICALIZED_SRC_FILE $AST_TRANSFORMED_SRC_FILE $Q_SIZE
 # Make the AST transformed code pretty
-~/git/llvm/build/bin/clang-format $AST_TRANSFORMED_SRC_FILE > $AST_TRANSFORMED_SRC_FILE.tmp
+$LT_LLVM_INSTALL_DIR/build/bin/clang-format $AST_TRANSFORMED_SRC_FILE > $AST_TRANSFORMED_SRC_FILE.tmp
 mv $AST_TRANSFORMED_SRC_FILE.tmp $AST_TRANSFORMED_SRC_FILE
 
 ###
@@ -60,8 +60,8 @@ echo ">> Running lsq-transform"
 # Get IR of source with kernels and pipes instantiated. 
 ./scripts/compilation/compile_to_bc.sh "$1" $AST_TRANSFORMED_SRC_FILE
 ./scripts/compilation/prepare_ir.sh $AST_TRANSFORMED_SRC_FILE.bc
-~/git/llvm/build/bin/opt -load-pass-plugin ~/git/llvm-sycl-passes/build/lib/libLoadStoreQueueTransform.so \
-                         -passes=lsq-transform $AST_TRANSFORMED_SRC_FILE.bc -o $AST_TRANSFORMED_SRC_FILE.out.bc
+$LT_LLVM_INSTALL_DIR/build/bin/opt -load-pass-plugin $LLVM_SYCL_PASSES_DIR/build/lib/libLoadStoreQueueTransform.so \
+                                   -passes=lsq-transform $AST_TRANSFORMED_SRC_FILE.bc -o $AST_TRANSFORMED_SRC_FILE.out.bc
 
 ###
 ### STAGE 5: Produce final binary.
@@ -74,12 +74,12 @@ echo ">> Compiling $FINAL_BINARY"
 # Remove created temporaried, if the "-d" flag was not supplied.
 if [[ "$*" != *"-d"* ]] 
 then
-  rm $CANONICALIZED_SRC_FILE
-  rm $CANONICALIZED_SRC_FILE.bc
-  rm $AST_TRANSFORMED_SRC_FILE
-  rm $AST_TRANSFORMED_SRC_FILE.bc
-  rm $AST_TRANSFORMED_SRC_FILE.out.bc
-  rm $LOOP_REPORT_FILE
+  rm -f $CANONICALIZED_SRC_FILE
+  rm -f $CANONICALIZED_SRC_FILE.bc
+  rm -f $AST_TRANSFORMED_SRC_FILE
+  rm -f $AST_TRANSFORMED_SRC_FILE.bc
+  rm -f $AST_TRANSFORMED_SRC_FILE.out.bc
+  rm -f $LOOP_REPORT_FILE
 fi
 
 

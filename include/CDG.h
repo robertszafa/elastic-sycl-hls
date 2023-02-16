@@ -209,8 +209,14 @@ public:
   }
 
   /// Return a pointer to the basic block which is the source of the control
+  /// dependence of {BB}. Return nullptr if not control dependent.
+  BasicBlock *getControlDependencySource(BasicBlock *BB);
+
+  /// Return a pointer to the basic block which is the source of the control
   /// dependence of {I} basic block. Return nullptr if not control dependent.
-  BasicBlock *getControlDependencySource(Instruction *I);
+  BasicBlock *getControlDependencySource(Instruction *I) {
+      return this->getControlDependencySource(I->getParent());
+  }
 private:
   /// A special node in the graph representing root of the CDG.
   NodeType *Root = nullptr;

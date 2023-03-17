@@ -13,65 +13,44 @@
 using namespace sycl;
 
 // Forward declare kernel name.
-class MainKernelWhichIsVeryVeryVeryVeryVeryVeryLong;
+class MainKernel;
 
-double nested_if_kernel(queue &q, const std::vector<int> &h_wet,
-                        std::vector<float> &h_B) {
-  const int array_size = h_wet.size();
+double eval_pos_kernel(queue &q, const std::vector<int> &h_board,
+                       const int color, const int pm, float *h_res) {
+  auto *board = fpga_tools::toDevice(h_board, q);
+  auto *res = sycl::malloc_device<float>(1, q);
 
-  int *wet = fpga_tools::toDevice(h_wet, q);
-  float *B = fpga_tools::toDevice(h_B, q);
+  const int N = h_board.size();
 
-  using etan_in_1_pipe = pipe<class etan_in_1_pipe_class, float>;
-  using wet_in_1_pipe = pipe<class wet_in_1_pipe_class, float>;
-  using etan_out_1_pipe = pipe<class etan_out_1_pipe_class, float>;
-  using kernel_1_pred_pipe = pipe<class kernel_1_pred_pipe_class, bool>;
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    float centralityValue = 0.0f;
+    int b, benefitMagnitude, moveCount, temp;
+    float temp_2;
 
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernelWhichIsVeryVeryVeryVeryVeryVeryLong>([=]() [[intel::kernel_args_restrict]] {
-      float etan = 0.0, t = 0.0;
-      // II=35
-      for (int i = 0; i < array_size; ++i) {
-        if (wet[i] > 0) {
-          // 35 cycles of stall
-          kernel_1_pred_pipe::write(1);
-          etan_in_1_pipe::write(etan);
-          wet_in_1_pipe::write(wet[i]);
-          etan = etan_out_1_pipe::read();
-          // t = 0.25 + etan * float(wet[i]) / 2.0;
-          // etan += t;
-          if (etan > 100.0) {
-            // 22 cycles of stall
-            etan -= 0.1 + etan / 20.0;
-            etan /= 30.0;
-          }
-        }
+    for (int i = 0; i < N; i++) {
+      b = board[i];
+      // Evaluates to -1 or 1, depending on piece/player color
+      benefitMagnitude = ((b & 1) ^ color) * -2 + 1;
+
+      temp = (b & 62) >> 1;
+      if (temp == 9) {
+        float a = 2.5f - i % 6;
+        a = (a > 0) ? a : -a;
+        float b = 2.5f - i / 6;
+        b = (b > 0) ? b : -b;
+        float c = (a > b) ? a : b;
+        temp_2 = benefitMagnitude * c * pm;
+        centralityValue -= temp_2;
       }
-      kernel_1_pred_pipe::write(0);
+    }
 
-      B[0] = etan;
-    });
-  });
-
-  q.submit([&](handler &hnd) {
-    hnd.single_task<class Decoupled1>([=]() [[intel::kernel_args_restrict]] {
-      while (kernel_1_pred_pipe::read()) {
-        auto etan = etan_in_1_pipe::read();
-        auto wet = wet_in_1_pipe::read();
-
-        float t = 0.25 + etan * float(wet) / 2.0;
-        etan += t;
-
-        etan_out_1_pipe::write(etan);
-      }
-    });
+    *res = centralityValue;
   });
 
   event.wait();
-  q.copy(B, h_B.data(), h_B.size()).wait();
+  q.copy(res, h_res, 1).wait();
 
-  sycl::free(B, q);
-  sycl::free(wet, q);
+  sycl::free((void *)board, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -80,36 +59,50 @@ double nested_if_kernel(queue &q, const std::vector<int> &h_wet,
   return time_in_ms;
 }
 
-void nested_if_cpu(const std::vector<int> &wet, std::vector<float> &B) {
-  const int array_size = wet.size();
-  float etan, t = 0.0;
-  // II=35
-  for (int i = 0; i < array_size; ++i) {
-    if (wet[i] > 0) {
-      // 35 cycles of stall
-      t = 0.25 + etan * float(wet[i]) / 2.0;
-      etan += t;
-      if (etan > 100.0) {
-        // 24 cycles of stall
-        etan -= 0.1 + etan / 20.0;
-        etan /= 30.0;
-      }
+void eval_pos_cpu(const std::vector<int> &board, const int color, const int pm,
+                  float *res) {
+  const int N = board.size();
+
+  float centralityValue = 0.0f;
+  int b, benefitMagnitude, moveCount, temp;
+
+  for (int i = 0; i < N; i++) {
+    b = board[i];
+    // Evaluates to -1 or 1, depending on piece/player color
+    benefitMagnitude = ((b & 1) ^ color) * -2 + 1;
+
+    temp = (b & 62) >> 1;
+    if (temp == 9) {
+      float a = 2.5f - i % 6;
+      a = (a > 0) ? a : -a;
+      float b = 2.5f - i / 6;
+      b = (b > 0) ? b : -b;
+      float c = (a > b) ? a : b;
+      centralityValue -= benefitMagnitude * c * pm;
     }
   }
 
-  B[0] = etan;
+  *res = centralityValue;
 }
 
 enum data_distribution { ALL_WAIT, NO_WAIT, PERCENTAGE_WAIT };
-void init_data(std::vector<int> &wet, std::vector<float> &B,
-               const int array_size) {
-  for (int i = 0; i < array_size; ++i) {
-    if (i % 2 == 0)
-      wet[i] = 1;
-    else
-      wet[i] = 0;
+void init_data(std::vector<float> &a, std::vector<float> &r,
+               const int array_size, data_distribution distr,
+               const int percentage) {
+  std::default_random_engine generator;
+  std::uniform_int_distribution<int> distribution(0, 100);
+  auto dice = std::bind(distribution, generator);
 
-    B[i] = i;
+  for (int i = 0; i < array_size; ++i) {
+    if (distr == data_distribution::ALL_WAIT) {
+      a[i] = 0.9f;
+    } else if (distr == data_distribution::NO_WAIT) {
+      a[i] = 1.1f;
+    } else {
+      a[i] = (dice() <= percentage) ? 0.9f : 1.1f;
+    }
+
+    r[i] = 0;
   }
 }
 
@@ -170,26 +163,27 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<int> wet(ARRAY_SIZE);
-    std::vector<float> B(ARRAY_SIZE);
-    std::vector<float> B_cpu(ARRAY_SIZE);
+    std::vector<int> board(ARRAY_SIZE);
+    float res, res_cpu;
 
-    init_data(wet, B, ARRAY_SIZE);
-    std::copy(B.begin(), B.end(), B_cpu.begin());
+    int color = 1;
+    int pm = 1;
+    for (int i = 0; i < board.size(); i++)
+      board[i] = (i % 2 == 1) ? 18 : 1;
 
     auto start = std::chrono::steady_clock::now();
     double kernel_time = 0;
 
-    kernel_time = nested_if_kernel(q, wet, B);
+    kernel_time = eval_pos_kernel(q, board, color, pm, &res);
 
     // Wait for all work to finish.
     q.wait();
 
-    nested_if_cpu(wet, B_cpu);
+    eval_pos_cpu(board, color, pm, &res_cpu);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    if (std::equal(B.begin(), B.end(), B_cpu.begin())) {
+    if (res == res_cpu) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed\n";

@@ -15,32 +15,34 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-double if_mul_kernel(queue &q, const std::vector<int> &h_wet,
-                     std::vector<float> &h_B) {
-  const int array_size = h_wet.size();
+double gsum_kernel(queue &q, const std::vector<double> &h_A,
+                   const std::vector<double> &h_B, double *h_res) {
+  auto *A = fpga_tools::toDevice(h_A, q);
+  auto *B = fpga_tools::toDevice(h_B, q);
+  auto *res = sycl::malloc_device<double>(1, q);
 
-  int *wet = fpga_tools::toDevice(h_wet, q);
-  float *B = fpga_tools::toDevice(h_B, q);
+  const int N = h_A.size();
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    float etan = 0.0, t = 0.0;
-    // II=35
-    for (int i = 0; i < array_size; ++i) {
-      if (wet[i] > 0) {
-        // 35 cycles of stall
-        t = 0.25 + etan * float(wet[i]) / 2.0;
-        etan += t;
+    double d, s = 0.0;
+    int i;
+
+    for (i = 0; i < N; i++) {
+      d = A[i] + B[i];
+      if (d >= 0) {
+        s += (((((d + 0.64) * d + 0.7) * d + 0.21) * d + 0.33) * d + 0.25) * d +
+             0.125;
       }
     }
 
-    B[0] = etan;
+    *res = s;
   });
 
   event.wait();
-  q.copy(B, h_B.data(), h_B.size()).wait();
+  q.copy(res, h_res, 1).wait();
 
-  sycl::free(B, q);
-  sycl::free(wet, q);
+  sycl::free((void *)A, q);
+  sycl::free((void *)B, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -49,38 +51,45 @@ double if_mul_kernel(queue &q, const std::vector<int> &h_wet,
   return time_in_ms;
 }
 
-void if_mul_cpu(const std::vector<int> &wet, std::vector<float> &B) {
-  const int array_size = wet.size();
-  float etan, t = 0.0;
-  // II=35
-  for (int i = 0; i < array_size; ++i) {
-    if (wet[i] > 0) {
-      // 35 cycles of stall
-      t = 0.25 + etan * float(wet[i]) / 2.0;
-      etan += t;
-    }
+void gsum_cpu(const std::vector<double> &A, const std::vector<double> &B,
+              double *res) {
+  const int N = A.size();
+  double d, s = 0.0;
+  int i;
+
+  for (i = 0; i < N; i++) {
+    d = A[i] + B[i];
+    if (d >= 0)
+      s += (((((d + 0.64) * d + 0.7) * d + 0.21) * d + 0.33) * d + 0.25) * d +
+           0.125;
   }
 
-  B[0] = etan;
+  *res = s;
 }
 
 enum data_distribution { ALL_WAIT, NO_WAIT, PERCENTAGE_WAIT };
-void init_data(std::vector<int> &wet, std::vector<float> &B,
-               const int array_size, const data_distribution distr,
-               const int percentage) {
+void init_data(std::vector<double> &A, std::vector<double> &B,
+               data_distribution distr, int percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 100);
-  auto dice = std::bind (distribution, generator);
+  auto dice = std::bind(distribution, generator);
 
-  for (int i = 0; i < array_size; ++i) {
-    if (distr == data_distribution::ALL_WAIT) 
-      wet[i] = 1;
-    else if (distr == data_distribution::NO_WAIT) 
-      wet[i] = 0;
-    else 
-      wet[i] = (dice() <= percentage) ? 1 : 0;
-
-    B[i] = i;
+  for (int i = 0; i < A.size(); ++i) {
+    if (distr == data_distribution::ALL_WAIT) {
+      A[i] = 1.0;
+      B[i] = 1.0;
+    } else if (distr == data_distribution::NO_WAIT) {
+      A[i] = -1;
+      B[i] = -1;
+    } else {
+      if (dice() <= percentage) {
+        A[i] = 1.0;
+        B[i] = 1.0;
+      } else {
+        A[i] = -1.0;
+        B[i] = -1.0;
+      }
+    }
   }
 }
 
@@ -97,6 +106,22 @@ static auto exception_handler = [](sycl::exception_list e_list) {
     }
   }
 };
+
+template <class T>
+typename std::enable_if<!std::numeric_limits<T>::is_integer, bool>::type
+almost_equal(T x, T y) {
+  std::ostringstream xSS, ySS;
+  xSS << x;
+  ySS << y;
+  if (x == y || xSS.str() == ySS.str())
+    return true;
+  // the machine epsilon has to be scaled to the magnitude of the values used
+  // and multiplied by the desired precision in ULPs (units in the last place)
+  return std::fabs(x - y) <=
+             std::numeric_limits<T>::epsilon() * std::fabs(x + y) * 2
+         // unless the result is subnormal
+         || std::fabs(x - y) < std::numeric_limits<T>::min();
+}
 
 int main(int argc, char *argv[]) {
   // Get A_SIZE and forward/no-forward from args.
@@ -141,29 +166,28 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<int> wet(ARRAY_SIZE);
-    std::vector<float> B(ARRAY_SIZE);
-    std::vector<float> B_cpu(ARRAY_SIZE);
+    std::vector<double> A(ARRAY_SIZE);
+    std::vector<double> B(ARRAY_SIZE);
+    double res, res_cpu;
 
-    init_data(wet, B, ARRAY_SIZE, DATA_DISTR, PERCENTAGE);
-    std::copy(B.begin(), B.end(), B_cpu.begin());
+    init_data(A, B, DATA_DISTR, PERCENTAGE);
 
     auto start = std::chrono::steady_clock::now();
     double kernel_time = 0;
 
-    kernel_time = if_mul_kernel(q, wet, B);
+    kernel_time = gsum_kernel(q, A, B, &res);
 
     // Wait for all work to finish.
     q.wait();
 
-    if_mul_cpu(wet, B_cpu);
+    gsum_cpu(A, B, &res_cpu);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    if (std::equal(B.begin(), B.end(), B_cpu.begin())) {
+    if (almost_equal(res, res_cpu)) {
       std::cout << "Passed\n";
     } else {
-      std::cout << "Failed\n";
+      std::cout << "Failed\n\tfpga: " << res << "\n\tcpu: " << res_cpu << "\n";
     }
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";

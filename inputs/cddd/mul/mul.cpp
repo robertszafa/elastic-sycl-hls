@@ -13,81 +13,23 @@
 using namespace sycl;
 
 // Forward declare kernel name.
-class MainKernelWhichIsVeryVeryVeryVeryVeryVeryLong;
+class MainKernel;
 
-double nested_if_kernel(queue &q, const std::vector<int> &h_wet,
-                        std::vector<float> &h_B) {
+double mul_kernel(queue &q, const std::vector<int> &h_wet,
+                     std::vector<float> &h_B) {
   const int array_size = h_wet.size();
 
   int *wet = fpga_tools::toDevice(h_wet, q);
   float *B = fpga_tools::toDevice(h_B, q);
 
-  using etan_in_1_pipe = pipe<class etan_in_1_pipe_class, float>;
-  using wet_in_1_pipe = pipe<class wet_in_1_pipe_class, float>;
-  using etan_out_1_pipe = pipe<class etan_out_1_pipe_class, float>;
-  using kernel_1_pred_pipe = pipe<class kernel_1_pred_pipe_class, bool>;
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    float etan = 0.0, t = 0.0;
+    for (int i = 0; i < array_size; ++i) {
+      t = 0.25 + etan * float(wet[i]) / 2.0;
+      etan += t;
+    }
 
-  using etan_in_2_pipe = pipe<class etan_in_2_pipe_class, float>;
-  using etan_out_2_pipe = pipe<class etan_out_2_pipe_class, float>;
-  using kernel_2_pred_pipe = pipe<class kernel_2_pred_pipe_class, bool>;
-
-  auto event = q.submit([&](handler &hnd) {
-    hnd.single_task<MainKernelWhichIsVeryVeryVeryVeryVeryVeryLong>([=]() [[intel::kernel_args_restrict]] {
-      float etan = 0.0, t = 0.0;
-      // II=35
-      for (int i = 0; i < array_size; ++i) {
-        if (wet[i] > 0) {
-          // 35 cycles of stall
-          kernel_1_pred_pipe::write(1);
-          etan_in_1_pipe::write(etan);
-          wet_in_1_pipe::write(wet[i]);
-          etan = etan_out_1_pipe::read();
-          // t = 0.25 + etan * float(wet[i]) / 2.0;
-          // etan += t;
-        }
-      }
-      kernel_1_pred_pipe::write(0);
-
-      B[0] = etan;
-    });
-  });
-
-  q.submit([&](handler &hnd) {
-    hnd.single_task<class Decoupled1>([=]() [[intel::kernel_args_restrict]] {
-      while (kernel_1_pred_pipe::read()) {
-        auto etan = etan_in_1_pipe::read();
-        auto wet = wet_in_1_pipe::read();
-
-        float t = 0.25 + etan * float(wet) / 2.0;
-        etan += t;
-        
-        if (etan > 100.0) {
-          // 22 cycles of stall
-          kernel_2_pred_pipe::write(1);
-          etan_in_2_pipe::write(etan);
-          etan = etan_out_2_pipe::read();
-          // etan -= 0.1 + etan / 20.0;
-          // etan /= 30.0;
-        }
-
-        etan_out_1_pipe::write(etan);
-      }
-
-      kernel_2_pred_pipe::write(0);
-    });
-  });
-
-  q.submit([&](handler &hnd) {
-    hnd.single_task<class Decoupled2>([=]() [[intel::kernel_args_restrict]] {
-      while (kernel_2_pred_pipe::read()) {
-        auto etan = etan_in_2_pipe::read();
-
-        etan -= 0.1 + etan / 20.0;
-        etan /= 30.0;
-
-        etan_out_2_pipe::write(etan);
-      }
-    });
+    B[0] = etan;
   });
 
   event.wait();
@@ -103,7 +45,7 @@ double nested_if_kernel(queue &q, const std::vector<int> &h_wet,
   return time_in_ms;
 }
 
-void nested_if_cpu(const std::vector<int> &wet, std::vector<float> &B) {
+void mul_cpu(const std::vector<int> &wet, std::vector<float> &B) {
   const int array_size = wet.size();
   float etan, t = 0.0;
   // II=35
@@ -112,11 +54,6 @@ void nested_if_cpu(const std::vector<int> &wet, std::vector<float> &B) {
       // 35 cycles of stall
       t = 0.25 + etan * float(wet[i]) / 2.0;
       etan += t;
-      if (etan > 100.0) {
-        // 24 cycles of stall
-        etan -= 0.1 + etan / 20.0;
-        etan /= 30.0;
-      }
     }
   }
 
@@ -203,12 +140,12 @@ int main(int argc, char *argv[]) {
     auto start = std::chrono::steady_clock::now();
     double kernel_time = 0;
 
-    kernel_time = nested_if_kernel(q, wet, B);
+    kernel_time = mul_kernel(q, wet, B);
 
     // Wait for all work to finish.
     q.wait();
 
-    nested_if_cpu(wet, B_cpu);
+    mul_cpu(wet, B_cpu);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 

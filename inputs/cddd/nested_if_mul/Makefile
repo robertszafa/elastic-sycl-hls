@@ -6,7 +6,7 @@ BIN := bin/$(BENCHMARK)
 
 I = ${LLVM_SYCL_PASSES_DIR}/lsq
 
-CXX := dpcpp
+CXX := icpx -fsycl
 CXXFLAGS += -std=c++17 -O2 -I$(I)
 CXXFLAGS += -qactypes
 # CXXFLAGS += --verbose -v

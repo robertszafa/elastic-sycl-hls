@@ -15,32 +15,30 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-double if_mul_kernel(queue &q, const std::vector<int> &h_wet,
-                     std::vector<float> &h_B) {
-  const int array_size = h_wet.size();
-
-  int *wet = fpga_tools::toDevice(h_wet, q);
-  float *B = fpga_tools::toDevice(h_B, q);
+double vec_norm_trans_kernel(queue &q, const std::vector<float> h_a,
+                             std::vector<float> h_r, const int N) {
+  const float *a = fpga_tools::toDevice(h_a, q);
+  float *r = fpga_tools::toDevice(h_r, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    float etan = 0.0, t = 0.0;
-    // II=35
-    for (int i = 0; i < array_size; ++i) {
-      if (wet[i] > 0) {
-        // 35 cycles of stall
-        t = 0.25 + etan * float(wet[i]) / 2.0;
-        etan += t;
-      }
+    float weight = 0.0f;
+    for (int i = 0; i < N; i++) {
+      float d = a[i];
+      if (d < 1.0f)
+        weight = ((d * d + 19.52381f) * d + 3.704762f) * d + 0.73f * weight;
     }
 
-    B[0] = etan;
+    for (int i = 0; i < N; i++) {
+      float d = a[i] / weight;
+      r[i] = r[i] + d;
+    }
   });
 
   event.wait();
-  q.copy(B, h_B.data(), h_B.size()).wait();
+  q.copy(r, h_r.data(), h_r.size()).wait();
 
-  sycl::free(B, q);
-  sycl::free(wet, q);
+  sycl::free(r, q);
+  sycl::free((void *)a, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -49,38 +47,39 @@ double if_mul_kernel(queue &q, const std::vector<int> &h_wet,
   return time_in_ms;
 }
 
-void if_mul_cpu(const std::vector<int> &wet, std::vector<float> &B) {
-  const int array_size = wet.size();
-  float etan, t = 0.0;
-  // II=35
-  for (int i = 0; i < array_size; ++i) {
-    if (wet[i] > 0) {
-      // 35 cycles of stall
-      t = 0.25 + etan * float(wet[i]) / 2.0;
-      etan += t;
-    }
+void vec_norm_trans_cpu(const std::vector<float> a, std::vector<float> r,
+                        const int N) {
+  float weight = 0.0f;
+  for (int i = 0; i < N; i++) {
+    float d = a[i];
+    if (d < 1.0f)
+      weight = ((d * d + 19.52381f) * d + 3.704762f) * d + 0.73f * weight;
   }
 
-  B[0] = etan;
+  for (int i = 0; i < N; i++) {
+    float d = a[i] / weight;
+    r[i + 4] = r[i] + d;
+  }
 }
 
 enum data_distribution { ALL_WAIT, NO_WAIT, PERCENTAGE_WAIT };
-void init_data(std::vector<int> &wet, std::vector<float> &B,
-               const int array_size, const data_distribution distr,
+void init_data(std::vector<float> &a, std::vector<float> &r,
+               const int array_size, data_distribution distr,
                const int percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 100);
-  auto dice = std::bind (distribution, generator);
+  auto dice = std::bind(distribution, generator);
 
   for (int i = 0; i < array_size; ++i) {
-    if (distr == data_distribution::ALL_WAIT) 
-      wet[i] = 1;
-    else if (distr == data_distribution::NO_WAIT) 
-      wet[i] = 0;
-    else 
-      wet[i] = (dice() <= percentage) ? 1 : 0;
+    if (distr == data_distribution::ALL_WAIT) {
+      a[i] = 0.9f;
+    } else if (distr == data_distribution::NO_WAIT) {
+      a[i] = 1.1f;
+    } else {
+      a[i] = (dice() <= percentage) ? 0.9f : 1.1f;
+    }
 
-    B[i] = i;
+    r[i] = 0;
   }
 }
 
@@ -141,26 +140,26 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<int> wet(ARRAY_SIZE);
-    std::vector<float> B(ARRAY_SIZE);
-    std::vector<float> B_cpu(ARRAY_SIZE);
+    std::vector<float> a(ARRAY_SIZE);
+    std::vector<float> r(ARRAY_SIZE);
+    std::vector<float> r_cpu(ARRAY_SIZE);
 
-    init_data(wet, B, ARRAY_SIZE, DATA_DISTR, PERCENTAGE);
-    std::copy(B.begin(), B.end(), B_cpu.begin());
+    init_data(a, r, ARRAY_SIZE, DATA_DISTR, PERCENTAGE);
+    std::copy(r.begin(), r.end(), r_cpu.begin());
 
     auto start = std::chrono::steady_clock::now();
     double kernel_time = 0;
 
-    kernel_time = if_mul_kernel(q, wet, B);
+    kernel_time = vec_norm_trans_kernel(q, a, r, ARRAY_SIZE);
 
     // Wait for all work to finish.
     q.wait();
 
-    if_mul_cpu(wet, B_cpu);
+    vec_norm_trans_cpu(a, r, ARRAY_SIZE);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    if (std::equal(B.begin(), B.end(), B_cpu.begin())) {
+    if (std::equal(r.begin(), r.end(), r_cpu.begin())) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed\n";

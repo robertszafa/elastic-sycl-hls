@@ -4,9 +4,9 @@ SRC := $(FILE)
 # HDR := ""
 BIN := bin/$(BENCHMARK)
 
-I = ${HOME}/git/sycl-playground/include
+I = ${LLVM_SYCL_PASSES_DIR}/lsq
 
-CXX := icpx -fsycl
+CXX := dpcpp
 CXXFLAGS += -std=c++17 -O2 -I$(I)
 CXXFLAGS += -qactypes
 # CXXFLAGS += --verbose -v

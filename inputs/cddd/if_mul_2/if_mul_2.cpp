@@ -15,30 +15,29 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-double nested_if_kernel(queue &q, const std::vector<int> &h_wet, std::vector<float> &h_B) {
+double if_mul_kernel(queue &q, const std::vector<int> &h_wet,
+                     std::vector<float> &h_B) {
   const int array_size = h_wet.size();
 
   int *wet = fpga_tools::toDevice(h_wet, q);
   float *B = fpga_tools::toDevice(h_B, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-        float etan = 0.0, t = 0.0;
-        // II=35
-        for (int i = 0; i < array_size; ++i) {
-          if (wet[i] > 0) {
-            // 35 cycles of stall
-            t = 0.25 + etan * float(wet[i]) / 2.0;
-            etan += t;
-            if (etan > 100.0) {
-              // 24 cycles of stall
-              etan -= 0.1 + etan / 20.0;
-              etan /= 30.0;
-            }
-          }
+    float etan = 0.0, t = 0.0;
+    for (int i = 0; i < array_size; ++i) {
+      if (wet[i] == 0) {
+        t = 0.25 + etan * float(wet[i]) / 2.0;
+        etan += t;
+        if (etan > 100.0) {
+          etan -= 0.1 + etan / 20.0;
         }
+      } else if (wet[i] == 1) {
+        etan /= 0.02;
+      }
+    }
 
-        B[0] = etan;
-      });
+    B[0] = etan;
+  });
 
   event.wait();
   q.copy(B, h_B.data(), h_B.size()).wait();
@@ -53,46 +52,34 @@ double nested_if_kernel(queue &q, const std::vector<int> &h_wet, std::vector<flo
   return time_in_ms;
 }
 
-void nested_if_cpu(const std::vector<int> &wet, std::vector<float> &B) {
+void if_mul_cpu(const std::vector<int> &wet, std::vector<float> &B) {
   const int array_size = wet.size();
-  /////////////////////////////////// KERNEL CODE /////////////////////////////////////////////
-  float etan, t = 0.0;
-  // II=35
+  float etan = 0.0, t = 0.0;
   for (int i = 0; i < array_size; ++i) {
-    if (wet[i] > 0) {
-      // 35 cycles of stall
+    if (wet[i] == 0) {
       t = 0.25 + etan * float(wet[i]) / 2.0;
       etan += t;
       if (etan > 100.0) {
-        // 24 cycles of stall
         etan -= 0.1 + etan / 20.0;
-        etan /= 30.0;
       }
+    } else if (wet[i] == 1) {
+      etan /= 0.02;
     }
   }
 
   B[0] = etan;
-  /////////////////////////////////// KERNEL CODE /////////////////////////////////////////////
 }
 
 enum data_distribution { ALL_WAIT, NO_WAIT, PERCENTAGE_WAIT };
 void init_data(std::vector<int> &wet, std::vector<float> &B,
-               const int array_size, const data_distribution distr,
-               const int percentage) {
-  std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
-  auto dice = std::bind (distribution, generator);
-
+               const int array_size) {
   for (int i = 0; i < array_size; ++i) {
-    if (distr == data_distribution::ALL_WAIT) {
-      wet[i] = 1;
-    }
-    else if (distr == data_distribution::NO_WAIT) {
+    if (i % 3 == 0)
       wet[i] = 0;
-    }
-    else {
-      wet[i] = (dice() <= percentage) ? 1 : 0;
-    }
+    else if (i % 3 == 1)
+      wet[i] = 1;
+    else
+      wet[i] = 2;
 
     B[i] = i;
   }
@@ -132,7 +119,8 @@ int main(int argc, char *argv[]) {
     }
   } catch (exception const &e) {
     std::cout << "Incorrect argv.\nUsage:\n";
-    std::cout << "  ./executable [ARRAY_SIZE] [data_distribution (0/1/2)] [PERCENTAGE (only for "
+    std::cout << "  ./executable [ARRAY_SIZE] [data_distribution (0/1/2)] "
+                 "[PERCENTAGE (only for "
                  "data_distr 2)]\n";
     std::cout << "    0 - all_wait, 1 - no_wait, 2 - PERCENTAGE wait\n";
     std::terminate();
@@ -151,24 +139,25 @@ int main(int argc, char *argv[]) {
     queue q(d_selector, exception_handler, properties);
 
     // Print out the device information used for the kernel code.
-    std::cout << "Running on device: " << q.get_device().get_info<info::device::name>() << "\n";
+    std::cout << "Running on device: "
+              << q.get_device().get_info<info::device::name>() << "\n";
 
     std::vector<int> wet(ARRAY_SIZE);
     std::vector<float> B(ARRAY_SIZE);
     std::vector<float> B_cpu(ARRAY_SIZE);
 
-    init_data(wet, B, ARRAY_SIZE, DATA_DISTR, PERCENTAGE);
+    init_data(wet, B, ARRAY_SIZE);
     std::copy(B.begin(), B.end(), B_cpu.begin());
 
     auto start = std::chrono::steady_clock::now();
     double kernel_time = 0;
 
-    kernel_time = nested_if_kernel(q, wet, B);
+    kernel_time = if_mul_kernel(q, wet, B);
 
     // Wait for all work to finish.
     q.wait();
 
-    nested_if_cpu(wet, B_cpu);
+    if_mul_cpu(wet, B_cpu);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 

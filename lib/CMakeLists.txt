@@ -6,6 +6,7 @@ set(OPT_PASSES_PLUGINS
     LoadStoreQueueTransform
     CDDDAnalysisPrinter
     CDDDTransform
+    DDGDotPrinter
     )
 
 set(HoistConstantGepTransform_SOURCES HoistConstantGepTransform.cpp)
@@ -28,6 +29,11 @@ set(CDDDAnalysisPrinter_SOURCES
 
 set(CDDDTransform_SOURCES
   CDDDTransform.cpp
+)
+
+set(DDGDotPrinter_SOURCES
+  DDGDotPrinter.cpp
+  CDG.cpp
 )
 
 # CONFIGURE THE PLUGIN LIBRARIES

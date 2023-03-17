@@ -115,6 +115,14 @@ bool ControlDependenceGraph::isControlDependent(const BasicBlock *B,
   if (PDT.properlyDominates(B, A))
     return false;
 
+  // Simple case where B is the immediate predecessor of A, and A has 2
+  // successors.
+  if (auto predB = B->getSinglePredecessor()) {
+    if (predB == A && A->getTerminator()->getNumOperands() > 1)
+      return true;
+  }
+
+  // Look for a path from A to B.
   SmallVector<const BasicBlock *> pathStack;
   bool existsPathFromAToB = false;
   unsigned int pathLength = 0;

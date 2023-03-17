@@ -5,8 +5,8 @@ Memory disambiguation kernel for C/C++/OpenCL/SYCL based HLS.
 Store queue with early execution of loads when all preceding stores have calculated their addresses.
 */
 
-#ifndef __STORE_QUEUE_HPP__
-#define __STORE_QUEUE_HPP__
+#ifndef __LOAD_STORE_QUEUE_HPP__
+#define __LOAD_STORE_QUEUE_HPP__
 
 #include <CL/sycl.hpp>
 
@@ -22,30 +22,25 @@ Store queue with early execution of loads when all preceding stores have calcula
 using namespace sycl;
 using namespace fpga_tools;
 
-#ifdef __SYCL_DEVICE_ONLY__
-  #define CL_CONSTANT __attribute__((opencl_constant))
-#else
-  #define CL_CONSTANT
-#endif
-#define PRINTF(format, ...) { \
-            static const CL_CONSTANT char _format[] = format; \
-            sycl::ext::oneapi::experimental::printf(_format, ## __VA_ARGS__); }
 
-
-// The default PipelinedLSU will start a load/store immediately, which the memory disambiguation 
-// logic relies upon. A BurstCoalescedLSU would instead of waiting for more requests to arrive for 
-// a coalesced access. (Use sycl::ext::intel::experimental::lsu<> if want latency control).
+// The default PipelinedLSU will start a load/store immediately.
 using PipelinedLSU = ext::intel::lsu<>;
-constexpr int kLatencyPipelinedLSU = 7;
-  
+// TODO: The store latency should be customized for each application 
+// (e.g. saturated bandwidth might increase the latency).
+constexpr int kLatencyPipelinedLSU = 104; // Arria 10
+
 /// Used for {address, tag} pairs.
 struct request_lsq_t { int64_t first; int second; };
 
-template <typename value_t, typename ld_idx_pipes, typename ld_val_pipes, typename st_idx_pipe,
-          typename st_val_pipe, typename end_signal_pipe, int num_lds, int QUEUE_SIZE = 8>
+template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
+          typename st_req_pipe, typename st_val_pipe, typename end_signal_pipe,
+          int num_lds, int QUEUE_SIZE = 8>
 event LoadStoreQueue(queue &q) {
+  // Setting the II to the number of store_q entries ensures that we are not
+  // increasing the critical path of the resulting circuit by too much.
+  constexpr int LSQ_II = QUEUE_SIZE;
   // Use minimum number of bits for store_q iterator.
-  constexpr int kQueueLoopIterBitSize = fpga_tools::BitsForMaxValue<QUEUE_SIZE+1>();
+  constexpr int kQueueLoopIterBitSize = BitsForMaxValue<QUEUE_SIZE+1>();
   using storeq_idx_t = ac_int<kQueueLoopIterBitSize, false>;
   
   struct store_entry {
@@ -68,20 +63,21 @@ event LoadStoreQueue(queue &q) {
 
       // The below are variables kept around across iterations.
       bool end_signal = false;
-      // How many store (valid) indexes were read from st_idx pipe.
-      int i_store_idx = 0;
-      // How many store values were accepted from st_val pipe.
+      // How many store requests were read.
+      int i_store_req = 0;
+      // How many store values were read.
       int i_store_val = 0;
       // Total number of stores to commit (supplied by the end_signal).
       int total_req_stores = 0;
-      // Pointers into the store_entries circular buffer. Tail is for values, Head for idxs.
+      // Pointers into the store_entries buffer. Tail: values, head: addresses.
       storeq_idx_t stq_tail = 0;
       storeq_idx_t stq_head = 0;
+      // The tag of the latest read store request. 
       int tag_store = 0;
 
-      // Scalar book-keeping values for the load logic (one per load, NTuple expanded at compile).
+      // Scalar values for the load logic (one per load, expanded at compile).
       NTuple<value_t, num_lds> val_load_tp;
-      NTuple<request_lsq_t, num_lds> idx_tag_pair_load_tp;
+      NTuple<request_lsq_t, num_lds> req_load_tp;
       NTuple<int64_t, num_lds> address_load_tp;
       NTuple<int, num_lds> tag_load_tp;
       NTuple<bool, num_lds> consumer_load_succ_tp;
@@ -95,10 +91,8 @@ event LoadStoreQueue(queue &q) {
       });
 
 
-      // Setting Inititation Interval to the number of store_q entries ensures that we are not
-      // increasing the critical path of the resulting circuit by too much, or not at all in most 
-      // cases. ivdep (ignore mem dependencies): The logic guarantees dependencies are honoured.
-      [[intel::initiation_interval(QUEUE_SIZE)]] 
+      // ivdep (ignore mem dependencies): The logic guarantees dependencies are honoured.
+      [[intel::initiation_interval(LSQ_II)]] 
       [[intel::ivdep]] 
       while (!end_signal || i_store_val < total_req_stores) {
         /* Start Load Logic */
@@ -106,26 +100,26 @@ event LoadStoreQueue(queue &q) {
         UnrolledLoop<num_lds>([&](auto k) {
           // Use shorter names.
           auto& val_load = val_load_tp. template get<k>();
-          auto& idx_tag_pair_load = idx_tag_pair_load_tp. template get<k>();
+          auto& req_load = req_load_tp. template get<k>();
           auto& address_load = address_load_tp. template get<k>();
           auto& tag_load = tag_load_tp. template get<k>();
           auto& consumer_pipe_succ = consumer_load_succ_tp. template get<k>();
           auto& is_load_waiting = is_load_waiting_tp. template get<k>();
-          auto& is_load_rq_finished = is_load_rq_finished_tp. template get<k>();
+          auto& is_load_req_finished = is_load_rq_finished_tp. template get<k>();
 
           // Check for new ld requests, only once the prev one was completed.
-          if (is_load_rq_finished) {
-            bool idx_load_pipe_succ = false;
-            idx_tag_pair_load = ld_idx_pipes:: template PipeAt<k>::read(idx_load_pipe_succ);
+          if (is_load_req_finished) {
+            bool req_load_pipe_succ = false;
+            req_load = ld_req_pipes:: template PipeAt<k>::read(req_load_pipe_succ);
 
-            if (idx_load_pipe_succ) {
-              is_load_rq_finished = false;
-              address_load = idx_tag_pair_load.first;
-              tag_load = idx_tag_pair_load.second;
+            if (req_load_pipe_succ) {
+              is_load_req_finished = false;
+              address_load = req_load.first;
+              tag_load = req_load.second;
             }
           }
 
-          if (!is_load_rq_finished) {
+          if (!is_load_req_finished) {
             // If the load tag sequence has overtaken the store tags, then we cannot possibly
             // disambiguate -- need to wait for more store idxs to arrive. 
             is_load_waiting = (tag_load > tag_store);
@@ -155,7 +149,7 @@ event LoadStoreQueue(queue &q) {
           if (!consumer_pipe_succ) {
             // The ld. req. is deemed finished once the consumer pipe has been successfully written.
             ld_val_pipes:: template PipeAt<k>::write(val_load, consumer_pipe_succ);
-            is_load_rq_finished = consumer_pipe_succ;
+            is_load_req_finished = consumer_pipe_succ;
           }
         }); 
         /* End Load Logic */
@@ -165,7 +159,7 @@ event LoadStoreQueue(queue &q) {
         bool is_space_in_stq = (store_entries[stq_head].address == 0);
         #pragma unroll
         for (storeq_idx_t i = 0; i < QUEUE_SIZE; ++i) {
-          // Invalidate idx if count WILL GO to 0 on this iteration.
+          // Invalidate entry if count will go to 0 on this iteration.
           // On every iteration, decrement counter for stores in-flight.
           if (store_entries[i].countdown < int16_t(1) && !store_entries[i].waiting_for_val) 
             store_entries[i].address = 0;
@@ -175,21 +169,20 @@ event LoadStoreQueue(queue &q) {
 
         // If store_q not full, check for new store_idx requests.
         if (is_space_in_stq) {
-          bool idx_store_pipe_succ = false;
-          request_lsq_t idx_tag_pair_store = st_idx_pipe::read(idx_store_pipe_succ);
+          bool req_store_pipe_succ = false;
+          request_lsq_t req_store = st_req_pipe::read(req_store_pipe_succ);
 
-          if (idx_store_pipe_succ) {
-            auto address_store = idx_tag_pair_store.first;
-            tag_store = idx_tag_pair_store.second;
-
+          if (req_store_pipe_succ) {
+            auto address_store = req_store.first;
+            tag_store = req_store.second;
             store_entries[stq_head] = {address_store, tag_store, true};
             stq_head = (stq_head+1) % QUEUE_SIZE;
-            i_store_idx++;
+            i_store_req++;
           }
         }
 
         // Only check for store values, once their corresponding index has been received.
-        if (i_store_idx > i_store_val) {
+        if (i_store_req > i_store_val) {
           bool val_store_pipe_succ = false;
           value_t val_store = st_val_pipe::read(val_store_pipe_succ);
 
@@ -198,7 +191,7 @@ event LoadStoreQueue(queue &q) {
             store_entries[stq_tail].waiting_for_val = false;
             PipelinedLSU::store(device_ptr<value_t>((value_t*) store_entries[stq_tail].address), 
                                 val_store);
-            store_entries[stq_tail].countdown = int16_t(kLatencyPipelinedLSU);
+            store_entries[stq_tail].countdown = int16_t(kLatencyPipelinedLSU / LSQ_II + 1);
             
             i_store_val++;
             stq_tail = (stq_tail + 1) % QUEUE_SIZE;
@@ -207,10 +200,10 @@ event LoadStoreQueue(queue &q) {
         /* End Store Logic */
 
         // The end signal supplies the total number of stores sent to the store queue.
-        if (!end_signal)
+        if (!end_signal) {
           total_req_stores = end_signal_pipe::read(end_signal);
+        }
       }
-
     });
   });
 

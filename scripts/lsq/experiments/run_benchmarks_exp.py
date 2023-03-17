@@ -11,8 +11,6 @@ import argparse
 
 from constants import *
 
-INPUTS_DIR = f'{GIT_DIR}/inputs/lsq'
-
 # Range of data hazard % to test
 PERCENTAGES_WAIT = [0, 40, 80, 100]
 
@@ -61,6 +59,8 @@ if __name__ == '__main__':
     gmean_speedup_all_kernels = {q : -1 for q in qsizes}
 
     for kernel, a_size in KERNEL_ASIZE_FOR_BENCHMARKS.items():
+        print(f'\n-- {kernel}')
+
         # Ensure dir structure exists
         Path(f'{EXP_DATA_DIR}/').mkdir(parents=True, exist_ok=True)
         res_file = f'{EXP_DATA_DIR}/{kernel}_{args.target}.csv'
@@ -74,21 +74,17 @@ if __name__ == '__main__':
             highest_speedup = {q : 0 for q in qsizes}
             all_speedups = {q : [] for q in qsizes}
 
+            BIN_STATIC = f'{INPUTS_DIR}/{kernel}/bin/{kernel}.fpga_{args.target}'
+            static_time = run_bin(BIN_STATIC, a_size, percentage=0)
+            print(f'baseline (0% data hazards): {static_time}')
             for percentage in PERCENTAGES_WAIT:
-                print(f'\n-- {kernel} with {percentage}% data hazards')
-
-                new_row = [percentage]
-
-                BIN_STATIC = f'{INPUTS_DIR}/{kernel}/bin/{kernel}.fpga_{args.target}'
-                static_time = run_bin(BIN_STATIC, a_size, percentage=percentage)
-                new_row.append(static_time)
-                print('baseline:', static_time)
+                new_row = [percentage, static_time]
 
                 for q in qsizes:
                     BIN_DYNAMIC = f'{INPUTS_DIR}/{kernel}/bin/{kernel}.lsq_{q}.fpga_{args.target}' 
                     dyn_time = run_bin(BIN_DYNAMIC, a_size, percentage=percentage)
                     new_row.append(dyn_time)
-                    print(f'lsq_{q}: {dyn_time}')
+                    print(f'lsq_{q} ({percentage}% data hazards): {dyn_time}')
 
                     this_perc_speedup = round(static_time / dyn_time, 2)
                     all_speedups[q].append(this_perc_speedup)
@@ -108,7 +104,7 @@ if __name__ == '__main__':
             writer.writerow(highest_speedup_row)
             writer.writerow(gmean_speedup_row)
 
-            print(f'\nSummary {kernel}\n{lowest_speedup_row}\n{highest_speedup_row}\n{gmean_speedup_row}\n')
+            print(f'\nLowest-highest speedup: {lowest_speedup_row[-1]} - {highest_speedup_row[-1]}\n')
 
             # Update gmean for all kernels.
             for i_q, q in enumerate(qsizes):
@@ -125,20 +121,6 @@ if __name__ == '__main__':
         # Emulation perf results are meaningless, delete.
         if args.target == 'emu':
             os.system(f'rm {res_file}')
-
-    
-    print('\nlowest_speedup over all kernels:')
-    for q, q_lowest in lowest_speedup_all_kernels.items():
-        print(f'{q}qsize : {q_lowest}')
-
-    print('\nhighest_speedup over all kernels:')
-    for q, q_highest in highest_speedup_all_kernels.items():
-        print(f'{q}qsize : {q_highest}')
-
-    print('\ngmean_speedup over all kernels:')
-    for q, q_gmean in gmean_speedup_all_kernels.items():
-        print(f'{q}qsize : {q_gmean}')
-    
 
     os.system(f'rm {TMP_FILE}')
 

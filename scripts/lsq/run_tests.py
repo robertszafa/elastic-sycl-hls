@@ -30,18 +30,22 @@ if __name__ == '__main__':
 
     qsizes = [int(s) for s in args.lsq_sizes.split(',')]
     targets = [t for t in args.target.split(',')]
-    
-    for kernel, a_size in KERNEL_ASIZE_FOR_TESTS.items():
+
+    kernels_asizes = KERNEL_ASIZE_FOR_BENCHMARKS if args.target == 'hw' else KERNEL_ASIZE_FOR_TESTS
+    for kernel, a_size in kernels_asizes.items():
         for q in qsizes:
             BIN_DYNAMIC = f'{INPUTS_DIR}/{kernel}/bin/{kernel}.lsq_{q}.fpga_{args.target}'
 
             print(f'\n--Testing {kernel} with qsize {q}:')
+
             print(f'\t100% data harards: ', end='')
-            test_binary(BIN_DYNAMIC, a_size, distr=0) # All wait
+            test_binary(BIN_DYNAMIC, a_size, distr=0) 
+
             print(f'\t0% data harards:   ', end='')
-            test_binary(BIN_DYNAMIC, a_size, distr=1) # No wait
+            test_binary(BIN_DYNAMIC, a_size, distr=1)
+
             print(f'\t50% data harards:  ', end='')
-            test_binary(BIN_DYNAMIC, a_size, distr=2, percentage=50) # 50% wait
+            test_binary(BIN_DYNAMIC, a_size, distr=2, percentage=50) 
         
 
     os.system(f'rm {TMP_FILE}')

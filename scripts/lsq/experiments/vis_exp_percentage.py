@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import re
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -95,8 +97,8 @@ def make_plot_all_percentages(filename, kernel, relative=False, y_label='Speedup
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog="run_qsizes_exp.py",
-                                     description="Run the same benchamrks for different LSQ sizes and save resource/fmax/performance numbers to CSV files.",
+    parser = argparse.ArgumentParser(prog="vis_exp_percentage.py.py",
+                                     description=f"Generate plot with x-axis = % of data hazards, and y-axis = execution time.",
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--target", type=str, default='hw', help="What binary type to use (sim or hw). If not provided, hw is used.")
     args = parser.parse_args()

@@ -91,7 +91,9 @@ def get_line_of_pattern(src_lines, re_pattern):
     return insert_line
 
 def llvm2ctype(llvmtype):
-    if llvmtype == 'i8':
+    if llvmtype == 'i1':
+        return 'bool'
+    elif llvmtype == 'i8':
         return 'signed char'
     elif llvmtype == 'i16':
         return 'signed short'
@@ -108,6 +110,11 @@ def parse_report(report_fname):
             str = f.read()
 
         report = json.loads(str)
+
+        if "kernel_class_name" not in report:
+            exit("Analysis report is empty.")
+
+        # report['blocks_to_decouple'] = list(reversed(report['blocks_to_decouple']))
 
         # Keep only the useful bits.
         report["kernel_name"] = report["kernel_class_name"].split(' ')[-1].split('::')[-1]

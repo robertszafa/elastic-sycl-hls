@@ -1,13 +1,11 @@
+#!/usr/bin/env python3
+
 import re
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from run_qsizes_exp import KERNEL_ASIZE_FOR_BENCHMARKS, Q_SIZES, EXP_DATA_DIR
-from constants import GIT_DIR
-
-INPUTS_DIR = f'{GIT_DIR}/inputs/lsq'
-Q_SIZE = 8
+from run_qsizes_exp import KERNEL_ASIZE_FOR_BENCHMARKS, Q_SIZES, EXP_DATA_DIR, INPUTS_DIR
 
 plt.rcParams['font.size'] = 14
 # colors = seaborn.color_palette("rocket", 3)
@@ -46,7 +44,6 @@ def get_resources_only_kernels(quartus_data_file):
     try:
         with open(quartus_data_file, 'r') as f:
             report_str = f.read()
-            report_str = report_str[16:-2]
             data = json.loads(report_str)
 
             res['FREQ'] = int(float(data['quartusFitClockSummary']['nodes'][0]['kernel clock']))
@@ -111,14 +108,14 @@ if __name__ == '__main__':
     for kernel in KERNEL_ASIZE_FOR_BENCHMARKS.keys():
         time_res_file = f'{EXP_DATA_DIR}/qsizes_exp_{kernel}_{target}.csv'
         df = pd.read_csv(time_res_file)
-        sta_res = get_resources_only_kernels(f'{INPUTS_DIR}/{kernel}/bin/{kernel}.fpga_{target}.prj/reports/resources/quartus_data.js')
+        sta_res = get_resources_only_kernels(f'{INPUTS_DIR}/{kernel}/bin/{kernel}.fpga_{target}.prj/reports/resources/json/quartus.json')
         
         ALMs = [int(sta_res['ALM'])]
         FREQs = [sta_res['FREQ']]
 
         for qsize in Q_SIZES:
             BIN_DYNAMIC = f'{INPUTS_DIR}/{kernel}/bin/{kernel}.lsq_{qsize}.fpga_{target}' 
-            dyn_res = get_resources_only_kernels(f'{BIN_DYNAMIC}.prj/reports/resources/quartus_data.js')
+            dyn_res = get_resources_only_kernels(f'{BIN_DYNAMIC}.prj/reports/resources/json/quartus.json')
 
             ALMs.append(int(dyn_res['ALM']))
             FREQs.append(dyn_res['FREQ'])

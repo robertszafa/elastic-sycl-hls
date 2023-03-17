@@ -37,6 +37,9 @@ json::Object genReport(Function &F, DataHazardAnalysis &DHA) {
       instrCluster[0]->getOperand(0)->getType()->print(rso);
       thisBaseAddr["array_type"] = typeStr;
 
+      thisBaseAddr["array_line"] = stores[0]->getDebugLoc().getLine();
+      thisBaseAddr["array_column"] = stores[0]->getDebugLoc()->getColumn();
+
       json::Array loadIs;
       for (auto &iLd : loads) 
         loadIs.push_back(std::move(genJsonForInstruction(iLd)));

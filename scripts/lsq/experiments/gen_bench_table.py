@@ -19,7 +19,6 @@ def get_resources_only_kernels(quartus_data_file):
     try:
         with open(quartus_data_file, 'r') as f:
             report_str = f.read()
-            report_str = report_str[16:-2]
             data = json.loads(report_str)
 
             res['Freq'] = int(float(data['quartusFitClockSummary']['nodes'][0]['kernel clock']))
@@ -35,9 +34,9 @@ def get_resources_only_kernels(quartus_data_file):
                     break
 
     except Exception as e:
-        print('\n*Exception*\n')
+        print(f'Exception when reading {quartus_data_file}:')
         print(e)
-        exit()
+        exit(1)
     
     return res
 
@@ -108,9 +107,9 @@ if __name__ == '__main__':
         for kernel in KERNEL_ASIZE_FOR_BENCHMARKS.keys():
             kernel_row = [kernel]
 
-            print('\n\n' + kernel)
-            resources_static = get_resources_only_kernels(f'{INPUTS_DIR}/{kernel}/bin/{kernel}.fpga_{target}.prj/reports/resources/quartus_data.js')
-            resources_dynamic = get_resources_only_kernels(f'{INPUTS_DIR}/{kernel}/bin/{kernel}.lsq_{Q_SIZE}.fpga_{target}.prj/reports/resources/quartus_data.js')
+            print(f'{kernel} ...')
+            resources_static = get_resources_only_kernels(f'{INPUTS_DIR}/{kernel}/bin/{kernel}.fpga_{target}.prj/reports/resources/json/quartus.json')
+            resources_dynamic = get_resources_only_kernels(f'{INPUTS_DIR}/{kernel}/bin/{kernel}.lsq_{Q_SIZE}.fpga_{target}.prj/reports/resources/json/quartus.json')
 
             min_static, max_static = get_min_max_runtime(kernel, 'static')
             min_dynamic, max_dynamic = get_min_max_runtime(kernel, f'lsq_{Q_SIZE}')
@@ -151,3 +150,5 @@ if __name__ == '__main__':
         gmean_row.append(f'{gmean_rounded(gmean_min_speedup)} - {gmean_rounded(gmean_max_speedup)}')
 
         writer.writerow(gmean_row)
+
+    print(f'\nCSV table saved to {TABLE_FNAME}')

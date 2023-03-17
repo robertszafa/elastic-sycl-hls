@@ -6,14 +6,12 @@ import csv
 from pathlib import Path
 import argparse
 
-from constants import GIT_DIR, EXP_DATA_DIR, TMP_FILE, SIM_CYCLES_FILE
-
-INPUTS_DIR = f'{GIT_DIR}/inputs/lsq'
+from constants import GIT_DIR, EXP_DATA_DIR, TMP_FILE, SIM_CYCLES_FILE, INPUTS_DIR
 
 # A realistic % of data hazards
 PERCENTAGE_WAIT = 10
 
-Q_SIZES = [1, 2, 4, 8, 16]
+Q_SIZES = [2, 4, 8, 16]
 
 # Only these two for this experiment
 KERNEL_ASIZE_FOR_BENCHMARKS = {
@@ -72,7 +70,7 @@ if __name__ == '__main__':
 
         # Ensure dir structure exists
         Path(f'{EXP_DATA_DIR}').mkdir(parents=True, exist_ok=True)
-        res_file = f'{EXP_DATA_DIR}/Q_SIZES_exp_{kernel}_{args.target}.csv'
+        res_file = f'{EXP_DATA_DIR}/qsizes_exp_{kernel}_{args.target}.csv'
 
         with open(res_file, 'w') as f:
             writer = csv.writer(f)

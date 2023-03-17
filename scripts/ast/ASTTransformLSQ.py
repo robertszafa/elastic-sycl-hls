@@ -48,22 +48,32 @@ def gen_lsq_kernel_calls(report, q_name, q_size):
 
     return result
 
-def add_ivdep_pipes(kernel_body):
-    """
-    If a loop writes 2 times to the same pipe, the II might suffer unnecessarily. 
-    Add pragmas to ignore dep between writes to the same pipe since the ordering 
-    is enforced by the dependency on tag anyway.
-    """
+def get_array_name(line_with_array, end_col):
+    array = ""
+    c_var_regex = r'([a-zA-Z_][a-zA-Z0-9_]*)'
+    m = re.findall(c_var_regex, str(line_with_array[:end_col]))
+    if m:
+        array = m[0]
 
-    # TODO: We should only ivdep for captured base addresses and generated pipes
-    IGNORE_DEP_PRAGMA = '[[intel::ivdep]]'
+    return array
+
+def add_array_ivdep(src_lines, start_line, end_line, report):
+    IGNORE_DEP_PRAGMA = ''
+    for base_addr in report['base_addresses']:
+        if "array_line" in base_addr and "array_column" in base_addr:
+            array_name = get_array_name(src_lines[base_addr['array_line'] - 1], 
+                                        base_addr['array_column'])
+            if array_name:
+                IGNORE_DEP_PRAGMA += f'[[intel::ivdep({array_name})]] '
+
     res = []
-    for line in kernel_body:
-        for loop_keyword in [' for ', ' while ', ' do ']:
-            if loop_keyword in line:
-                idx = line.index(loop_keyword)
-                line = line[:idx] + IGNORE_DEP_PRAGMA + line[idx:]
-                break
+    for i_line, line in enumerate(src_lines, 1):
+        if i_line >= start_line and i_line < end_line:
+            for loop_keyword in [' for ', ' while ', ' do ']:
+                if loop_keyword in line:
+                    idx = line.index(loop_keyword)
+                    line = line[:idx] + IGNORE_DEP_PRAGMA + line[idx:]
+                    break
                 
         res.append(line)
 
@@ -193,8 +203,10 @@ if __name__ == '__main__':
     # Keep track of kernel boundaries (and adjust their values if necessary).
     kernel_start_line = report["kernel_start_line"]
     kernel_end_line = report["kernel_end_line"]
+
+    src_lines = add_array_ivdep(src_lines, kernel_start_line, kernel_end_line, report)
+
     kernel_body = get_kernel_body(src_lines, kernel_start_line, kernel_end_line)
-    kernel_body = add_ivdep_pipes(kernel_body)
 
     Q_NAME = get_queue_name(src_lines[kernel_start_line-1])
 

@@ -62,9 +62,20 @@ getStores(const SmallVector<Instruction *> &memInstr) {
 
 /// Given a {val}, store it into the operand of the {pipe} write.
 [[maybe_unused]] void storeValIntoPipe(Value *val, CallInst *pipe) {
-  auto pipeOperandAddress = pipe->getOperand(0);
+  auto pipeOperandAddr = pipe->getOperand(0);
   IRBuilder<> Builder(pipe);
-  Builder.CreateStore(val, pipeOperandAddress);
+
+  // Cast valType to pipeType if possible, e.g. val:i1 -> pipe:i8.
+  auto pipeType = pipeOperandAddr->getType()->getNonOpaquePointerElementType();
+  auto valType = val->getType();
+  if (valType != pipeType) {
+    auto widthOk =
+        valType->getPrimitiveSizeInBits() <= pipeType->getPrimitiveSizeInBits();
+    assert(widthOk && "Cannot cast because of precision loss.");
+    val = Builder.CreateCast(Instruction::CastOps::SExt, val, pipeType);
+  }
+
+  Builder.CreateStore(val, pipeOperandAddr);
 }
 
 /// Delete {inst} from it's function.
@@ -145,6 +156,14 @@ template <typename T1, typename T2>
   }
   
   return idx;
+}
+
+[[maybe_unused]] SmallVector<Instruction*> getInstructions(BasicBlock *BB) {
+  SmallVector<Instruction *> res;
+  for (auto &Child : *BB) 
+    res.push_back(&Child);
+
+  return res;
 }
 
 /// Return the Child at {idx} in {Parent}. Return a nullptr if out of bounds.

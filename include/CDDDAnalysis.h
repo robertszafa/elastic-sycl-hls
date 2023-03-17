@@ -15,49 +15,57 @@ namespace llvm {
 /// defined (dependencies out) inside the {bottleneckI} basic block.
 class ControlDependentDataDependencyAnalysis {
 public:
-  explicit ControlDependentDataDependencyAnalysis(Function &F,
-                                                  ControlDependenceGraph &CDG,
-                                                  LoopInfo &LI,
-                                                  BasicBlock *bottleneckBB) {
-    if (auto ctrlDepSrc = CDG.getControlDependencySource(bottleneckBB)) {
-      ctrlDepSrcBlock = ctrlDepSrc;
+  using BlockList = SetVector<BasicBlock *, SmallVector<BasicBlock *>>;
 
-      if (LI.getLoopFor(ctrlDepSrc) ==
-          LI.getLoopFor(bottleneckBB)) {
-        ctrlDepInsideLoopFlag = true;
-        dependenciesIn = getIncomingUses(F, bottleneckBB);
-        dependenciesOut = getOutgoingDefs(F, bottleneckBB);
-      }
-    }
+  explicit ControlDependentDataDependencyAnalysis(PiBlockDDGNode &loopSCC,
+                                                  LoopInfo &LI,
+                                                  ControlDependenceGraph &CDG) {
+    getSCCPaths(loopSCC);
+    nodesToInstructions();
+    calculateAllPathII();
+    calculateBlocksToDecouple(LI, CDG);
+    calculateIncomingUses();
+    calculateOutgoingDefs();
   }
 
   ~ControlDependentDataDependencyAnalysis();
 
-  /// Return true if the analysis concluded that the data dependency
-  /// is control dependent on a basic block from the same loop.
-  bool isCtrlDepInsideLoop() { return ctrlDepInsideLoopFlag; }
+  /// Return true if the analysis concluded that there is at least one block
+  /// worth decoupling.
+  bool hasAnyControlDependency() { return !blocksToDecouple.empty(); }
 
-  /// Return the source block of the control dependency.
-  BasicBlock *getCtrlDepSrcBlock() { return ctrlDepSrcBlock; }
+  /// Return a set of BBs which were deemed worth decoupling.
+  BlockList getBlocksToDecouple() { return blocksToDecouple; }
 
-  /// Return values used in the basic block of the dependency,
-  /// but which are defined outside of it.
-  SmallVector<Instruction *> getDependenciesIn() { return dependenciesIn; }
+  SmallVector<SmallVector<Instruction *>> getIncomingUses() {
+    return incomingUses;
+  }
 
-  /// Return values defined in the basic block of the dependency,
-  /// but which are used outside of it.
-  SmallVector<Instruction *> getDependenciesOut() { return dependenciesOut; }
+  SmallVector<SmallVector<Instruction *>> getOutgoingDefs() {
+    return outgoingDefs;
+  }
+
+  void print(raw_ostream &out, int id=0);
 
 private:
-  bool ctrlDepInsideLoopFlag = false;
+  BlockList blocksToDecouple;
+  SmallVector<SmallVector<Instruction *>> incomingUses; 
+  SmallVector<SmallVector<Instruction *>> outgoingDefs;
+  SmallVector<Instruction *> criticalPath;
+  int maxII = 0;
 
-  BasicBlock *ctrlDepSrcBlock = nullptr;
+  SmallVector<SmallVector<SimpleDDGNode *>> sccPaths;
+  SmallVector<SmallVector<Instruction *>> sccInstructionPaths;
+  SmallVector<int> sccIIs;
 
-  SmallVector<Instruction *> dependenciesIn;
-  SmallVector<Instruction *> dependenciesOut;
+  void getSCCPaths(PiBlockDDGNode &SCC);
+  void nodesToInstructions();
+  void calculateAllPathII();
+  void calculateBlocksToDecouple(LoopInfo &LI, ControlDependenceGraph &CDG);
+  void calculateIncomingUses();
+  void calculateOutgoingDefs();
 
-  SmallVector<Instruction *> getIncomingUses(Function &F, BasicBlock *BB);
-  SmallVector<Instruction *> getOutgoingDefs(Function &F, BasicBlock *BB);
+  int calculatePathII(SmallVector<Instruction *> &SCC);
 };
 
 } // end namespace llvm

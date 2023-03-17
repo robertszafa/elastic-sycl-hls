@@ -6,91 +6,10 @@ using namespace llvm;
 
 namespace llvm {
 
-/// Given a vector of instruction chains, return all unique Basic Blocks.
-SmallVector<BasicBlock *>
-getBBsFromChains(SmallVector<SmallVector<Instruction *>> &instructionChain,
-                 PostDominatorTree &PDT) {
-  SmallVector<BasicBlock *> result;
-
-  for (auto chain : instructionChain) {
-    for (auto I : chain) {
-      if (!is_contained(result, I->getParent()))
-        result.push_back(I->getParent());
-    }
-  }
-
-  return result;
-}
-
-/// Given a source file line in function {F}, return the corresponding
-/// LLVM instruction using DebugLoc metadata. If there are multiple such 
-/// instructions, return the last one based on the post dominance relation.
-Instruction *getInstructionForFileLine(Function &F, PostDominatorTree &PDT,
-                                       unsigned int line) {
-  Instruction *result = nullptr;
-
-  for (auto &BB : F) {
-    for (auto &I : BB) {
-      if (I.getDebugLoc()->getLine() == line) {
-        if (result == nullptr || PDT.dominates(&I, result))
-          result = &I;
-      }
-    }
-  }
-
-  return result;
-}
-
-/// Given a vector of vectors of lines {instructionChain} return a vector of
-/// vectors of instructions, where each instruction corresponds to the line.
-SmallVector<SmallVector<Instruction *>>
-getInstructionChains(Function &F, PostDominatorTree &PDT,
-                     SmallVector<SmallVector<unsigned int>> &instructionChain) {
-  SmallVector<SmallVector<Instruction *>> result;
-  for (auto chain : instructionChain) {
-    SmallVector<Instruction *> thisInstructionChain;
-    for (auto line : chain) {
-      if (auto I = getInstructionForFileLine(F, PDT, line))
-        thisInstructionChain.push_back(I);
-    }
-    result.push_back(thisInstructionChain);
-  }
-
-  return result;
-}
-
-/// Return lines from getenv(BOTTLENECK_LINES_FILE) as a vector of ints.
-SmallVector<SmallVector<unsigned int>> parseBottleneckFile() {
-  SmallVector<SmallVector<unsigned int>> result(1);
-
-  if (const char *fname = std::getenv("BOTTLENECK_LINES_FILE")) {
-    std::ifstream infile(fname);
-    int line;
-    int i = 0;
-    while (infile >> line) {
-      if (infile.peek() == '\n') {
-        infile.ignore();
-        i++;
-        result.push_back(SmallVector<unsigned int>());
-      }
-      else if (infile.peek() == ' ') {
-        infile.ignore();
-      }
-
-      result[i].push_back(line);
-    }
-  }
-
-  if (result[result.size() - 1].size() == 0)
-    result.erase(&result[result.size() - 1]);
-
-  return result;
-}
-
 json::Object
-generateReport(Function &F, SmallVector<BasicBlock *> &bottleneckBBs,
-               SmallVector<SmallVector<Instruction *>> &dependenciesIn,
-               SmallVector<SmallVector<Instruction *>> &dependenciesOut) {
+generateReport(Function &F, SmallVector<BasicBlock *> &blocksToDecouple,
+               SmallVector<SmallVector<Instruction *>> &incomingUses,
+               SmallVector<SmallVector<Instruction *>> &outgoingDefs) {
   json::Object report;
 
   /// Given an Instruction, return a JSON object:
@@ -107,33 +26,33 @@ generateReport(Function &F, SmallVector<BasicBlock *> &bottleneckBBs,
     return res;
   };
 
-  if (bottleneckBBs.size() > 0) {
+  if (blocksToDecouple.size() > 0) {
     auto callers = getCallerFunctions(F.getParent(), F);
     report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
     report["spir_func_name"] = demangle(std::string(F.getName()));
     report["kernel_start_line"] = callers[0]->getSubprogram()->getLine();
     report["kernel_end_line"] = getReturnLine(F);
 
-    json::Array kernelDependencies;
-    for (size_t i = 0; i < bottleneckBBs.size(); ++i) {
-      json::Array thisKernelDepsIn;
-      json::Array thisKernelDepsOut;
-      llvm::transform(dependenciesIn[i], std::back_inserter(thisKernelDepsIn),
+    json::Array blocksArray;
+    for (size_t iB = 0; iB < blocksToDecouple.size(); ++iB) {
+      json::Array incomingUsesArray;
+      json::Array outgoingDefsArray;
+      llvm::transform(incomingUses[iB], std::back_inserter(incomingUsesArray),
                       getJsonForInstructionAndAddType);
-      llvm::transform(dependenciesOut[i], std::back_inserter(thisKernelDepsOut),
+      llvm::transform(outgoingDefs[iB], std::back_inserter(outgoingDefsArray),
                       getJsonForInstructionAndAddType);
 
-      json::Object thisKernelOb;
-      thisKernelOb["dependencies_in"] = std::move(thisKernelDepsIn);
-      thisKernelOb["dependencies_out"] = std::move(thisKernelDepsOut);
-      thisKernelOb["id"] = i;
-      thisKernelOb["basic_block_idx"] =
-          getIndexOfChild(bottleneckBBs[i]->getParent(), bottleneckBBs[i]);
+      json::Object thisBlockOb;
+      thisBlockOb["incoming_uses"] = std::move(incomingUsesArray);
+      thisBlockOb["outgoing_defs"] = std::move(outgoingDefsArray);
+      thisBlockOb["id"] = iB;
+      thisBlockOb["basic_block_idx"] = getIndexOfChild(
+          blocksToDecouple[iB]->getParent(), blocksToDecouple[iB]);
 
-      kernelDependencies.push_back(std::move(thisKernelOb));
+      blocksArray.push_back(std::move(thisBlockOb));
     }
 
-    report["bottlenecks"] = std::move(kernelDependencies);
+    report["blocks_to_decouple"] = std::move(blocksArray);
   }
 
   return report;
@@ -143,43 +62,44 @@ struct CDDDAnalysisPrinter : PassInfoMixin<CDDDAnalysisPrinter> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
-      // For each bottleneck in the report, collect instruction lines.
-      SmallVector<SmallVector<unsigned int>> bottleneckChainLines =
-          parseBottleneckFile();
-      assert(bottleneckChainLines.size() > 0 && "No bottlenecks.");
+      // Use a Set since the same BB could be collected from multiple SCCs.
+      ControlDependentDataDependencyAnalysis::BlockList blocksToDecouple;
+      SmallVector<SmallVector<Instruction *>> incomingUses, outgoingDefs;
 
-      auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
       auto &LI = AM.getResult<LoopAnalysis>(F);
-      std::unique_ptr<ControlDependenceGraph> CDG(
+      auto &DI = AM.getResult<DependenceAnalysis>(F);
+      auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
+      std::shared_ptr<ControlDependenceGraph> CDG(
           new ControlDependenceGraph(F, PDT));
 
-      // For each bottleneck, collect the instructions corresponding to lines.
-      SmallVector<SmallVector<Instruction *>> instrBottleneckChains =
-          getInstructionChains(F, PDT, bottleneckChainLines);
-      // For all bottleneck, collect basic blocks containing above instructions.
-      SmallVector<BasicBlock *> bottleneckBBs =
-          getBBsFromChains(instrBottleneckChains, PDT);
-      // Ensure the bottleneck BBs start from the end.
-      llvm::sort(bottleneckBBs,
-                 [&PDT](auto b1, auto b2) { return !PDT.dominates(b2, b1); });
+      int recurrenceId = 0;
+      
+      // TODO: Go over individual loops?
+      // for (Loop *TopLevelLoop : LI) {
+        // for (Loop *L : depth_first(TopLevelLoop)) {
 
-      // For each bottleneck, check if it's a control dependent data dependency.
-      // If yes, collect in/out SSA values for that block.
-      SmallVector<BasicBlock *> ctrlDepBottlenecks;
-      SmallVector<SmallVector<Instruction *>> dependenciesIn, dependenciesOut;
-      for (auto bottleneckBB : bottleneckBBs) {
-        auto CDDD = new ControlDependentDataDependencyAnalysis(F, *CDG, LI,
-                                                               bottleneckBB);
-        if (CDDD->isCtrlDepInsideLoop()) {
-          ctrlDepBottlenecks.push_back(bottleneckBB);
-          dependenciesIn.push_back(CDDD->getDependenciesIn());
-          dependenciesOut.push_back(CDDD->getDependenciesOut());
+      // Get a DDG for the whole function.
+      // Look at all recurrences in F. If a recurrence is estimated to increase
+      // a loop II, check if some blocks on its path are control dependent and
+      // could be decoupled such that II is lowered.
+      std::unique_ptr<DataDependenceGraph> DDG(new DataDependenceGraph(F, DI));
+      for (auto nodeDDG : *DDG) {
+        if (auto loopSCC = dyn_cast<PiBlockDDGNode>(nodeDDG)) {
+          auto *CDDD = new ControlDependentDataDependencyAnalysis(*loopSCC,
+                                                                  LI, *CDG);
+          for (auto block : CDDD->getBlocksToDecouple())
+            blocksToDecouple.insert(block);
+          llvm::append_range(incomingUses, CDDD->getIncomingUses());
+          llvm::append_range(outgoingDefs, CDDD->getOutgoingDefs());
+
+          CDDD->print(dbgs(), recurrenceId);
+          recurrenceId++;
         }
       }
 
-      auto report = generateReport(F, ctrlDepBottlenecks, dependenciesIn,
-                                   dependenciesOut);
-      
+      auto blocksVec = blocksToDecouple.takeVector();
+      auto report = generateReport(F, blocksVec, incomingUses, outgoingDefs);
+
       // Print report to stdout to be picked up by later tools.
       outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n";
     }
@@ -195,6 +115,7 @@ struct CDDDAnalysisPrinter : PassInfoMixin<CDDDAnalysisPrinter> {
   void getAnalysisUsage(AnalysisUsage &AU) const {
     AU.addRequiredID(LoopAnalysis::ID());
     AU.addRequiredID(PostDominatorTreeAnalysis::ID());
+    AU.addRequiredID(DependenceAnalysis::ID());
   }
 };
 
@@ -207,7 +128,7 @@ llvm::PassPluginLibraryInfo getCDDDAnalysisPrinterPluginInfo() {
             PB.registerPipelineParsingCallback(
                 [](StringRef Name, FunctionPassManager &FPM,
                    ArrayRef<PassBuilder::PipelineElement>) {
-                  if (Name == "cddd-bottlenecks") {
+                  if (Name == "cddd-analysis") {
                     FPM.addPass(CDDDAnalysisPrinter());
                     return true;
                   }

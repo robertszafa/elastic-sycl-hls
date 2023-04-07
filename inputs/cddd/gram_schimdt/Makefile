@@ -1,27 +1,21 @@
 BENCHMARK := $(basename $(FILE))
 
 SRC := $(FILE)
-# HDR := ""
 BIN := bin/$(BENCHMARK)
 
-I = ${LLVM_SYCL_PASSES_DIR}/lsq
+I = -I${LLVM_SYCL_PASSES_DIR}/include_sycl
+I += -I${LLVM_SYCL_PASSES_DIR}/lsq
 
-CXX := dpcpp
-CXXFLAGS += -std=c++17 -O2 -I$(I)
+CXX := icpx
+CXXFLAGS += -fsycl -std=c++17 -O2 $(I)
 CXXFLAGS += -qactypes
-# CXXFLAGS += --verbose -v
-# CXXFLAGS += -Xsprofile
-# CXXFLAGS += -g
-# CXXFLAGS += -Xsghdl
 
-HARDWARE_FLAGS := -Xshardware -DFPGA=1 
-HARDWARE_FLAGS += -Xsboard=/opt/intel/oneapi/intel_a10gx_pac:pac_a10
-# HARDWARE_FLAGS += -reuse-exe=$(BIN).fpga
-# -Xssfc-exit-fifo-type=zero-latency
-
-SIMULATION_FLAGS := -Xssimulation -DFPGA=1 
+FPGA_TARGET := -Xsboard=intel_a10gx_pac:pac_a10
+HARDWARE_FLAGS := -DFPGA_HW -Xshardware $(FPGA_TARGET)
+# HARDWARE_FLAGS += -reuse-exe=$(BIN).fpga_hw
+SIMULATION_FLAGS := -DFPGA_SIM -Xssimulation $(FPGA_TARGET)
+# SIMULATION_FLAGS += -Xsghdl
 # SIMULATION_FLAGS += -reuse-exe=$(BIN).fpga_sim
-
 
 .PHONY: host fpga_emu fpga_hw
 
@@ -37,22 +31,18 @@ $(BIN): $(SRC) | bin
 	$(CXX) $(CXXFLAGS) -o $@ $(SRC)
 
 $(BIN).fpga_emu: $(SRC) | bin
-	$(CXX) $(CXXFLAGS) -fintelfpga $< -o $@ -DFPGA_EMULATOR=1
+	$(CXX) $(CXXFLAGS) -fintelfpga -DFPGA_EMU $< -o $@
 
-$(BIN).fpga_sim: $(BIN).dev.o | bin
-	$(CXX) $(CXXFLAGS) -fintelfpga $< -o $@ $(SIMULATION_FLAGS)
+$(BIN).fpga_sim: $(SRC) | bin
+	$(CXX) $(CXXFLAGS) -fintelfpga $(SIMULATION_FLAGS) $< -o $@ 
 
-$(BIN).fpga_hw: $(BIN).dev.o | bin
-	$(CXX) $(CXXFLAGS) -fintelfpga $< -o $@ $(HARDWARE_FLAGS)
+$(BIN).fpga_hw: $(SRC) | bin
+	$(CXX) $(CXXFLAGS) -fintelfpga $(HARDWARE_FLAGS) $< -o $@ 
 
-$(BIN).dev.o: $(SRC) | bin
-	$(CXX) $(CXXFLAGS) -fintelfpga -c $< -o $@ -DFPGA=1 
+$(BIN).a:  $(SRC) | bin
+	$(CXX) $(CXXFLAGS) -fintelfpga $(HARDWARE_FLAGS) -fsycl-link=early $< -o $@ 
 
-# This is just for generating fpga resource report.
-$(BIN).a:  $(BIN).dev.o | bin
-	$(CXX) $(CXXFLAGS) -fintelfpga -fsycl-link $< -o $@ -Xshardware
-
-# Make bin/ dir if doesn't exist
+# Make bin/ dir if it doesn't exist
 bin:
 	mkdir -p $@
 

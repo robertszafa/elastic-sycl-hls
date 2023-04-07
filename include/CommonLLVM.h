@@ -87,9 +87,9 @@ getStores(const SmallVector<Instruction *> &memInstr) {
 
 /// Given Function {F}, return all Functions that call {F}.
 [[maybe_unused]] SmallVector<Function *> getCallerFunctions(Module *M,
-                                                            Function &F) {
+                                                               Function &F) {
   // The expected case is one caller.
-  SmallVector<Function *, 1> callers;
+  SmallVector<Function *> callers;
   auto &functionList = M->getFunctionList();
   for (auto &function : functionList) {
     for (auto &bb : function) {
@@ -108,22 +108,6 @@ getStores(const SmallVector<Instruction *> &memInstr) {
   return callers;
 }
 
-/// Return the sycl kernel name for this function, or "" if not a kernel.
-[[maybe_unused]] std::string getKernelName(Function &F) {
-    auto callers = getCallerFunctions(F.getParent(), F);
-    if (callers.size() == 0)
-      return "";
-
-    // Get the "MainKernel" bit in "typeinfo name for MainKernel".
-    auto fullName = demangle(std::string(callers[0]->getName()));
-    size_t lastSpace = 0;
-    for (size_t i=0; i<fullName.size(); ++i) {
-      if (fullName[i] == ' ')
-        lastSpace = i;
-    }
-    return std::string(fullName.begin() + lastSpace + 1, fullName.end());
-}
-
 /// Return the Basic Block with the return instruction from {F}. {F} is assumed
 /// to have a single return, if not, then the first block is returned.
 [[maybe_unused]] BasicBlock *getReturnBlock(Function &F) {
@@ -133,15 +117,6 @@ getStores(const SmallVector<Instruction *> &memInstr) {
     }
 
     return nullptr;
-}
-
-/// Return the line associated witht the return from {F}.
-[[maybe_unused]] int getReturnLine(Function &F) {
-  if (auto retBB = getReturnBlock(F))
-      return retBB->getTerminator()->getDebugLoc().getLine();
-
-  assert(false && "Did not find return statement in function.");
-  return -1;
 }
 
 /// Return the index of {child} inside of the default traverse of {parent}. 
@@ -209,8 +184,8 @@ template <typename T1, typename T2>
 
 /// Return the instruction corresponding to {iDesc}: BB index and Instr index.
 [[maybe_unused]] Instruction *getInstruction(Function &F, json::Object iDescr) {
-  auto bbIdx = int(iDescr["basic_block_idx"].getAsInteger().getValue());
-  auto instrIdx = int(iDescr["instruction_idx"].getAsInteger().getValue());
+  auto bbIdx = int(iDescr["basic_block_idx"].getAsInteger().value());
+  auto instrIdx = int(iDescr["instruction_idx"].getAsInteger().value());
   auto BB = getChildWithIndex<Function, BasicBlock>(&F, bbIdx);
   auto I = getChildWithIndex<BasicBlock, Instruction>(BB, instrIdx);
   assert(I && "Instruction for given iDescr not found.");
@@ -219,31 +194,31 @@ template <typename T1, typename T2>
 
 /// Return the pipe call instruction corresponding to the pipeInfo json obj.
 [[maybe_unused]] CallInst *getPipeCall(Function &F, json::Object pipeInfo) {
-  auto pipeName = std::string(pipeInfo["name"].getAsString().getValue());
+  auto pipeName = std::string(pipeInfo["name"].getAsString().value());
   // If no struct_id or repeat_id, then use defaults.
   auto structIdOptional = pipeInfo["struct_id"].getAsInteger();
-  auto structId = structIdOptional ? structIdOptional.getValue() : -1;
+  auto structId = structIdOptional ? structIdOptional.value() : -1;
   auto repeatIdOptional = pipeInfo["repeat_id"].getAsInteger();
-  auto repeatId = repeatIdOptional ? repeatIdOptional.getValue() : 0;
+  auto repeatId = repeatIdOptional ? repeatIdOptional.value() : 0;
 
   /// Lambda. Returns true, if {PIPE_CALL} is a substring of {call}.
-  auto isaPipe = [] (std::string call) { 
+  auto isaPipe = [](std::string call) {
     const std::string PIPE_CALL = "ext::intel::pipe";
     return call.find(PIPE_CALL) != std::string::npos;
   };
   /// Lambda. Returns true if {call} is a call to our pipe.
-  auto isThisPipe = [&pipeName, &structId] (std::string call) { 
+  auto isThisPipe = [&pipeName, &structId](std::string call) {
     std::regex pipe_regex{pipeName, std::regex_constants::ECMAScript};
     std::smatch pipe_match;
     std::regex_search(call, pipe_match, pipe_regex);
 
-    std::regex struct_regex{"StructId<" + std::to_string(structId) + "ul>", 
+    std::regex struct_regex{"StructId<" + std::to_string(structId) + "ul>",
                             std::regex_constants::ECMAScript};
     std::smatch struct_match;
     std::regex_search(call, struct_match, struct_regex);
 
     // If structId < 0, then this is not a pipe array and don't check the id.
-    if ((pipe_match.size() > 0 && structId < 0) || 
+    if ((pipe_match.size() > 0 && structId < 0) ||
         (pipe_match.size() > 0 && struct_match.size() > 0)) {
       return true;
     }

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13.4)
-project(llvm-tutor)
+project(sycl-llvm-passes)
 
 #===============================================================================
 # 1. VERIFY LLVM INSTALLATION DIR
@@ -46,11 +46,11 @@ endif()
 # `find_package(llvm)`. So there's no need to add it here.
 list(APPEND CMAKE_PREFIX_PATH "${LT_LLVM_INSTALL_DIR}/lib/cmake/llvm/")
 
-find_package(LLVM 16 REQUIRED CONFIG)
+find_package(LLVM 17 REQUIRED CONFIG)
 
 # Another sanity check
-if(NOT "16" VERSION_EQUAL "${LLVM_VERSION_MAJOR}")
-  message(FATAL_ERROR "Found LLVM ${LLVM_VERSION_MAJOR}, but need LLVM 16")
+if(NOT "17" VERSION_EQUAL "${LLVM_VERSION_MAJOR}")
+  message(FATAL_ERROR "Found LLVM ${LLVM_VERSION_MAJOR}, but need LLVM 17")
 endif()
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
@@ -88,7 +88,7 @@ add_definitions(
 # 3. LLVM-TUTOR BUILD CONFIGURATION
 #===============================================================================
 # Use the same C++ standard as LLVM does
-set(CMAKE_CXX_STANDARD 14 CACHE STRING "")
+set(CMAKE_CXX_STANDARD 17 CACHE STRING "")
 
 # Build type
 if (NOT CMAKE_BUILD_TYPE)

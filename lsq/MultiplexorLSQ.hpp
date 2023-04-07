@@ -7,7 +7,7 @@ A simple N-to-1 Mux template.
 #ifndef __MULTIPLEXOR_LSQ_HPP__
 #define __MULTIPLEXOR_LSQ_HPP__
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <stdlib.h>
 #include <type_traits>
 #include <sycl/ext/intel/fpga_extensions.hpp>

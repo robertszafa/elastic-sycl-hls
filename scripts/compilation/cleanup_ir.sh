@@ -2,21 +2,7 @@
 
 
  $LT_LLVM_INSTALL_DIR/build/bin/opt "$1" -o "$1" \
-                                    --mem2reg \
-                                    --lcssa \
-                                    --deadargelim-sycl \
-                                    --simplifycfg \
-                                    --loop-simplifycfg \
-                                    --instcombine \
-                                    --instsimplify \
-                                    --aggressive-instcombine \
-                                    --interleaved-access \
-                                    --dse \
-                                    --adce \
-                                    --dce \
-                                    --sroa \
-                                    --gvn \
-                                    --mergereturn \
+    -passes='mem2reg,lcssa,simplifycfg,loop-simplifycfg,instcombine,instsimplify,aggressive-instcombine,dse,adce,dce,sroa,gvn,mergereturn'
 
 
 # Get human readable bitcode

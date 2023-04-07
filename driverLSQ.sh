@@ -25,9 +25,12 @@ mkdir -p "$SRC_FILE_DIR/bin"
 FINAL_BINARY="$SRC_FILE_DIR/bin/${SRC_FILE_BASENAME%.*}.lsq_$Q_SIZE.fpga_$1"
 
 ###
-### STAGE 0: Ensure a canonical kernel call: queue.single_task<> submission on one line, no empty lines.
+### STAGE 0: Ensure a canonical kernel call: queue.single_task<> submission on one line, no empty lines, no commnets.
 ###
-$LT_LLVM_INSTALL_DIR/build/bin/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}" $SRC_FILE > $CANONICALIZED_SRC_FILE
+gcc -fpreprocessed -dD -E $SRC_FILE > "$SRC_FILE"_no_comments
+sed -i '1,1d' "$SRC_FILE"_no_comments # gcc adds a line --> remove it
+$LT_LLVM_INSTALL_DIR/build/bin/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}" "$SRC_FILE"_no_comments > $CANONICALIZED_SRC_FILE
+rm "$SRC_FILE"_no_comments
 
 ###
 ### STAGE 1: Get IR of original source and prepare it for mem dep analysis.

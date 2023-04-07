@@ -27,11 +27,8 @@ generateReport(Function &F, SmallVector<BasicBlock *> &blocksToDecouple,
   };
 
   if (blocksToDecouple.size() > 0) {
-    auto callers = getCallerFunctions(F.getParent(), F);
-    report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
-    report["spir_func_name"] = demangle(std::string(F.getName()));
-    report["kernel_start_line"] = callers[0]->getSubprogram()->getLine();
-    report["kernel_end_line"] = getReturnLine(F);
+    report["kernel_name_full"] = demangle(std::string(F.getName()));
+    report["kernel_start_line"] = F.getSubprogram()->getLine();
 
     json::Array blocksArray;
     for (size_t iB = 0; iB < blocksToDecouple.size(); ++iB) {
@@ -61,7 +58,7 @@ generateReport(Function &F, SmallVector<BasicBlock *> &blocksToDecouple,
 struct CDDDAnalysisPrinter : PassInfoMixin<CDDDAnalysisPrinter> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
+    if (F.getCallingConv() == CallingConv::SPIR_KERNEL) {
       // Use a Set since the same BB could be collected from multiple SCCs.
       ControlDependentDataDependencyAnalysis::BlockList blocksToDecouple;
       SmallVector<SmallVector<Instruction *>> incomingUses, outgoingDefs;

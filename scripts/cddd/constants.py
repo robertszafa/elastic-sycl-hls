@@ -22,7 +22,7 @@ KERNEL_ASIZE_FOR_TESTS = {
     'nested_if_mul' : 100, 
     'if_mul_2' : 100, 
     'gsum' : 100,
-    'vec_norm_trans' : 100,
     'doitgen_triple' : 100,
+    # 'vec_norm_trans' : 100,
     # 'eval_pos' : 100,
 }

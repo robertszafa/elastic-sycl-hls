@@ -8,52 +8,47 @@ namespace llvm {
 /// Return a json object recording the data hazard analysis result.
 json::Object genReport(Function &F, DataHazardAnalysis &DHA) {
   json::Object report;
-  auto callers = getCallerFunctions(F.getParent(), F);
 
-  // A spir_func lambda is called only once from one kernel.
-  if (callers.size() == 1) {
-    report["kernel_class_name"] = demangle(std::string(callers[0]->getName()));
-    report["spir_func_name"] = demangle(std::string(F.getName()));
-    report["kernel_start_line"] = callers[0]->getSubprogram()->getLine();
-    report["kernel_end_line"] = getReturnLine(F);
+  report["kernel_name_full"] = demangle(std::string(F.getName()));
+  report["kernel_start_line"] = F.getSubprogram()->getLine();
+  // report["kernel_end_line"] = getKernelEndLine(F);
 
-    json::Array base_addresses;
-    // For each instruction cluster, create a 'base_address' json object
-    // that describes the hazardous instructions, decoupling decision, types...
-    for (size_t iC = 0; iC < DHA.getResult().size(); ++iC) {
-      auto instrCluster = DHA.getResult()[iC];
+  json::Array base_addresses;
+  // For each instruction cluster, create a 'base_address' json object
+  // that describes the hazardous instructions, decoupling decision, types...
+  for (size_t iC = 0; iC < DHA.getResult().size(); ++iC) {
+    auto instrCluster = DHA.getResult()[iC];
 
-      SmallVector<Instruction *> loads = getLoads(instrCluster);
-      SmallVector<Instruction *> stores = getStores(instrCluster);
+    SmallVector<Instruction *> loads = getLoads(instrCluster);
+    SmallVector<Instruction *> stores = getStores(instrCluster);
 
-      llvm::json::Object thisBaseAddr;
-      thisBaseAddr["num_loads"] = loads.size();
-      thisBaseAddr["num_stores"] = stores.size();
+    llvm::json::Object thisBaseAddr;
+    thisBaseAddr["num_loads"] = loads.size();
+    thisBaseAddr["num_stores"] = stores.size();
 
-      thisBaseAddr["decouple_address"] = DHA.getDecoupligDecisions()[iC];
+    thisBaseAddr["decouple_address"] = DHA.getDecoupligDecisions()[iC];
 
-      std::string typeStr;
-      llvm::raw_string_ostream rso(typeStr);
-      instrCluster[0]->getOperand(0)->getType()->print(rso);
-      thisBaseAddr["array_type"] = typeStr;
+    std::string typeStr;
+    llvm::raw_string_ostream rso(typeStr);
+    instrCluster[0]->getOperand(0)->getType()->print(rso);
+    thisBaseAddr["array_type"] = typeStr;
 
-      thisBaseAddr["array_line"] = stores[0]->getDebugLoc().getLine();
-      thisBaseAddr["array_column"] = stores[0]->getDebugLoc()->getColumn();
+    thisBaseAddr["array_line"] = stores[0]->getDebugLoc().getLine();
+    thisBaseAddr["array_column"] = stores[0]->getDebugLoc()->getColumn();
 
-      json::Array loadIs;
-      for (auto &iLd : loads) 
-        loadIs.push_back(std::move(genJsonForInstruction(iLd)));
-      thisBaseAddr["load_instructions"] = std::move(loadIs);
+    json::Array loadIs;
+    for (auto &iLd : loads)
+      loadIs.push_back(genJsonForInstruction(iLd));
+    thisBaseAddr["load_instructions"] = std::move(loadIs);
 
-      json::Array storeIs;
-      for (auto &iSt : stores) 
-        storeIs.push_back(std::move(genJsonForInstruction(iSt)));
-      thisBaseAddr["store_instructions"] = std::move(storeIs);
+    json::Array storeIs;
+    for (auto &iSt : stores)
+      storeIs.push_back(genJsonForInstruction(iSt));
+    thisBaseAddr["store_instructions"] = std::move(storeIs);
 
-      base_addresses.push_back(std::move(thisBaseAddr));
-    }
-    report["base_addresses"] = std::move(base_addresses);
+    base_addresses.push_back(std::move(thisBaseAddr));
   }
+  report["base_addresses"] = std::move(base_addresses);
 
   return report;
 }
@@ -91,7 +86,7 @@ void dataHazardPrinter(Function &F, LoopInfo &LI, ScalarEvolution &SE,
 struct DataHazardAnalysisPrinter : PassInfoMixin<DataHazardAnalysisPrinter> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
+    if (F.getCallingConv() == CallingConv::SPIR_KERNEL) {
       auto &LI = AM.getResult<LoopAnalysis>(F);
       auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
       auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);

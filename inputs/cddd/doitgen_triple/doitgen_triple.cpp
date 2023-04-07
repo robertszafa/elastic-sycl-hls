@@ -1,4 +1,4 @@
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <algorithm>
 #include <iostream>
 #include <numeric>
@@ -157,12 +157,12 @@ int main(int argc, char *argv[]) {
     std::terminate();
   }
 
-#if FPGA_EMULATOR
-  ext::intel::fpga_emulator_selector d_selector;
-#elif FPGA
-  ext::intel::fpga_selector d_selector;
-#else
-  default_selector d_selector;
+#if FPGA_SIM
+  auto d_selector = sycl::ext::intel::fpga_simulator_selector_v;
+#elif FPGA_HW 
+  auto d_selector = sycl::ext::intel::fpga_selector_v;
+#else  // #if FPGA_EMULATOR
+  auto d_selector = sycl::ext::intel::fpga_emulator_selector_v;
 #endif
   try {
     // Enable profiling.

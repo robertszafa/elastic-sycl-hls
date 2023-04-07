@@ -202,7 +202,7 @@ if __name__ == '__main__':
     report = parse_report(JSON_REPORT_FNAME)
     # Keep track of kernel boundaries (and adjust their values if necessary).
     kernel_start_line = report["kernel_start_line"]
-    kernel_end_line = report["kernel_end_line"]
+    kernel_end_line = get_kernel_end_line(src_lines, kernel_start_line)
 
     src_lines = add_array_ivdep(src_lines, kernel_start_line, kernel_end_line, report)
 
@@ -269,12 +269,12 @@ if __name__ == '__main__':
     agu_kernels = []
     for i_base, base_addr in enumerate(report['base_addresses']):
         if base_addr['decouple_address']:
-            base_addr["kernel_agu_name"] = f"{report['kernel_name']}_AGU_{i_base}"
+            base_addr["kernel_agu_name_full"] = f"{report['kernel_name_full']}_AGU_{i_base}"
             agu_kernel = gen_kernel_copy(Q_NAME, kernel_body, f"{report['kernel_name']}_AGU_{i_base}")
             agu_kernel_str = "\n".join(insert_after_line(agu_kernel, 1, lsq_pipe_ops[i_base]))
             agu_kernels.append(agu_kernel_str)
         else:  
-            base_addr["kernel_agu_name"] = report['kernel_name']
+            base_addr["kernel_agu_name_full"] = report['kernel_name_full']
             src_with_pipe_decl_lsq_calls_and_val_pipes = insert_after_line(
                 src_with_pipe_decl_lsq_calls_and_val_pipes, kernel_start_line, lsq_pipe_ops[i_base])
             kernel_end_line += len(lsq_pipe_ops[i_base])

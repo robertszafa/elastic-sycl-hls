@@ -18,7 +18,7 @@ void deleteStoresAfterI(Function &F, DominatorTree &DT, Instruction *cutOffI,
   SmallVector<Instruction *> instToDelete;
   bool isAfterCutoff = false;
   BasicBlock *cutOffBB = cutOffI->getParent();
-  for (Instruction &inst : cutOffBB->getInstList()) {
+  for (Instruction &inst : *cutOffBB) {
     if (isAfterCutoff && (isa<StoreInst>(&inst) || isa<LoadInst>(&inst))) {
       instToDelete.push_back(&inst);
     } else if (cutOffI->isIdenticalTo(&inst)) {
@@ -195,15 +195,15 @@ void addAllEndSignals(Function &F, bool isMain, json::Object &report,
   int i_baseAddr = 0;
   for (json::Value &baseAddr : *report["base_addresses"].getAsArray()) {
     auto baseAddrOb = *baseAddr.getAsObject();
-    auto aguName = baseAddrOb["kernel_agu_name"].getAsString().getValue();
+    auto aguName = baseAddrOb["kernel_agu_name_full"].getAsString().value();
 
     // The kernel that sends lsq requests terminates the LSQ kernel
     // and the mux kernel for lsq store requests (if it exists).
-    if (aguName == getKernelName(F)) {
+    if (aguName == demangle(std::string(F.getName()))) {
       auto endLsqPipe = *baseAddrOb["pipe_end_lsq"].getAsObject();
       addEndSignalPipeWrite(F, getPipeCall(F, endLsqPipe), tagReqAddr);
 
-      if (baseAddrOb["insert_st_mux"].getAsBoolean().getValue()) {
+      if (baseAddrOb["insert_st_mux"].getAsBoolean().value()) {
         auto endReqMuxPipe = *baseAddrOb["pipe_end_mux_streq"].getAsObject();
         addEndSignalPipeWrite(F, getPipeCall(F, endReqMuxPipe), tagReqAddr);
       }
@@ -211,7 +211,7 @@ void addAllEndSignals(Function &F, bool isMain, json::Object &report,
 
     // The main kernel terminates the mux kernel for store values (for each base
     // addr that has a mux).
-    if (isMain && baseAddrOb["insert_st_mux"].getAsBoolean().getValue()) {
+    if (isMain && baseAddrOb["insert_st_mux"].getAsBoolean().value()) {
       auto endValMuxPipe = *baseAddrOb["pipe_end_mux_stval"].getAsObject();
       addEndSignalPipeWrite(F, getPipeCall(F, endValMuxPipe),
                             tagValAddrs[i_baseAddr]);
@@ -231,13 +231,13 @@ void collectPipe2InstMappings(json::Object &report, Function &F,
                               SmallVector<Pipe2Inst> &stValMaps) {
   // Go over each base_address json value, and collect mappings. For the address
   // gen kernel (AGU), we only need ld/st request pipes. Note that if the
-  // address generation is not decoupled, then {kernel_agu_name} ==
+  // address generation is not decoupled, then {kernel_agu_name_full} ==
   // {main_kernel_name}, and the mappings will also be collected.
   for (json::Value &baseAddr : *report["base_addresses"].getAsArray()) {
       auto baseAddrOb = *baseAddr.getAsObject();
       // Match this {F} to a specific base_address json object.
-      auto aguName = baseAddrOb["kernel_agu_name"].getAsString().getValue();
-      if (aguName != getKernelName(F))
+      auto aguName = baseAddrOb["kernel_agu_name_full"].getAsString().value();
+      if (aguName != demangle(std::string(F.getName())))
         continue;
 
       llvm::append_range(
@@ -289,7 +289,7 @@ SmallVector<Value *> createTagsForStValues(json::Object &report, Function &F) {
   SmallVector<Value *> tagAddrs;
   for (auto &baseAddr : *report["base_addresses"].getAsArray()) {
     auto baseAddrOb = *baseAddr.getAsObject();
-    Value *tagAddr = baseAddrOb["insert_st_mux"].getAsBoolean().getValue()
+    Value *tagAddr = baseAddrOb["insert_st_mux"].getAsBoolean().value()
                          ? createTag(F)
                          : nullptr;
     tagAddrs.push_back(tagAddr);
@@ -305,7 +305,7 @@ SmallVector<Value *> repeatNumStores(SmallVector<Value *> &vals,
   int i_val = 0;
   for (auto &baseAddr : *report["base_addresses"].getAsArray()) {
     auto baseAddrOb = *baseAddr.getAsObject();
-    int numStores = baseAddrOb["num_stores"].getAsInteger().getValue();
+    int numStores = baseAddrOb["num_stores"].getAsInteger().value();
     llvm::append_range(repeated, SmallVector<Value *>(numStores, vals[i_val]));
   }
 
@@ -319,17 +319,18 @@ struct LoadStoreQueueTransform : PassInfoMixin<LoadStoreQueueTransform> {
     // Read in report once.
     if (report.empty())
       report = *parseJsonReport(ENVIRONMENT_VARIBALE_REPORT).getAsObject();
-    
+
     // Determine if this is our original kernel, an AGU kernel, or neither.
-    std::string thisKernelName = getKernelName(F);
-    auto mainKernel = std::string(report["kernel_name"].getAsString().getValue());
+    std::string thisKernelName = demangle(std::string(F.getNameOrAsOperand()));
+    auto mainKernel =
+        std::string(report["kernel_name_full"].getAsString().value());
     bool isMain = mainKernel == thisKernelName;
     bool isOurKernel = std::equal(mainKernel.begin(), mainKernel.end(),
                                   thisKernelName.begin());
-    if (F.getCallingConv() != CallingConv::SPIR_FUNC || !isOurKernel) {
+    if (F.getCallingConv() != CallingConv::SPIR_KERNEL || !isOurKernel) {
       return PreservedAnalyses::all();
     }
-
+    
     // Collect mappings between ld/st instructions and the pipe read/writes that
     // will replace them. Also collect all hazard strores for any base address.
     SmallVector<Pipe2Inst> ldReqs, ldVals, stReqs, stVals;

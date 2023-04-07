@@ -1,20 +1,10 @@
 #ifndef __METAPROGRAMMING_UTILS_HPP__
 #define __METAPROGRAMMING_UTILS_HPP__
 
-#include <CL/sycl.hpp>
-
 #include <type_traits>
 #include <utility>
 
-#ifdef __SYCL_DEVICE_ONLY__
-  #define CL_CONSTANT __attribute__((opencl_constant))
-#else
-  #define CL_CONSTANT
-#endif
-#define PRINTF(format, ...) { \
-            static const CL_CONSTANT char _format[] = format; \
-            sycl::ext::oneapi::experimental::printf(_format, ## __VA_ARGS__); }
-
+#include <sycl/ext/intel/fpga_extensions.hpp>
 
 namespace fpga_tools {
 

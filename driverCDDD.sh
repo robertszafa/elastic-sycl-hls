@@ -22,9 +22,10 @@ CDDD_REPORT_FILE="$SRC_FILE_DIR/cddd-report.json"
 ###
 ### STAGE 0: Ensure canonical kernel call. queue.single_task<> submission on one line, no empty lines.
 ###
-# Don't recreating the file if exists so at to not trigger the make rule every time.
-$LT_LLVM_INSTALL_DIR/build/bin/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}" \
-                                  $SRC_FILE > $CANONICALIZED_SRC_FILE
+gcc -fpreprocessed -dD -E $SRC_FILE > "$SRC_FILE"_no_comments
+sed -i '1,1d' "$SRC_FILE"_no_comments # gcc adds a line --> remove it
+$LT_LLVM_INSTALL_DIR/build/bin/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}" "$SRC_FILE"_no_comments > $CANONICALIZED_SRC_FILE
+rm "$SRC_FILE"_no_comments
 
 ###
 ### STAGE 1: Generate control dependent data dependency analysis report.

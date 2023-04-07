@@ -1,11 +1,12 @@
 #ifndef __MEMORY_UTILS_HPP__
 #define __MEMORY_UTILS_HPP__
 
-#include <CL/sycl.hpp>
 #include <type_traits>
 
-#include "metaprogramming_utils.hpp"
+#include <sycl/ext/intel/fpga_extensions.hpp>
+#include <sycl/sycl.hpp>
 
+#include "metaprogramming_utils.hpp"
 
 //
 // The utilities in this file are used for converting streaming data to/from
@@ -230,6 +231,7 @@ void PipeToMemory(PtrT out_ptr, size_t full_count, size_t remainder_count) {
                                                             remainder_count);
   }
 }
+
 
 /// 1. Allocate device_memory (same num bytes as in host_vector)
 /// 2. Transfer data host_vector->device_memory

@@ -133,8 +133,8 @@ void collectLLVMValues(json::Object &report, Function &F, bool isMain,
   for (json::Value &blockInfoVal : *report["blocks_to_decouple"].getAsArray()) {
     auto blockInfo = *blockInfoVal.getAsObject();
     // If looking for pipes for a specific kernel copy, then ignore the rest.
-    auto copyName = blockInfo["kernel_copy_name"].getAsString().getValue();
-    if (!isMain && copyName != getKernelName(F))
+    auto copyName = blockInfo["kernel_copy_name_full"].getAsString().value();
+    if (!isMain && copyName != demangle(std::string(F.getName())))
       continue;
 
     auto inDepsArray = *blockInfo["incoming_uses"].getAsArray();
@@ -145,7 +145,7 @@ void collectLLVMValues(json::Object &report, Function &F, bool isMain,
     auto predPipeObject = *blockInfo["pred_pipe"].getAsObject();
     predPipes.push_back(getPipeCall(F, predPipeObject));
 
-    int idxBB = blockInfo["basic_block_idx"].getAsInteger().getValue();
+    int idxBB = blockInfo["basic_block_idx"].getAsInteger().value();
     blocks.push_back(getChildWithIndex<Function, BasicBlock>(&F, idxBB));
   }
 }
@@ -159,13 +159,13 @@ struct CDDDTransform : PassInfoMixin<CDDDTransform> {
       report = *parseJsonReport(ENVIRONMENT_VARIBALE_REPORT).getAsObject();
 
     // Determine if this is our original kernel, a copy kernel, or neither.
-    std::string thisKernelName = getKernelName(F);
+    std::string thisKernelName = demangle(std::string(F.getName()));
     auto mainKernel =
-        std::string(report["kernel_name"].getAsString().getValue());
+        std::string(report["kernel_name_full"].getAsString().value());
     bool isMain = mainKernel == thisKernelName;
     bool isOurKernel = std::equal(mainKernel.begin(), mainKernel.end(),
                                   thisKernelName.begin());
-    if (F.getCallingConv() != CallingConv::SPIR_FUNC || !isOurKernel) {
+    if (F.getCallingConv() != CallingConv::SPIR_KERNEL || !isOurKernel) {
       return PreservedAnalyses::all();
     }
 

@@ -104,6 +104,14 @@ def llvm2ctype(llvmtype):
 
     return llvmtype
 
+def get_kernel_end_line(src_lines, kernel_start_line):
+    KERNEL_CLOSE = '});'
+    for i, line in enumerate(src_lines[kernel_start_line+1:], kernel_start_line+1):
+        if KERNEL_CLOSE in line:
+            return i + 1
+    
+    exit("Did not find kernel end line")
+
 def parse_report(report_fname):
     try:
         with open(report_fname, 'r') as f:
@@ -111,14 +119,13 @@ def parse_report(report_fname):
 
         report = json.loads(str)
 
-        if "kernel_class_name" not in report:
+        if "kernel_name_full" not in report:
             exit("Analysis report is empty.")
 
         # report['blocks_to_decouple'] = list(reversed(report['blocks_to_decouple']))
 
         # Keep only the useful bits.
-        report["kernel_name"] = report["kernel_class_name"].split(' ')[-1].split('::')[-1]
-        report['spir_func_name'] = report["spir_func_name"].split('::')[0]
+        report["kernel_name"] = report["kernel_name_full"].split(' ')[-1].split('::')[-1]
 
         return report
     except Exception as e:

@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     report = parse_report(JSON_REPORT_FNAME)
     kernel_start_line = report["kernel_start_line"]
-    kernel_end_line = report["kernel_end_line"]
+    kernel_end_line = get_kernel_end_line(src_lines, kernel_start_line)
 
     src_lines = add_ivdep_pragma(src_lines, kernel_start_line, kernel_end_line)
 
@@ -128,8 +128,8 @@ if __name__ == '__main__':
     kernel_copies_class_declarations = []
     kernel_copies_with_pipes = []
     for i, block_info in enumerate(report["blocks_to_decouple"]):
+        block_info['kernel_copy_name_full'] = f"{report['kernel_name_full']}_copy_{block_info['id']}"
         kernel_copy_name = f"{report['kernel_name']}_copy_{block_info['id']}"
-        block_info['kernel_copy_name'] = kernel_copy_name
         kernel_copy = gen_kernel_copy(Q_NAME, kernel_body, kernel_copy_name)
         kernel_copy_with_dep_pipes = insert_after_line(
             kernel_copy, 1, dep_in_pipe_reads[i] + dep_out_pipe_writes[i] + pred_pipe_reads[i])

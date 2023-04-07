@@ -8,7 +8,7 @@ Store queue with early execution of loads when all preceding stores have calcula
 #ifndef __LOAD_STORE_QUEUE_HPP__
 #define __LOAD_STORE_QUEUE_HPP__
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <sycl/ext/intel/fpga_extensions.hpp>
 #include <sycl/ext/intel/ac_types/ac_int.hpp>
@@ -209,5 +209,288 @@ event LoadStoreQueue(queue &q) {
 
   return event;
 }
+
+
+// template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
+//           typename st_pipe, typename end_signal_pipe, int mem_size,
+//           int num_lds, int QUEUE_SIZE = 8>
+// event LSQBramOneStoreNotDecoupled(queue &q) {
+//   auto event = q.submit([&](handler &hnd) {
+//     hnd.single_task<end_signal_pipe>([=]() [[intel::kernel_args_restrict]] {
+//       value_t DATA[mem_size];
+
+//       // The below are variables kept around across iterations.
+//       bool end_signal = false;
+//       // Total number of stores to commit (supplied by the end_signal).
+//       int total_req_stores = INT_MAX;
+//       // The tag of the latest read store request. 
+//       int tag_store = 0;
+
+//       // Scalar values for the load logic (one per load, expanded at compile).
+//       NTuple<value_t, num_lds> val_load_tp;
+//       NTuple<request_lsq_t, num_lds> req_load_tp;
+//       NTuple<int64_t, num_lds> address_load_tp;
+//       NTuple<int, num_lds> tag_load_tp;
+//       NTuple<bool, num_lds> consumer_load_succ_tp;
+//       NTuple<bool, num_lds> is_load_waiting_tp;
+//       NTuple<bool, num_lds> is_load_rq_finished_tp;
+//       UnrolledLoop<num_lds>([&](auto k) {
+//         consumer_load_succ_tp. template get<k>() = true;
+//         tag_load_tp. template get<k>() = 0;
+//         is_load_waiting_tp. template get<k>() = false;
+//         is_load_rq_finished_tp. template get<k>() = true;
+//       });
+
+
+//       [[intel::initiation_interval(1)]] 
+//       [[intel::ivdep]] 
+//       while (tag_store < total_req_stores) {
+//         /* Start Load Logic */
+//         // All loads can proceed in parallel. The below unrolls the template PipeArray/NTuple. 
+//         UnrolledLoop<num_lds>([&](auto k) {
+//           // Use shorter names.
+//           auto& val_load = val_load_tp. template get<k>();
+//           auto& req_load = req_load_tp. template get<k>();
+//           auto& address_load = address_load_tp. template get<k>();
+//           auto& tag_load = tag_load_tp. template get<k>();
+//           auto& consumer_pipe_succ = consumer_load_succ_tp. template get<k>();
+//           auto& is_load_req_finished = is_load_rq_finished_tp. template get<k>();
+
+//           // Check for new ld requests, only once the prev one was completed.
+//           if (is_load_req_finished) {
+//             bool req_load_pipe_succ = false;
+//             req_load = ld_req_pipes:: template PipeAt<k>::read(req_load_pipe_succ);
+
+//             if (req_load_pipe_succ) {
+//               is_load_req_finished = false;
+//               address_load = req_load.first;
+//               tag_load = req_load.second;
+//             }
+//           }
+
+//           if (!is_load_req_finished && tag_load <= tag_store && consumer_pipe_succ) {
+//             val_load = DATA[address_load];
+//             consumer_pipe_succ = false;
+//           }
+
+//           if (!consumer_pipe_succ) {
+//             ld_val_pipes:: template PipeAt<k>::write(val_load, consumer_pipe_succ);
+//             is_load_req_finished = consumer_pipe_succ;
+//           }
+//         }); 
+//         /* End Load Logic */
+      
+
+//         /* Start Store Logic */
+//         bool req_store_pipe_succ = false;
+//         request_lsq_t req_store = st_pipe::read(req_store_pipe_succ);
+
+//         if (req_store_pipe_succ) {
+//           tag_store++;
+//           DATA[req_store.first] = req_store.second;
+//         }
+//         /* End Store Logic */
+
+//         // The end signal supplies the total number of stores sent to the store queue.
+//         if (!end_signal) {
+//           auto tmp = end_signal_pipe::read(end_signal);
+//           if (end_signal)
+//             total_req_stores = tmp;
+//         }
+//       }
+//     });
+//   });
+
+//   return event;
+// }
+
+// template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
+//           typename st_req_pipes, typename st_val_pipes, typename end_signal_pipe,
+//           int N, int QUEUE_SIZE = 2>
+// event LoadStoreQueueBRAM(queue &q) {
+//   // Setting the II to the number of store_q entries ensures that we are not
+//   // increasing the critical path of the resulting circuit by too much.
+//   constexpr int LSQ_II = QUEUE_SIZE;
+//   // Use minimum number of bits for store_q iterator.
+//   constexpr int kQueueLoopIterBitSize = BitsForMaxValue<QUEUE_SIZE+1>();
+//   using storeq_idx_t = ac_int<kQueueLoopIterBitSize, false>;
+  
+//   using i1 = ac_int<1, false>;
+  
+//   auto event = q.submit([&](handler &hnd) {
+//     hnd.single_task<end_signal_pipe>([=]() [[intel::kernel_args_restrict]] {
+//       value_t DATA[N];
+
+//       constexpr int num_lds = ld_req_pipes::GetNumDims();
+//       constexpr int num_sts = st_req_pipes::GetNumDims();
+
+//       [[intel::fpga_register]] NTuple<int[QUEUE_SIZE], num_sts> addrs_tp;
+//       [[intel::fpga_register]] NTuple<int[QUEUE_SIZE], num_sts> tags_tp;
+//       [[intel::fpga_register]] NTuple<value_t[QUEUE_SIZE], num_sts> vals_tp;
+//       [[intel::fpga_register]] NTuple<i1[QUEUE_SIZE], num_sts> arrived_tp;
+//       NTuple<storeq_idx_t, num_sts> head_tp;
+//       NTuple<storeq_idx_t, num_sts> tail_tp;
+//       NTuple<value_t, num_sts> val_store_tp;
+//       NTuple<i1, num_sts> st_val_rq_finished_tp;
+//       NTuple<int, num_sts> i_store_req_tp;
+//       NTuple<int, num_sts> i_store_val_tp;
+
+//       UnrolledLoop<num_sts>([&](auto k) {
+//         #pragma unroll
+//         for (storeq_idx_t i = 0; i < QUEUE_SIZE; ++i) {
+//           addrs_tp. template get<k>()[i] = -1;
+//           arrived_tp. template get<k>()[i] = 0;
+//         }
+
+//         st_val_rq_finished_tp. template get<k>() = true;
+//         i_store_req_tp. template get<k>() = 0;
+//         i_store_val_tp. template get<k>() = 0;
+//       });
+
+//       // The below are variables kept around across iterations.
+//       bool end_signal = false;
+//       // Total number of stores to commit (supplied by the end_signal).
+//       int total_req_stores = INT_MAX;
+//       // Pointers into the store_entries buffer. Tail: values, head: addresses.
+//       // The tag of the latest read store request. 
+//       int last_tag_store = 0;
+//       int next_tag_store = 1;
+
+//       // Scalar values for the load logic (one per load, expanded at compile).
+//       NTuple<value_t, num_lds> val_load_tp;
+//       NTuple<request_lsq_t, num_lds> req_load_tp;
+//       NTuple<int64_t, num_lds> address_load_tp;
+//       NTuple<int, num_lds> tag_load_tp;
+//       NTuple<bool, num_lds> consumer_load_succ_tp;
+//       NTuple<bool, num_lds> is_load_waiting_tp;
+//       NTuple<bool, num_lds> is_load_rq_finished_tp;
+//       UnrolledLoop<num_lds>([&](auto k) {
+//         consumer_load_succ_tp. template get<k>() = true;
+//         tag_load_tp. template get<k>() = 0;
+//         is_load_waiting_tp. template get<k>() = false;
+//         is_load_rq_finished_tp. template get<k>() = true;
+//       });
+
+
+//       // ivdep (ignore mem dependencies): The logic guarantees dependencies are honoured.
+//       [[intel::initiation_interval(1)]] 
+//       [[intel::ivdep]] 
+//       while (last_tag_store < total_req_stores) {
+//         /* Start Load Logic */
+//         // All loads can proceed in parallel. The below unrolls the template PipeArray/NTuple. 
+//         UnrolledLoop<num_lds>([&](auto k) {
+//           // Use shorter names.
+//           auto& val_load = val_load_tp. template get<k>();
+//           auto& req_load = req_load_tp. template get<k>();
+//           auto& address_load = address_load_tp. template get<k>();
+//           auto& tag_load = tag_load_tp. template get<k>();
+//           auto& consumer_pipe_succ = consumer_load_succ_tp. template get<k>();
+//           auto& is_load_waiting = is_load_waiting_tp. template get<k>();
+//           auto& is_load_req_finished = is_load_rq_finished_tp. template get<k>();
+
+//           // Check for new ld requests, only once the prev one was completed.
+//           if (is_load_req_finished) {
+//             bool req_load_pipe_succ = false;
+//             req_load = ld_req_pipes:: template PipeAt<k>::read(req_load_pipe_succ);
+
+//             if (req_load_pipe_succ) {
+//               is_load_req_finished = false;
+//               address_load = req_load.first;
+//               tag_load = req_load.second;
+//             }
+//           }
+
+//           if (!is_load_req_finished && consumer_pipe_succ && (tag_load >= last_tag_store)) {
+//             is_load_waiting = false;            
+//             UnrolledLoop<num_sts>([&](auto k) {
+//               #pragma unroll
+//               for (storeq_idx_t i = 0; i < QUEUE_SIZE; ++i) {
+//                 if (addrs_tp. template get<k>()[i] == address_load && 
+//                     tags_tp. template get<k>()[i] <= tag_load) {
+//                   // TODO: Forwarding.
+//                   is_load_waiting = true;
+//                 }
+//               }
+//             });
+
+//             consumer_pipe_succ = is_load_waiting;
+//           }
+
+//           if (!consumer_pipe_succ) {
+//             // The ld. req. is deemed finished once the consumer pipe has been successfully written.
+//             ld_val_pipes:: template PipeAt<k>::write(val_load, consumer_pipe_succ);
+//             is_load_req_finished = consumer_pipe_succ;
+//           }
+//         }); 
+//         /* End Load Logic */
+      
+
+//         /* Start Store Logic */
+//         i1 store_was_done = 0;
+//         UnrolledLoop<num_sts>([&](auto k) {
+//           auto& addrs = addrs_tp. template get<k>();
+//           auto& vals = vals_tp. template get<k>();
+//           auto& tags = tags_tp. template get<k>();
+//           auto& arrived = arrived_tp. template get<k>();
+//           auto& head = head_tp. template get<k>();
+//           auto& tail = tail_tp. template get<k>();
+//           auto& val_store = val_store_tp. template get<k>();
+//           auto& st_val_rq_finished = st_val_rq_finished_tp. template get<k>();
+//           auto& i_store_req = i_store_req_tp. template get<k>();
+//           auto& i_store_val = i_store_val_tp. template get<k>();
+
+//           bool is_space_in_stq = (addrs[head] == -1);
+
+//           // Allocation.
+//           if (is_space_in_stq) {
+//             bool req_store_pipe_succ = false;
+//             request_lsq_t req_store = st_req_pipes:: template PipeAt<k>::read(req_store_pipe_succ);
+
+//             if (req_store_pipe_succ) {
+//               auto address_store = req_store.first;
+//               addrs[head] = req_store.first;
+//               tags[head] = req_store.second;
+//               last_tag_store = max(last_tag_store, req_store.second);
+//               head = (head+1) % QUEUE_SIZE;
+//             }
+//           }
+
+//           // Only check for store values, once their corresponding index has been received.
+//           if (i_store_req > i_store_val) {
+//             if (st_val_rq_finished) {
+//               bool val_store_pipe_succ = false;
+//               val_store = st_val_pipes:: template PipeAt<k>::read(val_store_pipe_succ);
+
+//               vals[tail] = val_store; // Is this needed?
+
+//               st_val_rq_finished = !val_store_pipe_succ; 
+//             }
+
+//             if (!st_val_rq_finished) {
+//               if (next_tag_store == tags[tail]) {
+//                 DATA[addrs[tail]] = val_store;
+//                 tail = (tail + 1) % QUEUE_SIZE;
+//                 store_was_done |= 1;
+//               }
+              
+//             }
+//           }
+//         }); 
+
+//         if (store_was_done)
+//           next_tag_store++;
+//         /* End Store Logic */
+
+//         // The end signal supplies the total number of stores sent to the store queue.
+//         if (!end_signal) {
+//           total_req_stores = end_signal_pipe::read(end_signal);
+//         }
+//       }
+//     });
+//   });
+
+//   return event;
+// }
+
 
 #endif

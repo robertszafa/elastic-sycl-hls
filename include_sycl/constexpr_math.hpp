@@ -7,6 +7,7 @@
 //
 
 #include <limits>
+#include <type_traits>
 
 namespace fpga_tools {
 

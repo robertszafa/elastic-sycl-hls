@@ -22,6 +22,8 @@ public:
   SmallVector<SmallVector<Instruction *>> getResult() { return hazardInstrs; }
 
   SmallVector<bool> getDecoupligDecisions() { return decouplingDecisions; }
+  SmallVector<bool> getIsOnChip() { return isOnChip; }
+  SmallVector<int> getMemorySizes() { return memorySizes; }
 
 private:
   /// Memory load and store instructions for each base address that is part
@@ -31,6 +33,12 @@ private:
   /// For each base address, a bool indicating if the address generation
   /// instructions can be decoupled from F.
   SmallVector<bool> decouplingDecisions;
+
+  /// For each base address, a bool indicating if the target memory is on-chip.
+  SmallVector<bool> isOnChip;
+
+  /// For each base address, a size of the memory if it is on-chip, 0 otherwise.
+  SmallVector<int> memorySizes;
 };
 
 } // end namespace llvm

@@ -15,8 +15,8 @@ void changeVal2PipeRead(Function &F, SmallVector<Pipe2Inst> &P2IMap,
   // dependency in instructions with the value of the pipe read.
   for (auto &P2I : P2IMap) {
     auto insPt = insertAtEndOfBB ? BB->getTerminator() : BB->getFirstNonPHI();
-    P2I.first->moveBefore(insPt);
-    P2I.second->replaceAllUsesWith(P2I.first);
+    P2I.pipeCall->moveBefore(insPt);
+    P2I.instr->replaceAllUsesWith(P2I.pipeCall);
   }
 }
 
@@ -26,8 +26,8 @@ void insertPipeWriteOfVal(Function &F, SmallVector<Pipe2Inst> &P2IMap,
                           BasicBlock *BB, bool insertAtEndOfBB = false) {
   for (auto &P2I : P2IMap) {
     auto insPt = insertAtEndOfBB ? BB->getTerminator() : BB->getFirstNonPHI();
-    P2I.first->moveBefore(insPt);
-    storeValIntoPipe(P2I.second, P2I.first);
+    P2I.pipeCall->moveBefore(insPt);
+    storeValIntoPipe(P2I.instr, P2I.pipeCall);
   }
 }
 
@@ -194,7 +194,8 @@ struct CDDDTransform : PassInfoMixin<CDDDTransform> {
         SmallVector<Instruction *> exceptions;
         auto terminator = blocks[iB]->getTerminator();
         exceptions.push_back(terminator);
-        llvm::append_range(exceptions, llvm::make_first_range(depOut[iB]));
+        for (auto P2I : depOut[iB]) 
+          exceptions.push_back(P2I.pipeCall);
         deleteInstructions(blocks[iB], exceptions);
 
         // Now insert pipe writes supplying values defined in the main kernel

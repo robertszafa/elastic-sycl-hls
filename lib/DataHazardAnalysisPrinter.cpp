@@ -27,6 +27,8 @@ json::Object genReport(Function &F, DataHazardAnalysis &DHA) {
     thisBaseAddr["num_stores"] = stores.size();
 
     thisBaseAddr["decouple_address"] = DHA.getDecoupligDecisions()[iC];
+    thisBaseAddr["is_onchip"] = DHA.getIsOnChip()[iC];
+    thisBaseAddr["array_size"] = DHA.getMemorySizes()[iC];
 
     std::string typeStr;
     llvm::raw_string_ostream rso(typeStr);

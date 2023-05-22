@@ -2,7 +2,7 @@
 
 
  $LT_LLVM_INSTALL_DIR/build/bin/opt "$1" -o "$1" \
-    -passes='mem2reg,lcssa,simplifycfg,loop-simplifycfg,instcombine,instsimplify,aggressive-instcombine,dse,adce,dce,sroa,gvn,mergereturn'
+    -passes='mem2reg,lcssa,simplifycfg,loop-simplifycfg,instsimplify,aggressive-instcombine,dse,adce,dce,sroa,gvn,mergereturn'
 
 
 # Get human readable bitcode

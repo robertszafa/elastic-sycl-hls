@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# $1 - emu / sim / hw
-# $2 - filename to compile
-
 DIR=`dirname "$1"`
 BIN=`basename "$1"`
 

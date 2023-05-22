@@ -36,7 +36,11 @@ using namespace llvm;
 namespace {
 
 /// A mapping between a pipe read/write and a load/store that it will replace.
-using Pipe2Inst = std::pair<CallInst *, Instruction *>;
+struct Pipe2Inst {
+  CallInst *pipeCall;
+  Instruction *instr;
+  bool isOnchip;
+};
 
 /// Lambdas for easier use in range based algorithms.
 auto isaLoad = [](auto i) { return isa<LoadInst>(i); };
@@ -274,7 +278,7 @@ getPipe2InstMaps(Function &F, json::Array &mapDescriptions) {
     auto pipeCall = getPipeCall(F, mapDescrObj);
     // Given indexes of children in parents, arrive at the right instruction.
     auto I = getInstruction(F, *mapDescrObj["instruction"].getAsObject());
-    result.push_back({pipeCall, I});
+    result.push_back({pipeCall, I, *mapDescrObj["is_onchip"].getAsBoolean()});
   }
 
   return result;

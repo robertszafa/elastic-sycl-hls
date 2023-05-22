@@ -192,6 +192,19 @@ SmallVector<SmallVector<Instruction *>> getSortedVectorClusters(
   return iClustersSorted;
 }
 
+/// Given a pointer to memory, return its allocated number of elements if 
+/// this is known, otherwise return 0. 
+int getTargetMemorySize(Instruction *basePointer) {
+  if (auto addrCastI = dyn_cast<AddrSpaceCastInst>(basePointer)) {
+    if (auto allocI = dyn_cast<AllocaInst>(addrCastI->getPointerOperand())) {
+      if (auto allocaType = allocI->getAllocatedType()) 
+        return allocaType->getArrayNumElements();
+    }
+  }
+
+  return 0;
+}
+
 DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
                                        ScalarEvolution &SE,
                                        PostDominatorTree &PDT) {
@@ -261,6 +274,15 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
   auto CDG = new ControlDependenceGraph(F, PDT);
   for (auto cluster : hazardInstrs) 
     decouplingDecisions.push_back(canDecoupleAddressGen(F, *CDG, cluster));
+
+  // For each cluster, check if the target memory is on-chip and collect size.
+  for (auto cluster : hazardInstrs) {
+    // First instr in cluster is always a store, with the address in operand 1.
+    auto ptrOp = cluster[0]->getOperand(1);
+    auto memSize = getTargetMemorySize(getPointerBase(ptrOp));
+    memorySizes.push_back(memSize);
+    isOnChip.push_back(memSize > 0);
+  }
 }
 
 } // namespace llvm

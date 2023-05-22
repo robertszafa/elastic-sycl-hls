@@ -10,47 +10,45 @@ C_VAR_REGEX = r'([a-zA-Z_][a-zA-Z0-9_]*)'
 QUEUE_NAME_REGEX = r"\s+" + C_VAR_REGEX + r"\.single_task<"
 
 class SyclPipe:
-    def __init__(self, name, ctype, amount=None, depth=None, write_repeat=None, write_value=None):
+    def __init__(self, name, ctype, amount=1, depth=None, pipe_array=False):
         # using {name} = pipe<class {class_name}, {ctype}>
-        self.name = name                    # The short name.
+        self.name = name                    # The short 'using' name.
         self.class_name = name + "_class"   # The actual class name.
         self.ctype = ctype
-        self.amount = amount
         self.depth = depth
-        self.write_repeat = 1 if write_repeat is None else write_repeat
-        self.write_value = write_value
+        self.pipe_array = pipe_array
+        self.amount = amount
+
     
     def declaration(self):
-        if self.amount is not None and self.depth is not None:
-            return f'using {self.name} = PipeArray<class {self.class_name}, {self.ctype}, {self.depth}, {self.amount}>;'
-        elif self.amount is not None:
-            return f'using {self.name} = PipeArray<class {self.class_name}, {self.ctype}, {self.amount}>;'
-        elif self.depth is not None:
-            return f'using {self.name} = pipe<class {self.class_name}, {self.ctype}, {self.depth}>;'
-        else: # no amount and no depth specified
-            return f'using {self.name} = pipe<class {self.class_name}, {self.ctype}>;'
+        depth_part = '' if self.depth is None else f',{self.depth}'
+        if self.pipe_array:
+            clamped_amount = max(2, self.amount) # A pipe array needs at 2 pipes.
+            return f'using {self.name} = PipeArray<class {self.class_name}, {self.ctype} {depth_part}, {clamped_amount}>;'
+        else: 
+            return f'using {self.name} = pipe<class {self.class_name}, {self.ctype} {depth_part}>;'
 
     def write_op(self):
-        value = self.write_value if self.write_value is not None else '{}'
+        val = '{}'
 
         res = ''
-        if self.amount is not None: # Array of pipes
+        if self.pipe_array: 
             for idx in range(self.amount):
-                res += f'{self.name}::PipeAt<{idx}>::write({value});\n'
+                res += f'{self.name}::PipeAt<{idx}>::write({val});\n'
         else: 
-            for _ in range(self.write_repeat):
-                res += f'{self.name}::write({value});\n'
+            res += f'{self.name}::write({val});\n'
 
         return res
 
     def read_op(self):
-        if self.amount is not None: # Array of pipes
-            res = ''
+        res = ''
+        if self.pipe_array:
             for idx in range(self.amount):
                 res += f'auto _rd_val_{self.name}_{idx} = {self.name}::PipeAt<{idx}>::read();\n'
-            return res
+        else:
+            res += f'auto _rd_val_{self.name} = {self.name}::read();\n'
 
-        return f'auto _rd_val_{self.name} = {self.name}::read();\n'
+        return res
     
     def __str__(self):
         return self.name

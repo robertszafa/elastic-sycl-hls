@@ -4,8 +4,6 @@
 #include <exception>
 #include <iostream>
 
-namespace fpga_tools {
-
 void exception_handler(sycl::exception_list exceptions) {
   for (std::exception_ptr const &e : exceptions) {
     try {
@@ -17,6 +15,5 @@ void exception_handler(sycl::exception_list exceptions) {
   }
 }
 
-} // namespace fpga_tools
 
 #endif //__EXCEPTIONHANDLER_HPP__

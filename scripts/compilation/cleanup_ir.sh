@@ -2,8 +2,8 @@
 
 
  $LT_LLVM_INSTALL_DIR/build/bin/opt "$1" -o "$1" \
-    -passes='mem2reg,lcssa,simplifycfg,loop-simplifycfg,instsimplify,aggressive-instcombine,dse,adce,dce,sroa,gvn,mergereturn'
-
+    -passes='deadargelim-sycl,mem2reg,gvn,dse,dce,adce,simplifycfg,loop-simplify,instsimplify,loop-deletion'
+# simplifycfg to cleanup loops after loop-simplifycfg
 
 # Get human readable bitcode
 $LT_LLVM_INSTALL_DIR/build/bin/llvm-dis "$1" -o "$1".ll

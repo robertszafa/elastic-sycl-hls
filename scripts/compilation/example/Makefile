@@ -3,8 +3,8 @@ BENCHMARK := $(basename $(FILE))
 SRC := $(FILE)
 BIN := bin/$(BENCHMARK)
 
-I = -I${LLVM_SYCL_PASSES_DIR}/include_sycl
-I += -I${LLVM_SYCL_PASSES_DIR}/lsq
+I = -I${ELASTIC_SYCL_HLS_DIR}/include_sycl
+I += -I${ELASTIC_SYCL_HLS_DIR}/lsq
 
 CXX := icpx
 CXXFLAGS += -fsycl -std=c++17 -O2 $(I)

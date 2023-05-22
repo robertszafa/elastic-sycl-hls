@@ -46,6 +46,23 @@ struct Pipe2Inst {
 auto isaLoad = [](auto i) { return isa<LoadInst>(i); };
 auto isaStore = [](auto i) { return isa<StoreInst>(i); };
 
+
+CallInst *getPipeCall (Instruction *I) {
+  const std::string PIPE_CALL = "ext::intel::pipe";
+
+  if (CallInst *callInst = dyn_cast<CallInst>(I)) {
+    if (Function *f = callInst->getCalledFunction()) {
+      auto fName = demangle(std::string(f->getName()));
+      if (f->getCallingConv() == CallingConv::SPIR_FUNC &&
+          fName.find(PIPE_CALL) != std::string::npos) {
+        return callInst;
+      }
+    }
+  }
+
+  return nullptr;
+}
+
 [[maybe_unused]] SmallVector<Instruction *>
 getLoads(const SmallVector<Instruction *> &memInstr) {
   SmallVector<Instruction *> loads;
@@ -64,8 +81,33 @@ getStores(const SmallVector<Instruction *> &memInstr) {
   return stores;
 }
 
+[[maybe_unused]] SmallVector<int> 
+getSeqInBB(const SmallVector<Instruction *> &Range) {
+  SmallMapVector<BasicBlock *, int, 4> seen;
+  SmallVector<int> seqInBB;
+  for (auto &I : Range) {
+    if (seen.contains(I->getParent())) 
+      seen[I->getParent()]++;
+    else 
+      seen[I->getParent()] = 0;
+    
+    seqInBB.push_back(seen[I->getParent()]);
+  }
+  
+  return seqInBB;
+}
+
+[[maybe_unused]] std::string getTypeString(const Instruction *I) {
+  std::string typeStr;
+  llvm::raw_string_ostream rso(typeStr);
+  I->getType()->print(rso);
+
+  return typeStr;
+}
+
 /// Given a {val}, store it into the operand of the {pipe} write.
-[[maybe_unused]] void storeValIntoPipe(Value *val, CallInst *pipe) {
+/// Return the created store.
+[[maybe_unused]] Instruction *storeValIntoPipe(Value *val, CallInst *pipe) {
   auto pipeOperandAddr = pipe->getOperand(0);
   IRBuilder<> Builder(pipe);
 
@@ -79,14 +121,14 @@ getStores(const SmallVector<Instruction *> &memInstr) {
     val = Builder.CreateCast(Instruction::CastOps::SExt, val, pipeType);
   }
 
-  Builder.CreateStore(val, pipeOperandAddr);
+  return Builder.CreateStore(val, pipeOperandAddr);
 }
 
 /// Delete {inst} from it's function.
-[[maybe_unused]] void deleteInstruction(Instruction *inst) {
-  inst->dropAllReferences();
-  inst->replaceAllUsesWith(UndefValue::get(inst->getType()));
-  inst->eraseFromParent();
+[[maybe_unused]] void deleteInstruction(Instruction *I) {
+  I->dropAllReferences();
+  I->replaceAllUsesWith(UndefValue::get(I->getType()));
+  I->eraseFromParent();
 }
 
 /// Given Function {F}, return all Functions that call {F}.
@@ -166,7 +208,7 @@ template <typename T1, typename T2>
     buffer << t.rdbuf();
 
     auto Json = json::parse(llvm::StringRef(buffer.str()));
-    assert(Json && "Error parsing json loop-raw-report");
+    assert(Json && "Error parsing json elastic-pass-report");
 
     return *Json;
   }
@@ -198,31 +240,37 @@ template <typename T1, typename T2>
 
 /// Return the pipe call instruction corresponding to the pipeInfo json obj.
 [[maybe_unused]] CallInst *getPipeCall(Function &F, json::Object pipeInfo) {
-  auto pipeName = std::string(pipeInfo["name"].getAsString().value());
-  // If no struct_id or repeat_id, then use defaults.
-  auto structIdOptional = pipeInfo["struct_id"].getAsInteger();
-  auto structId = structIdOptional ? structIdOptional.value() : -1;
-  auto repeatIdOptional = pipeInfo["repeat_id"].getAsInteger();
-  auto repeatId = repeatIdOptional ? repeatIdOptional.value() : 0;
+  static StringMap<int> collectedCalls;
 
-  /// Lambda. Returns true, if {PIPE_CALL} is a substring of {call}.
-  auto isaPipe = [](std::string call) {
-    const std::string PIPE_CALL = "ext::intel::pipe";
-    return call.find(PIPE_CALL) != std::string::npos;
-  };
+  auto pipeNameOpt = pipeInfo.getString("pipe_name");
+  assert(pipeNameOpt && "Pipe with given {pipe_name} not found.");
+  auto pipeName = pipeNameOpt->str();
+  // If no seq_in_bb or repeat_id, then use defaults.
+  auto seqNumOpt = pipeInfo.getInteger("seq_in_bb");
+  auto seqNum = seqNumOpt ? seqNumOpt.value() : -1;
+
+  const std::string pipeIdKey = pipeName +
+                                pipeInfo.getString("read/write")->str() +
+                                std::to_string(seqNum);
+  int pipeCallsToSkip = 0;
+  if (collectedCalls.contains(pipeIdKey)) 
+    pipeCallsToSkip = collectedCalls[pipeIdKey];
+  else 
+    collectedCalls[pipeIdKey] = 1;
+
   /// Lambda. Returns true if {call} is a call to our pipe.
-  auto isThisPipe = [&pipeName, &structId](std::string call) {
+  auto isThisPipe = [&pipeName, &seqNum](std::string call) {
     std::regex pipe_regex{pipeName, std::regex_constants::ECMAScript};
     std::smatch pipe_match;
     std::regex_search(call, pipe_match, pipe_regex);
 
-    std::regex struct_regex{"StructId<" + std::to_string(structId) + "ul>",
+    std::regex struct_regex{"StructId<" + std::to_string(seqNum) + "ul>",
                             std::regex_constants::ECMAScript};
     std::smatch struct_match;
     std::regex_search(call, struct_match, struct_regex);
 
     // If structId < 0, then this is not a pipe array and don't check the id.
-    if ((pipe_match.size() > 0 && structId < 0) ||
+    if ((pipe_match.size() > 0 && seqNum < 0) ||
         (pipe_match.size() > 0 && struct_match.size() > 0)) {
       return true;
     }
@@ -230,21 +278,17 @@ template <typename T1, typename T2>
     return false;
   };
 
-  // Go through every instruction in {F} to find the desired pipe call.
-  // Pipe info specifies which Nth call to the same pipe we should return.
-  int callsSoFar = 0;
+  int numCallsSkipped = 0;
   for (auto &bb : F) {
     for (auto &instruction : bb) {
-      if (CallInst *callInst = dyn_cast<CallInst>(&instruction)) {
-        if (Function *f = callInst->getCalledFunction()) {
-          auto fName = demangle(std::string(f->getName()));
-          if (f->getCallingConv() == CallingConv::SPIR_FUNC && isaPipe(fName) &&
-              isThisPipe(fName)) {
-            if (repeatId == callsSoFar)
-              return callInst;
-            else
-              callsSoFar++;
-          }
+      if (auto pipeCall = getPipeCall(&instruction)) {
+        auto pipeName =
+            demangle(std::string(pipeCall->getCalledFunction()->getName()));
+        if (isThisPipe(pipeName)) {
+          if (numCallsSkipped == pipeCallsToSkip)
+            return pipeCall;
+          else
+            numCallsSkipped++;
         }
       }
     }
@@ -254,34 +298,24 @@ template <typename T1, typename T2>
   return nullptr;
 }
 
-/// Given a json array with objects describing pipe to instruction objects,
-/// return a vector of such Pipe2Inst mappings.
-///
-/// Example {mapDescriptions}:
-///   {
-///     "instruction": {
-///       "basic_block_idx": 1,
-///       "instruction_idx": 0
-///     },
-///     "type": "float",
-///     "name": "pipe_float_kernel0_in0_class",
-///     "repeat_id": 0,
-///     "struct_id": -1
-///   }
-[[maybe_unused]] SmallVector<Pipe2Inst>
-getPipe2InstMaps(Function &F, json::Array &mapDescriptions) {
-  SmallVector<Pipe2Inst> result;
 
-  for (json::Value &mapDescr : mapDescriptions) {
-    // Given the pipe name, find the pipe call instruction.
-    auto mapDescrObj = *mapDescr.getAsObject();
-    auto pipeCall = getPipeCall(F, mapDescrObj);
-    // Given indexes of children in parents, arrive at the right instruction.
-    auto I = getInstruction(F, *mapDescrObj["instruction"].getAsObject());
-    result.push_back({pipeCall, I, *mapDescrObj["is_onchip"].getAsBoolean()});
+[[maybe_unused]] Instruction *getPointerBase(Value *pointerOperand) {
+  const BasicBlock *entryBlockF = &dyn_cast<Instruction>(pointerOperand)
+                                       ->getParent()
+                                       ->getParent()
+                                       ->getEntryBlock();
+  if (dyn_cast<Instruction>(pointerOperand)->getParent() == entryBlockF) {
+    // stop;
+  } else if (auto cast = dyn_cast<BitCastInst>(pointerOperand)) {
+    return getPointerBase(dyn_cast<Instruction>(cast->getOperand(0)));
+  } else if (auto load = dyn_cast<LoadInst>(pointerOperand)) {
+    return getPointerBase(dyn_cast<Instruction>(load->getOperand(0)));
+  } else if (auto gep = dyn_cast<GetElementPtrInst>(pointerOperand)) {
+    if (gep->getPointerOperand()) // hasAllConstantIndices())
+      return getPointerBase(dyn_cast<Instruction>(gep->getPointerOperand()));
   }
 
-  return result;
+  return dyn_cast<Instruction>(pointerOperand);
 }
 
 } // namespace

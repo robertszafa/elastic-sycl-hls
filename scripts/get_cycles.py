@@ -38,8 +38,8 @@ def get_cycles(sim_project, kernel=None):
                 last_line = line
 
     except Exception as e:
-        print('Exception: ', e)
-        exit(1)
+        print(f'Error: did not get cycle count because:\n\t{e}')
+        exit()
     
     return min_cycles, max_cycles
 

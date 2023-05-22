@@ -9,7 +9,7 @@ BASE_FNAME=$(basename ${3})
 INT_HEADER=$HOME/tmp/$BASE_FNAME-integration-header.h
 INT_FOOTER=$HOME/tmp/$BASE_FNAME-integration-footer.h
 
-INCLUDE_FILES=$HOME/git/llvm-sycl-passes/lsq
+INCLUDE_FILES=$HOME/git/elastic-sycl-hls/lsq
 
 GCC_V=`gcc --version | head -n1 | cut -d" " -f4`
 DPCPP_PATH=`which dpcpp`

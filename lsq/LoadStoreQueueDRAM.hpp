@@ -52,7 +52,7 @@ class LoadMux;
 template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           typename st_req_pipes, typename st_val_pipes, typename end_signal_pipe,
           int NUM_LDS, int NUM_STS, int LD_Q_SIZE = 4, int ST_Q_SIZE = 8>
-event LoadStoreQueueDRAM(queue &q) {
+[[clang::optnone]] event LoadStoreQueueDRAM(queue &q) {
   assert(LD_Q_SIZE >= 2 && "Load queue size must be at least 2.");
   assert(ST_Q_SIZE >= 2 && "Store queue size must be at least 2.");
 
@@ -67,110 +67,6 @@ event LoadStoreQueueDRAM(queue &q) {
   using ld_mux_sel_pipes = PipeArray<class ld_mux_sel_pipe_class, bool, STORE_LATENCY_DRAM, NUM_LDS>;
   using ld_mux_from_memory_val_pipes = PipeArray<class ld_mux_from_memory_val_class, value_t, STORE_LATENCY_DRAM, NUM_LDS>;
   using ld_mux_from_bypass_val_pipes = PipeArray<class ld_mux_from_bypass_val_class, value_t, STORE_LATENCY_DRAM, NUM_LDS>;
-
-  // Multiple stores are muxed when coming into the LSQ.
-  using st_req_pipe = pipe<class st_req_pipe_lsq_class, req_lsq_dram_t, STORE_LATENCY_DRAM>;
-  using st_req_mux_end_signal = pipe<class st_req_mux_end_signal_class, bool>;
-  using st_val_pipe = pipe<class st_val_pipe_lsq_class, value_t, STORE_LATENCY_DRAM>;
-  using st_val_mux_end_signal = pipe<class st_val_mux_end_signal_class, bool>;
-  if constexpr (NUM_STS > 1) {
-    q.single_task<class StoreReqMux>([=]() KERNEL_PRAGMAS {
-      /// The expected next tag, always increasing by one.
-      uint next_tag = 1;
-      /// End signal turns true once we read in the actual {num_todo}.
-      bool end_signal = false;
-
-      NTuple<req_lsq_dram_t, NUM_STS> st_req_tp;
-      /// We start with none in pipe reads being successful.
-      NTuple<bool, NUM_STS> read_succ_tp;
-
-      [[intel::initiation_interval(1)]] 
-      [[intel::speculated_iterations(0)]]
-      while (!end_signal) {
-        st_req_mux_end_signal::read(end_signal);
-
-        // For each in pipe, try to read. There are 3 cases:
-        //   1. Success, and it has the tag we're looking for. Then set
-        //   {have_val_in} true.
-        //   2. Success, but not the tag we're looking for. {have_val_in} stays
-        //   false. {read_succ} stays false until {next_tag} reaches this tag.
-        //   3. Fail. Do nothing.
-        UnrolledLoop<NUM_STS>([&](auto k) {
-          auto& read_succ = read_succ_tp. template get<k>();
-          auto& st_req = st_req_tp. template get<k>();
-          if (!read_succ) 
-            st_req = st_req_pipes:: template PipeAt<k>::read(read_succ);
-        });
-
-        bool is_req_valid = false;
-        req_lsq_dram_t req_to_write;
-        UnrolledLoop<NUM_STS>([&](auto k) {
-          auto& read_succ = read_succ_tp. template get<k>();
-          auto& st_req = st_req_tp. template get<k>();
-          // Only one will match.
-          if (read_succ && st_req.tag == next_tag) {
-            is_req_valid = true;
-            read_succ = false;
-            req_to_write = st_req;
-          }
-        });
-
-        
-        if (is_req_valid) {
-          st_req_pipe::write(req_to_write);
-          next_tag++;
-        }
-      }
-    });
-
-    q.single_task<class StoreValMux>([=]() KERNEL_PRAGMAS {
-      /// The expected next tag, always increasing by one.
-      uint next_tag = 1;
-      /// End signal turns true once we read in the actual {num_todo}.
-      bool end_signal = false;
-
-      NTuple<tagged_val_lsq_dram_t<value_t>, NUM_STS> st_val_tagged_tp;
-      /// We start with none in pipe reads being successful.
-      NTuple<bool, NUM_STS> read_succ_tp;
-
-      [[intel::initiation_interval(1)]] 
-      [[intel::speculated_iterations(0)]]
-      while (!end_signal) {
-        st_val_mux_end_signal::read(end_signal);
-
-        // For each in pipe, try to read. There are 3 cases:
-        //   1. Success, and it has the tag we're looking for. Then set
-        //   {have_val_in} true.
-        //   2. Success, but not the tag we're looking for. {have_val_in} stays
-        //   false. {read_succ} stays false until {next_tag} reaches this tag.
-        //   3. Fail. Do nothing.
-        UnrolledLoop<NUM_STS>([&](auto k) {
-          auto& read_succ = read_succ_tp. template get<k>();
-          auto& st_val_tagged = st_val_tagged_tp. template get<k>();
-          if (!read_succ) 
-            st_val_tagged = st_val_pipes:: template PipeAt<k>::read(read_succ);
-        });
-
-        bool is_req_valid = false;
-        value_t val_to_write;
-        UnrolledLoop<NUM_STS>([&](auto k) {
-          auto& read_succ = read_succ_tp. template get<k>();
-          auto& st_val = st_val_tagged_tp. template get<k>();
-          // Only one will match.
-          if (read_succ && st_val.tag == next_tag) {
-            is_req_valid = true;
-            read_succ = false;
-            val_to_write = st_val.value;
-          }
-        });
-        
-        if (is_req_valid) {
-          st_val_pipe::write(val_to_write);
-          next_tag++;
-        }
-      }
-    });
-  } // End Muxes for Incoming Stores
 
   /// Store port kernel
   auto storePortEvent = q.submit([&](handler &hnd) {
@@ -242,6 +138,14 @@ event LoadStoreQueueDRAM(queue &q) {
       // Signal to stop the LSQ.
       bool end_signal = false;
 
+      // Used if NUM_STS > 1. st_reqs and st_vals are muxed based on tag.
+      req_lsq_dram_t st_req_read[NUM_STS];
+      bool st_req_read_succ[NUM_STS];
+      uint next_st_req_tag = 1;
+      tagged_val_lsq_dram_t<value_t> st_val_read[NUM_STS];
+      bool st_val_read_succ[NUM_STS];
+      uint next_st_val_tag = 1;
+
       [[intel::ivdep]] 
       [[intel::initiation_interval(1)]] 
       [[intel::speculated_iterations(0)]]
@@ -258,14 +162,29 @@ event LoadStoreQueueDRAM(queue &q) {
         value_t st_value;
         auto next_st_commit_addr = INVALID_ADDRESS;
         if (st_alloc_addr_valid[0]) {
-          if constexpr (NUM_STS > 1)
-            st_value = st_val_pipe::read(st_value_valid);
-          else 
+          if constexpr (NUM_STS == 1) {
             st_value = st_val_pipes:: template PipeAt<0>::read(st_value_valid);
+          } else { 
+            // Store value mux.
+            UnrolledLoop<NUM_STS>([&](auto k) {
+              if (!st_val_read_succ[k])
+                st_val_read[k] =
+                    st_val_pipes::template PipeAt<k>::read(st_val_read_succ[k]);
+            });
+            UnrolledLoop<NUM_STS>([&](auto k) {
+              if (st_val_read_succ[k] && st_val_read[k].tag == next_st_val_tag) {
+                st_val_read_succ[k] = false;
+                st_value = st_val_read[k].value;
+                st_value_valid = true;
+              }
+            });
+          }
+
           if (st_value_valid) {
             pred_st_port_pipe::write(1);
             st_port_val_pipe::write({st_alloc_addr[0], st_value});
             next_st_commit_addr = st_alloc_addr[0];
+            next_st_val_tag++;
           }
         }
 
@@ -282,19 +201,31 @@ event LoadStoreQueueDRAM(queue &q) {
 
         // Accept new store allocations, unless no space in allocation queue.
         if (st_value_valid || !st_alloc_addr_valid[0]) {
-          req_lsq_dram_t next_st_req; 
           bool st_req_valid = false;
-          auto next_st_req_addr = INVALID_ADDRESS;
-          uint next_st_req_tag;
+          auto next_st_alloc_addr = INVALID_ADDRESS;
           req_lsq_dram_t st_req;
-          if constexpr (NUM_STS > 1)
-            st_req = st_req_pipe::read(st_req_valid);
-          else
+
+          if constexpr (NUM_STS == 1) {
             st_req = st_req_pipes:: template PipeAt<0>::read(st_req_valid);
+          } else { // Store request mux.
+            UnrolledLoop<NUM_STS>([&](auto k) {
+              if (!st_req_read_succ[k])
+                st_req_read[k] =
+                    st_req_pipes::template PipeAt<k>::read(st_req_read_succ[k]);
+            });
+            UnrolledLoop<NUM_STS>([&](auto k) {
+              if (st_req_read_succ[k] && st_req_read[k].tag == next_st_req_tag) {
+                st_req_read_succ[k] = false;
+                st_req = st_req_read[k];
+                st_req_valid = true;
+              }
+            });
+          }
+
           if (st_req_valid) {
-            next_st_req_addr = st_req.addr;
-            next_st_req_tag = st_req.tag;
+            next_st_alloc_addr = st_req.addr;
             last_st_req_tag++;
+            next_st_req_tag++;
           }
 
           UnrolledLoop<ST_Q_SIZE - 1>([&](auto i) {
@@ -302,9 +233,9 @@ event LoadStoreQueueDRAM(queue &q) {
             st_alloc_addr_valid[i] = st_alloc_addr_valid[i + 1];
             st_alloc_tag[i] = st_alloc_tag[i + 1];
           });
-          st_alloc_addr[ST_Q_SIZE - 1] = next_st_req_addr;
+          st_alloc_addr[ST_Q_SIZE - 1] = next_st_alloc_addr;
           st_alloc_addr_valid[ST_Q_SIZE - 1] = st_req_valid;
-          st_alloc_tag[ST_Q_SIZE - 1] = next_st_req_tag;
+          st_alloc_tag[ST_Q_SIZE - 1] = st_req.tag;
         }
         /************************** End Store Logic ***************************/
 
@@ -400,12 +331,13 @@ event LoadStoreQueueDRAM(queue &q) {
         pred_ld_mux_pipes:: template PipeAt<iLd>::write(0);
       });
 
-      if constexpr (NUM_STS > 1) {
-        st_req_mux_end_signal::write(0);
-        st_val_mux_end_signal::write(0);
-      }
-
       pred_st_port_pipe::write(0);
+
+      // if constexpr (NUM_STS > 1) {
+      //   st_req_mux_end_signal::write(0);
+      //   st_val_mux_end_signal::write(0);
+      // }
+
     });
   }); // End LSQ kernel
   

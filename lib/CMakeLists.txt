@@ -2,33 +2,24 @@
 # ======================================================
 set(OPT_PASSES_PLUGINS
     HoistConstantGepTransform
-    DataHazardAnalysisPrinter
-    LoadStoreQueueTransform
-    CDDDAnalysisPrinter
-    CDDDTransform
+    ElasticAnalysisPrinter
+    ElasticTransform
     DDGDotPrinter
-    )
+)
 
-set(HoistConstantGepTransform_SOURCES HoistConstantGepTransform.cpp)
+set(HoistConstantGepTransform_SOURCES 
+  HoistConstantGepTransform.cpp
+)
 
-set(DataHazardAnalysisPrinter_SOURCES
-  DataHazardAnalysisPrinter.cpp
+set(ElasticAnalysisPrinter_SOURCES
+  ElasticAnalysisPrinter.cpp
   DataHazardAnalysis.cpp
   CDG.cpp
-)
-
-set(LoadStoreQueueTransform_SOURCES
-  LoadStoreQueueTransform.cpp
-)
-
-set(CDDDAnalysisPrinter_SOURCES
-  CDDDAnalysisPrinter.cpp
   CDDDAnalysis.cpp
-  CDG.cpp
 )
 
-set(CDDDTransform_SOURCES
-  CDDDTransform.cpp
+set(ElasticTransform_SOURCES
+  ElasticTransform.cpp
 )
 
 set(DDGDotPrinter_SOURCES

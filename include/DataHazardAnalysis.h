@@ -19,8 +19,10 @@ public:
 
   /// Return all memory instructions for each base address in the function
   /// which has at least one data hazard.
-  SmallVector<SmallVector<Instruction *>> getResult() { return hazardInstrs; }
-
+  SmallVector<SmallVector<Instruction *>> getHazardInstructions() {
+    return hazardInstrs;
+  }
+  SmallVector<Instruction *> getBaseAddresses() { return baseAddresses; }
   SmallVector<bool> getDecoupligDecisions() { return decouplingDecisions; }
   SmallVector<bool> getIsOnChip() { return isOnChip; }
   SmallVector<int> getMemorySizes() { return memorySizes; }
@@ -29,6 +31,8 @@ private:
   /// Memory load and store instructions for each base address that is part
   /// of a data hazard.
   SmallVector<SmallVector<Instruction *>> hazardInstrs;
+  
+  SmallVector<Instruction *> baseAddresses;
 
   /// For each base address, a bool indicating if the address generation
   /// instructions can be decoupled from F.

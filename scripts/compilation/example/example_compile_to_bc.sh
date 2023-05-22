@@ -9,7 +9,7 @@ OUTPUT_FILE="$2.bc"
 INT_HEADER=$HOME/tmp/$BASE_FNAME-integration-header.h
 INT_FOOTER=$HOME/tmp/$BASE_FNAME-integration-footer.h
 
-INCLUDE_FILES=$HOME/git/llvm-sycl-passes/lsq
+INCLUDE_FILES=$HOME/git/elastic-sycl-hls/lsq
 
 GCC_V=`ls /usr/lib/gcc/x86_64-linux-gnu/ | sort -r | head -n1`
 DPCPP_PATH=`which dpcpp`

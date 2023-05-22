@@ -94,28 +94,43 @@ bool canDecoupleAddressGen(Function &F, ControlDependenceGraph &CDG,
   return true;
 }
 
-/// This function has the same functionality as ScalarEvolution.getPointerBase,
-/// but it returns the Instruction representing the pointer base, not a SCEV.
-/// It relies on our previous pass that puts all GEPs (that get global memory
-/// pointers) into the F.entry block.
-Instruction *getPointerBase(Value *pointerOperand) {
-  const BasicBlock *entryBlockF = &dyn_cast<Instruction>(pointerOperand)
-                                       ->getParent()
-                                       ->getParent()
-                                       ->getEntryBlock();
-  if (dyn_cast<Instruction>(pointerOperand)->getParent() == entryBlockF) {
-    // stop;
-  } else if (auto cast = dyn_cast<BitCastInst>(pointerOperand)) {
-    return getPointerBase(dyn_cast<Instruction>(cast->getOperand(0)));
-  } else if (auto load = dyn_cast<LoadInst>(pointerOperand)) {
-    return getPointerBase(dyn_cast<Instruction>(load->getOperand(0)));
-  } else if (auto gep = dyn_cast<GetElementPtrInst>(pointerOperand)) {
-    if (gep->getPointerOperand()) // hasAllConstantIndices())
-      return getPointerBase(dyn_cast<Instruction>(gep->getPointerOperand()));
-  }
+// /// This function has the same functionality as ScalarEvolution.getPointerBase,
+// /// but it returns the Instruction representing the pointer base, not a SCEV.
+// /// It relies on our previous pass that puts all GEPs (that get global memory
+// /// pointers) into the F.entry block.
+// Instruction *getPointerBase(Value *pointerOperand) {
+//   // const BasicBlock *entryBlockF = &dyn_cast<Instruction>(pointerOperand)
+//   //                                      ->getParent()
+//   //                                      ->getParent()
+//   //                                      ->getEntryBlock();
+//   errs() << "\n\nNext:\n"; 
+//   pointerOperand->print(errs());
+//   // if (!isa<Instruction>(pointerOperand) || !po) {
+//   //   // stop;
+//   // } 
+  
+//   // if (auto cast = dyn_cast<AddrSpaceCastOperator>(pointerOperand)) {
+//   //   if (auto nextOpInstr = dyn_cast<Instruction>(cast->getOperand(0))) {
+//   //     return getPointerBase();
+//   //   }
+//   // } else if (auto cast = dyn_cast<BitCastInst>(pointerOperand)) {
+//   //   return getPointerBase(dyn_cast<Value>(cast->getOperand(0)));
+//   // } else if (auto load = dyn_cast<LoadInst>(pointerOperand)) {
+//   //   return getPointerBase(dyn_cast<Value>(load->getOperand(0)));
+//   // } else 
+  
+//   if (auto gep = dyn_cast<GetElementPtrInst>(pointerOperand)) {
+//     if (gep->getPointerOperand()) // hasAllConstantIndices())
+//       return getPointerBase(dyn_cast<Value>(gep->getPointerOperand()));
+//   }
+//   else if (auto ptrOpInstr = dyn_cast<Instruction>(pointerOperand)) {
+//     if (auto nextInstr = dyn_cast<Instruction>(ptrOpInstr->getOperand(0))) {
+//       return getPointerBase(nextInstr);
+//     }
+//   }
 
-  return dyn_cast<Instruction>(pointerOperand);
-}
+//   return dyn_cast<Instruction>(pointerOperand);
+// }
 
 /// Return values for the {instr} key in {addr2InstMap}.
 /// Return nullptr if {addr2InstMap} doesn't have the {instr} key.
@@ -276,12 +291,14 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
     decouplingDecisions.push_back(canDecoupleAddressGen(F, *CDG, cluster));
 
   // For each cluster, check if the target memory is on-chip and collect size.
+  // Also record the base pointer for each cluster.
   for (auto cluster : hazardInstrs) {
     // First instr in cluster is always a store, with the address in operand 1.
-    auto ptrOp = cluster[0]->getOperand(1);
-    auto memSize = getTargetMemorySize(getPointerBase(ptrOp));
+    auto basePtr = getPointerBase(cluster[0]->getOperand(1));
+    auto memSize = getTargetMemorySize(basePtr);
     memorySizes.push_back(memSize);
     isOnChip.push_back(memSize > 0);
+    baseAddresses.push_back(basePtr);
   }
 }
 

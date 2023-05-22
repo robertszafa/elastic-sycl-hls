@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13.4)
-project(sycl-llvm-passes)
+project(elastic-sycl-hls)
 
 #===============================================================================
 # 1. VERIFY LLVM INSTALLATION DIR
@@ -71,17 +71,12 @@ set(NOELLE_LIBRARY_DIRS "$ENV{HOME}/git/noelle/install/lib")
 include_directories(
   SYSTEM 
   ${LLVM_INCLUDE_DIRS} 
-  # "$ENV{HOME}/git/program-dependence-graph/include"
-  # ${NOELLE_INCLUDE_DIRS}
 )
 link_directories(
   ${LLVM_LIBRARY_DIRS} 
-  # ${NOELLE_LIBRARY_DIRS}
 )
 add_definitions(
   ${LLVM_DEFINITIONS}
-  # -D__STDC_LIMIT_MACROS
-  # -D__STDC_CONSTANT_MACROS
 )
     
   #===============================================================================
@@ -124,5 +119,3 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 # available for the sub-projects.
 #===============================================================================
 add_subdirectory(lib)
-# add_subdirectory("$ENV{HOME}/git/program-dependence-graph")
-# add_subdirectory(test)

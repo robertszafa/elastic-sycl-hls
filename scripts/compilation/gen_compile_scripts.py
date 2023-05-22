@@ -15,7 +15,7 @@ import re
 import os
 import subprocess
 
-GIT_DIR = os.environ['LLVM_SYCL_PASSES_DIR']
+GIT_DIR = os.environ['ELASTIC_SYCL_HLS_DIR']
 COMPILE_TO_BC_FNAME = f"{GIT_DIR}/scripts/compilation/compile_to_bc.sh"
 COMPILE_FROM_BC_FNAME = f"{GIT_DIR}/scripts/compilation/compile_from_bc.sh"
 

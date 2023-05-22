@@ -23,7 +23,7 @@ echo $SRC_FILE_DIR/DDG.pdf
 rm *.dot 
 
 # DDG of only Strongly Connected Componennts
-$LT_LLVM_INSTALL_DIR/build/bin/opt -load-pass-plugin $LLVM_SYCL_PASSES_DIR/build/lib/libDDGDotPrinter.so \
+$LT_LLVM_INSTALL_DIR/build/bin/opt -load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libDDGDotPrinter.so \
                                    -passes=dot-ddg-sccs $BC_FILE > /dev/null 2>&1 
 
 for fname in /tmp/DDG_function*.dot; do

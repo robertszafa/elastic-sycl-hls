@@ -2,7 +2,7 @@
 
 
  $LT_LLVM_INSTALL_DIR/build/bin/opt "$1" -o "$1" \
-    -passes='deadargelim-sycl,mem2reg,gvn,dse,dce,adce,simplifycfg,loop-simplify,instsimplify,loop-deletion'
+    -passes='deadargelim-sycl,mem2reg,gvn,dse,dce,adce,simplifycfg,instsimplify,loop-deletion'
 # simplifycfg to cleanup loops after loop-simplifycfg
 
 # Get human readable bitcode

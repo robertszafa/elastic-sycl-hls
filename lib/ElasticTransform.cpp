@@ -1,29 +1,12 @@
 #include "CommonLLVM.h"
 
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/ADT/iterator_range.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/Support/raw_ostream.h"
-
 using namespace llvm;
 
 namespace llvm {
 
-/// The pipe operations for the values at the start and end of a recurrence
-/// which is calculated only in a decoupled basic block will be hoisted out.
-struct HoistPipeDirective {
-  /// For each hoisted out pipe read, there will also be a hoisted out pipe write
-  /// forming the start and end of a recurrence which was decoupled into a PE.
-  CallInst *read; 
-  CallInst *write;
-  Loop *loop;
-  /// The initital value of the recurrence.
-  Value *initVal;
-};
-
 const std::string REPORT_ENV_NAME = "ELASTIC_PASS_REPORT";
 
-// Delete all side store instructions in F (except exceptions).
+// Delete all store instructions in F (except exceptions).
 void deleteAllStores(Function &F, SmallVector<Instruction *> &exceptions) {
   // First collect then delete. Cannot delete I when iterating over I's in BB.
   SmallVector<Instruction *> toDelete;
@@ -38,8 +21,8 @@ void deleteAllStores(Function &F, SmallVector<Instruction *> &exceptions) {
     deleteInstruction(I);
 }
 
-/// Given a {pipeWrite} with a struct as its operand, collect the stores to the
-/// all struct fields of the LSQ request.
+/// Given a {pipeWrite} with a struct address as its operand, collect stores to
+/// the struct fields.
 SmallVector<StoreInst *> getPipeOpStructStores(const CallInst *pipeWrite) {
   SmallVector<StoreInst *> storesToStruct;
   for (auto user : pipeWrite->getArgOperand(0)->users()) {
@@ -58,9 +41,13 @@ SmallVector<StoreInst *> getPipeOpStructStores(const CallInst *pipeWrite) {
   return storesToStruct;
 }
 
-void instr2PipeLsqLdReq(Instruction *I, CallInst *pipeWrite, Value *stTagAddr,
-                        Value *ldTagAddr, bool isOnChipMem, bool isLdTagNeeded,
-                        SmallVector<Instruction *> &preserveStores) {
+void instr2pipeLsqLdReq(json::Object &i2pInfo, Value *stTagAddr,
+                        Value *ldTagAddr, SmallVector<Instruction *> &created) {
+  auto pipeWrite =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+  auto I =
+      reinterpret_cast<Instruction *>(*i2pInfo.getInteger("llvm_instruction"));
+
   // The pipe writes a {address, tag} struct.
   auto reqStructStores = getPipeOpStructStores(pipeWrite);
   StoreInst *addressStore = reqStructStores[0];
@@ -77,7 +64,7 @@ void instr2PipeLsqLdReq(Instruction *I, CallInst *pipeWrite, Value *stTagAddr,
   Value *memInstAddr = dyn_cast<LoadInst>(I)->getPointerOperand();
 
   // Write address.
-  if (isOnChipMem) {
+  if (*i2pInfo.getString("pipe_type") == "ld_req_lsq_bram_t") {
     // For BRAM accesses, we only get the index value, not the full pointer.
     auto gepAddr = dyn_cast<GetElementPtrInst>(memInstAddr);
     memInstAddr = gepAddr->getOperand(gepAddr->getNumOperands() - 1);
@@ -94,7 +81,7 @@ void instr2PipeLsqLdReq(Instruction *I, CallInst *pipeWrite, Value *stTagAddr,
   stTagStore->setOperand(0, stTagVal);
 
   // Optionally, write load tag.
-  if (isLdTagNeeded) {
+  if (*i2pInfo.getInteger("max_seq_in_bb") > 1) {
     // A load tag is first used in the load request.
     ldTagStore->moveBefore(pipeWrite);
     Builder.SetInsertPoint(ldTagStore);
@@ -104,16 +91,20 @@ void instr2PipeLsqLdReq(Instruction *I, CallInst *pipeWrite, Value *stTagAddr,
     Builder.SetInsertPoint(pipeWrite);
     auto ldTagInc = Builder.CreateAdd(ldTagVal, ConstantInt::get(tagType, 1));
     auto storeForNewLdTag = Builder.CreateStore(ldTagInc, ldTagAddr);
-    preserveStores.push_back(storeForNewLdTag);
+    created.push_back(storeForNewLdTag);
   }
 
-  preserveStores.push_back(stTagStore);
-  preserveStores.push_back(addressStore);
+  created.push_back(stTagStore);
+  created.push_back(addressStore);
 }
 
-void instr2PipeLsqStReq(Instruction *I, CallInst *pipeWrite, Value *stTagAddr,
-                        bool isOnChipMem,
-                        SmallVector<Instruction *> &preserveStores) {
+void instr2pipeLsqStReq(json::Object &i2pInfo, Value *stTagAddr,
+                        SmallVector<Instruction *> &created) {
+  auto pipeWrite =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+  auto I =
+      reinterpret_cast<Instruction *>(*i2pInfo.getInteger("llvm_instruction"));
+
   // The pipe writes a {address, tag} struct.
   auto reqStructStores = getPipeOpStructStores(pipeWrite);
   StoreInst *addressStore = reqStructStores[0];
@@ -128,7 +119,7 @@ void instr2PipeLsqStReq(Instruction *I, CallInst *pipeWrite, Value *stTagAddr,
 
   // Write address.
   Value *memInstAddr = dyn_cast<StoreInst>(I)->getPointerOperand();
-  if (isOnChipMem) {
+  if (*i2pInfo.getString("pipe_type") == "st_req_lsq_bram_t") {
     // For BRAM accesses, we only get the index value, not the full pointer.
     auto gepAddr = dyn_cast<GetElementPtrInst>(memInstAddr);
     memInstAddr = gepAddr->getOperand(gepAddr->getNumOperands() - 1);
@@ -146,28 +137,40 @@ void instr2PipeLsqStReq(Instruction *I, CallInst *pipeWrite, Value *stTagAddr,
   stTagStore->setOperand(0, stTagInc);
   auto storeForNewStTag = Builder.CreateStore(stTagInc, stTagAddr);
 
-  preserveStores.push_back(storeForNewStTag);
-  preserveStores.push_back(stTagStore);
-  preserveStores.push_back(addressStore);
+  created.push_back(storeForNewStTag);
+  created.push_back(stTagStore);
+  created.push_back(addressStore);
 }
 
 /// Given a load instruction, swap it for a pipe read.
-void instr2PipeLdVal(Instruction *I, CallInst *pipeRead) {
+void instr2pipeLdVal(json::Object &i2pInfo) {
+  auto pipeRead =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+  auto I =
+      reinterpret_cast<Instruction *>(*i2pInfo.getInteger("llvm_instruction"));
   pipeRead->moveBefore(I);
   Value *loadVal = dyn_cast<Value>(I);
   loadVal->replaceAllUsesWith(pipeRead);
 }
 
 /// Given a store instuction, swap it for a pipe write.
-void instr2PipeStVal(Instruction *I, CallInst *pipeWrite) {
+void instr2pipeStVal(json::Object &i2pInfo) {
+  auto pipeWrite =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+  auto I =
+      reinterpret_cast<Instruction *>(*i2pInfo.getInteger("llvm_instruction"));
   pipeWrite->moveAfter(I);
   // Instead of storing to memory, store into the pipe.
   I->setOperand(1, pipeWrite->getOperand(0));
 }
 
 /// Given a store instuction, swap it for a tagged value pipe write.
-void instr2PipeStValTagged(Instruction *I, CallInst *pipeWrite, Value *tagAddr, 
-                           SmallVector<Instruction *> &toKeep) {
+void instr2pipeStValTagged(json::Object &i2pInfo, Value *tagAddr, 
+                           SmallVector<Instruction *> &created) {
+  auto pipeWrite =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+  auto I =
+      reinterpret_cast<Instruction *>(*i2pInfo.getInteger("llvm_instruction"));
   // Stores into the tagged value struct.
   auto taggedValStructStores = getPipeOpStructStores(pipeWrite);
   StoreInst *valStore = taggedValStructStores[0];
@@ -184,28 +187,28 @@ void instr2PipeStValTagged(Instruction *I, CallInst *pipeWrite, Value *tagAddr,
   // Instead of storing value to memory, store into the valStore struct member.
   I->setOperand(1, valStore->getOperand(1));
 
-  toKeep.push_back(tagStoreToTag);
-  toKeep.push_back(tagStoreToPipe);
+  created.push_back(tagStoreToTag);
+  created.push_back(tagStoreToPipe);
 }
 
 /// Given {F}, insert an LSQ end_signal pipe call that carries the final {tag}
 /// value, if {F} was is address gen. kernel. Also, if {F} is the main kernel,
 /// add end_signal pipe writes to Mux kernels for each base address (if exist).
-void moveEndLsqSignalToReturnBB(Function &F, CallInst *pipeWrite) {
+void moveEndLsqSignalToReturnBB(json::Object &i2pInfo) {
+  auto pipeWrite =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
   // The end signal pipe should be at the end of the function exit BB.
   // After the -merge-return pass, there will be only one such BB.
-  for (auto &BB : F) {
-    for (auto &I : BB) {
-      if (isa<ReturnInst>(&I)) {
-        pipeWrite->moveBefore(&I);
-        return;
-      }
-    }
-  }
+  auto returnBB = getReturnBlock(*pipeWrite->getFunction());
+  pipeWrite->moveBefore(returnBB->getTerminator());
 }
 
-void instr2PipeSsaPe(Instruction *I, CallInst *pipeCall, json::Object &i2pInfo, 
-                     SmallVector<Instruction *> &toKeep) {
+void instr2pipeSsaPe(json::Object &i2pInfo, 
+                     SmallVector<Instruction *> &created) {
+  auto pipeCall =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+  auto I =
+      reinterpret_cast<Instruction *>(*i2pInfo.getInteger("llvm_instruction"));
   auto decoupledBB = getChildWithIndex<Function, BasicBlock>(
       I->getFunction(), *i2pInfo.getInteger("pe_basic_block_idx"));
 
@@ -216,13 +219,16 @@ void instr2PipeSsaPe(Instruction *I, CallInst *pipeCall, json::Object &i2pInfo,
     I->replaceAllUsesWith(pipeCall);
   } else {
     pipeCall->moveBefore(decoupledBB->getTerminator());
-    toKeep.push_back(storeValIntoPipe(I, pipeCall));
+    created.push_back(storeValIntoPipe(I, pipeCall));
   } 
 }
 
-void instr2PipeSsaMain(Instruction *I, CallInst *pipeCall,
-                       json::Object &i2pInfo,
-                       SmallVector<Instruction *> &toKeep) {
+void instr2pipeSsaMain(json::Object &i2pInfo,
+                       SmallVector<Instruction *> &created) {
+  auto pipeCall =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+  auto I =
+      reinterpret_cast<Instruction *>(*i2pInfo.getInteger("llvm_instruction"));
   auto decoupledBB = getChildWithIndex<Function, BasicBlock>(
       I->getFunction(), *i2pInfo.getInteger("pe_basic_block_idx"));
 
@@ -244,7 +250,7 @@ void instr2PipeSsaMain(Instruction *I, CallInst *pipeCall,
     Instruction *insertPtStart =
         isaLoad(I) && I->getParent() == decoupledBB ? I : &decoupledBB->front();
     pipeCall->moveAfter(insertPtStart);
-    toKeep.push_back(storeValIntoPipe(I, pipeCall));
+    created.push_back(storeValIntoPipe(I, pipeCall));
   }
 }
 
@@ -265,7 +271,9 @@ void deleteInstrsInPe(BasicBlock *BB, SmallVector<Instruction *> exceptions) {
 /// Given a {BB}, wrap it into a while (predPipe::read()) { BB } code structure.
 /// Remove the rest of the BBs in {F} - this is guaranteed to be save since all
 /// in/out def-use SSA values in {BB} have been replaced by pipe reads/writes.
-void createPredicatedPE(CallInst *predPipeRead, json::Object &i2pInfo) {
+void createPredicatedPE(json::Object &i2pInfo) {
+  auto predPipeRead =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
   auto F = predPipeRead->getFunction();
   auto decoupledBB = getChildWithIndex<Function, BasicBlock>(
       F, *i2pInfo.getInteger("basic_block_idx"));
@@ -312,8 +320,10 @@ void createPredicatedPE(CallInst *predPipeRead, json::Object &i2pInfo) {
     BB->removeFromParent();
 }
 
-void addPredicateWrites(CallInst *predPipeWrite, json::Object &i2pInfo,
-                        LoopInfo &LI, SmallVector<Instruction *> &toKeep) {
+void addPredicateWrites(json::Object &i2pInfo, LoopInfo &LI,
+                        SmallVector<Instruction *> &created) {
+  auto predPipeWrite =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
   auto decoupledBB = getChildWithIndex<Function, BasicBlock>(
       predPipeWrite->getFunction(), *i2pInfo.getInteger("basic_block_idx"));
   auto predType = Type::getInt8Ty(predPipeWrite->getContext());
@@ -328,8 +338,8 @@ void addPredicateWrites(CallInst *predPipeWrite, json::Object &i2pInfo,
   predPipeClone->insertBefore(&loopExitBB->front());
   auto stFalse = storeValIntoPipe(ConstantInt::get(predType, 0), predPipeClone);
 
-  toKeep.push_back(stTrue);
-  toKeep.push_back(stFalse);
+  created.push_back(stTrue);
+  created.push_back(stFalse);
 }
 
 /// Create an int32 val using alloca at the beginning of {F} and initialize it 
@@ -344,66 +354,89 @@ Value *createTag(Function &F, uint initVal = 0) {
   return tagAddr;
 }
 
-void hoistPipesPE(MapVector<Instruction *, HoistPipeDirective> &pipesToHoist,
-                  LoopInfo &LI) {
-  for (auto mapVal : pipesToHoist) {
-    auto pipeRead = mapVal.second.read;
-    auto pipeWrite = mapVal.second.write;
-    auto pipeWriteStore = pipeWrite->getPrevNode();
-    auto pipeWriteStoreOperand = pipeWriteStore->getOperand(0);
-    auto decoupledBB = pipeWrite->getParent();
+void hoistPipesPE(json::Array &directives) {
+  for (const json::Value &i2pInfoVal : directives) {
+    auto i2pInfo = *i2pInfoVal.getAsObject();
+
+    auto pipeCall =
+        reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+    auto F = pipeCall->getFunction();
+    auto decoupledBB = pipeCall->getParent();
     auto loopHeader = decoupledBB->getPrevNode();
-    auto F = decoupledBB->getParent();
+    
+    if (*i2pInfo.getString("read/write") == "read") {
+      pipeCall->moveBefore(F->getEntryBlock().getTerminator());
+    } else {
+      auto recStartPipeRead = reinterpret_cast<Instruction *>(
+          *i2pInfo.getInteger("llvm_recurrence_start_pipe_read"));
 
-    pipeRead->moveBefore(F->getEntryBlock().getTerminator());
-    auto recPhi = PHINode::Create(pipeRead->getType(), 2, "hoistedRecurrence",
-                                  &loopHeader->front());
-    recPhi->addIncoming(pipeRead, pipeRead->getParent());
-    recPhi->addIncoming(pipeWriteStoreOperand, decoupledBB);
-    pipeRead->replaceUsesOutsideBlock(recPhi, loopHeader);
+      auto storeIntoPipe = pipeCall->getPrevNode();
+      auto storedValue = storeIntoPipe->getOperand(0);
+      pipeCall->moveBefore(&getReturnBlock(*F)->front());
+      storeIntoPipe->moveBefore(pipeCall);
 
-    pipeWrite->moveBefore(&getReturnBlock(*F)->front());
-    pipeWriteStore->moveBefore(pipeWrite);
-    pipeWriteStore->setOperand(0, recPhi);
+      // If the {storedValue} is used by a phi recurrence start, then we need to
+      // recreate the recurrence start phi in the PE.
+      if (*i2pInfo.getBoolean("used_by_recurrence_start")) {
+        auto recPhi =
+            PHINode::Create(storedValue->getType(), 2, "hoistedRecurrence",
+                            &loopHeader->front());
+        recPhi->addIncoming(recStartPipeRead, &F->getEntryBlock());
+        recPhi->addIncoming(storedValue, decoupledBB);
+        storeIntoPipe->setOperand(0, recPhi);
+
+        recStartPipeRead->replaceUsesOutsideBlock(recPhi, loopHeader);
+      }
+    }
   }
 }
 
-void hoistPipesMain(MapVector<Instruction *, HoistPipeDirective> &pipesToHoist,
-                    LoopInfo &LI) {
-  for (auto mapVal : pipesToHoist) {
-    auto recStartI = mapVal.first;
-    auto pipeRead = mapVal.second.read;
-    auto pipeWrite = mapVal.second.write;
-    auto L = mapVal.second.loop;
-    auto initVal = mapVal.second.initVal;
+void hoistPipesMain(json::Array &directives, LoopInfo &LI) {
+ for (const json::Value &i2pInfoVal : directives) {
+    auto i2pInfo = *i2pInfoVal.getAsObject();
 
-    // Supply initital value to the PE before entering loop. Need to delete the
-    // previously created store into the pipe from the decoupledBB.
-    auto decoupledBB = pipeWrite->getParent();
-    Instruction *toDeleteStore;
-    for (auto &I : *decoupledBB) {
-      if (auto stI = dyn_cast<StoreInst>(&I)) {
-        if (stI->getOperand(1) == pipeWrite->getOperand(0))
-          toDeleteStore = stI;
-      }
-    }
-    pipeWrite->moveBefore(L->getLoopPreheader()->getTerminator());
-    storeValIntoPipe(initVal, pipeWrite);
-    deleteInstruction(toDeleteStore);
+    auto isPipeRead = (*i2pInfo.getString("read/write") == "read");
+    auto pipeCall =
+        reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+    auto recStart = reinterpret_cast<PHINode *>(
+        *i2pInfo.getInteger("llvm_recurrence_start"));
+    auto decoupledBB = pipeCall->getParent();
+    auto L = LI.getLoopFor(decoupledBB);
+    auto loopHeader = L->getHeader();
+    auto loopPreHeader = L->getLoopPreheader();
     
-    pipeRead->moveBefore(L->getExitBlock()->getTerminator());
-    recStartI->replaceAllUsesWith(pipeRead);
-    if (auto recEnd = dyn_cast<Instruction>(recStartI->DoPHITranslation(
-            recStartI->getParent(), L->getLoopLatch()))) {
-      deleteInstruction(recEnd);
+    if (!isPipeRead) {
+      // Supply initital value to the PE before entering loop. 
+      auto initVal = recStart->DoPHITranslation(loopHeader, loopPreHeader);
+
+      // Delete the previously created store into the pipe from the decoupledBB.
+      Instruction *toDeleteStore;
+      for (auto &I : *decoupledBB) {
+        if (auto stI = dyn_cast<StoreInst>(&I)) {
+          if (stI->getOperand(1) == pipeCall->getOperand(0))
+            toDeleteStore = stI;
+        }
+      }
+
+      pipeCall->moveBefore(loopPreHeader->getTerminator());
+      storeValIntoPipe(initVal, pipeCall);
+      deleteInstruction(toDeleteStore);
+    } else {
+      pipeCall->moveBefore(L->getExitBlock()->getTerminator());
+      recStart->replaceAllUsesWith(pipeCall);
+      if (auto recEnd = dyn_cast<Instruction>(
+              recStart->DoPHITranslation(loopHeader, L->getLoopLatch()))) {
+        deleteInstruction(recEnd);
+      }
+      deleteInstruction(recStart);
     }
-    deleteInstruction(recStartI);
   }
 }
 
 /// Return instructions in loop L which use instruction I, including I itself.
-SmallVector<Instruction *> getLoopUsesOfI(Instruction *I, Loop *L) {
-  SmallVector<Instruction *> stack {I};
+SmallVector<Instruction *> getLoopInstructionsDependingOnI(Instruction *I,
+                                                           Loop *L) {
+  SmallVector<Instruction *> stack{I};
   SmallVector<Instruction *> done;
   while (stack.size() > 0) {
     auto curr = stack.pop_back_val();
@@ -434,61 +467,94 @@ SmallVector<Instruction *> getLoopUsesOfI(Instruction *I, Loop *L) {
   return done;
 }
 
-MapVector<Instruction *, HoistPipeDirective>
-getPipesToHoist(Function &F, LoopInfo &LI, json::Array &directives) {
-  MapVector<Instruction *, HoistPipeDirective> resMap;
-
+json::Array getPipesToHoist(const json::Array &allDirectives, LoopInfo &LI) {
   json::Array hoistDirectives;
-  for (json::Value &i2pInfoVal : directives) {
+
+  // First collect llvm values. For each isntruction, get recurrence start.
+  SmallVector<Instruction *> instructions;
+  SmallVector<CallInst *> pipeCalls;
+  SmallVector<BasicBlock *> decoupledBBs;
+  SmallVector<const json::Object *> initialHoistDirectives;
+  MapVector<Instruction *, CallInst *> recStart2pipeRead;
+  for (const json::Value &i2pInfoVal : allDirectives) {
     auto i2pInfo = *i2pInfoVal.getAsObject();
-    auto directiveType = i2pInfo.getString("directive_type");
-    // Only pipes for ssa directives can be hoisted out of a loop.
-    if (directiveType != "ssa")
+    if (i2pInfo.getString("directive_type") != "ssa") 
       continue;
-    
-    auto pipeCall =
-        reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+
     auto I = reinterpret_cast<Instruction *>(
         *i2pInfo.getInteger("llvm_instruction"));
+    auto pipeCall =
+        reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
     auto decoupledBB = getChildWithIndex<Function, BasicBlock>(
-        &F, *i2pInfo.getInteger("pe_basic_block_idx"));
+        I->getFunction(), *i2pInfo.getInteger("pe_basic_block_idx"));
+    auto isPipeRead = (*i2pInfo.getString("read/write") == "read");
+
+    instructions.push_back(I);
+    pipeCalls.push_back(pipeCall);
+    decoupledBBs.push_back(decoupledBB);
+    initialHoistDirectives.push_back(i2pInfoVal.getAsObject());
+    
+    if (LI.isLoopHeader(I->getParent()) && isa<PHINode>(I) && isPipeRead)
+      recStart2pipeRead[I] = pipeCall;
+  }
+
+  // For each pipe call, check if can be hoisted out of its loop.
+  for (size_t iP = 0; iP < pipeCalls.size(); ++iP) {
+    auto I = instructions[iP];
+    auto decoupledBB = decoupledBBs[iP];
     auto L = LI.getLoopFor(decoupledBB);
 
-    // To be hoisted out, I must be an instructions in the loop sequence L:
-    // [loop header: phi0] --> [decoupledBB: useI] --> [loop latch: phi1] --
-    //          ^----------------------------------------------------------|
-    // - if phi0 is used in L, then it should be only in decupledBB in the PE. 
-    //   It can't be a store op in decupledBB, but can be used in other loops.
-    // - phi1 will only be used by a phi in the header by definition, so ignore.
-    auto allowedBlocks = {L->getHeader(), decoupledBB, L->getLoopLatch()};
-    auto loopUsesOfI = getLoopUsesOfI(I, L);
     bool canBeHoisted = true;
-    Instruction *recStart;
-    for (auto useOfI : loopUsesOfI) {
-      auto useBB = useOfI->getParent();
-      if (!llvm::is_contained(allowedBlocks, useBB) ||
-          !(isaStore(useOfI) && useBB == decoupledBB)) {
+    PHINode *recStart = nullptr;
+    auto loopUsesOfI = getLoopInstructionsDependingOnI(I, L);
+    auto allowedBlocks = {L->getHeader(), decoupledBB, L->getLoopLatch()};
+    for (auto instrUseInL : loopUsesOfI) {
+      // A pipe call cannot be hosited if:
+      // 1: If I is used in the L loop in other blocks then {allowedBlocks}.
+      // 2: I is a load in the loop L.
+      // 3: I is a store operand for an instruction in the loop L.
+      if (!llvm::is_contained(allowedBlocks, instrUseInL->getParent()) ||
+          (isaLoad(I) && L->contains(I)) ||
+          (isaStore(instrUseInL) && L->contains( instrUseInL))) {
         canBeHoisted = false;
+        break;
       }
-
-      if (useOfI->getParent() == L->getHeader())
-        recStart = useOfI;
+      
+      // Record the instructions for the start of the recurrence. 
+      if (instrUseInL->getParent() == L->getHeader())
+        if (auto phiI = dyn_cast<PHINode>(instrUseInL))
+          recStart = phiI;
     }
 
     if (canBeHoisted) {
-      resMap[recStart].loop = L;
-      // The value incoming into the start of the loop recurrence.
-      resMap[recStart].initVal =
-          recStart->DoPHITranslation(L->getHeader(), L->getLoopPreheader());
+      assert(recStart && "Did not find recurrence start, cannot hoist.");
 
-      if (*i2pInfo.getString("read/write") == "read") 
-        resMap[recStart].read = pipeCall;
-      else 
-        resMap[recStart].write = pipeCall;
+      // Check if I is used by the recurrence_start phi, i.e. is there a path: 
+      // recStart_phiNode -> I -> loopLatch_phiNode -> recStart_phiNode
+      bool isUsedByRecurrenceStart = false;
+      for (auto instrUseInL : loopUsesOfI) {
+        if (auto latchPhiUsingI = dyn_cast<PHINode>(instrUseInL)) {
+          if (latchPhiUsingI->getParent() == L->getLoopLatch()) {
+            for (auto &recPhiInVal : recStart->incoming_values()) {
+              if (latchPhiUsingI == recPhiInVal.get()) {
+                isUsedByRecurrenceStart = true;
+              }
+            }
+          }
+        }
+      }
+
+      // Add info needed for the hosting transformation.
+      auto i2pInfo = *initialHoistDirectives[iP];
+      i2pInfo["llvm_recurrence_start"] = reinterpret_cast<intptr_t>(recStart);
+      i2pInfo["llvm_recurrence_start_pipe_read"] =
+          reinterpret_cast<intptr_t>(recStart2pipeRead[recStart]);
+      i2pInfo["used_by_recurrence_start"] = isUsedByRecurrenceStart;
+      hoistDirectives.push_back(std::move(i2pInfo));
     }
   }
 
-  return resMap;
+  return hoistDirectives;
 }
 
 SmallVector<Instruction *>
@@ -526,17 +592,6 @@ json::Array getDirectives(Function &F, const json::Object &report) {
           reinterpret_cast<std::intptr_t>(getInstruction(F, *optI));
     }
 
-    // If a PE directive specifies that a given pipe call needs to be hoisted
-    // out of the loop, then we need the start and end recurrence instructions.
-    if (auto optI = i2pInfo.getObject("recurrence_start_instruction")) {
-      i2pInfo["llvm_recurrence_start_instruction"] =
-          reinterpret_cast<std::intptr_t>(getInstruction(F, *optI));
-    }
-    if (auto optI = i2pInfo.getObject("recurrence_end_instruction")) {
-      i2pInfo["llvm_recurrence_end_instruction"] =
-          reinterpret_cast<std::intptr_t>(getInstruction(F, *optI));
-    }
-
     directives.push_back(std::move(i2pInfo));
   }
 
@@ -569,8 +624,7 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
     // Instruction-2-pipe transformation directives for this function. 
     json::Array directives = getDirectives(F, report);
     // A mapping between recurrence start instructions and pipes to hoist out.
-    MapVector<Instruction *, HoistPipeDirective> pipesToHoist =
-        getPipesToHoist(F, LI, directives);
+    json::Array hoistDirectives = getPipesToHoist(directives, LI);
     // Instructions decoupled out of the main kernel into a predicated PE.
     SmallVector<Instruction *> decoupledI = getInstructionsToDecouple(F, report);
     // Tags for ordering of LSQ reqeusts and values. Not necessarily used.
@@ -585,49 +639,39 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
     for (json::Value &i2pInfoVal : directives) {
       auto i2pInfo = *i2pInfoVal.getAsObject();
       auto directiveType = i2pInfo.getString("directive_type");
-      auto pipeCall =
-          reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
-      auto optI = i2pInfo.getInteger("llvm_instruction");
-      auto I = optI ? reinterpret_cast<Instruction *>(*optI) : nullptr;
 
       // LSQ related: 
-      if (directiveType == "ld_val") {
-        instr2PipeLdVal(I, pipeCall);
-      } else if (directiveType == "st_val") {
-        instr2PipeStVal(I, pipeCall);
-      } else if (directiveType == "st_val_tagged") {
-        instr2PipeStValTagged(I, pipeCall, lsqStValTag, toKeep);
-      } else if (directiveType == "ld_req") {
-        bool lddTagNeeded = (*i2pInfo.getInteger("max_seq_in_bb") > 1);
-        bool onChip = (*i2pInfo.getString("pipe_type") == "ld_req_lsq_bram_t");
-        instr2PipeLsqLdReq(I, pipeCall, lsqStReqTag, lsqLdReqTag, onChip,
-                           lddTagNeeded, toKeep);
-      } else if (directiveType == "st_req") {
-        bool onChip = (*i2pInfo.getString("pipe_type") == "st_req_lsq_bram_t");
-        instr2PipeLsqStReq(I, pipeCall, lsqStReqTag, onChip, toKeep);
-      } else if (directiveType == "end_lsq_signal") {
-        moveEndLsqSignalToReturnBB(F, pipeCall);
-      }
+      if (directiveType == "ld_val")
+        instr2pipeLdVal(i2pInfo);
+      else if (directiveType == "st_val")
+        instr2pipeStVal(i2pInfo);
+      else if (directiveType == "st_val_tagged")
+        instr2pipeStValTagged(i2pInfo, lsqStValTag, toKeep);
+      else if (directiveType == "ld_req")
+        instr2pipeLsqLdReq(i2pInfo, lsqStReqTag, lsqLdReqTag, toKeep);
+      else if (directiveType == "st_req")
+        instr2pipeLsqStReq(i2pInfo, lsqStReqTag, toKeep);
+      else if (directiveType == "end_lsq_signal")
+        moveEndLsqSignalToReturnBB(i2pInfo);
       // Predicated PE related:
-      else if (directiveType == "ssa" && isPE) {
-        instr2PipeSsaPe(I, pipeCall, i2pInfo, toKeep);
-      } else if (directiveType == "ssa" && isMain) {
-        instr2PipeSsaMain(I, pipeCall, i2pInfo, toKeep);
-      } else if (directiveType == "pred" && isPE) {
-        createPredicatedPE(pipeCall, i2pInfo);
-      } else if (directiveType == "pred" && isMain) {
-        addPredicateWrites(pipeCall, i2pInfo, LI, toKeep);
-      } 
+      else if (directiveType == "ssa" && isPE) 
+        instr2pipeSsaPe(i2pInfo, toKeep);
+      else if (directiveType == "ssa" && isMain) 
+        instr2pipeSsaMain(i2pInfo, toKeep);
+      else if (directiveType == "pred" && isPE) 
+        createPredicatedPE(i2pInfo);
+      else if (directiveType == "pred" && isMain)
+        addPredicateWrites(i2pInfo, LI, toKeep);
     }
 
     // So far, the transformation is local to the decoupled basic block and
-    // doesn’t require updating SSA values in other blocks. This can change
-    // after hoisting redundant pipe operations out of the loop body.
-    if (isPE)
-      hoistPipesPE(pipesToHoist, LI);
+    // doesn’t require updating SSA values in other basic blocks. The hoisting
+    // transformation can move some pipes to the loop preheader or exit blocks.
+    if (isPE) 
+      hoistPipesPE(hoistDirectives);
     else if (isMain)
-      hoistPipesMain(pipesToHoist, LI);
-
+      hoistPipesMain(hoistDirectives, LI);
+    
     // The AGU and PE kernels have most instructions deleted. We keep track of
     // stores writing to pipes which should not be deleted. Other stores get
     // deleted and then DCE is ran to delete the rest of instructions.

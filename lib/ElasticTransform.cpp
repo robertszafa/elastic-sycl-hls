@@ -64,7 +64,7 @@ void instr2pipeLsqLdReq(json::Object &i2pInfo, Value *stTagAddr,
   Value *memInstAddr = dyn_cast<LoadInst>(I)->getPointerOperand();
 
   // Write address.
-  if (*i2pInfo.getString("pipe_type") == "ld_req_lsq_bram_t") {
+  if (i2pInfo.getString("pipe_type") == "ld_req_lsq_bram_t") {
     // For BRAM accesses, we only get the index value, not the full pointer.
     auto gepAddr = dyn_cast<GetElementPtrInst>(memInstAddr);
     memInstAddr = gepAddr->getOperand(gepAddr->getNumOperands() - 1);
@@ -119,7 +119,7 @@ void instr2pipeLsqStReq(json::Object &i2pInfo, Value *stTagAddr,
 
   // Write address.
   Value *memInstAddr = dyn_cast<StoreInst>(I)->getPointerOperand();
-  if (*i2pInfo.getString("pipe_type") == "st_req_lsq_bram_t") {
+  if (i2pInfo.getString("pipe_type") == "st_req_lsq_bram_t") {
     // For BRAM accesses, we only get the index value, not the full pointer.
     auto gepAddr = dyn_cast<GetElementPtrInst>(memInstAddr);
     memInstAddr = gepAddr->getOperand(gepAddr->getNumOperands() - 1);
@@ -214,7 +214,7 @@ void instr2pipeSsaPe(json::Object &i2pInfo,
 
   // In PE reads happen at start of the decoupled BB and writes at the end.
   // Hoisted out reads happend in function entry. Hoisted writes in exit.
-  if (*i2pInfo.getString("read/write") == "read") {
+  if (i2pInfo.getString("read/write") == "read") {
     pipeCall->moveBefore(&decoupledBB->front());
     I->replaceAllUsesWith(pipeCall);
   } else {
@@ -232,7 +232,7 @@ void instr2pipeSsaMain(json::Object &i2pInfo,
   auto decoupledBB = getChildWithIndex<Function, BasicBlock>(
       I->getFunction(), *i2pInfo.getInteger("pe_basic_block_idx"));
 
-  if (*i2pInfo.getString("read/write") == "read") {
+  if (i2pInfo.getString("read/write") == "read") {
     // Insert at the end of the BB or before a store that uses I.
     Instruction *insertPtEnd = decoupledBB->getTerminator();
     for (auto userOfI : I->users()) {
@@ -344,13 +344,15 @@ void addPredicateWrites(json::Object &i2pInfo, LoopInfo &LI,
 
 /// Create an int32 val using alloca at the beginning of {F} and initialize it 
 /// with {initVal}. Return its address.
-Value *createTag(Function &F, uint initVal = 0) {
+Value *createTag(Function &F, SmallVector<Instruction *> &created) {
   IRBuilder<> Builder(F.getEntryBlock().getTerminator());
   // LLVM doesn't make a distinction between signed and unsigned. And the only
   // op done on tags is 2's complement addition, so the bit pattern is the same.
   auto tagType = Type::getInt32Ty(F.getContext());
   Value *tagAddr = Builder.CreateAlloca(tagType);
-  Builder.CreateStore(ConstantInt::get(tagType, initVal), tagAddr);
+  auto initStore = Builder.CreateStore(ConstantInt::get(tagType, 0), tagAddr);
+  created.push_back(dyn_cast<Instruction>(tagAddr));
+  created.push_back(initStore);
   return tagAddr;
 }
 
@@ -364,7 +366,7 @@ void hoistPipesPE(json::Array &directives) {
     auto decoupledBB = pipeCall->getParent();
     auto loopHeader = decoupledBB->getPrevNode();
     
-    if (*i2pInfo.getString("read/write") == "read") {
+    if (i2pInfo.getString("read/write") == "read") {
       pipeCall->moveBefore(F->getEntryBlock().getTerminator());
     } else {
       auto recStartPipeRead = reinterpret_cast<Instruction *>(
@@ -395,7 +397,7 @@ void hoistPipesMain(json::Array &directives, LoopInfo &LI) {
  for (const json::Value &i2pInfoVal : directives) {
     auto i2pInfo = *i2pInfoVal.getAsObject();
 
-    auto isPipeRead = (*i2pInfo.getString("read/write") == "read");
+    auto isPipeRead = (i2pInfo.getString("read/write") == "read");
     auto pipeCall =
         reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
     auto recStart = reinterpret_cast<PHINode *>(
@@ -487,7 +489,7 @@ json::Array getPipesToHoist(const json::Array &allDirectives, LoopInfo &LI) {
         reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
     auto decoupledBB = getChildWithIndex<Function, BasicBlock>(
         I->getFunction(), *i2pInfo.getInteger("pe_basic_block_idx"));
-    auto isPipeRead = (*i2pInfo.getString("read/write") == "read");
+    auto isPipeRead = (i2pInfo.getString("read/write") == "read");
 
     instructions.push_back(I);
     pipeCalls.push_back(pipeCall);
@@ -627,13 +629,13 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
     json::Array hoistDirectives = getPipesToHoist(directives, LI);
     // Instructions decoupled out of the main kernel into a predicated PE.
     SmallVector<Instruction *> decoupledI = getInstructionsToDecouple(F, report);
-    // Tags for ordering of LSQ reqeusts and values. Not necessarily used.
-    auto lsqStValTag = createTag(F);
-    auto lsqStReqTag = createTag(F);
-    auto lsqLdReqTag = createTag(F);
-
     // Record instructions during transformation, which shouldn't be deleted.
     SmallVector<Instruction *> toKeep;
+
+    // Tags for ordering of LSQ reqeusts and values. Not necessarily used.
+    auto lsqStValTag = createTag(F, toKeep);
+    auto lsqStReqTag = createTag(F, toKeep);
+    auto lsqLdReqTag = createTag(F, toKeep);
 
     // Process all instruction-to-pipe directives for this function.
     for (json::Value &i2pInfoVal : directives) {

@@ -1,5 +1,8 @@
 # $1 - bc/ll filename
 
+# Generate PDFs with the CFG and DDG for the supplied LLVM IR.
+
+
 SRC_FILE="$1"
 CANONICALIZED_SRC_FILE="$1".format.cpp
 SRC_FILE_BASENAME=`basename "$SRC_FILE"`

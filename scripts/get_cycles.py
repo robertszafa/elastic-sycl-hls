@@ -1,5 +1,10 @@
 #!/usr/bin/python3
 
+
+"""
+Run a simulation and report cycle counts for each kernel.
+"""
+
 import sys
 import re
 
@@ -29,7 +34,7 @@ def get_cycles(sim_project, kernel=None):
                     cycles = int((end_cycle - start_cycle) / PERIOD)
                     kernel_name = last_line.split('"')[1]
                     if 'start' not in kernel_name:
-                        print(f'{kernel_name} {cycles}')
+                        print(f'{cycles} -- {kernel_name}')
                     max_cycles = max(cycles, max_cycles)
                     min_cycles = min(cycles, min_cycles)
 
@@ -48,8 +53,9 @@ if __name__ == '__main__':
     sim_project = sys.argv[1]
     kernel = sys.argv[2] if len(sys.argv) > 2 else None
 
+    print('Cycles')
     min_cycles, max_cycles = get_cycles(sim_project, kernel)
     
-    print('------')
-    print(f'{min_cycles} - {max_cycles}')
-    print('------')
+    # print('------')
+    # print(f'{min_cycles} - {max_cycles}')
+    # print('------')

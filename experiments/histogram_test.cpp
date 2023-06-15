@@ -17,21 +17,46 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-double example_kernel(queue &q, const std::vector<int> &h_idx, std::vector<float> &h_hist) {
+constexpr int N = 1000;
+
+double filter_sum_kernel(queue &q, const std::vector<int> &h_idx, std::vector<int> &h_hist) {
   const int array_size = h_idx.size();
 
   int *idx = fpga_tools::toDevice(h_idx, q);
-  float *hist = fpga_tools::toDevice(h_hist, q);
+  int *hist_dram = fpga_tools::toDevice(h_hist, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    
+    [[intel::singlepump]] 
+    [[intel::max_replicates(1)]] 
+    [[intel::numbanks(1)]] 
+    int hist[N];
+
+    float A[N];
+
+    float s = 0.0f;
+
+    [[intel::ivdep]]
+    for (int i = 0; i < N; ++i) {
+      auto idx_scalar = idx[i];
+      auto x = hist[idx_scalar];
+      hist[idx_scalar] = x + 1;
+
+      if (idx_scalar == 0) {
+        s += (s * s + 0.7f);
+        A[i] = s + A[i]*2.0f;
+      }
+    }
+
+    // #pragma unroll
+    // for (int i = 0; i < N; ++i) 
+    //   hist_dram[i] = hist[i];
   });
 
   event.wait();
-  q.copy(hist, h_hist.data(), h_hist.size()).wait();
+  q.copy(hist_dram, h_hist.data(), h_hist.size()).wait();
 
   sycl::free(idx, q);
-  sycl::free(hist, q);
+  sycl::free(hist_dram, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -40,50 +65,30 @@ double example_kernel(queue &q, const std::vector<int> &h_idx, std::vector<float
   return time_in_ms;
 }
 
-void example_cpu(const int *idx, float *hist, const int N) {
+void histogram_cpu(const int *idx, int *hist, const int N) {
   for (int i = 0; i < N; ++i) {
     auto idx_scalar = idx[i];
     auto x = hist[idx_scalar];
-    hist[idx_scalar] = x + 10.0;
+    hist[idx_scalar] = x + 1;
   }
 }
 
-enum data_distribution { ALL_WAIT, NO_WAIT, PERCENTAGE_WAIT };
-void init_data(std::vector<int> &feature, std::vector<float> &hist,
-               const data_distribution distr, const int percentage) {
+
+void init_data(std::vector<int> &feature, std::vector<int> &hist,
+                const int percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 100);
   auto dice = std::bind (distribution, generator);
 
   int counter=0;
   for (int i = 0; i < feature.size(); i++) {
-    if (percentage == 100) {
-      feature[i] = (feature.size() >= 4) ? i % 4 : 0;
-    }
-    else if (percentage == 0) {
-      feature[i] = i;
-    }
-    else {
-      feature[i] = (dice() <= percentage) ? feature[std::max(i-1, 0)] : i;
-    }
+    feature[i] = (dice() < percentage) ? 1 : i;
 
-    hist[i] = 0.0;
+    hist[i] = 0;
   }
 }
 
-// Create an exception handler for asynchronous SYCL exceptions
-static auto exception_handler = [](sycl::exception_list e_list) {
-  for (std::exception_ptr const &e : e_list) {
-    try {
-      std::rethrow_exception(e);
-    } catch (std::exception const &e) {
-#if _DEBUG
-      std::cout << "Failure" << std::endl;
-#endif
-      std::terminate();
-    }
-  }
-};
+
 
 int main(int argc, char *argv[]) {
   // Get A_SIZE and forward/no-forward from args.
@@ -127,31 +132,21 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: " << q.get_device().get_info<info::device::name>() << "\n";
 
     std::vector<int> feature(ARRAY_SIZE);
-    std::vector<float> hist(ARRAY_SIZE);
-    std::vector<float> hist_cpu(ARRAY_SIZE);
+    std::vector<int> hist(ARRAY_SIZE);
+    std::vector<int> hist_cpu(ARRAY_SIZE);
 
-    init_data(feature, hist, DATA_DISTR, PERCENTAGE);
+    init_data(feature, hist,  PERCENTAGE);
     std::copy(hist.begin(), hist.end(), hist_cpu.begin());
 
-    auto start = std::chrono::steady_clock::now();
-    double kernel_time = 0;
+    
+    
 
-    kernel_time = example_kernel(q, feature, hist);
+    auto kernel_time = filter_sum_kernel(q, feature, hist);
 
-    // Wait for all work to finish.
-    q.wait();
 
-    example_cpu(feature.data(), hist_cpu.data(), hist_cpu.size());
+    histogram_cpu(feature.data(), hist_cpu.data(), hist_cpu.size());
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
-
-    if (std::equal(hist.begin(), hist.end(), hist_cpu.begin())) {
-      std::cout << "Passed\n";
-    } else {
-      std::cout << "Failed\n";
-      std::cout << "sum(fpga) = " << std::accumulate(hist.begin(), hist.end(), 0.0) << "\n";
-      std::cout << "sum(cpu) = " << std::accumulate(hist_cpu.begin(), hist_cpu.end(), 0.0) << "\n";
-    }
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();
@@ -159,4 +154,5 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+
 

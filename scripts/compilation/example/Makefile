@@ -8,7 +8,8 @@ I += -I${ELASTIC_SYCL_HLS_DIR}/lsq
 
 CXX := icpx
 CXXFLAGS += -fsycl -std=c++17 -O2 $(I)
-CXXFLAGS += -qactypes
+CXXFLAGS += -qactypes # ac_int.h header (algorithmic C datatypes).
+CXXFLAGS += -fp-model=precise # use IEEE floating point exactly (easier testing)
 CXXFLAGS += -v --verbose
 
 FPGA_TARGET := -Xsboard=intel_a10gx_pac:pac_a10
@@ -18,7 +19,7 @@ SIMULATION_FLAGS := -DFPGA_SIM -Xssimulation $(FPGA_TARGET)
 # SIMULATION_FLAGS += -Xsghdl
 # SIMULATION_FLAGS += -reuse-exe=$(BIN).fpga_sim
 
-.PHONY: host fpga_emu fpga_hw
+.PHONY: host fpga_emu fpga_sim fpga_hw
 
 all: host
 host: $(BIN)

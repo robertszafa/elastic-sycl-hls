@@ -1,5 +1,11 @@
 #!/bin/bash
 
+###
+# Since SYCL 2023, a binary compiled for the simulator needs to be run from the
+# directory where the binary resides. Otherwise, there an exception is thrown.
+# https://github.com/oneapi-src/oneAPI-samples/issues/1515
+###
+
 DIR=`dirname "$1"`
 BIN=`basename "$1"`
 

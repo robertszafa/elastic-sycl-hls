@@ -2,6 +2,7 @@
 
 # Generate PDFs with the CFG and DDG for the supplied LLVM IR.
 
+LLVM_BIN_DIR=$ELASTIC_SYCL_HLS_DIR/llvm/build/bin
 
 SRC_FILE="$1"
 CANONICALIZED_SRC_FILE="$1".format.cpp
@@ -12,7 +13,7 @@ SRC_FILE_DIR=`dirname "$SRC_FILE"`
 ###
 ### STAGE 0: Get LLVM bitcode.
 ###
-$LT_LLVM_INSTALL_DIR/build/bin/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}" \
+$LLVM_BIN_DIR/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}" \
                                             $SRC_FILE > $CANONICALIZED_SRC_FILE
 ./scripts/compilation/compile_to_bc.sh emu $CANONICALIZED_SRC_FILE
 ./scripts/compilation/prepare_ir.sh $CANONICALIZED_SRC_FILE.bc
@@ -20,13 +21,13 @@ $LT_LLVM_INSTALL_DIR/build/bin/clang-format --style="{ColumnLimit: 2000, MaxEmpt
 BC_FILE=$CANONICALIZED_SRC_FILE.bc
 
 # Standard DDG
-$LT_LLVM_INSTALL_DIR/build/bin/opt -passes=dot-ddg $BC_FILE -o /dev/null > /dev/null 2>&1 
+$LLVM_BIN_DIR/opt -passes=dot-ddg $BC_FILE -o /dev/null > /dev/null 2>&1 
 dot -Tpdf *.dot -o $SRC_FILE_DIR/DDG.pdf > /dev/null 2>&1 
 echo $SRC_FILE_DIR/DDG.pdf
 rm *.dot 
 
 # DDG of only Strongly Connected Componennts
-$LT_LLVM_INSTALL_DIR/build/bin/opt -load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libDDGDotPrinter.so \
+$LLVM_BIN_DIR/opt -load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libDDGDotPrinter.so \
                                    -passes=dot-ddg-sccs $BC_FILE > /dev/null 2>&1 
 
 for fname in /tmp/DDG_function*.dot; do
@@ -45,7 +46,7 @@ done
 
 
 # Multiple standard CFGs
-$LT_LLVM_INSTALL_DIR/build/bin/opt -dot-cfg $BC_FILE > /dev/null 2>&1 
+$LLVM_BIN_DIR/opt -dot-cfg $BC_FILE > /dev/null 2>&1 
 mv .*.dot $SRC_FILE_DIR
 i=0
 for fname in $SRC_FILE_DIR/.*.dot; do

@@ -3,12 +3,11 @@ project(elastic-sycl-hls)
 
 #===============================================================================
 # 1. VERIFY LLVM INSTALLATION DIR
-# This is just a bit of a sanity checking.
 #===============================================================================
-set(LT_LLVM_INSTALL_DIR "$ENV{HOME}/git/llvm/build/")
+set(LT_LLVM_INSTALL_DIR "$ENV{ELASTIC_SYCL_HLS_DIR}/llvm/build/")
+set(LT_LLVM_INCLUDE_DIR "$ENV{ELASTIC_SYCL_HLS_DIR}/llvm/build/include/llvm")
 
 # 1.1 Check the "include| directory
-set(LT_LLVM_INCLUDE_DIR "${LT_LLVM_INSTALL_DIR}/include/llvm")
 if(NOT EXISTS "${LT_LLVM_INCLUDE_DIR}")
 message(FATAL_ERROR
   " LT_LLVM_INSTALL_DIR (${LT_LLVM_INCLUDE_DIR}) is invalid.")
@@ -62,10 +61,6 @@ message("LLVM STATUS:
   Libraries   ${LLVM_LIBRARY_DIRS}
   Targets     ${LLVM_TARGETS_TO_BUILD}"
 )
-
-set(NOELLE_INCLUDE_DIRS "$ENV{HOME}/git/noelle/install/include")
-set(NOELLE_LIBRARY_DIRS "$ENV{HOME}/git/noelle/install/lib")
-
 
 # Set the LLVM header and library paths
 include_directories(

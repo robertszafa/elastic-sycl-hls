@@ -62,7 +62,7 @@ void histogram_if_cpu(const int *idx, const int *weight, float *hist, const int 
 void init_data(std::vector<int> &feature, std::vector<int> &weight, std::vector<float> &hist,
                 const int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind (distribution, generator);
 
   int counter=0;

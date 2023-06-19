@@ -72,7 +72,7 @@ void gsum_cpu(const std::vector<double> &A, const std::vector<double> &B,
 void init_data(std::vector<double> &A, std::vector<double> &B,
                 int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind(distribution, generator);
 
   for (int i = 0; i < A.size(); ++i) {

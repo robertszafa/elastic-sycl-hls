@@ -63,7 +63,7 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
 void init_data(std::vector<int> &edges, std::vector<int> &vertices, 
                const int num_edges, const uint percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind (distribution, generator);
 
   edges[0] = 0;

@@ -21,12 +21,15 @@ constexpr int kN = 1000;
 
 double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
                                std::vector<int> &h_vertices, int *h_out,
+                               std::vector<int> &h_is_true,
                                const int N) {
   const int *edges = fpga_tools::toDevice(h_edges, q);
   int *vertices_dram = fpga_tools::toDevice(h_vertices, q);
+  int *is_true = fpga_tools::toDevice(h_is_true, q);
   int *out = fpga_tools::toDevice(h_out, 1, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    // For a fair comparison, use the same simple dual-port memory as the LSQ.
     int vertices[kN*2];
 
     #ifdef TEST
@@ -45,9 +48,14 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
 
       auto v1 = vertices[e1];
       auto v2 = vertices[e2];
-      if (v1 < 0 && v2 < 0) {
-        vertices[e1] = 1;
-        vertices[e2] = 1;
+
+      // Algorithmically, this doesn't make sense, but it allows us to control
+      // the amount of true dependencies without changing the CDFG.
+      bool branch = is_true[i] && (v1 == 0 && v2 == 0);
+      // if (v1 == 0 && v2 == 0) {
+      if (branch) {
+        vertices[e1] = 0;
+        vertices[e2] = 0;
 
         out_scalar = out_scalar + 1;
       }
@@ -62,6 +70,7 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
   q.memcpy(h_out, out, sizeof(h_out[0])).wait();
 
   sycl::free(vertices_dram, q);
+  sycl::free(is_true, q);
   sycl::free((void*) edges, q);
   sycl::free(out, q);
 
@@ -72,26 +81,9 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
   return time_in_ms;
 }
 
-void init_data(std::vector<int> &edges, std::vector<int> &vertices,
-               const int num_edges, const uint percentage) {
-  std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
-  auto dice = std::bind (distribution, generator);
-
-  edges[0] = 0;
-  edges[1] = 1;
-  vertices[0] = -1;
-  vertices[1] = -1;
-  for (int i = 2; i < num_edges*2; i += 2) {
-    edges[i] = (dice() < percentage) ? edges[i-2] : i;
-    edges[i+1] = (dice() < percentage) ? edges[i-1] : i+1;
-
-    vertices[i] = -1;
-    vertices[i+1] = -1;
-  }
-}
-
-int maximal_matching_cpu(const std::vector<int> &edges, std::vector<int> &vertices, const int num_edges) {
+int maximal_matching_cpu(const std::vector<int> &edges,
+                         std::vector<int> &vertices,
+                         std::vector<int> &is_true, const int num_edges) {
   int i = 0;
   int out = 0;
 
@@ -99,15 +91,16 @@ int maximal_matching_cpu(const std::vector<int> &edges, std::vector<int> &vertic
 
     int j = i * 2;
 
-    int u = edges[j];
-    int v = edges[j + 1];
+    int e1 = edges[j];
+    int e2 = edges[j + 1];
 
-    int vertex_u = vertices[u];
-    int vertex_v = vertices[v];
+    auto v1 = vertices[e1];
+    auto v2 = vertices[e2];
     
-    if (vertex_u < 0 && vertex_v < 0) {
-      vertices[u] = v;
-      vertices[v] = u;
+    // if (vertex_u < 0 && vertex_v < 0) {
+    if (is_true[i]) {
+      vertices[e1] = v2;
+      vertices[e2] = v1;
 
       out = out + 1;
     }
@@ -116,6 +109,28 @@ int maximal_matching_cpu(const std::vector<int> &edges, std::vector<int> &vertic
   }
 
   return out;
+}
+
+void init_data(std::vector<int> &edges, std::vector<int> &vertices,
+               std::vector<int> &is_true, const int num_edges,
+               const uint percentage) {
+  std::default_random_engine generator;
+  std::uniform_int_distribution<int> distribution(0, 99);
+  auto dice = std::bind (distribution, generator);
+
+  edges[0] = 0;
+  edges[1] = 1;
+  vertices[0] = -1;
+  vertices[1] = -1;
+  for (int i = 2; i < num_edges*2; i += 2) {
+    is_true[i] =  (dice() < percentage) ? 1 : 0;
+
+    edges[i] = (dice() < percentage) ? edges[i-2] : i;
+    edges[i+1] = (dice() < percentage) ? edges[i-1] : i+1;
+
+    vertices[i] = -1;
+    vertices[i+1] = -1;
+  }
 }
 
 
@@ -157,18 +172,20 @@ int main(int argc, char *argv[]) {
 
     std::vector<int> edges(kN*2);
     std::vector<int> vertices(kN*2);
+    std::vector<int> is_true(kN*2);
     int out = 0;
 
-    init_data(edges, vertices, kN, PERCENTAGE);
+    init_data(edges, vertices, is_true, kN, PERCENTAGE);
 
     std::vector<int> vertices_cpu(kN*2);
     std::copy(vertices.begin(), vertices.end(), vertices_cpu.begin());
 
-    auto kernel_time = maximal_matching_kernel(q, edges, vertices, &out, kN);
+    auto kernel_time = maximal_matching_kernel(q, edges, vertices, &out, is_true, kN);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    int out_cpu = maximal_matching_cpu(edges, vertices_cpu, NUM_EDGES);
+    #ifdef TEST
+    int out_cpu = maximal_matching_cpu(edges, vertices_cpu, is_true, NUM_EDGES);
     if (out == out_cpu) {
       std::cout << "Passed\n";
     }
@@ -177,6 +194,7 @@ int main(int argc, char *argv[]) {
       std::cout << "  out fpga = " <<  out << "\n";
       std::cout << "  out cpu = " <<  out_cpu << "\n";
     }
+    #endif
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

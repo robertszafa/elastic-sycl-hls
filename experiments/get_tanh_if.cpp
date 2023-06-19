@@ -66,7 +66,7 @@ void get_tanh_if_cpu(std::vector<int> &A) {
 
 void init_data(std::vector<int> &idxs, const int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind (distribution, generator);
 
   for (int i = 0; i < idxs.size(); i++) {

@@ -82,7 +82,7 @@ void doitgen_triple_cpu(std::vector<float> &A, std::vector<float> &sum,
 void init_data(std::vector<float> &A, std::vector<float> &sum,
                std::vector<float> &w, int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind(distribution, generator);
 
   for (int i = 0; i < A.size(); ++i) {

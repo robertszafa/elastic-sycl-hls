@@ -70,7 +70,7 @@ void histogram_cpu(const int *idx, float *hist, const int *idx2, int *hist2,
 
 void init_data(std::vector<int> &feature, const int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind (distribution, generator);
 
   int counter=0;

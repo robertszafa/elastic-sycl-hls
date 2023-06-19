@@ -4,57 +4,49 @@
 
 LLVM_BIN_DIR=$ELASTIC_SYCL_HLS_DIR/llvm/build/bin
 
-SRC_FILE="$1"
-CANONICALIZED_SRC_FILE="$1".format.cpp
-SRC_FILE_BASENAME=`basename "$SRC_FILE"`
-BENCHMARK="${SRC_FILE_BASENAME%.*}"
-SRC_FILE_DIR=`dirname "$SRC_FILE"`
+BC_FILE=$1
 
-###
-### STAGE 0: Get LLVM bitcode.
-###
-$LLVM_BIN_DIR/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}" \
-                                            $SRC_FILE > $CANONICALIZED_SRC_FILE
-./scripts/compilation/compile_to_bc.sh emu $CANONICALIZED_SRC_FILE
-./scripts/compilation/prepare_ir.sh $CANONICALIZED_SRC_FILE.bc
+$LLVM_BIN_DIR/opt -passes=strip $BC_FILE -o $BC_FILE.strip
 
-BC_FILE=$CANONICALIZED_SRC_FILE.bc
+BC_FILE_BASENAME_WITH_EXT=`basename "$BC_FILE"`
+BASENAME=${BC_FILE_BASENAME_WITH_EXT%.*}
+
 
 # Standard DDG
-$LLVM_BIN_DIR/opt -passes=dot-ddg $BC_FILE -o /dev/null > /dev/null 2>&1 
-dot -Tpdf *.dot -o $SRC_FILE_DIR/DDG.pdf > /dev/null 2>&1 
-echo $SRC_FILE_DIR/DDG.pdf
+$LLVM_BIN_DIR/opt -passes=dot-ddg $BC_FILE.strip -o /dev/null > /dev/null 
+dot -Tpdf *.dot -o $BASENAME.DDG.pdf > /dev/null 2>&1 
+echo $BASENAME.DDG.pdf
 rm *.dot 
 
 # DDG of only Strongly Connected Componennts
 $LLVM_BIN_DIR/opt -load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libDDGDotPrinter.so \
-                                   -passes=dot-ddg-sccs $BC_FILE > /dev/null 2>&1 
+                                   -passes=dot-ddg-sccs $BC_FILE.strip > /dev/null 2>&1 
 
+j=0
 for fname in /tmp/DDG_function*.dot; do
-  dot -Tpdf $fname -o $SRC_FILE_DIR/DDG_function.pdf
-  echo $SRC_FILE_DIR/DDG_function.pdf
+  dot -Tpdf $fname -o $BASENAME.DDG_function_$j.pdf
+  echo $BASENAME.DDG_function_$j.pdf
+  (( j++ ))
   rm $fname
 done
 
 i=0
 for fname in /tmp/DDG_loop_*.dot; do
-  dot -Tpdf $fname -o $SRC_FILE_DIR/DDG_loop_$i.pdf
-  echo $SRC_FILE_DIR/DDG_loop_$i.pdf
+  dot -Tpdf $fname -o $BASENAME.DDG_loop_$i.pdf
+  echo $BASENAME.DDG_loop_$i.pdf
   (( i++ ))
   rm $fname
 done
 
 
 # Multiple standard CFGs
-$LLVM_BIN_DIR/opt -dot-cfg $BC_FILE > /dev/null 2>&1 
-mv .*.dot $SRC_FILE_DIR
+$LLVM_BIN_DIR/opt -passes=dot-cfg $BC_FILE.strip > /dev/null 2>&1 
 i=0
-for fname in $SRC_FILE_DIR/.*.dot; do
-  dot -Tpdf $fname -o $SRC_FILE_DIR/CFG_$i.pdf
-  echo $SRC_FILE_DIR/CFG_$i.pdf
+for fname in .*.dot; do
+  dot -Tpdf $fname -o ${BASENAME}_CFG_$i.pdf
+  echo ${BASENAME}_CFG_$i.pdf
   (( i++ ))
+  rm $fname
 done
-rm $SRC_FILE_DIR/.*.dot
 
-
-rm $CANONICALIZED_SRC_FILE*
+rm $BC_FILE.strip

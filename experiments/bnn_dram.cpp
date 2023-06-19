@@ -101,7 +101,7 @@ void init_data(std::vector<int> &addr_in, std::vector<int> &addr_out,
                std::vector<int> &mean, std::vector<int> &w,
                const int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind (distribution, generator);
 
   int counter=0;

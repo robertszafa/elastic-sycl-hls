@@ -61,7 +61,7 @@ void init_data(std::vector<float> &matrix, std::vector<float> &a,
                std::vector<int> &col_index, std::vector<int> &row_ptr,
                const uint M, const uint percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind(distribution, generator);
 
   for (int r = 0; r < M; ++r) {

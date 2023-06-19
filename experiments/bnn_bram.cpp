@@ -26,8 +26,9 @@ double bnn_kernel(queue &q, const std::vector<int> &h_addr_in,
   int* data_dram = fpga_tools::toDevice(h_data, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    int w[kN*kN];
     int data[kN*kN];
+
+    int w[kN*kN];
     int in[kN*kN];
     int mean[kN*kN];
     int alpha = 2;
@@ -115,12 +116,12 @@ void bnn_cpu(const std::vector<int> &addr_in, const std::vector<int> &addr_out,
 void init_data(std::vector<int> &h_addr_in, std::vector<int> &h_addr_out,
                std::vector<int> &h_data, const int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind(distribution, generator);
 
   for (int i = 0; i < h_addr_in.size(); i++) {
     h_addr_in[i] = (dice() < percentage) ? 1 : i;
-    h_addr_out[i] = (dice() < percentage) ? 1 : i;
+    h_addr_out[i] = h_addr_in[i];
 
     h_data[i] = 1;
   }

@@ -91,6 +91,7 @@ void instr2pipeLsqLdReq(json::Object &i2pInfo, Value *stTagAddr,
     Builder.SetInsertPoint(pipeWrite);
     auto ldTagInc = Builder.CreateAdd(ldTagVal, ConstantInt::get(tagType, 1));
     auto storeForNewLdTag = Builder.CreateStore(ldTagInc, ldTagAddr);
+    created.push_back(ldTagStore);
     created.push_back(storeForNewLdTag);
   }
 

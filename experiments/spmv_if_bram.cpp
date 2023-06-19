@@ -73,7 +73,7 @@ void spmv_if_cpu(std::vector<int> &w, std::vector<int> &all_zero,
 void init_data(std::vector<int> &h_w, std::vector<int> &h_all_zero,
                 const uint percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind(distribution, generator);
 
   for (int r = 0; r < kM; ++r) {

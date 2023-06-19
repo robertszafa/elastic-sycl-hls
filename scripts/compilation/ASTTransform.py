@@ -95,16 +95,16 @@ def get_lsq_store_queue_size(src):
     At the moment, a single (maximum) size is returned for all LSQs. 
     Future work: return a single size for each LSQ.
     """
+    print(f"Info: Generating loop report from downstream tools to choose LSQ size")
+
     DEFAULT_SIZE = 16
     MIN_SIZE = 4
-
-    next_power_of_2 = lambda x : 1 if x == 0 else 2**math.ceil(math.log2(x))
-
     try:
         # Use standard compiler to perform II analysis
-        ii_report_cmd = f"icpx -fsycl -std=c++17 -O2 -I{GIT_DIR}/lsq -I{GIT_DIR}/include_sycl \
-        -fintelfpga -DFPGA_HW -Xshardware -Xsboard=intel_a10gx_pac:pac_a10 \
-        -fsycl-link=early {src} -o {src}.a > /dev/null 2>&1"
+        ii_report_cmd = f"icpx -fsycl -std=c++17 -O2 -I{GIT_DIR}/lsq \
+            -I{GIT_DIR}/include_sycl -fintelfpga -DFPGA_HW -Xshardware \
+            -Xsboard=intel_a10gx_pac:pac_a10 -fsycl-link=early \
+                {src} -o {src}.a > /dev/null 2>&1"
         os.system(ii_report_cmd)
 
         # Look for max II in kernel.
@@ -126,14 +126,15 @@ def get_lsq_store_queue_size(src):
                                     bb_ii = int(bb["ii"])
                                     max_ii = bb_ii if (bb_ii > max_ii) else max_ii
 
+        next_power_of_2 = lambda x : 1 if x == 0 else 2**math.ceil(math.log2(x))
         # +2 margin because there will be an additional pipe write-to-read latency
         res = max(next_power_of_2(max_ii + 2), MIN_SIZE)
-
+        print(f"Info: Kernel has a max II={max_ii}, choosing store queue sizes of {res}")
         return res
     except Exception as e:
         pass
     
-    # print(f"Info: Could not determine LSQ store queue size, using default of {DEFAULT_SIZE} instead")
+    print(f"Info: Could not determine store queue size, using default of {DEFAULT_SIZE} instead")
     return DEFAULT_SIZE
 
 def gen_lsq_kernel_calls(report, q_name, st_q_size):
@@ -170,7 +171,8 @@ def gen_lsq_pipe_declarations(report):
     REQ_LSQ_DRAM_TYPE = 'req_lsq_dram_t'
     LD_REQ_LSQ_BRAM_TYPE = 'ld_req_lsq_bram_t'
     ST_REQ_LSQ_BRAM_TYPE = 'st_req_lsq_bram_t'
-    LSQ_PIPES_DEPTH = 16
+    LSQ_LD_PIPE_DEPTH = 32
+    LSQ_ST_PIPE_DEPTH = 32
 
     res = []
 
@@ -184,19 +186,25 @@ def gen_lsq_pipe_declarations(report):
             st_val_type = f'tagged_val_lsq_bram_t<{val_type}>'
         elif mem_info['max_stores_per_bb'] > 1:
             st_val_type = f'tagged_val_lsq_dram_t<{val_type}>'
+        
+        # Adjust pipe sizes going into the LSQ based on num lds/sts.
+        if mem_info['is_onchip']:
+            # LD pipes only need to be adjusted for BRAM LSQs.
+            LSQ_LD_PIPE_DEPTH *= mem_info['max_loads_per_bb']
+        LSQ_ST_PIPE_DEPTH *= mem_info['max_stores_per_bb']
 
         res.append(f"using pipes_ld_req_{i_mem} = \
             PipeArray<class pipes_ld_req_{i_mem}_class, {ld_req_type}, \
-                   {LSQ_PIPES_DEPTH}, {mem_info['max_loads_per_bb']}>;")
-        res.append(f"using pipes_st_req_{i_mem} = \
-            PipeArray<class pipes_st_req_{i_mem}_class, {st_req_type}, \
-                   {LSQ_PIPES_DEPTH}, {mem_info['max_stores_per_bb']}>;")
+                   {LSQ_LD_PIPE_DEPTH}, {mem_info['max_loads_per_bb']}>;")
         res.append(f"using pipes_ld_val_{i_mem} = \
             PipeArray<class pipes_ld_val_{i_mem}_class, {val_type}, \
-                   {LSQ_PIPES_DEPTH}, {mem_info['max_loads_per_bb']}>;")
+                   {LSQ_LD_PIPE_DEPTH}, {mem_info['max_loads_per_bb']}>;")
+        res.append(f"using pipes_st_req_{i_mem} = \
+            PipeArray<class pipes_st_req_{i_mem}_class, {st_req_type}, \
+                   {LSQ_ST_PIPE_DEPTH}, {mem_info['max_stores_per_bb']}>;")
         res.append(f"using pipes_st_val_{i_mem} = \
             PipeArray<class pipes_st_val_{i_mem}_class, {st_val_type}, \
-                   {LSQ_PIPES_DEPTH}, {mem_info['max_stores_per_bb']}>;")
+                   {LSQ_ST_PIPE_DEPTH}, {mem_info['max_stores_per_bb']}>;")
 
         res.append(f"using pipe_end_lsq_signal_{i_mem} = \
             pipe<class pipe_end_lsq_signal_{i_mem}_class, bool>;")
@@ -207,7 +215,7 @@ def gen_lsq_pipe_declarations(report):
         p_name = dir_info['pipe_name']
         if 'pipe_pe_' in p_name and p_name not in done_pe_pipes:
             done_pe_pipes.add(p_name)
-            res.append(f"using {p_name.split('_class')[0]} = pipe<class {p_name}, {dir_info['pipe_type']}>;")
+            res.append(f"using {p_name.split('_class')[0]} = pipe<class {p_name}, {llvm2ctype(dir_info['pipe_type'])}>;")
 
     return res
 
@@ -251,19 +259,16 @@ if __name__ == '__main__':
     NUM_LSQs = len(report['memory_to_decouple'])
     NUM_PEs = len(report['blocks_to_decouple'])
 
+    print(f"Info: Generating {NUM_LSQs} LSQs and {NUM_PEs} PEs")
+
     # Keep track of kernel boundaries (and adjust their values if necessary).
     kernel_start_line = report["kernel_start_line"]
     kernel_end_line = get_kernel_end_line(src_lines, kernel_start_line)
     kernel_body = get_kernel_body(src_lines, kernel_start_line, kernel_end_line)
     Q_NAME = get_queue_name(src_lines[kernel_start_line-1])
     LSQ_ST_QUEUE_SIZE = 16
-    lsq_size_text = ""
     if NUM_LSQs > 0:
-        # Only search for LSQ size when an LSQ is actually needed.
         LSQ_ST_QUEUE_SIZE = get_lsq_store_queue_size(SRC_FNAME)
-        lsq_size_text = f" (size {LSQ_ST_QUEUE_SIZE})"
-
-    print(f"Info: Generating {NUM_LSQs} LSQs{lsq_size_text} and {NUM_PEs} PEs")
 
     pipe_decl = gen_lsq_pipe_declarations(report)
 

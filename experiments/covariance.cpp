@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    auto kernel_time = covariance_kernel(q);
+    auto kernel_time = kernel_2mm(q);
 
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";

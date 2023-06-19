@@ -1,67 +1,93 @@
-#include <sycl/ext/intel/fpga_extensions.hpp>
 #include <sycl/sycl.hpp>
-
 #include <algorithm>
 #include <iostream>
 #include <numeric>
-#include <random>
 #include <stdlib.h>
 #include <vector>
+#include <random>
+
+#include <sycl/ext/intel/fpga_extensions.hpp>
 
 #include "memory_utils.hpp"
 #include "exception_handler.hpp"
 
 using namespace sycl;
+using namespace fpga_tools;
 
 // Forward declare kernel name.
 class MainKernel;
 
-constexpr int kN = 100;
+constexpr int kN = 1000;
 
-double sort_kernel(queue &q, std::vector<int> &h_A) {
+double vec_trans_kernel(queue &q, std::vector<int> &h_A, const std::vector<int> &h_b) {
+
   const int N = h_A.size();
+
   int *A_dram = fpga_tools::toDevice(h_A, q);
+  int *b = fpga_tools::toDevice(h_b, q);
 
-  auto event = q.submit([&](sycl::handler &h) {
-    h.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-      int A[kN];
+  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    int A[kN];
 
-      #ifdef TEST
-      for (i = 0; i < N ; i++) 
-        A[i] = A_dram[i];
-      #endif
+    #ifdef TEST
+    for (int i=0; i < kN; ++i) 
+      A[i] = A_dram[i];
+    #endif
 
-      int i, j;
-      for (i = 0; i < N - 1; i++) {
-        for (j = 0; j < N - i - 1; j++) {
-          auto left = A[j];
-          auto right = A[j + 1];
-          if (left >= right) {
-            A[j] = right;
-            A[j + 1] = left;
-          }
-        }
-      }
+    for (int i = 0; i < N; i++) {
+      int d = A[i];
+      A[b[i]] =
+          (((((((d + 112) * d + 23) * d + 36) * d + 82) * d + 127) * d + 2) *
+               d +
+           20) *
+              d +
+          100;
+    }
 
-      #ifdef TEST
-      for (i = 0; i < N ; i++) 
-        A_dram[i] = A[i];
-      #endif
+    #ifdef TEST
+    for (int i=0; i < kN; ++i) 
+      A_dram[i] = A[i];
+    #endif
 
-    });
   });
 
   event.wait();
-  
   q.copy(A_dram, h_A.data(), h_A.size()).wait();
 
   sycl::free(A_dram, q);
+  sycl::free(b, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
   double time_in_ms = static_cast<double>(end - start) / 1000000;
 
   return time_in_ms;
+}
+
+void vec_trans_cpu(std::vector<int> &A, const std::vector<int> &b) {
+  const int N = A.size();
+
+  for (int i = 0; i < N; i++) {
+    int d = A[i];
+    A[b[i]] =
+        (((((((d + 112) * d + 23) * d + 36) * d + 82) * d + 127) * d + 2) * d +
+         20) *
+            d +
+        100;
+  }
+}
+
+void init_data(std::vector<int> &A, std::vector<int> &b,  
+               const int percentage) {
+  std::default_random_engine generator;
+  std::uniform_int_distribution<int> distribution(0, 99);
+  auto dice = std::bind (distribution, generator);
+
+  for (size_t i = 0; i < A.size(); i++) {
+    b[i] = (dice() < percentage) ? std::min(i+1, A.size()-1) : i;
+
+    A[i] = i % 50-25;
+  }
 }
 
 
@@ -85,48 +111,42 @@ int main(int argc, char *argv[]) {
   }
 
 #if FPGA_SIM
-  std::cout << "SIMULATION:\n";
   auto d_selector = sycl::ext::intel::fpga_simulator_selector_v;
 #elif FPGA_HW 
   auto d_selector = sycl::ext::intel::fpga_selector_v;
 #else  // #if FPGA_EMULATOR
   auto d_selector = sycl::ext::intel::fpga_emulator_selector_v;
 #endif
-
   try {
     // Enable profiling.
     property_list properties{property::queue::enable_profiling()};
     queue q(d_selector, exception_handler, properties);
-    auto device = q.get_device();
 
     // Print out the device information used for the kernel code.
     std::cout << "Running on device: "
-              << device.get_info<sycl::info::device::name>().c_str() << "\n";
+              << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<int> arr(ARRAY_SIZE);
-    std::vector<int> arr_cpu(ARRAY_SIZE);
-    
-    for (size_t i=0; i<kN; ++i) {
-      if (PERCENTAGE == 100)
-        arr[i] = kN - i;
-      else if (PERCENTAGE == 0)
-        arr[i] = i;
-      else
-        arr[i] = rand();
-    }
+    std::vector<int> A(ARRAY_SIZE);
+    std::vector<int> b(ARRAY_SIZE); 
 
-    std::copy_n(arr.begin(), kN, arr_cpu.begin());
+    init_data(A, b,  PERCENTAGE);
 
-    auto kernel_time = sort_kernel(q, arr);
+    std::vector<int> A_cpu(ARRAY_SIZE);
+    std::copy(A.begin(), A.end(), A_cpu.begin());
+
+    auto kernel_time = vec_trans_kernel(q, A, b);
+
+    vec_trans_cpu(A_cpu, b);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
-
-    if (std::equal(arr.begin(), arr.end(), arr_cpu.begin())) {
+    
+    #ifdef TEST
+    if (std::equal(A.begin(), A.end(), A_cpu.begin())) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed\n";
     }
-
+    #endif
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();
@@ -134,3 +154,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+

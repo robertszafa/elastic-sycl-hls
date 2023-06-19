@@ -132,7 +132,7 @@ void gram_schmidt_cpu(std::vector<float> &a, std::vector<float> &r,
 void init_data(std::vector<float> &a, std::vector<float> &r,
                 int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind(distribution, generator);
 
   for (int i = 0; i < a.size(); ++i) {

@@ -92,9 +92,14 @@ void ControlDependentDataDependencyAnalysis::getSCCPaths(PiBlockDDGNode &SCC) {
 void ControlDependentDataDependencyAnalysis::DDGNodesToInstructions() {
   for (auto Path : this->sccPaths) {
     SmallVector<Instruction *> thisPath;
-    for (auto N : Path) 
-      append_range(thisPath, N->getInstructions());
-    
+    for (auto N : Path) {
+      for (auto &I : N->getInstructions()) {
+          // Ignore llvm void instrinsics. 
+          if (!I->getType()->isVoidTy()) 
+            thisPath.push_back(I);
+      }
+    }
+
     this->allSCCInstructionPaths.push_back(thisPath);
   }
 }
@@ -114,16 +119,41 @@ void ControlDependentDataDependencyAnalysis::calculateAllPathII() {
 
 void ControlDependentDataDependencyAnalysis::calculateRegionsToDecouple(
     LoopInfo &LI, ControlDependenceGraph &CDG) {
+  // Go through all unique SCC paths.  
   for (size_t iPath = 0; iPath < allSCCInstructionPaths.size(); ++iPath) {
-    for (auto I : allSCCInstructionPaths[iPath]) {
-      auto ctrlDepSrc = CDG.getControlDependencySource(I);
-      auto candidateBB = I->getParent();
+    auto thisPath = allSCCInstructionPaths[iPath];
+    SetVector<Instruction *> uniquePhisOnPath;
+    SetVector<BasicBlock *> allBlocksOnPath;
+    for (auto &I : thisPath) {
+      allBlocksOnPath.insert(I->getParent());
+      if (isa<PHINode>(I))
+        uniquePhisOnPath.insert(I);
+    }
 
-      // Ignore candidateBB if the path has an II of 1, or if the block is not
-      // ctrl. dep. on a block that is not a loop header,
-      if (sccIIs[iPath] > 1 && ctrlDepSrc && !LI.isLoopHeader(ctrlDepSrc)) {
-        // Finally, check if the instructions in the block increase the II.
-        auto subPath = getInstructions(candidateBB);
+    // A recurrence through registers will have at least 2 connected phis.
+    // We handle recurrences through memory in a separate pass.
+    // TODO: Make this more robust: check if the phis use each other.
+    if (uniquePhisOnPath.size() < 2)
+      continue;
+
+    // Go through all unique basic blocks on the path.
+    for (auto candidateBB : allBlocksOnPath) {
+      auto ctrlDepSrc = CDG.getControlDependencySource(candidateBB);
+
+      // These conditions have to hold for candidateBB to be considered:
+      if (sccIIs[iPath] > 1 && ctrlDepSrc && !LI.isLoopHeader(ctrlDepSrc) &&
+          !isLoopUnrolled(LI.getLoopFor(candidateBB))) {
+        SmallVector<Instruction *> pathWithoutBB;
+        for (auto &I : thisPath)
+          if (I->getParent() != candidateBB)
+            pathWithoutBB.push_back(I);
+
+        SmallVector<Instruction *> subPath;
+        for (auto &I : *candidateBB)
+          subPath.push_back(&I);
+
+        // The final condition is that {thisPath} II should decrease 
+        // when the candidate block would be decoupled.
         if (calculatePathII(subPath) > 1) {
           this->blocksToDecouple.insert(candidateBB);
 
@@ -144,7 +174,6 @@ void ControlDependentDataDependencyAnalysis::calculateRegionsToDecouple(
           //     instrToDecoupleInBB[candidateBB].insert(I);
           //   }
           // }
-
         }
       }
     }

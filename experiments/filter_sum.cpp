@@ -57,7 +57,7 @@ double filter_sum_kernel(queue &q, const std::vector<int> &h_idxs,
   return time_in_ms;
 }
 
-double filter_sum_cpu(const std::vector<int> &idxs, std::vector<int> &A) {
+void filter_sum_cpu(const std::vector<int> &idxs, std::vector<int> &A) {
   std::vector<float> B(N, 0);
 
   float d = 0.0, s = 0.0;
@@ -72,7 +72,7 @@ double filter_sum_cpu(const std::vector<int> &idxs, std::vector<int> &A) {
 
 void init_data(std::vector<int> &idxs, const int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind (distribution, generator);
 
   for (int i = 0; i < idxs.size(); i++) {

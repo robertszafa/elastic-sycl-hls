@@ -135,7 +135,7 @@ double get_tanh_kernel(queue &q, std::vector<int> &h_A, const std::vector<int> h
 void init_data(std::vector<int> &A, std::vector<int> &addr_in, std::vector<int> &addr_out,
                 const uint percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 100);
+  std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind(distribution, generator);
 
   for (int i = 0; i < A.size(); i++) {

@@ -318,6 +318,27 @@ template <typename T1, typename T2>
   return dyn_cast<Instruction>(pointerOperand);
 }
 
+/// Return true if the loop has a "llvm.loop.unroll.enable" metada attached.
+[[maybe_unused]] bool isLoopUnrolled(Loop *L) {
+  auto latchI = L->getLoopLatch()->getTerminator();
+  SmallVector<std::pair<unsigned int, MDNode *>> latchMetadata;
+  latchI->getAllMetadataOtherThanDebugLoc(latchMetadata);
+  for (auto &m : latchMetadata) {
+    for (size_t iO = 0; iO < m.second->getNumOperands(); ++iO) {
+      std::string metadataStr;
+      llvm::raw_string_ostream rso(metadataStr);
+      m.second->getOperand(iO)->print(rso);
+
+      if (metadataStr.size() > 0 &&
+          metadataStr.find("llvm.loop.unroll.enable") < metadataStr.size()) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 } // namespace
 
 #endif

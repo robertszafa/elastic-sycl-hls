@@ -10,13 +10,12 @@ import sys
 import os
 import json
 import re
+import math
 
-LSQ_DRAM_FILE = f'{os.environ["ELASTIC_SYCL_HLS_DIR"]}/lsq/LoadStoreQueueDRAM.hpp'
-LSQ_BRAM_FILE = f'{os.environ["ELASTIC_SYCL_HLS_DIR"]}/lsq/LoadStoreQueueBRAM.hpp'
+GIT_DIR = os.environ["ELASTIC_SYCL_HLS_DIR"]
+LSQ_DRAM_FILE = f'{GIT_DIR}/lsq/LoadStoreQueueDRAM.hpp'
+LSQ_BRAM_FILE = f'{GIT_DIR}/lsq/LoadStoreQueueBRAM.hpp'
 
-# TODO: same as store queue depth ?
-LD_Q_SIZE = 4
-LSQ_PIPES_DEPTH = 32
 
 def get_src(fname):
     try:
@@ -85,15 +84,61 @@ def parse_report(report_fname):
 
         if "main_kernel_name" not in report:
             exit("Analysis report is empty.")
-
-        # Extract "MainKernel" from "typeinfo name for MainKernel".
-        # report["kernel_name_base"] = report["kernel_name_full"].split(' ')[-1]
-
         return report
     except Exception as e:
         exit("Error parsing analysis report " + report_fname)
 
+def get_lsq_store_queue_size(src):
+    """
+    Return the size of the store queue based on the II of a loop.
+
+    At the moment, a single (maximum) size is returned for all LSQs. 
+    Future work: return a single size for each LSQ.
+    """
+    DEFAULT_SIZE = 16
+    MIN_SIZE = 4
+
+    next_power_of_2 = lambda x : 1 if x == 0 else 2**math.ceil(math.log2(x))
+
+    try:
+        # Use standard compiler to perform II analysis
+        ii_report_cmd = f"icpx -fsycl -std=c++17 -O2 -I{GIT_DIR}/lsq -I{GIT_DIR}/include_sycl \
+        -fintelfpga -DFPGA_HW -Xshardware -Xsboard=intel_a10gx_pac:pac_a10 \
+        -fsycl-link=early {src} -o {src}.a > /dev/null 2>&1"
+        os.system(ii_report_cmd)
+
+        # Look for max II in kernel.
+        # TODO: only check the basic block of where the loads/stores occur.
+        # This shouldn't be hard since the report contains the llvm BB names.
+        loop_report_name = f"{src}.prj/reports/resources/json/loop_attr.json"
+        with open(loop_report_name, 'r') as f:
+            loop_report = json.loads(f.read())
+            max_ii = 1
+            for kernel in loop_report["nodes"]: 
+                if "children" in kernel:
+                    for loop in kernel["children"]: 
+                        if "ii" in loop:
+                            l_ii = int(loop["ii"])
+                            max_ii = l_ii if (l_ii > max_ii) else max_ii
+                        if "children" in loop:
+                            for bb in loop["children"]: 
+                                if "ii" in bb:
+                                    bb_ii = int(bb["ii"])
+                                    max_ii = bb_ii if (bb_ii > max_ii) else max_ii
+
+        # +2 margin because there will be an additional pipe write-to-read latency
+        res = max(next_power_of_2(max_ii + 2), MIN_SIZE)
+
+        return res
+    except Exception as e:
+        pass
+    
+    # print(f"Info: Could not determine LSQ store queue size, using default of {DEFAULT_SIZE} instead")
+    return DEFAULT_SIZE
+
 def gen_lsq_kernel_calls(report, q_name, st_q_size):
+    LD_Q_SIZE = 4
+
     lsq_kernel_calls = []
     lsq_events_waits = []
 
@@ -125,6 +170,7 @@ def gen_lsq_pipe_declarations(report):
     REQ_LSQ_DRAM_TYPE = 'req_lsq_dram_t'
     LD_REQ_LSQ_BRAM_TYPE = 'ld_req_lsq_bram_t'
     ST_REQ_LSQ_BRAM_TYPE = 'st_req_lsq_bram_t'
+    LSQ_PIPES_DEPTH = 16
 
     res = []
 
@@ -196,8 +242,6 @@ if __name__ == '__main__':
     JSON_REPORT_FNAME = sys.argv[1]
     SRC_FNAME = sys.argv[2]
     NEW_SRC_FILENAME = sys.argv[3]
-    # TODO: Get from II from report.
-    Q_SIZE = 8
     
     with open(SRC_FNAME, 'r') as f:
         src_string = f.read()
@@ -207,14 +251,19 @@ if __name__ == '__main__':
     NUM_LSQs = len(report['memory_to_decouple'])
     NUM_PEs = len(report['blocks_to_decouple'])
 
-    print(f"Info: Generating {NUM_LSQs} LSQs and {NUM_PEs} PEs.")
-    print(f"Info: See {JSON_REPORT_FNAME} for analysis details.")
-
     # Keep track of kernel boundaries (and adjust their values if necessary).
     kernel_start_line = report["kernel_start_line"]
     kernel_end_line = get_kernel_end_line(src_lines, kernel_start_line)
     kernel_body = get_kernel_body(src_lines, kernel_start_line, kernel_end_line)
     Q_NAME = get_queue_name(src_lines[kernel_start_line-1])
+    LSQ_ST_QUEUE_SIZE = 16
+    lsq_size_text = ""
+    if NUM_LSQs > 0:
+        # Only search for LSQ size when an LSQ is actually needed.
+        LSQ_ST_QUEUE_SIZE = get_lsq_store_queue_size(SRC_FNAME)
+        lsq_size_text = f" (size {LSQ_ST_QUEUE_SIZE})"
+
+    print(f"Info: Generating {NUM_LSQs} LSQs{lsq_size_text} and {NUM_PEs} PEs")
 
     pipe_decl = gen_lsq_pipe_declarations(report)
 
@@ -267,7 +316,7 @@ if __name__ == '__main__':
     kernel_end_line += len(agu_kernels)
 
     # Insert call to LSQ kernels right before the original kernel call.
-    lsq_calls, lsq_waits = gen_lsq_kernel_calls(report, Q_NAME, Q_SIZE)
+    lsq_calls, lsq_waits = gen_lsq_kernel_calls(report, Q_NAME, LSQ_ST_QUEUE_SIZE)
     src_after_event_waits = insert_before_line(src_after_agu, kernel_start_line, lsq_calls)
     kernel_start_line += len(lsq_calls)
     kernel_end_line += len(lsq_calls)

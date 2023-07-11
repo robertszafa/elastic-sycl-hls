@@ -288,11 +288,12 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
             last_st_req_tag++;
           }
 
-          UnrolledLoop<ST_Q_SIZE - 1>([&](auto i) {
+          #pragma unroll
+          for (int i = 0; i < ST_Q_SIZE-1; ++i) {
             st_alloc_addr[i] = st_alloc_addr[i + 1];
             st_alloc_addr_valid[i] = st_alloc_addr_valid[i + 1];
             st_alloc_tag[i] = st_alloc_tag[i + 1];
-          });
+          }
           st_alloc_addr[ST_Q_SIZE - 1] = next_addr;
           st_alloc_addr_valid[ST_Q_SIZE - 1] = st_req_valid;
           st_alloc_tag[ST_Q_SIZE - 1] = next_tag;

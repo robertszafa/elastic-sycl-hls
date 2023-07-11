@@ -28,7 +28,7 @@ using namespace fpga_tools;
 using PipelinedLSU = sycl::ext::intel::lsu<>;
 
 /// Max number of cycles between issuing store to DRAM memory controller and commit.
-constexpr int STORE_LATENCY_DRAM = 32; 
+constexpr int STORE_LATENCY_DRAM = 8; 
 
 /// Represents pointer bits.
 using addr_dram_t = int64_t;
@@ -228,11 +228,12 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
             next_st_req_tag++;
           }
 
-          UnrolledLoop<ST_Q_SIZE - 1>([&](auto i) {
+          #pragma unroll
+          for (int i = 0; i < ST_Q_SIZE-1; ++i) {
             st_alloc_addr[i] = st_alloc_addr[i + 1];
             st_alloc_addr_valid[i] = st_alloc_addr_valid[i + 1];
             st_alloc_tag[i] = st_alloc_tag[i + 1];
-          });
+          }
           st_alloc_addr[ST_Q_SIZE - 1] = next_st_alloc_addr;
           st_alloc_addr_valid[ST_Q_SIZE - 1] = st_req_valid;
           st_alloc_tag[ST_Q_SIZE - 1] = st_req.tag;
@@ -296,7 +297,8 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
             // queue. 'is_bypass' is only valid when 'no_conflict' is true, so
             // check for bypass on every invocation.
             is_bypass[iLd][iAlloc] = false;
-            UnrolledLoop<STORE_LATENCY_DRAM>([&](auto i) {
+            #pragma unroll
+            for (int i = 0; i < STORE_LATENCY_DRAM; ++i) {
               // If multiple matches, then the most recent one wins. No need to
               // check the tags since all stores in the commit queue by
               // definition come before this load in program order.
@@ -304,7 +306,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
                 is_bypass[iLd][iAlloc] = true;
                 bypass_val[iLd][iAlloc] = st_commit_value[i];
               }
-            });
+            }
           });
 
           // Shift ld alloc queue whenever the top alloc has no valid request.

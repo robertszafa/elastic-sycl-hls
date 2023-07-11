@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
-#include <random>
 #include <stdlib.h>
 #include <vector>
+#include <random>
 
 #include <sycl/ext/intel/fpga_extensions.hpp>
 
@@ -12,36 +12,35 @@
 #include "exception_handler.hpp"
 
 using namespace sycl;
+using namespace fpga_tools;
 
 // Forward declare kernel name.
 class MainKernel;
 
-using DATA_TYPE = int;
+double vec_trans_kernel(queue &q, std::vector<int> &h_A, const std::vector<int> &h_b) {
 
-double vec_norm_trans_kernel(queue &q, const std::vector<DATA_TYPE> &h_a,
-                             std::vector<DATA_TYPE> &h_r, const int N) {
-  DATA_TYPE *a = fpga_tools::toDevice(h_a, q);
-  DATA_TYPE *r = fpga_tools::toDevice(h_r, q);
+  const int N = h_A.size();
+
+  int *A = fpga_tools::toDevice(h_A, q);
+  int *b = fpga_tools::toDevice(h_b, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    DATA_TYPE weight = DATA_TYPE{0};
     for (int i = 0; i < N; i++) {
-      DATA_TYPE d = a[i];
-      if (d < DATA_TYPE{1})
-        weight = ((d * d + DATA_TYPE{19}) * d + DATA_TYPE{3}) * d + DATA_TYPE{7} * weight;
-    }
-
-    for (int i = 0; i < N; i++) {
-      DATA_TYPE d = a[i] / weight;
-      r[i] = r[i] + d;
+      int d = A[i];
+      A[b[i]] =
+          (((((((d + 112) * d + 23) * d + 36) * d + 82) * d + 127) * d + 2) *
+               d +
+           20) *
+              d +
+          100;
     }
   });
 
   event.wait();
-  q.copy(r, h_r.data(), h_r.size()).wait();
+  q.copy(A, h_A.data(), h_A.size()).wait();
 
-  sycl::free(a, q);
-  sycl::free(r, q);
+  sycl::free(A, q);
+  sycl::free(b, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -50,34 +49,32 @@ double vec_norm_trans_kernel(queue &q, const std::vector<DATA_TYPE> &h_a,
   return time_in_ms;
 }
 
-void vec_norm_trans_cpu(const std::vector<DATA_TYPE> &a,
-                        std::vector<DATA_TYPE> &r, const int N) {
-  DATA_TYPE weight = DATA_TYPE{0};
-  for (int i = 0; i < N; i++) {
-    DATA_TYPE d = a[i];
-    if (d < DATA_TYPE{1})
-      weight = ((d * d + DATA_TYPE{19}) * d + DATA_TYPE{3}) * d + DATA_TYPE{7} * weight;
-  }
+void vec_trans_cpu(std::vector<int> &A, const std::vector<int> &b) {
+  const int N = A.size();
 
   for (int i = 0; i < N; i++) {
-    DATA_TYPE d = a[i] / weight;
-    r[i] = r[i] + d;
+    int d = A[i];
+    A[b[i]] =
+        (((((((d + 112) * d + 23) * d + 36) * d + 82) * d + 127) * d + 2) * d +
+         20) *
+            d +
+        100;
   }
 }
 
-void init_data(std::vector<DATA_TYPE> &a, std::vector<DATA_TYPE> &r,
-               const int array_size, 
+void init_data(std::vector<int> &A, std::vector<int> &b,  
                const int percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 99);
-  auto dice = std::bind(distribution, generator);
+  auto dice = std::bind (distribution, generator);
 
-  for (int i = 0; i < array_size; ++i) {
-    a[i] = (dice() < percentage) ? DATA_TYPE(0) : DATA_TYPE(2);
+  for (size_t i = 0; i < A.size(); i++) {
+    b[i] = (dice() < percentage) ? std::min(i+1, A.size()-1) : i;
 
-    r[i] = 0;
+    A[i] = i % 50-25;
   }
 }
+
 
 int main(int argc, char *argv[]) {
   int ARRAY_SIZE = 1000;
@@ -114,20 +111,21 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<DATA_TYPE> a(ARRAY_SIZE);
-    std::vector<DATA_TYPE> r(ARRAY_SIZE);
-    std::vector<DATA_TYPE> r_cpu(ARRAY_SIZE);
+    std::vector<int> A(ARRAY_SIZE);
+    std::vector<int> b(ARRAY_SIZE); 
 
-    init_data(a, r, ARRAY_SIZE,  PERCENTAGE);
-    std::copy(r.begin(), r.end(), r_cpu.begin());
+    init_data(A, b,  PERCENTAGE);
 
-    auto kernel_time = vec_norm_trans_kernel(q, a, r, ARRAY_SIZE);
+    std::vector<int> A_cpu(ARRAY_SIZE);
+    std::copy(A.begin(), A.end(), A_cpu.begin());
 
-    vec_norm_trans_cpu(a, r_cpu, ARRAY_SIZE);
+    auto kernel_time = vec_trans_kernel(q, A, b);
+
+    vec_trans_cpu(A_cpu, b);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
-
-    if (std::equal(r.begin(), r.end(), r_cpu.begin())) {
+    
+    if (std::equal(A.begin(), A.end(), A_cpu.begin())) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed\n";
@@ -139,3 +137,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+

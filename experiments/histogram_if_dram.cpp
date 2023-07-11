@@ -1,9 +1,11 @@
-#include <sycl/sycl.hpp>
 #include <algorithm>
 #include <iostream>
+#include <limits>
+#include <math.h>
 #include <numeric>
 #include <random>
 #include <stdlib.h>
+#include <sycl/sycl.hpp>
 #include <vector>
 
 #include <sycl/ext/intel/fpga_extensions.hpp>
@@ -16,32 +18,28 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-using DATA_TYPE = int;
+double histogram_kernel(queue &q, const std::vector<int> &h_idx,
+                        std::vector<int> &h_hist) {
+  const int N = h_idx.size();
 
-double vec_norm_trans_kernel(queue &q, const std::vector<DATA_TYPE> &h_a,
-                             std::vector<DATA_TYPE> &h_r, const int N) {
-  DATA_TYPE *a = fpga_tools::toDevice(h_a, q);
-  DATA_TYPE *r = fpga_tools::toDevice(h_r, q);
-
+  int *idx = fpga_tools::toDevice(h_idx, q);
+  int *hist = fpga_tools::toDevice(h_hist, q);
+  
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    DATA_TYPE weight = DATA_TYPE{0};
-    for (int i = 0; i < N; i++) {
-      DATA_TYPE d = a[i];
-      if (d < DATA_TYPE{1})
-        weight = ((d * d + DATA_TYPE{19}) * d + DATA_TYPE{3}) * d + DATA_TYPE{7} * weight;
+    for (int i = 0; i < N; ++i) {
+      auto idx_scalar = idx[i];
+      auto x = hist[idx_scalar];
+      if (x > 0)
+        hist[idx_scalar] = x + 1;
     }
 
-    for (int i = 0; i < N; i++) {
-      DATA_TYPE d = a[i] / weight;
-      r[i] = r[i] + d;
-    }
   });
 
   event.wait();
-  q.copy(r, h_r.data(), h_r.size()).wait();
+  q.copy(hist, h_hist.data(), h_hist.size()).wait();
 
-  sycl::free(a, q);
-  sycl::free(r, q);
+  sycl::free(idx, q);
+  sycl::free(hist, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -50,32 +48,26 @@ double vec_norm_trans_kernel(queue &q, const std::vector<DATA_TYPE> &h_a,
   return time_in_ms;
 }
 
-void vec_norm_trans_cpu(const std::vector<DATA_TYPE> &a,
-                        std::vector<DATA_TYPE> &r, const int N) {
-  DATA_TYPE weight = DATA_TYPE{0};
-  for (int i = 0; i < N; i++) {
-    DATA_TYPE d = a[i];
-    if (d < DATA_TYPE{1})
-      weight = ((d * d + DATA_TYPE{19}) * d + DATA_TYPE{3}) * d + DATA_TYPE{7} * weight;
-  }
-
-  for (int i = 0; i < N; i++) {
-    DATA_TYPE d = a[i] / weight;
-    r[i] = r[i] + d;
+void histogram_cpu(const int *idx, int *hist, const int N) {
+  for (int i = 0; i < N; ++i) {
+    auto idx_scalar = idx[i];
+    auto x = hist[idx_scalar];
+    if (x > 0)
+      hist[idx_scalar] = x + 1;
   }
 }
 
-void init_data(std::vector<DATA_TYPE> &a, std::vector<DATA_TYPE> &r,
-               const int array_size, 
+void init_data(std::vector<int> &feature, std::vector<int> &hist,
                const int percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind(distribution, generator);
 
-  for (int i = 0; i < array_size; ++i) {
-    a[i] = (dice() < percentage) ? DATA_TYPE(0) : DATA_TYPE(2);
+  int counter = 0;
+  for (int i = 0; i < feature.size(); i++) {
+    feature[i] = (dice() < percentage) ? 1: i;
 
-    r[i] = 0;
+    hist[i] = 1;
   }
 }
 
@@ -100,11 +92,12 @@ int main(int argc, char *argv[]) {
 
 #if FPGA_SIM
   auto d_selector = sycl::ext::intel::fpga_simulator_selector_v;
-#elif FPGA_HW 
+#elif FPGA_HW
   auto d_selector = sycl::ext::intel::fpga_selector_v;
-#else  // #if FPGA_EMULATOR
+#else // #if FPGA_EMULATOR
   auto d_selector = sycl::ext::intel::fpga_emulator_selector_v;
 #endif
+
   try {
     // Enable profiling.
     property_list properties{property::queue::enable_profiling()};
@@ -114,24 +107,25 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<DATA_TYPE> a(ARRAY_SIZE);
-    std::vector<DATA_TYPE> r(ARRAY_SIZE);
-    std::vector<DATA_TYPE> r_cpu(ARRAY_SIZE);
+    std::vector<int> feature(ARRAY_SIZE);
+    std::vector<int> hist(ARRAY_SIZE);
+    std::vector<int> hist_cpu(ARRAY_SIZE);
 
-    init_data(a, r, ARRAY_SIZE,  PERCENTAGE);
-    std::copy(r.begin(), r.end(), r_cpu.begin());
+    init_data(feature, hist, PERCENTAGE);
+    std::copy(hist.begin(), hist.end(), hist_cpu.begin());
 
-    auto kernel_time = vec_norm_trans_kernel(q, a, r, ARRAY_SIZE);
+    auto kernel_time = histogram_kernel(q, feature, hist);
 
-    vec_norm_trans_cpu(a, r_cpu, ARRAY_SIZE);
+    histogram_cpu(feature.data(), hist_cpu.data(), hist_cpu.size());
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    if (std::equal(r.begin(), r.end(), r_cpu.begin())) {
+#ifdef TEST
+    if (std::equal(hist.begin(), hist.end(), hist_cpu.begin()))
       std::cout << "Passed\n";
-    } else {
+    else
       std::cout << "Failed\n";
-    }
+#endif
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

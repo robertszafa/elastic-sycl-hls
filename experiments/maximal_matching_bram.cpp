@@ -29,7 +29,6 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
   int *out = fpga_tools::toDevice(h_out, 1, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    // For a fair comparison, use the same simple dual-port memory as the LSQ.
     int vertices[kN*2];
 
     #ifdef TEST
@@ -56,6 +55,11 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
       if (branch) {
         vertices[e1] = 0;
         vertices[e2] = 0;
+
+        out_scalar = out_scalar + 1;
+      } else if (v1 == 2) {
+        vertices[e1] = 1;
+        vertices[e2] = 1;
 
         out_scalar = out_scalar + 1;
       }

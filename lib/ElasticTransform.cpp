@@ -52,9 +52,12 @@ void instr2pipeLsqLdReq(json::Object &i2pInfo, Value *stTagAddr,
   auto reqStructStores = getPipeOpStructStores(pipeWrite);
   StoreInst *addressStore = reqStructStores[0];
   StoreInst *stTagStore = reqStructStores[1];
-  StoreInst *ldTagStore = reqStructStores[2];
+  // The load tag is optional.
+  StoreInst *ldTagStore =
+      reqStructStores.size() > 2 ? reqStructStores[2] : nullptr;
   auto addrType = addressStore->getOperand(0)->getType();
   auto tagType = stTagStore->getOperand(0)->getType();
+  auto isBRAM = (i2pInfo.getString("pipe_type") == "ld_req_lsq_bram_t");
 
   // Move everything needed to setup the pipe write call to memInst's location.
   pipeWrite->moveBefore(I);
@@ -64,7 +67,7 @@ void instr2pipeLsqLdReq(json::Object &i2pInfo, Value *stTagAddr,
   Value *memInstAddr = dyn_cast<LoadInst>(I)->getPointerOperand();
 
   // Write address.
-  if (i2pInfo.getString("pipe_type") == "ld_req_lsq_bram_t") {
+  if (isBRAM) {
     // For BRAM accesses, we only get the index value, not the full pointer.
     auto gepAddr = dyn_cast<GetElementPtrInst>(memInstAddr);
     memInstAddr = gepAddr->getOperand(gepAddr->getNumOperands() - 1);
@@ -81,7 +84,7 @@ void instr2pipeLsqLdReq(json::Object &i2pInfo, Value *stTagAddr,
   stTagStore->setOperand(0, stTagVal);
 
   // Optionally, write load tag.
-  if (*i2pInfo.getInteger("max_seq_in_bb") > 1) {
+  if (isBRAM && *i2pInfo.getInteger("max_seq_in_bb") > 1) {
     // A load tag is first used in the load request.
     ldTagStore->moveBefore(pipeWrite);
     Builder.SetInsertPoint(ldTagStore);

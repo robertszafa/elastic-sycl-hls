@@ -45,21 +45,17 @@ double bnn_kernel(queue &q, const std::vector<int> &h_addr_in,
         int lut = in[x] ^ w[x];
         data[addr_in[x]] += lut * alpha;
       }
+    }
 
-      if (i == (N-1)) {
-        int temp, m, k, y, z;
-
-        for (int k = 0; k < N; k++) {
-          int y = i * N + k;
-          int m = mean[y];
-          int temp = data[addr_out[y]];
-          if (temp > 0)
-            z = temp - m;
-          else
-            z = temp + m;
-          data[addr_out[y]] = z;
-        }
-      }
+    for (int k = 0; k < N; k++) {
+      int y = (N-1) * N + k;
+      int m = mean[y];
+      int z = data[addr_out[y]];
+      if (z > 0)
+        z = z - m;
+      else
+        z = z + m;
+      data[addr_out[y]] = z;
     }
 
     #ifdef TEST

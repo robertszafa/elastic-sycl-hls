@@ -52,7 +52,7 @@ double spmv_kernel(queue &q, std::vector<int> &h_matrix,
   });
 
   event.wait();
-  q.memcpy(h_matrix.data(), matrix_dram, sizeof(h_matrix[0]) * h_matrix.size()).wait();
+  q.copy(matrix_dram, h_matrix.data(), h_matrix.size()).wait();
 
   sycl::free(matrix_dram, q);
   sycl::free(row, q);

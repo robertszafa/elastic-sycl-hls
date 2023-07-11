@@ -16,21 +16,23 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-double get_tanh_double_kernel(queue &q, std::vector<double> &h_A,
+using DATA_TYPE = int;
+
+double get_tanh_double_kernel(queue &q, std::vector<DATA_TYPE> &h_A,
                               const std::vector<int> h_addr_in,
                               const std::vector<int> h_addr_out) {
   const uint array_size = h_A.size();
 
-  double* A = fpga_tools::toDevice(h_A, q);
+  DATA_TYPE* A = fpga_tools::toDevice(h_A, q);
   int* addr_in = fpga_tools::toDevice(h_addr_in, q);
   int* addr_out = fpga_tools::toDevice(h_addr_out, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    double result, is_neg, beta;
+    DATA_TYPE result, is_neg, beta;
     for (int i = 0; i < array_size; i++) {
       beta = A[addr_in[i]];
 
-      result = ((beta * beta + 19.52381) * beta * beta + 3.704762) * beta;
+      result = ((beta * beta + DATA_TYPE{19}) * beta * beta + DATA_TYPE{3}) * beta;
 
       A[addr_out[i]] = result;
     }
@@ -50,7 +52,7 @@ double get_tanh_double_kernel(queue &q, std::vector<double> &h_A,
   return time_in_ms;
 }
 
-void init_data(std::vector<double> &A, std::vector<int> &addr_in,
+void init_data(std::vector<DATA_TYPE> &A, std::vector<int> &addr_in,
                std::vector<int> &addr_out, const uint percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 99);
@@ -66,15 +68,15 @@ void init_data(std::vector<double> &A, std::vector<int> &addr_in,
   }
 }
 
-void get_tanh_double_cpu(std::vector<double> &A, const std::vector<int> addr_in,
+void get_tanh_double_cpu(std::vector<DATA_TYPE> &A, const std::vector<int> addr_in,
                   const std::vector<int> addr_out) {
   int i;
-  double result, is_neg, beta;
+  DATA_TYPE result, is_neg, beta;
 
   for (i = 0; i < A.size(); i++) {
     beta = A[addr_in[i]];
 
-    result = ((beta*beta+19.52381)*beta*beta+3.704762)*beta;
+    result = ((beta * beta + DATA_TYPE{19}) * beta * beta + DATA_TYPE{3}) * beta;
 
     A[addr_out[i]] = result;
   }
@@ -116,13 +118,13 @@ int main(int argc, char *argv[]) {
     // Print out the device information used for the kernel code.
     std::cout << "Running on device: " << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<double> A(ARRAY_SIZE);
+    std::vector<DATA_TYPE> A(ARRAY_SIZE);
     std::vector<int> addr_in(ARRAY_SIZE);
     std::vector<int> addr_out(ARRAY_SIZE);
 
     init_data(A, addr_in, addr_out,  PERCENTAGE);
 
-    std::vector<double> A_cpu(ARRAY_SIZE);
+    std::vector<DATA_TYPE> A_cpu(ARRAY_SIZE);
     std::copy(A.begin(), A.end(), A_cpu.begin());
 
     

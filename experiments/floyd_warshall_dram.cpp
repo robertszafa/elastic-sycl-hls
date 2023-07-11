@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
-#include <random>
 #include <stdlib.h>
 #include <vector>
+#include <random>
 
 #include <sycl/ext/intel/fpga_extensions.hpp>
 
@@ -16,32 +16,29 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-using DATA_TYPE = int;
+double floyd_warshall_kernel(queue &q, std::vector<int> &h_vertices,
+                   std::vector<int> &h_distance) {
+  const int N = h_vertices.size();
 
-double vec_norm_trans_kernel(queue &q, const std::vector<DATA_TYPE> &h_a,
-                             std::vector<DATA_TYPE> &h_r, const int N) {
-  DATA_TYPE *a = fpga_tools::toDevice(h_a, q);
-  DATA_TYPE *r = fpga_tools::toDevice(h_r, q);
+  int *vertices = fpga_tools::toDevice(h_vertices, q);
+  int *dist = fpga_tools::toDevice(h_distance, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    DATA_TYPE weight = DATA_TYPE{0};
-    for (int i = 0; i < N; i++) {
-      DATA_TYPE d = a[i];
-      if (d < DATA_TYPE{1})
-        weight = ((d * d + DATA_TYPE{19}) * d + DATA_TYPE{3}) * d + DATA_TYPE{7} * weight;
-    }
-
-    for (int i = 0; i < N; i++) {
-      DATA_TYPE d = a[i] / weight;
-      r[i] = r[i] + d;
+    for (int k=0; k < N; ++k) {
+      for (int i=0; i < N; ++i) {
+        for (int j=0; j < N; ++j) {
+          if (dist[i*N + j] > dist[i*N + k] + dist[k*N + j])
+            dist[i*N + j] = dist[i*N + k] + dist[k*N + j];
+        }
+      }
     }
   });
 
   event.wait();
-  q.copy(r, h_r.data(), h_r.size()).wait();
+  q.copy(dist, h_distance.data(), h_distance.size()).wait();
 
-  sycl::free(a, q);
-  sycl::free(r, q);
+  sycl::free(dist, q);
+  sycl::free(vertices, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -50,41 +47,37 @@ double vec_norm_trans_kernel(queue &q, const std::vector<DATA_TYPE> &h_a,
   return time_in_ms;
 }
 
-void vec_norm_trans_cpu(const std::vector<DATA_TYPE> &a,
-                        std::vector<DATA_TYPE> &r, const int N) {
-  DATA_TYPE weight = DATA_TYPE{0};
-  for (int i = 0; i < N; i++) {
-    DATA_TYPE d = a[i];
-    if (d < DATA_TYPE{1})
-      weight = ((d * d + DATA_TYPE{19}) * d + DATA_TYPE{3}) * d + DATA_TYPE{7} * weight;
-  }
+void floyd_warshall_cpu(const std::vector<int> &vertices, std::vector<int> &dist) {
+    const int N = vertices.size();
 
-  for (int i = 0; i < N; i++) {
-    DATA_TYPE d = a[i] / weight;
-    r[i] = r[i] + d;
-  }
+    for (int k=0; k < N; ++k) {
+      for (int i=0; i < N; ++i) {
+        for (int j=0; j < N; ++j) {
+          if (dist[i*N + j] > dist[i*N + k] + dist[k*N + j])
+            dist[i*N + j] = dist[i*N + k] + dist[k*N + j];
+        }
+      }
+
+    }
 }
 
-void init_data(std::vector<DATA_TYPE> &a, std::vector<DATA_TYPE> &r,
-               const int array_size, 
-               const int percentage) {
-  std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 99);
-  auto dice = std::bind(distribution, generator);
+void init_data(const std::vector<int> &vertices, std::vector<int> &dist) {
+  const int N = vertices.size();
 
-  for (int i = 0; i < array_size; ++i) {
-    a[i] = (dice() < percentage) ? DATA_TYPE(0) : DATA_TYPE(2);
-
-    r[i] = 0;
+  // Create adjencency matrix
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      dist[i*N + j] = i==j ? 0 : rand() % N;
+    }
   }
 }
 
 int main(int argc, char *argv[]) {
-  int ARRAY_SIZE = 1000;
+  int NUM_NODES = 1000;
   int PERCENTAGE = 0;
   try {
     if (argc > 1) {
-      ARRAY_SIZE = int(atoi(argv[1]));
+      NUM_NODES = int(atoi(argv[1]));
     }
     if (argc > 2) {
       PERCENTAGE = int(atoi(argv[2]));
@@ -114,24 +107,24 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<DATA_TYPE> a(ARRAY_SIZE);
-    std::vector<DATA_TYPE> r(ARRAY_SIZE);
-    std::vector<DATA_TYPE> r_cpu(ARRAY_SIZE);
+    std::vector<int> vertices(NUM_NODES);
+    std::vector<int> distance(NUM_NODES * NUM_NODES);
+    std::vector<int> distance_cpu(NUM_NODES * NUM_NODES);
 
-    init_data(a, r, ARRAY_SIZE,  PERCENTAGE);
-    std::copy(r.begin(), r.end(), r_cpu.begin());
+    init_data(vertices, distance);
+    std::copy_n(distance.data(), NUM_NODES*NUM_NODES, distance_cpu.data());
 
-    auto kernel_time = vec_norm_trans_kernel(q, a, r, ARRAY_SIZE);
-
-    vec_norm_trans_cpu(a, r_cpu, ARRAY_SIZE);
+    auto kernel_time = floyd_warshall_kernel(q, vertices, distance);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    if (std::equal(r.begin(), r.end(), r_cpu.begin())) {
+    floyd_warshall_cpu(vertices, distance_cpu);
+    if (std::equal(distance.begin(), distance.end(), distance_cpu.begin())) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed\n";
     }
+
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();
@@ -139,3 +132,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+

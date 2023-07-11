@@ -59,7 +59,7 @@ void init_data(std::vector<int> &feature, std::vector<int> &hist,
 
   int counter=0;
   for (int i = 0; i < feature.size(); i++) {
-    feature[i] = (dice() < percentage) ? feature[std::max(i-1, 0)] : i;
+    feature[i] = (dice() < percentage) ? 1 : i;
 
     hist[i] = 0.0;
   }

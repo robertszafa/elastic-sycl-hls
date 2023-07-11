@@ -10,31 +10,34 @@
 
 #include "memory_utils.hpp"
 #include "exception_handler.hpp"
+#include "device_print.hpp"
 
 using namespace sycl;
 
 // Forward declare kernel name.
 class MainKernel;
 
-double spmv_kernel(queue &q, std::vector<float> &h_matrix,
+double spmv_kernel(queue &q, std::vector<int> &h_matrix,
                    const std::vector<int> &h_row, const std::vector<int> &h_col,
-                   const std::vector<float> &h_a, const int M) {
+                   const std::vector<int> &h_a, const int M) {
 
-  float *matrix = fpga_tools::toDevice(h_matrix, q);
+  int *matrix = fpga_tools::toDevice(h_matrix, q);
   int *row = fpga_tools::toDevice(h_row, q);
   int *col = fpga_tools::toDevice(h_col, q);
-  float *a = fpga_tools::toDevice(h_a, q);
+  int *a = fpga_tools::toDevice(h_a, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    int ptr = 0; 
     for (int k = 1; k < M; k++) {
       for (int p = 0; p < M; p++) {
-        matrix[k * M + row[p]] += a[p] * matrix[(k - 1) * M + col[p]];
+        matrix[row[ptr]] += a[p] * matrix[col[ptr]];
+        ptr++;
       }
     }
   });
 
   event.wait();
-  q.memcpy(h_matrix.data(), matrix, sizeof(h_matrix[0]) * h_matrix.size()).wait();
+  q.copy(matrix, h_matrix.data(), h_matrix.size()).wait();
 
   sycl::free(matrix, q);
   sycl::free(row, q);
@@ -48,32 +51,33 @@ double spmv_kernel(queue &q, std::vector<float> &h_matrix,
   return time_in_ms;
 }
 
-void spmv_cpu(std::vector<float> &matrix, const std::vector<int> &row,
-              const std::vector<int> &col, std::vector<float> &a, const int M) {
+void spmv_cpu(std::vector<int> &matrix, const std::vector<int> &row, const std::vector<int> &col,
+              std::vector<int> &a, const int M) {
+  int ptr = 0; 
   for (int k = 1; k < M; k++) {
     for (int p = 0; p < M; p++) {
-      matrix[k * M + row[p]] += a[p] * matrix[(k - 1) * M + col[p]];
+      matrix[row[ptr]] += a[p] * matrix[col[ptr]];
+      ptr++;
     }
   }
 }
 
-void init_data(std::vector<float> &matrix, std::vector<float> &a,
+void init_data(std::vector<int> &matrix, std::vector<int> &a,
                std::vector<int> &col_index, std::vector<int> &row_ptr,
                const uint M, const uint percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 99);
+  std::uniform_int_distribution<int> distribution(1, 99);
   auto dice = std::bind(distribution, generator);
 
-  for (int r = 0; r < M; ++r) {
-    col_index[r] = (dice() < percentage) ? std::max(r - 1, 0) : r;
-    row_ptr[r] = (dice() < percentage) ? std::max(r - 1, 0) : r;
-
-    a[r] = 1.0;
+  for (int i = 0; i < M*M; ++i) {
+    // These indexes don't make sense algorithmically but it's easier to control
+    // the % of data dependencies this way.
+    col_index[i] = (dice() < percentage) ? 1 : i;
+    row_ptr[i] = col_index[i];
   }
-
-  std::fill(matrix.begin(), matrix.end(), 1.0);
+  std::fill(matrix.begin(), matrix.end(), 1);
+  std::fill(a.begin(), a.end(), 1);
 }
-
 
 int main(int argc, char *argv[]) {
   int M = 1000;
@@ -109,12 +113,12 @@ int main(int argc, char *argv[]) {
     // Print out the device information used for the kernel code.
     std::cout << "Running on device: " << q.get_device().get_info<info::device::name>() << "\n";
     
-    std::vector<float> matrix(M * M);
-    std::vector<float> golden_matrix(M * M);
-    std::vector<float> a(M);
+    std::vector<int> matrix(M * M);
+    std::vector<int> golden_matrix(M * M);
+    std::vector<int> a(M);
 
-    std::vector<int> row_ptr(M);
-    std::vector<int> col_index(M);
+    std::vector<int> row_ptr(M*M);
+    std::vector<int> col_index(M*M);
 
     init_data(matrix, a, col_index, row_ptr, M,  PERCENTAGE);
     std::copy(matrix.begin(), matrix.end(), golden_matrix.begin());
@@ -127,7 +131,7 @@ int main(int argc, char *argv[]) {
     if (std::equal(matrix.begin(), matrix.end(), golden_matrix.begin())) {
       std::cout << "Passed\n";
     } else {
-      std::cerr << "Failed";
+      std::cerr << "Failed\n";
     }
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
@@ -136,4 +140,3 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
-

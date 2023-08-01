@@ -48,21 +48,12 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
       auto v1 = vertices[e1];
       auto v2 = vertices[e2];
 
-      // Algorithmically, this doesn't make sense, but it allows us to control
-      // the amount of true dependencies without changing the CDFG.
-      bool branch = is_true[i] && (v1 == 0 && v2 == 0);
-      // if (v1 == 0 && v2 == 0) {
-      if (branch) {
-        vertices[e1] = 0;
-        vertices[e2] = 0;
+      if (v1 == 0 && v2 == 0) {
+        vertices[e1] = e2;
+        vertices[e2] = e1;
 
         out_scalar = out_scalar + 1;
-      } else if (v1 == 2) {
-        vertices[e1] = 1;
-        vertices[e2] = 1;
-
-        out_scalar = out_scalar + 1;
-      }
+      } 
 
       i = i + 1;
     }

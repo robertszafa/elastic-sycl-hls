@@ -38,7 +38,7 @@ double histogram_kernel(queue &q, const std::vector<int> &h_idx,
     for (int i = 0; i < N; ++i) {
       auto idx_scalar = idx[i];
       auto x = hist[idx_scalar];
-      if (x > 0)
+      if (x >= 0)
         hist[idx_scalar] = x + 1;
     }
 
@@ -78,7 +78,7 @@ void init_data(std::vector<int> &feature, std::vector<int> &hist,
 
   int counter = 0;
   for (int i = 0; i < feature.size(); i++) {
-    feature[i] = (dice() < percentage) ? 1: i;
+    feature[i] = (dice() < percentage) ? 1 : i;
 
     hist[i] = 0;
   }

@@ -33,7 +33,7 @@ using addr_bram_t = int;
 constexpr addr_bram_t INVALID_BRAM_ADDR = -1;
 
 template <typename T>
-struct tagged_val_lsq_bram_t { T value; uint tag; };
+struct tagged_val_lsq_bram_t { T value; uint tag; bool valid; };
 
 struct st_req_lsq_bram_t { addr_bram_t addr; uint tag; };
 struct ld_req_lsq_bram_t { addr_bram_t addr; uint tag; uint ld_tag; };
@@ -48,7 +48,8 @@ template <typename T>
 
 template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           typename st_req_pipes, typename st_val_pipes, typename end_signal_pipe,
-          int ARRAY_SIZE, int NUM_LDS, int NUM_STS, int LD_Q_SIZE = 4, int ST_Q_SIZE = 8>
+          bool USE_SPECULATION, int ARRAY_SIZE, int NUM_LDS, int NUM_STS, 
+          int LD_Q_SIZE = 4, int ST_Q_SIZE = 8>
 [[clang::optnone]] event LoadStoreQueueBRAM(queue &q) {
   assert(LD_Q_SIZE >= 2 && "Load queue size must be at least 2.");
   assert(ST_Q_SIZE >= 2 && "Store queue size must be at least 2.");
@@ -119,11 +120,18 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         // The store is scheduled one cycle after the load (achieved by
         // introducing an artificial constrol dependency between the loaded
         // value and the store to force the scheduler.)
-        bool st_val_valid = false;
+        bool st_val_arrived = false, st_val_valid = false;
         value_t st_val;
         if (st_alloc_addr_valid[0]) {
           if constexpr (NUM_STS == 1) {
-            st_val = st_val_pipes:: template PipeAt<0>::read(st_val_valid);
+            auto _rd = st_val_pipes::template PipeAt<0>::read(st_val_arrived);
+            st_val = _rd.value;
+            // Optional support for speculative address allocations. 
+            // If enabled, then the store value needs a valid bit to commit.
+            if constexpr (USE_SPECULATION) 
+              st_val_valid = _rd.valid; 
+            else
+              st_val_valid = st_val_arrived;
           } else { 
             // Store value mux.
             UnrolledLoop<NUM_STS>([&](auto k) {
@@ -134,16 +142,23 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
             UnrolledLoop<NUM_STS>([&](auto k) {
               if (st_val_read_succ[k] && st_val_read[k].tag == next_st_val_tag) {
                 st_val_read_succ[k] = false;
+                st_val_arrived = true;
                 st_val = st_val_read[k].value;
-                st_val_valid = true;
+                if constexpr (USE_SPECULATION) 
+                  st_val_valid = st_val_read[k].valid;
+                else
+                  st_val_valid = true;
               }
             });
+
+            if (st_val_arrived) 
+              next_st_val_tag++;
           }
 
           if (st_val_valid) {
-            next_st_val_tag++;
-
-            if (mk_dependency(ld_memory_val)) // always true
+            // This is true for any value. Forces the scheduler to exec the 
+            // store after the load.
+            if (mk_dependency(ld_memory_val)) 
               DATA[st_alloc_addr[0]] = st_val;
           }
         }
@@ -258,7 +273,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         /* End Rule for load queue shift register shift.*/
 
         /* Rule for store request pipe read and store_q shift register shift.*/
-        if (st_val_valid || !st_alloc_addr_valid[0]) {
+        if (st_val_arrived || !st_alloc_addr_valid[0]) {
           uint next_tag;
           addr_bram_t next_addr = INVALID_BRAM_ADDR;
           bool st_req_valid = false;

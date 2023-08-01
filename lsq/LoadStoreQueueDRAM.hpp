@@ -40,7 +40,7 @@ template <typename T>
 struct addr_dram_val_pair_t { addr_dram_t addr; T value; };
 
 template <typename T>
-struct tagged_val_lsq_dram_t { T value; uint tag; };
+struct tagged_val_lsq_dram_t { T value; uint tag; bool valid; };
 
 // To generate unique kernel names.
 template <int id>
@@ -48,10 +48,10 @@ class LoadPort;
 template <int id>
 class LoadMux;
 
-
 template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
-          typename st_req_pipes, typename st_val_pipes, typename end_signal_pipe,
-          int NUM_LDS, int NUM_STS, int LD_Q_SIZE = 4, int ST_Q_SIZE = 8>
+          typename st_req_pipes, typename st_val_pipes,
+          typename end_signal_pipe, bool USE_SPECULATION, int NUM_LDS,
+          int NUM_STS, int LD_Q_SIZE = 4, int ST_Q_SIZE = 8>
 [[clang::optnone]] event LoadStoreQueueDRAM(queue &q) {
   assert(LD_Q_SIZE >= 2 && "Load queue size must be at least 2.");
   assert(ST_Q_SIZE >= 2 && "Store queue size must be at least 2.");
@@ -158,13 +158,20 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         // If top of store allocation queue has a valid address, then wait for
         // value. If value arrives, pass it to the store port and put it at the
         // end of the store commit queue.
-        bool st_value_valid = false;
-        value_t st_value;
+        bool st_val_arrived = false, st_val_valid = false;
+        value_t st_val;
         auto next_st_commit_addr = INVALID_ADDRESS;
         if (st_alloc_addr_valid[0]) {
           if constexpr (NUM_STS == 1) {
-            st_value = st_val_pipes:: template PipeAt<0>::read(st_value_valid);
-          } else { 
+            auto _rd = st_val_pipes::template PipeAt<0>::read(st_val_arrived);
+            st_val = _rd.value;
+            // Optional support for speculative address allocations. 
+            // If enabled, then the store value needs a valid bit to commit.
+            if constexpr (USE_SPECULATION) 
+              st_val_valid = _rd.valid; 
+            else
+              st_val_valid = st_val_arrived;
+          } else {
             // Store value mux.
             UnrolledLoop<NUM_STS>([&](auto k) {
               if (!st_val_read_succ[k])
@@ -174,33 +181,40 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
             UnrolledLoop<NUM_STS>([&](auto k) {
               if (st_val_read_succ[k] && st_val_read[k].tag == next_st_val_tag) {
                 st_val_read_succ[k] = false;
-                st_value = st_val_read[k].value;
-                st_value_valid = true;
+                st_val_arrived = true;
+                st_val = st_val_read[k].value;
+                if constexpr (USE_SPECULATION) 
+                  st_val_valid = st_val_read[k].valid;
+                else
+                  st_val_valid = true;
               }
             });
+
+            if (st_val_arrived) 
+              next_st_val_tag++;
           }
 
-          if (st_value_valid) {
+          if (st_val_valid) {
             pred_st_port_pipe::write(1);
-            st_port_val_pipe::write({st_alloc_addr[0], st_value});
+            st_port_val_pipe::write({st_alloc_addr[0], st_val});
             next_st_commit_addr = st_alloc_addr[0];
-            next_st_val_tag++;
           }
         }
 
-        // Shift commit queue on every cycles, unless no space is required.
-        if (st_value_valid || st_commit_addr[0] == INVALID_ADDRESS) {
+        // Shift commit queue on every cycle, unless no space is required. This 
+        // keeps the values in the queue longer than needed, increasing re-use.
+        if (st_val_valid || st_commit_addr[0] == INVALID_ADDRESS) {
           #pragma unroll
           for (int i = 0; i < STORE_LATENCY_DRAM-1; ++i) {
             st_commit_addr[i] = st_commit_addr[i+1];
             st_commit_value[i] = st_commit_value[i+1];
           }
           st_commit_addr[STORE_LATENCY_DRAM-1] = next_st_commit_addr;
-          st_commit_value[STORE_LATENCY_DRAM-1] = st_value;
+          st_commit_value[STORE_LATENCY_DRAM-1] = st_val;
         }
 
         // Accept new store allocations, unless no space in allocation queue.
-        if (st_value_valid || !st_alloc_addr_valid[0]) {
+        if (st_val_arrived || !st_alloc_addr_valid[0]) {
           bool st_req_valid = false;
           auto next_st_alloc_addr = INVALID_ADDRESS;
           req_lsq_dram_t st_req;
@@ -348,7 +362,5 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
   // Store port will be last so wait for it.
   return storePortEvent;
 }
-
-
 
 #endif

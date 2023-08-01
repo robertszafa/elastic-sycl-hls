@@ -29,7 +29,7 @@ prepare_ir() {
   $LLVM_BIN_DIR/opt $1 -o $1 -passes=always-inline 
   $LLVM_BIN_DIR/opt $1 -o $1 --load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libHoistConstantGepTransform.so \
     -passes=hoist-const-gep
-  $LLVM_BIN_DIR/opt $1 -o $1 -passes='adce,loop-simplify,mergereturn,sroa'
+  $LLVM_BIN_DIR/opt $1 -o $1 -passes='sroa,gvn,adce,loop-simplify,mergereturn'
   # Save human readable bitcode
   $LLVM_BIN_DIR/llvm-dis $1 -o $1.ll && $LLVM_BIN_DIR/llvm-cxxfilt < $1.ll > $1.demangled.ll
 }

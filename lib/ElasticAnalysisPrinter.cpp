@@ -6,6 +6,8 @@ using namespace llvm;
 
 namespace llvm {
 
+/// Print all analysis information related to dynamically scheduling memory via
+/// a load-store queue.
 void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
   auto instr2pipeArray = *report["instr2pipe_directives"].getAsArray();
   auto mainKernelName = std::string(*report["main_kernel_name"].getAsString());
@@ -17,19 +19,31 @@ void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
     bool isDecoupled = DHA->getDecoupligDecisions()[iLSQ];
     bool isOnChip = DHA->getIsOnChip()[iLSQ];
     auto instrCluster = DHA->getHazardInstructions()[iLSQ];
-    SmallVector<Instruction *> loads = getLoads(instrCluster);
-    SmallVector<Instruction *> stores = getStores(instrCluster);
+    auto isAnySpeculation = DHA->getSpeculationDecisions()[iLSQ];
+    SmallVector<Instruction *> loads, stores;
+    SmallVector<int> loadsSpecSrcBB, storesSpecSrcBB;
+    for (size_t i = 0; i < instrCluster.size(); ++i) {
+      if (isaLoad(instrCluster[i])) 
+        loads.push_back(instrCluster[i]);
+      else
+        stores.push_back(instrCluster[i]);
+    }
     SmallVector<int> ldSeqInBB = getSeqInBB(loads);
     SmallVector<int> stSeqInBB = getSeqInBB(stores);
     int maxLdsBB = *std::max_element(ldSeqInBB.begin(), ldSeqInBB.end()) + 1;
     int maxStsBB = *std::max_element(stSeqInBB.begin(), stSeqInBB.end()) + 1;
     auto aguName = mainKernelName + "_AGU_" + std::to_string(iLSQ);
 
+    MapVector<BasicBlock *, int> loadsPerBB, storesPerBB;
+
+    // General info about the LSQ as a whole.
     json::Object thisMemory;
     thisMemory["max_loads_per_bb"] = maxLdsBB;
     thisMemory["max_stores_per_bb"] = maxStsBB;
     thisMemory["is_onchip"] = isOnChip;
+    thisMemory["store_queue_size"] = DHA->getStoreQueueSizes()[iLSQ];
     thisMemory["decouple_address"] = isDecoupled;
+    thisMemory["is_any_speculation"] = isAnySpeculation;
     thisMemory["agu_kernel_name"] = isDecoupled ? aguName : "";
     thisMemory["array_size"] = DHA->getMemorySizes()[iLSQ];
     std::string typeStr;
@@ -41,7 +55,11 @@ void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
       storeIs.push_back(genJsonForInstruction(stI));
     thisMemory["store_instructions"] = std::move(storeIs);
 
+    // Directives for load request/allocation writes and load value reads.
     for (size_t iLd = 0; iLd < loads.size(); ++iLd) {
+      if (!loadsPerBB.contains(loads[iLd]->getParent()))
+        loadsPerBB[loads[iLd]->getParent()] = 0;
+
       // Load value read in main kernel.
       json::Object ldValDirective;
       ldValDirective["directive_type"] = "ld_val";
@@ -51,8 +69,8 @@ void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
       ldValDirective["pipe_name"] =
           "pipes_ld_val_" + std::to_string(iLSQ) + "_class";
       ldValDirective["pipe_type"] = typeStr;
-      // Only a single ld val pipe for LSQ_BRAM.
-      ldValDirective["seq_in_bb"] = ldSeqInBB[iLd];
+      ldValDirective["seq_in_bb"] = loadsPerBB[loads[iLd]->getParent()];
+      instr2pipeArray.push_back(std::move(ldValDirective));
 
       // Load request write in AGU (or possibly main) kernel.
       json::Object ldReqDirective;
@@ -64,28 +82,31 @@ void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
           "pipes_ld_req_" + std::to_string(iLSQ) + "_class";
       ldReqDirective["pipe_type"] =
           isOnChip ? "ld_req_lsq_bram_t" : "req_lsq_dram_t";
-      ldReqDirective["seq_in_bb"] = ldSeqInBB[iLd];
-      ldReqDirective["max_seq_in_bb"] = maxLdsBB;
-
-      instr2pipeArray.push_back(std::move(ldValDirective));
+      ldReqDirective["seq_in_bb"] = loadsPerBB[loads[iLd]->getParent()];
+      ldReqDirective["max_loads_per_bb"] = maxLdsBB;
       instr2pipeArray.push_back(std::move(ldReqDirective));
+
+      loadsPerBB[loads[iLd]->getParent()]++;
     }
 
+    // Directives for store request/allocation writes and store value writes.
     for (size_t iSt = 0; iSt < stores.size(); ++iSt) {
+      if (!storesPerBB.contains(stores[iSt]->getParent()))
+        storesPerBB[stores[iSt]->getParent()] = 0;
+
       // Store value write in main kernel.
       json::Object stValDirective;
-      stValDirective["directive_type"] = 
-        (maxStsBB > 1) ? "st_val_tagged" : "st_val";
+      stValDirective["directive_type"] = "st_val";
       stValDirective["instruction"] = genJsonForInstruction(stores[iSt]);
       stValDirective["read/write"] = "write";
       stValDirective["kernel_name"] = mainKernelName;
       stValDirective["pipe_name"] =
           "pipes_st_val_" + std::to_string(iLSQ) + "_class";
       stValDirective["pipe_type"] =
-          (maxStsBB > 1) ? isOnChip ? "tagged_val_lsq_bram_t<" + typeStr + ">"
-                                    : "tagged_val_lsq_dram_t<" + typeStr + ">"
-                         : typeStr;
-      stValDirective["seq_in_bb"] = stSeqInBB[iSt];
+          isOnChip ? "tagged_val_lsq_bram_t<" + typeStr + ">"
+                   : "tagged_val_lsq_dram_t<" + typeStr + ">";
+      stValDirective["seq_in_bb"] = storesPerBB[stores[iSt]->getParent()];
+      stValDirective["max_stores_per_bb"] = maxStsBB;
       instr2pipeArray.push_back(std::move(stValDirective));
 
       json::Object stReqDirective;
@@ -97,15 +118,61 @@ void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
           "pipes_st_req_" + std::to_string(iLSQ) + "_class";
       stReqDirective["pipe_type"] = 
           isOnChip ? "st_req_lsq_bram_t" : "st_req_lsq_dram_t";
-      stReqDirective["seq_in_bb"] = stSeqInBB[iSt];
+      stReqDirective["seq_in_bb"] = storesPerBB[stores[iSt]->getParent()];
       instr2pipeArray.push_back(std::move(stReqDirective));
+
+      storesPerBB[stores[iSt]->getParent()]++;
+    }
+
+    // Info about speculatively allocating addresses in the AGU.
+    json::Array hoistingInfoArray;
+    for (auto [specBB, allocStack] : DHA->getSpeculationStack()) {
+      json::Object thisSpecBB;
+      thisSpecBB["hoist_into_basic_block_idx"] =
+          getIndexOfChild(specBB->getParent(), specBB);
+
+      json::Array speculativeAllocations;
+      for (auto I : allocStack)
+        speculativeAllocations.push_back(genJsonForInstruction(I));
+      thisSpecBB["hoisted_instructions"] = std::move(speculativeAllocations);
+
+      hoistingInfoArray.push_back(std::move(thisSpecBB));
+    }
+    thisMemory["speculation_hoisting_info"] = std::move(hoistingInfoArray);
+
+    // Directives for poison read/writes on misspeculation.
+    DenseMap<std::pair<BasicBlock *, BasicBlock *>, int> loadsPerPoisonBB,
+        storesPerPoisonBB;
+    for (auto [I, poisonLocations] : DHA->getPoisonLocations()) {
+      for (auto [predBB, succBB] : poisonLocations) {
+        json::Object poisonDirective;
+        poisonDirective["directive_type"] = "poison";
+        poisonDirective["read/write"] = isaLoad(I) ? "read" : "write";
+        poisonDirective["kernel_name"] = mainKernelName;
+        poisonDirective["pipe_name"] =
+            isaLoad(I) ? "pipes_ld_val_" + std::to_string(iLSQ) + "_class"
+                       : "pipes_st_val_" + std::to_string(iLSQ) + "_class";
+        // A poison block will be inserted on pred->succ edge.
+        poisonDirective["pred_basic_block_idx"] = 
+            getIndexOfChild(predBB->getParent(), predBB);
+        poisonDirective["succ_basic_block_idx"] = 
+            getIndexOfChild(succBB->getParent(), succBB);
+        
+        auto &ldOrStSeq = isaLoad(I) ? loadsPerPoisonBB : storesPerPoisonBB;
+        if (!ldOrStSeq.contains({predBB, succBB}))
+          ldOrStSeq[{predBB, succBB}] = 0;
+        poisonDirective["seq_in_bb"] = ldOrStSeq[{predBB, succBB}];
+        poisonDirective["max_stores_per_bb"] = maxStsBB;
+        ldOrStSeq[{predBB, succBB}]++;
+        
+        instr2pipeArray.push_back(std::move(poisonDirective));
+      }
     }
 
     auto end_signal_pipe_name =
         "pipe_end_lsq_signal_" + std::to_string(iLSQ) + "_class";
     json::Object endSignalPipeDirective;
     endSignalPipeDirective["directive_type"] = "end_lsq_signal";
-    // endSignalPipeDirective["instruction"] = json::Object();
     endSignalPipeDirective["pipe_name"] = end_signal_pipe_name;
     endSignalPipeDirective["read/write"] = "write";
     endSignalPipeDirective["kernel_name"] = mainKernelName;
@@ -119,6 +186,8 @@ void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
   report["instr2pipe_directives"] = std::move(instr2pipeArray);
 }
 
+/// Print all analysis information related to dynamically scheduling 
+/// recurrences through registers in the DDG.
 void cdddReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
                        json::Object &report) {
   auto instr2pipeArray = *report["instr2pipe_directives"].getAsArray();
@@ -232,6 +301,7 @@ struct ElasticAnalysisPrinter : PassInfoMixin<ElasticAnalysisPrinter> {
       // Get all required analysis'. Only the CDG is custom written.
       auto &LI = AM.getResult<LoopAnalysis>(F);
       auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
+      auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
       auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
       auto &DI = AM.getResult<DependenceAnalysis>(F);
       std::shared_ptr<DataDependenceGraph> DDG(new DataDependenceGraph(F, DI));
@@ -239,7 +309,7 @@ struct ElasticAnalysisPrinter : PassInfoMixin<ElasticAnalysisPrinter> {
           new ControlDependenceGraph(F, PDT));
 
       // Get all memory loads and stores that form a RAW data hazard.
-      auto *DHA = new DataHazardAnalysis(F, LI, SE, PDT);
+      auto *DHA = new DataHazardAnalysis(F, LI, SE, DT, PDT, *DDG, *CDG);
       // Get all control-dependent data dependencies that increase the recII.
       auto *CDDD = new ControlDependentDataDependencyAnalysis(LI, *DDG, *CDG);
 
@@ -268,6 +338,7 @@ struct ElasticAnalysisPrinter : PassInfoMixin<ElasticAnalysisPrinter> {
   void getAnalysisUsage(AnalysisUsage &AU) const {
     AU.addRequiredID(LoopAnalysis::ID());
     AU.addRequiredID(ScalarEvolutionAnalysis::ID());
+    AU.addRequiredID(DominatorTreeAnalysis::ID());
     AU.addRequiredID(PostDominatorTreeAnalysis::ID());
     AU.addRequiredID(DependenceAnalysis::ID());
   }

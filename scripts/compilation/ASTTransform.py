@@ -88,76 +88,32 @@ def parse_report(report_fname):
     except Exception as e:
         exit("Error parsing analysis report " + report_fname)
 
-def get_lsq_store_queue_size(src):
-    """
-    Return the size of the store queue based on the II of a loop.
-
-    At the moment, a single (maximum) size is returned for all LSQs. 
-    Future work: return a single size for each LSQ.
-    """
-    print(f"Info: Generating loop report from downstream tools to choose LSQ size")
-
-    DEFAULT_SIZE = 16
-    MIN_SIZE = 4
-    try:
-        # Use standard compiler to perform II analysis
-        ii_report_cmd = f"icpx -fsycl -std=c++17 -O2 -I{GIT_DIR}/lsq \
-            -I{GIT_DIR}/include_sycl -fintelfpga -DFPGA_HW -Xshardware \
-            -Xsboard=intel_a10gx_pac:pac_a10 -fsycl-link=early \
-                {src} -o {src}.a > /dev/null 2>&1"
-        os.system(ii_report_cmd)
-
-        # Look for max II in kernel.
-        # TODO: only check the basic block of where the loads/stores occur.
-        # This shouldn't be hard since the report contains the llvm BB names.
-        loop_report_name = f"{src}.prj/reports/resources/json/loop_attr.json"
-        with open(loop_report_name, 'r') as f:
-            loop_report = json.loads(f.read())
-            max_ii = 1
-            for kernel in loop_report["nodes"]: 
-                if "children" in kernel:
-                    for loop in kernel["children"]: 
-                        if "ii" in loop:
-                            l_ii = int(loop["ii"])
-                            max_ii = l_ii if (l_ii > max_ii) else max_ii
-                        if "children" in loop:
-                            for bb in loop["children"]: 
-                                if "ii" in bb:
-                                    bb_ii = int(bb["ii"])
-                                    max_ii = bb_ii if (bb_ii > max_ii) else max_ii
-
-        next_power_of_2 = lambda x : 1 if x == 0 else 2**math.ceil(math.log2(x))
-        # +2 margin because there will be an additional pipe write-to-read latency
-        res = max(next_power_of_2(max_ii + 2), MIN_SIZE)
-        print(f"Info: Kernel has a max II={max_ii}, choosing store queue sizes of {res}")
-        return res
-    except Exception as e:
-        pass
-    
-    print(f"Info: Could not determine store queue size, using default of {DEFAULT_SIZE} instead")
-    return DEFAULT_SIZE
-
-def gen_lsq_kernel_calls(report, q_name, st_q_size):
+def gen_lsq_kernel_calls(report, q_name):
     LD_Q_SIZE = 4
 
     lsq_kernel_calls = []
     lsq_events_waits = []
 
     for i_mem, mem_info in enumerate(report['memory_to_decouple']):
+        print(f"Info: Generating LSQ_{i_mem}")
+        print(f"  store queue size: {mem_info['store_queue_size']}")
+        print(f"  address gen. decoupled: {mem_info['decouple_address']}")
+        print(f"  speculation: {mem_info['is_any_speculation']}")
+
         if mem_info['is_onchip']:
             lsq_kernel_calls.append(f'''
             auto lsqEvent_{i_mem} = 
                 LoadStoreQueueBRAM<{llvm2ctype(mem_info['array_type'])}, pipes_ld_req_{i_mem}, pipes_ld_val_{i_mem}, 
-                                    pipes_st_req_{i_mem}, pipes_st_val_{i_mem}, pipe_end_lsq_signal_{i_mem}, 
+                                    pipes_st_req_{i_mem}, pipes_st_val_{i_mem}, pipe_end_lsq_signal_{i_mem}, {int(mem_info['is_any_speculation'])},
                                     {mem_info['array_size']}, {mem_info['max_loads_per_bb']}, {mem_info['max_stores_per_bb']}, 
-                                    {LD_Q_SIZE}, {st_q_size}>({q_name});
+                                    {LD_Q_SIZE}, {mem_info['store_queue_size']}>({q_name});
             ''')
         else:
             lsq_kernel_calls.append(f'''
             auto lsqEvent_{i_mem} = 
                 LoadStoreQueueDRAM<{llvm2ctype(mem_info['array_type'])}, pipes_ld_req_{i_mem}, pipes_ld_val_{i_mem}, 
-                                    pipes_st_req_{i_mem}, pipes_st_val_{i_mem}, pipe_end_lsq_signal_{i_mem}, 
-                                    {mem_info['max_loads_per_bb']}, {mem_info['max_stores_per_bb']}, {LD_Q_SIZE}, {st_q_size}>({q_name});
+                                    pipes_st_req_{i_mem}, pipes_st_val_{i_mem}, pipe_end_lsq_signal_{i_mem}, {int(mem_info['is_any_speculation'])},
+                                    {mem_info['max_loads_per_bb']}, {mem_info['max_stores_per_bb']}, {LD_Q_SIZE}, {mem_info['store_queue_size']}>({q_name});
             ''')
         lsq_events_waits.append(f'lsqEvent_{i_mem}.wait();')
     
@@ -168,9 +124,6 @@ def gen_lsq_pipe_declarations(report):
     """
     Generate shortcut names for arrays of pipes that are passed to the LSQ IP.
     """
-    REQ_LSQ_DRAM_TYPE = 'req_lsq_dram_t'
-    LD_REQ_LSQ_BRAM_TYPE = 'ld_req_lsq_bram_t'
-    ST_REQ_LSQ_BRAM_TYPE = 'st_req_lsq_bram_t'
     LSQ_LD_PIPE_DEPTH = 32
     LSQ_ST_PIPE_DEPTH = 32
 
@@ -179,19 +132,15 @@ def gen_lsq_pipe_declarations(report):
     # Pipes for LSQ.
     for i_mem, mem_info in enumerate(report['memory_to_decouple']):
         val_type = llvm2ctype(mem_info['array_type'])
-        ld_req_type = LD_REQ_LSQ_BRAM_TYPE if mem_info['is_onchip'] else REQ_LSQ_DRAM_TYPE
-        st_req_type = ST_REQ_LSQ_BRAM_TYPE if mem_info['is_onchip'] else REQ_LSQ_DRAM_TYPE
-        st_val_type = val_type 
-        if mem_info['max_stores_per_bb'] > 1 and mem_info['is_onchip']:
-            st_val_type = f'tagged_val_lsq_bram_t<{val_type}>'
-        elif mem_info['max_stores_per_bb'] > 1:
-            st_val_type = f'tagged_val_lsq_dram_t<{val_type}>'
+        ld_req_type = 'ld_req_lsq_bram_t' if mem_info['is_onchip'] else 'req_lsq_dram_t'
+        st_req_type = 'st_req_lsq_bram_t' if mem_info['is_onchip'] else 'req_lsq_dram_t'
+        st_val_type = f'tagged_val_lsq_bram_t<{val_type}>' if mem_info['is_onchip'] else f'tagged_val_lsq_dram_t<{val_type}>'
         
         # Adjust pipe sizes going into the LSQ based on num lds/sts.
-        if mem_info['is_onchip']:
-            # LD pipes only need to be adjusted for BRAM LSQs.
-            LSQ_LD_PIPE_DEPTH *= mem_info['max_loads_per_bb']
-        LSQ_ST_PIPE_DEPTH *= mem_info['max_stores_per_bb']
+        # LD pipes only need to be adjusted for BRAM LSQs, because DRAM has multiple ld ports.
+        if mem_info['is_onchip']: 
+            LSQ_LD_PIPE_DEPTH *= max(1, math.ceil(mem_info['max_loads_per_bb']/mem_info['max_stores_per_bb']))
+        LSQ_ST_PIPE_DEPTH *= max(1, math.ceil(mem_info['max_stores_per_bb']/mem_info['max_loads_per_bb']))
 
         res.append(f"using pipes_ld_req_{i_mem} = \
             PipeArray<class pipes_ld_req_{i_mem}_class, {ld_req_type}, \
@@ -256,26 +205,19 @@ if __name__ == '__main__':
     src_lines = src_string.splitlines()
     
     report = parse_report(JSON_REPORT_FNAME)
-    NUM_LSQs = len(report['memory_to_decouple'])
-    NUM_PEs = len(report['blocks_to_decouple'])
-
-    print(f"Info: Generating {NUM_LSQs} LSQs and {NUM_PEs} PEs")
 
     # Keep track of kernel boundaries (and adjust their values if necessary).
     kernel_start_line = report["kernel_start_line"]
     kernel_end_line = get_kernel_end_line(src_lines, kernel_start_line)
     kernel_body = get_kernel_body(src_lines, kernel_start_line, kernel_end_line)
     Q_NAME = get_queue_name(src_lines[kernel_start_line-1])
-    LSQ_ST_QUEUE_SIZE = 16
-    if NUM_LSQs > 0:
-        LSQ_ST_QUEUE_SIZE = get_lsq_store_queue_size(SRC_FNAME)
 
-    pipe_decl = gen_lsq_pipe_declarations(report)
+    lsq_pipe_decl = gen_lsq_pipe_declarations(report)
 
     # Insert pipe type declarations into the src file.
-    src_after_pipe_decl = insert_before_line(src_lines, kernel_start_line, pipe_decl)
-    kernel_start_line += len(pipe_decl)
-    kernel_end_line += len(pipe_decl)
+    src_after_pipe_decl = insert_before_line(src_lines, kernel_start_line, lsq_pipe_decl)
+    kernel_start_line += len(lsq_pipe_decl)
+    kernel_end_line += len(lsq_pipe_decl)
 
     # Pipe operations in main kernel
     main_kernel_pipe_ops = gen_pipe_ops(report, report['main_kernel_name'])
@@ -286,6 +228,8 @@ if __name__ == '__main__':
     pe_kernel_forward_decl = []
     pe_kernel_waits = []
     for i_pe, pe_info in enumerate(report['blocks_to_decouple']):
+        print(f"Info: Generating PE_{i_pe}")
+
         pe_name = f"{report['main_kernel_name']}_PE_{i_pe}"
         pe_kernel_forward_decl.append(f"class {pe_name.split(' ')[-1]};")
         # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
@@ -321,7 +265,7 @@ if __name__ == '__main__':
     kernel_end_line += len(agu_kernels)
 
     # Insert call to LSQ kernels right before the original kernel call.
-    lsq_calls, lsq_waits = gen_lsq_kernel_calls(report, Q_NAME, LSQ_ST_QUEUE_SIZE)
+    lsq_calls, lsq_waits = gen_lsq_kernel_calls(report, Q_NAME)
     src_after_event_waits = insert_before_line(src_after_agu, kernel_start_line, lsq_calls)
     kernel_start_line += len(lsq_calls)
     kernel_end_line += len(lsq_calls)
@@ -330,7 +274,7 @@ if __name__ == '__main__':
     src_after_event_waits = insert_after_line(src_after_event_waits, kernel_end_line, all_event_waits)
 
     # Combine all kernels together with the LSQ kernel.
-    lsq_src = get_src(LSQ_BRAM_FILE) + get_src(LSQ_DRAM_FILE) if NUM_LSQs > 0 else []
+    lsq_src = get_src(LSQ_BRAM_FILE) + get_src(LSQ_DRAM_FILE)
     all_combined = pe_kernel_forward_decl + agu_kernel_forward_decl + lsq_src + src_after_event_waits
 
     # The end result is a transformed NEW_SRC_FILENAME and 

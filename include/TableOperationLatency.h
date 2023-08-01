@@ -22,14 +22,15 @@ const llvm::DenseMap<unsigned, int> LATENCY_TABLE_ARRIA10 = {
   {llvm::Instruction::FPExt, 1},
 
   // Integer.
-  {llvm::Instruction::Mul, 1},
+  {llvm::Instruction::Mul, 3},
   {llvm::Instruction::Add, 1},
   {llvm::Instruction::Sub, 1},
   {llvm::Instruction::UDiv, 4},
   {llvm::Instruction::SDiv, 4},
-  {llvm::Instruction::URem, 1},
-  {llvm::Instruction::SRem, 1},
-  {llvm::Instruction::FRem, 1},
+  // TODO: if shift by power-of-2, then latency is 1.
+  {llvm::Instruction::URem, 9},
+  {llvm::Instruction::SRem, 9},
+  {llvm::Instruction::FRem, 9},
   {llvm::Instruction::Trunc, 1},
   {llvm::Instruction::ZExt, 1},
   {llvm::Instruction::SExt, 1},
@@ -41,6 +42,9 @@ const llvm::DenseMap<unsigned, int> LATENCY_TABLE_ARRIA10 = {
   {llvm::Instruction::And, 1},
   {llvm::Instruction::Or, 1},
   {llvm::Instruction::Xor, 1},
+  {llvm::Instruction::ICmp, 1},
+  {llvm::Instruction::FCmp, 1},
+  {llvm::Instruction::Select, 1},
 };
 
 } // end namespace llvm

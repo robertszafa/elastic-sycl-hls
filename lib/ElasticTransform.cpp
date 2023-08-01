@@ -84,7 +84,7 @@ void instr2pipeLsqLdReq(json::Object &i2pInfo, Value *stTagAddr,
   stTagStore->setOperand(0, stTagVal);
 
   // Optionally, write load tag.
-  if (isBRAM && *i2pInfo.getInteger("max_seq_in_bb") > 1) {
+  if (isBRAM && *i2pInfo.getInteger("max_loads_per_bb") > 1) {
     // A load tag is first used in the load request.
     ldTagStore->moveBefore(pipeWrite);
     Builder.SetInsertPoint(ldTagStore);
@@ -157,42 +157,94 @@ void instr2pipeLdVal(json::Object &i2pInfo) {
   loadVal->replaceAllUsesWith(pipeRead);
 }
 
-/// Given a store instuction, swap it for a pipe write.
-void instr2pipeStVal(json::Object &i2pInfo) {
-  auto pipeWrite =
-      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
-  auto I =
-      reinterpret_cast<Instruction *>(*i2pInfo.getInteger("llvm_instruction"));
-  pipeWrite->moveAfter(I);
-  // Instead of storing to memory, store into the pipe.
-  I->setOperand(1, pipeWrite->getOperand(0));
-}
-
 /// Given a store instuction, swap it for a tagged value pipe write.
-void instr2pipeStValTagged(json::Object &i2pInfo, Value *tagAddr, 
+void instr2pipeStVal(json::Object &i2pInfo, Value *tagAddr, 
                            SmallVector<Instruction *> &created) {
   auto pipeWrite =
       reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
   auto I =
       reinterpret_cast<Instruction *>(*i2pInfo.getInteger("llvm_instruction"));
   // Stores into the tagged value struct.
-  auto taggedValStructStores = getPipeOpStructStores(pipeWrite);
-  StoreInst *valStore = taggedValStructStores[0];
-  StoreInst *tagStore = taggedValStructStores[1];
-  auto tagType = tagStore->getOperand(0)->getType();
+  auto stValStructStores = getPipeOpStructStores(pipeWrite);
+  StoreInst *valStore = stValStructStores[0];
 
-  IRBuilder<> IR(I);
-  LoadInst *tagVal = IR.CreateLoad(tagType, tagAddr);
-  auto tagPlusOne = IR.CreateAdd(tagVal, ConstantInt::get(tagType, 1));
-  auto tagStoreToTag = IR.CreateStore(tagPlusOne, tagAddr);
-  auto tagStoreToPipe = IR.CreateStore(tagPlusOne, tagStore->getOperand(1));
-  pipeWrite->moveAfter(I);
+  // Set the valid bit for all store values coming from this pipe.
+  StoreInst *validStore = stValStructStores[2];
+  validStore->setOperand(
+      0, ConstantInt::get(validStore->getOperand(0)->getType(), 1));
+  created.push_back(validStore);
+
+  // If multiple store values are written in one BB, then add a tag for muxing.
+  if (*i2pInfo.getInteger("max_stores_per_bb") > 1) {
+    IRBuilder<> IR(I);
+    StoreInst *tagStore = stValStructStores[1];
+    auto tagType = tagStore->getOperand(0)->getType();
+    LoadInst *tagVal = IR.CreateLoad(tagType, tagAddr);
+    auto tagPlusOne = IR.CreateAdd(tagVal, ConstantInt::get(tagType, 1));
+    auto tagStoreToTag = IR.CreateStore(tagPlusOne, tagAddr);
+    auto tagStoreToPipe = IR.CreateStore(tagPlusOne, tagStore->getOperand(1));
+
+    created.push_back(tagStoreToTag);
+    created.push_back(tagStoreToPipe);
+  }
 
   // Instead of storing value to memory, store into the valStore struct member.
+  pipeWrite->moveAfter(I);
   I->setOperand(1, valStore->getOperand(1));
+}
 
-  created.push_back(tagStoreToTag);
-  created.push_back(tagStoreToPipe);
+/// Create a new basic block with a poison pipe read/write to deallocate
+/// a misspeculated address allocation to the LSQ. 
+void instr2pipePoisonAlloc(json::Object &i2pInfo, Value *tagAddr,
+                           SmallVector<Instruction *> &created) {
+  // Map of CFG edges to poison basic blocks that already have been created.
+  static MapVector<std::pair<BasicBlock *, BasicBlock *>, BasicBlock *>
+      createdBlocks;
+
+  auto pipeCall =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+
+  // Create BB or get one that already exists on pred-->succ edge
+  auto predBB = reinterpret_cast<BasicBlock *>(
+      *i2pInfo.getInteger("llvm_pred_basic_block"));
+  auto succBB = reinterpret_cast<BasicBlock *>(
+      *i2pInfo.getInteger("llvm_succ_basic_block"));
+  BasicBlock *poisonBB;
+  IRBuilder<> IR(predBB->getContext());
+  if (!createdBlocks.contains({predBB, succBB})) {
+    poisonBB = BasicBlock::Create(predBB->getContext(), "Poison",
+                                  predBB->getParent(), succBB);
+    createdBlocks[{predBB, succBB}] = poisonBB;
+
+    // Insert BB on pred-->succ edge
+    // Before changing edges, make all phis from predBB now come from PoisonBB
+    predBB->replaceSuccessorsPhiUsesWith(predBB, poisonBB);
+    IR.SetInsertPoint(poisonBB);
+    IR.CreateBr(succBB);
+    auto branchInPredBB = dyn_cast<BranchInst>(predBB->getTerminator());
+    branchInPredBB->replaceSuccessorWith(succBB, poisonBB);
+  } else {
+    poisonBB = createdBlocks[{predBB, succBB}];
+  }
+
+  // Create poison read/write. A poison write just doesn't set the st_val valid
+  // bit. A read just discard its value (i.e. gets no SSA name).
+  pipeCall->moveBefore(poisonBB->getTerminator());
+
+  // If multiple store values are written in one BB, add a tag for muxing.
+  if (*i2pInfo.getInteger("max_stores_per_bb") > 1) {
+    auto stValPipeStructStores = getPipeOpStructStores(pipeCall);
+    IR.SetInsertPoint(pipeCall);
+    StoreInst *tagStore = stValPipeStructStores[1];
+    auto tagType = tagStore->getOperand(0)->getType();
+    LoadInst *tagVal = IR.CreateLoad(tagType, tagAddr);
+    auto tagPlusOne = IR.CreateAdd(tagVal, ConstantInt::get(tagType, 1));
+    auto tagStoreToTag = IR.CreateStore(tagPlusOne, tagAddr);
+    auto tagStoreToPipe = IR.CreateStore(tagPlusOne, tagStore->getOperand(1));
+
+    created.push_back(tagStoreToTag);
+    created.push_back(tagStoreToPipe);
+  }
 }
 
 /// Given {F}, insert an LSQ end_signal pipe call that carries the final {tag}
@@ -439,6 +491,40 @@ void hoistPipesMain(json::Array &directives, LoopInfo &LI) {
   }
 }
 
+/// Hoist selected memory operations out of their if-condition. 
+void hoistSpeculativeLSQAllocations(Function &F, const json::Object &report) {
+  // First transform json info into llvm values.
+  MapVector<BasicBlock *, SetVector<BasicBlock *>> mergingInfo;
+  for (auto memInfoVal : *report.getArray("memory_to_decouple")) {
+    auto memInfo = *memInfoVal.getAsObject();
+    for (auto hoistInfoVal : *memInfo.getArray("speculation_hoisting_info")) {
+      auto hoistInfo = *hoistInfoVal.getAsObject();
+      auto specBB = getChildWithIndex<Function, BasicBlock>(
+          &F, *hoistInfo.getInteger("hoist_into_basic_block_idx"));
+      mergingInfo[specBB] = SetVector<BasicBlock *>();
+      for (auto instrInfoVal : *hoistInfo.getArray("hoisted_instructions")) {
+        mergingInfo[specBB].insert(
+            getInstruction(F, *instrInfoVal.getAsObject())->getParent());
+      }
+    }
+  }
+
+  // Now do the actual hoisting of mem ops that need to have addresses
+  // speculatively allocated.
+  for (auto [specBB, mergeBlocks] : mergingInfo) {
+    for (auto block : mergeBlocks) {
+      // Move address and any needed values to specBB
+      SmallVector<Instruction *> toMove;
+      for (auto &I : *block) {
+        if (block->getTerminator() != &I) 
+          toMove.push_back(&I);
+      }
+      for (auto I : toMove) 
+        I->moveBefore(specBB->getTerminator());
+    }
+  }
+}
+
 /// Return instructions in loop L which use instruction I, including I itself.
 SmallVector<Instruction *> getLoopInstructionsDependingOnI(Instruction *I,
                                                            Loop *L) {
@@ -598,6 +684,16 @@ json::Array getDirectives(Function &F, const json::Object &report) {
           reinterpret_cast<std::intptr_t>(getInstruction(F, *optI));
     }
 
+    // The poison directives have a predBB --> sucBB edge.
+    if (auto optPredBBIdx = i2pInfo.getInteger("pred_basic_block_idx")) {
+      i2pInfo["llvm_pred_basic_block"] = reinterpret_cast<std::intptr_t>(
+          getChildWithIndex<Function, BasicBlock>(&F, *optPredBBIdx));
+    }
+    if (auto optSuccBBIdx = i2pInfo.getInteger("succ_basic_block_idx")) {
+      i2pInfo["llvm_succ_basic_block"] = reinterpret_cast<std::intptr_t>(
+          getChildWithIndex<Function, BasicBlock>(&F, *optSuccBBIdx));
+    }
+
     directives.push_back(std::move(i2pInfo));
   }
 
@@ -624,17 +720,22 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
     }
 
     // Each loop is in Loop Simplify Form -- preheader, header, body, latch,
-    // exit blocks. We use these blocks to insert pipe calls.
+    // exit blocks. Get LoopInfo to use these blocks.
     auto &LI = AM.getResult<LoopAnalysis>(F);
 
     // Instruction-2-pipe transformation directives for this function. 
     json::Array directives = getDirectives(F, report);
     // A mapping between recurrence start instructions and pipes to hoist out.
+    // This is used to remove unnecessary PE<-->main kernel communication.
     json::Array hoistDirectives = getPipesToHoist(directives, LI);
     // Instructions decoupled out of the main kernel into a predicated PE.
     SmallVector<Instruction *> decoupledI = getInstructionsToDecouple(F, report);
     // Record instructions during transformation, which shouldn't be deleted.
     SmallVector<Instruction *> toKeep;
+
+    // Optionally hoist LSQ allocations out of their if-condition.
+    if (isAGU) 
+      hoistSpeculativeLSQAllocations(F, report);
 
     // Tags for ordering of LSQ reqeusts and values. Not necessarily used.
     auto lsqStValTag = createTag(F, toKeep);
@@ -650,13 +751,13 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
       if (directiveType == "ld_val")
         instr2pipeLdVal(i2pInfo);
       else if (directiveType == "st_val")
-        instr2pipeStVal(i2pInfo);
-      else if (directiveType == "st_val_tagged")
-        instr2pipeStValTagged(i2pInfo, lsqStValTag, toKeep);
+        instr2pipeStVal(i2pInfo, lsqStValTag, toKeep);
       else if (directiveType == "ld_req")
         instr2pipeLsqLdReq(i2pInfo, lsqStReqTag, lsqLdReqTag, toKeep);
       else if (directiveType == "st_req")
         instr2pipeLsqStReq(i2pInfo, lsqStReqTag, toKeep);
+      else if (directiveType == "poison")
+        instr2pipePoisonAlloc(i2pInfo, lsqStValTag, toKeep);
       else if (directiveType == "end_lsq_signal")
         moveEndLsqSignalToReturnBB(i2pInfo);
       // Predicated PE related:

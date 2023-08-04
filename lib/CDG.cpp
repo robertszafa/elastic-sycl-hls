@@ -112,47 +112,16 @@ raw_ostream &llvm::operator<<(raw_ostream &OS, const CDGEdge &E) {
 bool ControlDependenceGraph::isControlDependent(const BasicBlock *B,
                                                 const BasicBlock *A,
                                                 PostDominatorTree &PDT) {
-  if (PDT.properlyDominates(B, A))
+  // If B is guaranteed to execute when A executes, then it's not ctrl. dep.
+  // The "properly" ensures that A and B are not the same block.
+  if (PDT.properlyDominates(B, A)) 
     return false;
 
-  // Simple case where B is the immediate predecessor of A, and A has 2
-  // successors.
-  if (auto predB = B->getSinglePredecessor()) {
-    if (predB == A && A->getTerminator()->getNumOperands() > 1)
-      return true;
-  }
-
-  // Look for a path from A to B.
-  SmallVector<const BasicBlock *> pathStack;
-  bool existsPathFromAToB = false;
-  unsigned int pathLength = 0;
-  for (auto succA = df_begin(A); succA != df_end(A); ++succA) {
-    if (*succA == A)
-      continue;
-    pathLength = succA.getPathLength() - 1;
-
-    if (*succA == B) {
-      existsPathFromAToB = true;
-      break;
-    }
-
-    if (pathLength > pathStack.size()) {
-      pathStack.push_back(*succA);
-    } else {
-      // Disregard blocks in the range
-      // pathStack[currPathLength : pathStack.size())
-      pathStack[pathLength - 1] = *succA;
-    }
-  }
-
-  if (existsPathFromAToB) {
-    // Check if every node on the path is post-dominated by B.
-    return all_of(pathStack, [&](const BasicBlock *X) {
-      return PDT.properlyDominates(B, X);
-    });
-  }
-
-  return false;
+  // So, when control is at A, then B is not guranteed to execute. Is there an
+  // edge from A that, when taken, guarantees that B is executed?
+  return llvm::any_of(successors(A), [&PDT, &B](auto succA) {
+    return PDT.dominates(B, succA);
+  });
 }
 
 BasicBlock *ControlDependenceGraph::getControlDependencySource(BasicBlock *BB) {
@@ -188,7 +157,6 @@ void ControlDependenceGraph::calculateCDG(Function &F, PostDominatorTree &PDT) {
     auto BBN = getBlockNode(&BB);
     bool isControlDependentOnAny = false;
 
-    // TODO: Search can be pruned - only look at blocks reachable from BB.
     for (auto &predBB : F) {
       if (isControlDependent(&BB, &predBB, PDT)) {
         isControlDependentOnAny = true;
@@ -229,21 +197,19 @@ CDGEdge::EdgeKind ControlDependenceGraph::getEdgeKind(const BasicBlock *A,
   assert(isPotentiallyReachable(A, B) && "Blocks A and B are not connected.");
   
   const BranchInst *branchA = dyn_cast<BranchInst>(A->getTerminator());
-  assert(branchA && branchA->isConditional() && "Block B cannot depend on A.");
+  int numSucc = branchA->getNumSuccessors();
   
   // Case 1 where B is a direct descendant of B.
   if (branchA->getSuccessor(0) == B)
     return CDGEdge::EdgeKind::True;
-  else if (branchA->getSuccessor(1) == B)
+  else if (numSucc > 1 && branchA->getSuccessor(1) == B)
     return CDGEdge::EdgeKind::False;
-  // The case "B is a direct successor of A && b->isUnconditional" 
-  // is not possible. In that case B is not control dependent on A.
 
   // Case 2 where the A~>B path has intermediate blocks. 
   // Find out if we have to take the True or False branch at A.
   if (isPotentiallyReachable(branchA->getSuccessor(0), B))
     return CDGEdge::EdgeKind::True;
-  else if (isPotentiallyReachable(branchA->getSuccessor(1), B))
+  else if (numSucc > 1 && isPotentiallyReachable(branchA->getSuccessor(1), B))
     return CDGEdge::EdgeKind::False;
 
   assert(false && "Could not determine edge kind");

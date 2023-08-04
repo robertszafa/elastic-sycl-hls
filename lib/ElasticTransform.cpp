@@ -272,7 +272,17 @@ void instr2pipeSsaPe(json::Object &i2pInfo,
   // Hoisted out reads happend in function entry. Hoisted writes in exit.
   if (i2pInfo.getString("read/write") == "read") {
     pipeCall->moveBefore(&decoupledBB->front());
-    I->replaceAllUsesWith(pipeCall);
+
+    // Sometimes we need to cast, e.g. if the pipe is carrying an address.
+    if (I->getType() != pipeCall->getType()) {
+      auto pipeReadCasted =
+          BitCastInst::CreateBitOrPointerCast(pipeCall, I->getType(), "");
+      pipeReadCasted->insertAfter(pipeCall);
+      I->replaceAllUsesWith(pipeReadCasted);
+      created.push_back(pipeReadCasted);
+    } else {
+      I->replaceAllUsesWith(pipeCall);
+    }
   } else {
     pipeCall->moveBefore(decoupledBB->getTerminator());
     created.push_back(storeValIntoPipe(I, pipeCall));
@@ -306,7 +316,18 @@ void instr2pipeSsaMain(json::Object &i2pInfo,
     Instruction *insertPtStart =
         isaLoad(I) && I->getParent() == decoupledBB ? I : &decoupledBB->front();
     pipeCall->moveAfter(insertPtStart);
-    created.push_back(storeValIntoPipe(I, pipeCall));
+
+    // Check if we need to cast, e.g. when communicating an address.
+    auto pipeOpType =
+        pipeCall->getOperand(0)->getType()->getNonOpaquePointerElementType();
+    if (I->getType() != pipeOpType) {
+      auto ICasted =
+          BitCastInst::CreateBitOrPointerCast(I, pipeOpType, "", pipeCall);
+      created.push_back(ICasted);
+      created.push_back(storeValIntoPipe(ICasted, pipeCall));
+    } else {
+      created.push_back(storeValIntoPipe(I, pipeCall));
+    }
   }
 }
 
@@ -370,7 +391,7 @@ void createPredicatedPE(json::Object &i2pInfo) {
         instrsToDelete.push_back(&I);
     }
   }
-  for (auto &I : instrsToDelete) 
+  for (auto &I : instrsToDelete)
     deleteInstruction(I);
   for (auto BB : blocksToDelete) 
     BB->removeFromParent();
@@ -449,6 +470,7 @@ void hoistPipesPE(json::Array &directives) {
   }
 }
 
+/// Hoist a pipe write to loop header, or a pipe read to loop exit blocks.
 void hoistPipesMain(json::Array &directives, LoopInfo &LI) {
  for (const json::Value &i2pInfoVal : directives) {
     auto i2pInfo = *i2pInfoVal.getAsObject();
@@ -480,7 +502,12 @@ void hoistPipesMain(json::Array &directives, LoopInfo &LI) {
       storeValIntoPipe(initVal, pipeCall);
       deleteInstruction(toDeleteStore);
     } else {
-      pipeCall->moveBefore(L->getExitBlock()->getTerminator());
+      // Recurrence out pipe reads should happen after predicate{false} write.
+      Instruction *insertAfterI = L->getExitBlock()->getFirstNonPHIOrDbg();
+      for (auto &I : *L->getExitBlock())
+        insertAfterI = (getPipeCall(&I)) ? &I : insertAfterI;
+        
+      pipeCall->moveAfter(insertAfterI);
       recStart->replaceAllUsesWith(pipeCall);
       if (auto recEnd = dyn_cast<Instruction>(
               recStart->DoPHITranslation(loopHeader, L->getLoopLatch()))) {
@@ -618,9 +645,7 @@ json::Array getPipesToHoist(const json::Array &allDirectives, LoopInfo &LI) {
           recStart = phiI;
     }
 
-    if (canBeHoisted) {
-      assert(recStart && "Did not find recurrence start, cannot hoist.");
-
+    if (canBeHoisted && recStart) {
       // Check if I is used by the recurrence_start phi, i.e. is there a path: 
       // recStart_phiNode -> I -> loopLatch_phiNode -> recStart_phiNode
       bool isUsedByRecurrenceStart = false;
@@ -782,10 +807,12 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
     // The AGU and PE kernels have most instructions deleted. We keep track of
     // stores writing to pipes which should not be deleted. Other stores get
     // deleted and then DCE is ran to delete the rest of instructions.
-    if (isAGU || isPE)
+    if (isAGU) {
       deleteAllStores(F, toKeep);
-    
-    if (isMain) {
+    } else if (isPE) {
+      llvm::append_range(toKeep, decoupledI);
+      deleteAllStores(F, toKeep);
+    } else if (isMain) {
       // Delete instructions decoupled into a PE, except toKeep and pipe calls.
       for (auto &I : decoupledI) {
         if (!getPipeCall(I) && !llvm::is_contained(toKeep, I))

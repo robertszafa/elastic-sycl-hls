@@ -64,6 +64,8 @@ def llvm2ctype(llvmtype):
         return 'int'
     elif llvmtype == 'i64':
         return 'signed long int'
+    elif 'addrspace' in llvmtype:
+        return 'int64_t'
 
     return llvmtype
 

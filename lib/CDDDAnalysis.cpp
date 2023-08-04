@@ -8,12 +8,6 @@ using namespace llvm;
 
 namespace llvm {
 
-bool canDecouple(Instruction *I) {
-  return !I->isTerminator() && !I->mayReadOrWriteMemory() &&
-         !I->isDebugOrPseudoInst() && !isa<StoreInst>(I) && !isa<LoadInst>(I) &&
-         !isa<GetElementPtrInst>(I) && !isa<AddrSpaceCastInst>(I);
-}
-
 int ControlDependentDataDependencyAnalysis::calculatePathII(
     SmallVector<Instruction *> &SCC) {
   int ii = 0;
@@ -159,9 +153,8 @@ void ControlDependentDataDependencyAnalysis::calculateRegionsToDecouple(
 
           // Decoupled all instructions in the BB (except loads and stores).
           for (auto &I : *candidateBB) {
-            if (canDecouple(&I)) {
+            if (!I.isTerminator()) 
               instrToDecoupleInBB[candidateBB].insert(&I);
-            }
           }
 
           // Alternatively, decouple only instructions on the current SCC path.

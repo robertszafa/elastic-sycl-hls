@@ -162,13 +162,11 @@ int main(int argc, char *argv[]) {
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    #ifdef TEST
     bnn_cpu(addr_in, addr_out, w, in, mean, cpu_data, N);
     if (std::equal(h_data.begin(), h_data.end(), cpu_data.begin()))
       std::cout << "Passed\n";
     else
       std::cout << "Failed\n";
-    #endif
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

@@ -16,7 +16,7 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-using DATA_TYPE = int;
+using DATA_TYPE = float;
 
 double vec_norm_trans_kernel(queue &q, const std::vector<DATA_TYPE> &h_a,
                              std::vector<DATA_TYPE> &h_r, const int N) {
@@ -32,7 +32,7 @@ double vec_norm_trans_kernel(queue &q, const std::vector<DATA_TYPE> &h_a,
     }
 
     for (int i = 0; i < N; i++) {
-      DATA_TYPE d = a[i] / weight;
+      DATA_TYPE d = a[i] / (weight + 1);
       r[i] = r[i] + d;
     }
   });
@@ -60,7 +60,7 @@ void vec_norm_trans_cpu(const std::vector<DATA_TYPE> &a,
   }
 
   for (int i = 0; i < N; i++) {
-    DATA_TYPE d = a[i] / weight;
+    DATA_TYPE d = a[i] / (weight + 1);
     r[i] = r[i] + d;
   }
 }

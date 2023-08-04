@@ -28,7 +28,8 @@ using namespace fpga_tools;
 using PipelinedLSU = sycl::ext::intel::lsu<>;
 
 /// Max number of cycles between issuing store to DRAM memory controller and commit.
-constexpr int STORE_LATENCY_DRAM = 8; 
+constexpr int LSU_STORE_LATENCY = 8; 
+constexpr int LSU_LOAD_LATENCY = 8; 
 
 /// Represents pointer bits.
 using addr_dram_t = int64_t;
@@ -57,20 +58,20 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
   assert(ST_Q_SIZE >= 2 && "Store queue size must be at least 2.");
 
   // Pipes to connect LSQ to ld/st ports and to ld value mux.
-  using pred_st_port_pipe = pipe<class pred_st_port_pipe_class, bool, STORE_LATENCY_DRAM>;
-  using st_port_val_pipe = pipe<class st_port_val_pipe_class, addr_dram_val_pair_t<value_t>, STORE_LATENCY_DRAM>;
+  using pred_st_port_pipe = pipe<class pred_st_port_pipe_class, bool, LSU_STORE_LATENCY>;
+  using st_port_val_pipe = pipe<class st_port_val_pipe_class, addr_dram_val_pair_t<value_t>, LSU_STORE_LATENCY>;
 
   // Each load gets its own load port and load mux, thus the use of PipeArrays.
-  using pred_ld_port_pipes = PipeArray<class pred_ld_port_pipe_class, bool, STORE_LATENCY_DRAM, NUM_LDS>;
-  using ld_port_addr_pipes = PipeArray<class ld_port_addr_pipe_class, addr_dram_t, STORE_LATENCY_DRAM, NUM_LDS>;
-  using pred_ld_mux_pipes = PipeArray<class pred_ld_mux_pipe_class, bool, STORE_LATENCY_DRAM, NUM_LDS>;
-  using ld_mux_sel_pipes = PipeArray<class ld_mux_sel_pipe_class, bool, STORE_LATENCY_DRAM, NUM_LDS>;
-  using ld_mux_from_memory_val_pipes = PipeArray<class ld_mux_from_memory_val_class, value_t, STORE_LATENCY_DRAM, NUM_LDS>;
-  using ld_mux_from_bypass_val_pipes = PipeArray<class ld_mux_from_bypass_val_class, value_t, STORE_LATENCY_DRAM, NUM_LDS>;
+  using pred_ld_port_pipes = PipeArray<class pred_ld_port_pipe_class, bool, LSU_LOAD_LATENCY, NUM_LDS>;
+  using ld_port_addr_pipes = PipeArray<class ld_port_addr_pipe_class, addr_dram_t, LSU_LOAD_LATENCY, NUM_LDS>;
+  using pred_ld_mux_pipes = PipeArray<class pred_ld_mux_pipe_class, bool, LSU_LOAD_LATENCY, NUM_LDS>;
+  using ld_mux_sel_pipes = PipeArray<class ld_mux_sel_pipe_class, bool, LSU_LOAD_LATENCY, NUM_LDS>;
+  using ld_mux_from_memory_val_pipes = PipeArray<class ld_mux_from_memory_val_class, value_t, LSU_LOAD_LATENCY, NUM_LDS>;
+  using ld_mux_from_bypass_val_pipes = PipeArray<class ld_mux_from_bypass_val_class, value_t, LSU_LOAD_LATENCY, NUM_LDS>;
 
   /// Store port kernel
   auto storePortEvent = q.submit([&](handler &hnd) {
-    hnd.single_task<class StorePort>([=]()  {
+    hnd.single_task<class StorePort>([=]() KERNEL_PRAGMAS {
       [[intel::speculated_iterations(0)]]
       while (pred_st_port_pipe::read()) {
         addr_dram_val_pair_t<value_t> addr_val = st_port_val_pipe::read();
@@ -119,11 +120,11 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
       [[intel::fpga_register]] addr_dram_t st_alloc_addr[ST_Q_SIZE];
       [[intel::fpga_register]] bool st_alloc_addr_valid[ST_Q_SIZE];
       [[intel::fpga_register]] uint st_alloc_tag[ST_Q_SIZE];
-      [[intel::fpga_register]] addr_dram_t st_commit_addr[STORE_LATENCY_DRAM];
-      [[intel::fpga_register]] value_t st_commit_value[STORE_LATENCY_DRAM];
+      [[intel::fpga_register]] addr_dram_t st_commit_addr[LSU_STORE_LATENCY];
+      [[intel::fpga_register]] value_t st_commit_value[LSU_STORE_LATENCY];
       uint last_st_req_tag = 0;
       #pragma unroll
-      for (int i = 0; i < STORE_LATENCY_DRAM; ++i) 
+      for (int i = 0; i < LSU_STORE_LATENCY; ++i) 
         st_commit_addr[i] = INVALID_ADDRESS;
 
       // Registers for load logic. 
@@ -167,10 +168,12 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
             st_val = _rd.value;
             // Optional support for speculative address allocations. 
             // If enabled, then the store value needs a valid bit to commit.
-            if constexpr (USE_SPECULATION) 
-              st_val_valid = _rd.valid; 
-            else
+            if constexpr (USE_SPECULATION) {
+              if (st_val_arrived)
+                st_val_valid = _rd.valid; 
+            } else {
               st_val_valid = st_val_arrived;
+            }
           } else {
             // Store value mux.
             UnrolledLoop<NUM_STS>([&](auto k) {
@@ -205,12 +208,12 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         // keeps the values in the queue longer than needed, increasing re-use.
         if (st_val_valid || st_commit_addr[0] == INVALID_ADDRESS) {
           #pragma unroll
-          for (int i = 0; i < STORE_LATENCY_DRAM-1; ++i) {
+          for (int i = 0; i < LSU_STORE_LATENCY-1; ++i) {
             st_commit_addr[i] = st_commit_addr[i+1];
             st_commit_value[i] = st_commit_value[i+1];
           }
-          st_commit_addr[STORE_LATENCY_DRAM-1] = next_st_commit_addr;
-          st_commit_value[STORE_LATENCY_DRAM-1] = st_val;
+          st_commit_addr[LSU_STORE_LATENCY-1] = next_st_commit_addr;
+          st_commit_value[LSU_STORE_LATENCY-1] = st_val;
         }
 
         // Accept new store allocations, unless no space in allocation queue.
@@ -312,7 +315,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
             // check for bypass on every invocation.
             is_bypass[iLd][iAlloc] = false;
             #pragma unroll
-            for (int i = 0; i < STORE_LATENCY_DRAM; ++i) {
+            for (int i = 0; i < LSU_STORE_LATENCY; ++i) {
               // If multiple matches, then the most recent one wins. No need to
               // check the tags since all stores in the commit queue by
               // definition come before this load in program order.
@@ -341,25 +344,18 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
 
       } // End LSQ pipelined loop.
 
-      // Send end signals to ld/st ports and the load_value/store_req muxes.
+      // Send end signals to ld/st ports.
       UnrolledLoop<NUM_LDS>([&](auto iLd) {
         pred_ld_port_pipes:: template PipeAt<iLd>::write(0);
         pred_ld_mux_pipes:: template PipeAt<iLd>::write(0);
       });
-
       pred_st_port_pipe::write(0);
-
-      // if constexpr (NUM_STS > 1) {
-      //   st_req_mux_end_signal::write(0);
-      //   st_val_mux_end_signal::write(0);
-      // }
 
     });
   }); // End LSQ kernel
   
 
-  // The client might want to wait for the kernels to finish. 
-  // Store port will be last so wait for it.
+  // Return the event for the last kernel to finish.
   return storePortEvent;
 }
 

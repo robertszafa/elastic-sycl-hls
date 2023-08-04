@@ -14,41 +14,37 @@
 using namespace sycl;
 using namespace fpga_tools;
 
+using DATA_TYPE = float;
+
 // Forward declare kernel name.
 class MainKernel;
 
 constexpr int N = 1000;
 
 double filter_sum_kernel(queue &q, const std::vector<int> &h_idxs,
-                   std::vector<int> &h_A) {
+                   std::vector<DATA_TYPE> &h_A) {
   int *idxs = fpga_tools::toDevice(h_idxs, q);
-  int *A_dram = fpga_tools::toDevice(h_A, q);
+  auto *A = fpga_tools::toDevice(h_A, q);
+  auto *B = fpga_tools::toDevice(h_A, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    float A[N];
-    float B[N];
-
-    float d = 0.0, s = 0.0;
+    DATA_TYPE d = DATA_TYPE(0), s = DATA_TYPE(0);
 
     for (int i = 0; i < N; i++) {
       d = A[i] + B[i];
       if (idxs[i] > 0) {
-        s += (s * s + 0.7f);
+        s += (s * s + DATA_TYPE(0.7));
         A[i] = s + d;
       }
     }
-
-    #ifdef TEST
-    for (int i = 0; i < N; i++) 
-      A_dram[i] = A[i];
-    #endif
-
   });
 
   event.wait();
-  q.copy(A_dram, h_A.data(), h_A.size()).wait();
+  q.copy(A, h_A.data(), h_A.size()).wait();
 
   sycl::free(idxs, q);
+  sycl::free(A, q);
+  sycl::free(B, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -57,22 +53,23 @@ double filter_sum_kernel(queue &q, const std::vector<int> &h_idxs,
   return time_in_ms;
 }
 
-void filter_sum_cpu(const std::vector<int> &idxs, std::vector<int> &A) {
-  std::vector<float> B(N, 0);
+void filter_sum_cpu(const std::vector<int> &idxs, std::vector<DATA_TYPE> &A) {
+  std::vector<DATA_TYPE> B(A.size());
+  std::copy(A.begin(), A.end(), B.begin());
 
-  float d = 0.0, s = 0.0;
-  for (int i = 0; i < N; i++) {
-    d = A[i] + B[i];
-    if (idxs[i] > 0) {
-      s += (s * s + 0.7f);
-      A[i] = s + d;
+  DATA_TYPE d = DATA_TYPE(0), s = DATA_TYPE(0);
+    for (int i = 0; i < N; i++) {
+      d = A[i] + B[i];
+      if (idxs[i] > 0) {
+        s += (s * s + DATA_TYPE(0.7));
+        A[i] = s + d;
+      }
     }
-  }
 }
 
 void init_data(std::vector<int> &idxs, const int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 99);
+  std::uniform_int_distribution<int> distribution(1, 99);
   auto dice = std::bind (distribution, generator);
 
   for (int i = 0; i < idxs.size(); i++) {
@@ -112,7 +109,10 @@ int main(int argc, char *argv[]) {
     property_list properties{property::queue::enable_profiling()};
     queue q(d_selector, exception_handler, properties);
 
-    std::vector<int> idxs(ARRAY_SIZE), h_A(ARRAY_SIZE), cpu_A(ARRAY_SIZE);
+    std::vector<int> idxs(ARRAY_SIZE);
+    std::vector<DATA_TYPE> h_A(ARRAY_SIZE), cpu_A(ARRAY_SIZE);
+    std::fill_n(h_A.begin(), ARRAY_SIZE, DATA_TYPE(0));
+    std::fill_n(cpu_A.begin(), ARRAY_SIZE, DATA_TYPE(0));
     init_data(idxs, PERCENTAGE);
 
     // Print out the device information used for the kernel code.
@@ -123,13 +123,12 @@ int main(int argc, char *argv[]) {
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    #ifdef TEST
     filter_sum_cpu(idxs, cpu_A);
+
     if (std::equal(h_A.begin(), h_A.end(), cpu_A.begin()))
       std::cout << "Passed\n";
     else
       std::cout << "Failed\n";
-    #endif
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

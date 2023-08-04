@@ -22,14 +22,14 @@ double get_tanh_if_kernel(queue &q, std::vector<int> &h_A) {
   const int N = h_A.size();
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    int result;
+    int result = 0;
     for (int i = 0; i < N; i++) {
       int beta = A[i];
 
       if (beta >= 20480) 
         result = 4096;
       else 
-        result = ((result * result + 19.52381) * result * result + 3.704762) * result;
+        result = ((result * result + 19) * result * result + 3) * result;
 
       A[i] = result;
     }
@@ -57,7 +57,7 @@ void get_tanh_if_cpu(std::vector<int> &A) {
       result = 4096;
     else
       result =
-          ((result * result + 19.52381) * result * result + 3.704762) * result;
+          ((result * result + 19) * result * result + 3) * result;
 
     A[i] = result;
   }
@@ -66,7 +66,7 @@ void get_tanh_if_cpu(std::vector<int> &A) {
 
 void init_data(std::vector<int> &idxs, const int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 99);
+  std::uniform_int_distribution<int> distribution(1, 99);
   auto dice = std::bind (distribution, generator);
 
   for (int i = 0; i < idxs.size(); i++) {
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
     property_list properties{property::queue::enable_profiling()};
     queue q(d_selector, exception_handler, properties);
 
-    std::vector<int> A, A_cpu;
+    std::vector<int> A(ARRAY_SIZE), A_cpu(ARRAY_SIZE);
     init_data(A, PERCENTAGE);
     init_data(A_cpu, PERCENTAGE);
 

@@ -8,8 +8,7 @@ using namespace llvm;
 
 namespace llvm {
 
-int ControlDependentDataDependencyAnalysis::calculatePathII(
-    SmallVector<Instruction *> &SCC) {
+int getPathII(SmallVector<Instruction *> &SCC) {
   int ii = 0;
   for (auto I : SCC) {
     // Given an opcode, get its latency and add it to II. If an opcode is
@@ -20,12 +19,14 @@ int ControlDependentDataDependencyAnalysis::calculatePathII(
   return ii;
 }
 
-/// Given a loop recurrence (SCC of the data dependency graph), collect all
+/// Given a loop recurrence (SCC of the data dependency graph), return all
 /// possible paths through the recurrence that can result from control flow.
-///
-/// The paths are allowed to contain memory-dep edges.
-void ControlDependentDataDependencyAnalysis::getSCCPaths(PiBlockDDGNode &SCC) {
-  if (SCC.getNodes().size() == 0) return;
+SmallVector<SmallVector<SimpleDDGNode *>>
+ControlDependentDataDependencyAnalysis::getSCCPaths(PiBlockDDGNode &SCC) {
+  SmallVector<SmallVector<SimpleDDGNode *>> AllPaths;
+
+  if (SCC.getNodes().size() == 0)
+    return AllPaths;
 
   // All paths end when hitting an edge to the start node.
   const auto startNode = SCC.getNodes()[0];
@@ -45,7 +46,7 @@ void ControlDependentDataDependencyAnalysis::getSCCPaths(PiBlockDDGNode &SCC) {
     // We will either extend the path prefix, or terminate the current path.
     auto nextNode = &nextEdge->getTargetNode();
     if (nextNode == startNode) {
-      this->sccPaths.push_back(stack);
+      AllPaths.push_back(stack);
     } else {
       stack.push_back(dyn_cast<SimpleDDGNode>(nextNode));
       pathPrefix++;
@@ -80,45 +81,40 @@ void ControlDependentDataDependencyAnalysis::getSCCPaths(PiBlockDDGNode &SCC) {
       }
     }
   }
+
+  return AllPaths;
 }
 
-/// Given a list of DDGNodes, return a list of instruction from all nodes.
-void ControlDependentDataDependencyAnalysis::DDGNodesToInstructions() {
-  for (auto Path : this->sccPaths) {
+/// Convert DDG nodes in SCC paths into instructions.
+SmallVector<SmallVector<Instruction *>>
+ControlDependentDataDependencyAnalysis::DDGNodesToInstructions(
+    SmallVector<SmallVector<SimpleDDGNode *>> &AllSccPaths) {
+  SmallVector<SmallVector<Instruction *>> AllSCCInstructionPaths;
+
+  for (auto Path : AllSccPaths) {
     SmallVector<Instruction *> thisPath;
     for (auto N : Path) {
       for (auto &I : N->getInstructions()) {
-          // Ignore llvm void instrinsics. 
-          if (!I->getType()->isVoidTy()) 
-            thisPath.push_back(I);
+        // Ignore llvm void instrinsics.
+        if (!I->getType()->isVoidTy())
+          thisPath.push_back(I);
       }
     }
 
-    this->allSCCInstructionPaths.push_back(thisPath);
+    AllSCCInstructionPaths.push_back(thisPath);
   }
+
+  return AllSCCInstructionPaths;
 }
 
-/// Calculate the II of each path through the SCC.
-void ControlDependentDataDependencyAnalysis::calculateAllPathII() {
-  for (auto SCC : allSCCInstructionPaths) {
-    int thisSccII = calculatePathII(SCC);
-    sccIIs.push_back(thisSccII);
-
-    if (thisSccII >= maxII) {
-      maxII = thisSccII;
-      criticalPath = SCC;
-    }
-  }
-}
-
-void ControlDependentDataDependencyAnalysis::calculateRegionsToDecouple(
-    LoopInfo &LI, ControlDependenceGraph &CDG) {
-  // Go through all unique SCC paths.  
-  for (size_t iPath = 0; iPath < allSCCInstructionPaths.size(); ++iPath) {
-    auto thisPath = allSCCInstructionPaths[iPath];
+void ControlDependentDataDependencyAnalysis::collectBlocksToDecouple(
+    LoopInfo &LI, ControlDependenceGraph &CDG,
+    SmallVector<SmallVector<Instruction *>> &AllSCCInstructionPaths) {
+  // Go through all unique SCC paths.
+  for (auto Path : AllSCCInstructionPaths) {
     SetVector<Instruction *> uniquePhisOnPath;
     SetVector<BasicBlock *> allBlocksOnPath;
-    for (auto &I : thisPath) {
+    for (auto &I : Path) {
       allBlocksOnPath.insert(I->getParent());
       if (isa<PHINode>(I))
         uniquePhisOnPath.insert(I);
@@ -135,10 +131,10 @@ void ControlDependentDataDependencyAnalysis::calculateRegionsToDecouple(
       auto ctrlDepSrc = CDG.getControlDependencySource(candidateBB);
 
       // These conditions have to hold for candidateBB to be considered:
-      if (sccIIs[iPath] > 1 && ctrlDepSrc && !LI.isLoopHeader(ctrlDepSrc) &&
+      if (getPathII(Path) > 1 && ctrlDepSrc && !LI.isLoopHeader(ctrlDepSrc) &&
           !isLoopUnrolled(LI.getLoopFor(candidateBB))) {
         SmallVector<Instruction *> pathWithoutBB;
-        for (auto &I : thisPath)
+        for (auto &I : Path)
           if (I->getParent() != candidateBB)
             pathWithoutBB.push_back(I);
 
@@ -148,7 +144,7 @@ void ControlDependentDataDependencyAnalysis::calculateRegionsToDecouple(
 
         // The final condition is that {thisPath} II should decrease 
         // when the candidate block would be decoupled.
-        if (calculatePathII(subPath) > 1) {
+        if (getPathII(subPath) > 1) {
           this->blocksToDecouple.insert(candidateBB);
 
           // Decoupled all instructions in the BB (except loads and stores).
@@ -173,7 +169,7 @@ void ControlDependentDataDependencyAnalysis::calculateRegionsToDecouple(
   }
 }
 
-void ControlDependentDataDependencyAnalysis::calculateInOutDependencies() {
+void ControlDependentDataDependencyAnalysis::collectBlocksInOutDependencies() {
   for (auto blockToInstr : instrToDecoupleInBB) {
     auto BB = blockToInstr.first;
     auto instrToDecouple = blockToInstr.second;
@@ -196,6 +192,22 @@ void ControlDependentDataDependencyAnalysis::calculateInOutDependencies() {
           if (!instrToDecouple.contains(UserI)) {
             outputDependencies[BB].insert(I);
           }
+        }
+      }
+    }
+  }
+}
+
+/// Collect loops that are control dependent where the ctr dep src is not a loop
+/// header of another loop. Ignore unrolled loops.
+void ControlDependentDataDependencyAnalysis::collectLoopsToDecouple(
+    LoopInfo &LI, ControlDependenceGraph &CDG) {
+  for (Loop *TopLevelLoop : LI) {
+    for (Loop *L : depth_first(TopLevelLoop)) {
+      auto loopHeader = L->getHeader();
+      if (auto ctrlDepSrc = CDG.getControlDependencySource(loopHeader)) {
+        if (!LI.isLoopHeader(ctrlDepSrc) && !isLoopUnrolled(L)) {
+          headersOfLoopsToDecouple.push_back(loopHeader);
         }
       }
     }

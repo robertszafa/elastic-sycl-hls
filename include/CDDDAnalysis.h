@@ -18,36 +18,38 @@ public:
   explicit ControlDependentDataDependencyAnalysis(
       LoopInfo &LI, DataDependenceGraph &DDG, ControlDependenceGraph &CDG) {
     // Go over all SCCs in the DDG.
-    for (auto nodeDDG : DDG) {
-      if (auto loopSCC = dyn_cast<PiBlockDDGNode>(nodeDDG)) {
-        reset();
-
-        getSCCPaths(*loopSCC);
-        DDGNodesToInstructions();
-        calculateAllPathII();
-        calculateRegionsToDecouple(LI, CDG);
-        calculateInOutDependencies();
+    for (auto NodeDDG : DDG) {
+      if (auto LoopSCC = dyn_cast<PiBlockDDGNode>(NodeDDG)) {
+        auto AllSccPaths = getSCCPaths(*LoopSCC);
+        auto AllSCCInstructionPaths = DDGNodesToInstructions(AllSccPaths);
+        
+        // Populate blocksToDecouple, in/outDependencies, instrToDecoupleInBB.
+        // Use sets since there could be repetitions across SCCs.
+        collectBlocksToDecouple(LI, CDG, AllSCCInstructionPaths);
+        collectBlocksInOutDependencies();
       }
     }
+
+    collectLoopsToDecouple(LI, CDG);
   }
 
   ~ControlDependentDataDependencyAnalysis();
 
-  /// Return true if the analysis concluded that there is at least one block
-  /// worth decoupling.
-  bool hasAnyControlDependency() { return !blocksToDecouple.empty(); }
-
-  /// Return a set of BBs which were deemed worth decoupling.
+  /// Return a set of BBs marked for decoupling.
   SetVector<BasicBlock *> getBlocksToDecouple() { return blocksToDecouple; }
 
+  /// Given a decoupled BB, return its instructions that should be decoupled.
   SetVector<Instruction *> getInstructionsToDecouple(BasicBlock *BB) {
     return instrToDecoupleInBB[BB];
   }
 
+  /// Given a decoupled BB, return instructions from other BBs that it is using.
   SetVector<Instruction *> getInputDependencies(BasicBlock *BB) {
     return inputDependencies[BB];
   }
 
+  /// Given a decoupled BB, return instructions that it defines and that are
+  /// used by other BBs.
   SetVector<Instruction *> getOutputDependencies(BasicBlock *BB) {
     return outputDependencies[BB];
   }
@@ -58,27 +60,17 @@ private:
   MapVector<BasicBlock *, SetVector<Instruction *>> outputDependencies;
   MapVector<BasicBlock *, SetVector<Instruction *>> instrToDecoupleInBB;
 
-  SmallVector<Instruction *> criticalPath;
-  SmallVector<SmallVector<SimpleDDGNode *>> sccPaths;
-  SmallVector<SmallVector<Instruction *>> allSCCInstructionPaths;
-  SmallVector<int> sccIIs;
-  int maxII = 0;
+  SmallVector<BasicBlock *> headersOfLoopsToDecouple;
 
-  void reset() {
-    criticalPath.clear();
-    sccPaths.clear();
-    allSCCInstructionPaths.clear();
-    sccIIs.clear();
-    maxII = 0;
-  }
+  SmallVector<SmallVector<SimpleDDGNode *>> getSCCPaths(PiBlockDDGNode &SCC);
+  SmallVector<SmallVector<Instruction *>> DDGNodesToInstructions(
+      SmallVector<SmallVector<SimpleDDGNode *>> &AllSccPaths);
 
-  void getSCCPaths(PiBlockDDGNode &SCC);
-  void DDGNodesToInstructions();
-  void calculateAllPathII();
-  void calculateRegionsToDecouple(LoopInfo &LI, ControlDependenceGraph &CDG);
-  void calculateInOutDependencies();
-
-  int calculatePathII(SmallVector<Instruction *> &SCC);
+  void collectBlocksToDecouple(
+      LoopInfo &LI, ControlDependenceGraph &CDG,
+      SmallVector<SmallVector<Instruction *>> &AllSCCInstructionPaths);
+  void collectBlocksInOutDependencies();
+  void collectLoopsToDecouple(LoopInfo &LI, ControlDependenceGraph &CDG);
 };
 
 } // end namespace llvm

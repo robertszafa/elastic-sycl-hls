@@ -26,11 +26,12 @@ public:
         // Populate blocksToDecouple, in/outDependencies, instrToDecoupleInBB.
         // Use sets since there could be repetitions across SCCs.
         collectBlocksToDecouple(LI, CDG, AllSCCInstructionPaths);
-        collectBlocksInOutDependencies();
+        collectBlockInOutDependencies();
       }
     }
 
     collectLoopsToDecouple(LI, CDG);
+    collectLoopInOutDependencies();
   }
 
   ~ControlDependentDataDependencyAnalysis();
@@ -38,29 +39,46 @@ public:
   /// Return a set of BBs marked for decoupling.
   SetVector<BasicBlock *> getBlocksToDecouple() { return blocksToDecouple; }
 
+  SmallVector<Loop *> getLoopsToDecouple() { return loopsToDecouple; }
+
   /// Given a decoupled BB, return its instructions that should be decoupled.
   SetVector<Instruction *> getInstructionsToDecouple(BasicBlock *BB) {
     return instrToDecoupleInBB[BB];
   }
 
   /// Given a decoupled BB, return instructions from other BBs that it is using.
-  SetVector<Instruction *> getInputDependencies(BasicBlock *BB) {
-    return inputDependencies[BB];
+  SetVector<Instruction *> getBlockInputDependencies(BasicBlock *BB) {
+    return blockInputDependencies[BB];
   }
 
   /// Given a decoupled BB, return instructions that it defines and that are
   /// used by other BBs.
-  SetVector<Instruction *> getOutputDependencies(BasicBlock *BB) {
-    return outputDependencies[BB];
+  SetVector<Instruction *> getBlockOutputDependencies(BasicBlock *BB) {
+    return blockOutputDependencies[BB];
   }
+
+  /// Given a decoupled loop, return instructions defined outse the loop but
+  /// used inside it.
+  SetVector<Instruction *> getLoopInputDependencies(Loop *L) {
+    return loopInputDependencies[L];
+  }
+
+  /// Given a decoupled loop, return instructions that it defines and that are
+  /// used outside the loop.
+  SetVector<Instruction *> getLoopOutputDependencies(Loop *L) {
+    return loopOutputDependencies[L];
+  }
+
 
 private:
   SetVector<BasicBlock *> blocksToDecouple;
-  MapVector<BasicBlock *, SetVector<Instruction *>> inputDependencies; 
-  MapVector<BasicBlock *, SetVector<Instruction *>> outputDependencies;
+  MapVector<BasicBlock *, SetVector<Instruction *>> blockInputDependencies; 
+  MapVector<BasicBlock *, SetVector<Instruction *>> blockOutputDependencies;
   MapVector<BasicBlock *, SetVector<Instruction *>> instrToDecoupleInBB;
 
-  SmallVector<BasicBlock *> headersOfLoopsToDecouple;
+  SmallVector<Loop *> loopsToDecouple;
+  MapVector<Loop *, SetVector<Instruction *>> loopInputDependencies; 
+  MapVector<Loop *, SetVector<Instruction *>> loopOutputDependencies;
 
   SmallVector<SmallVector<SimpleDDGNode *>> getSCCPaths(PiBlockDDGNode &SCC);
   SmallVector<SmallVector<Instruction *>> DDGNodesToInstructions(
@@ -69,8 +87,9 @@ private:
   void collectBlocksToDecouple(
       LoopInfo &LI, ControlDependenceGraph &CDG,
       SmallVector<SmallVector<Instruction *>> &AllSCCInstructionPaths);
-  void collectBlocksInOutDependencies();
+  void collectBlockInOutDependencies();
   void collectLoopsToDecouple(LoopInfo &LI, ControlDependenceGraph &CDG);
+  void collectLoopInOutDependencies();
 };
 
 } // end namespace llvm

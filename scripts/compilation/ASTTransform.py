@@ -96,28 +96,28 @@ def gen_lsq_kernel_calls(report, q_name):
     lsq_kernel_calls = []
     lsq_events_waits = []
 
-    for i_mem, mem_info in enumerate(report['memory_to_decouple']):
-        print(f"Info: Generating LSQ_{i_mem}")
-        print(f"  store queue size: {mem_info['store_queue_size']}")
-        print(f"  address gen. decoupled: {mem_info['decouple_address']}")
-        print(f"  speculation: {mem_info['is_any_speculation']}")
+    for i_lsq, lsq_info in enumerate(report['lsq_array']):
+        print(f"Info: Generating LSQ_{i_lsq}")
+        print(f"  store queue size: {lsq_info['store_queue_size']}")
+        print(f"  address gen. decoupled: {lsq_info['decouple_address']}")
+        print(f"  speculation: {lsq_info['is_any_speculation']}")
 
-        if mem_info['is_onchip']:
+        if lsq_info['is_onchip']:
             lsq_kernel_calls.append(f'''
-            auto lsqEvent_{i_mem} = 
-                LoadStoreQueueBRAM<{llvm2ctype(mem_info['array_type'])}, pipes_ld_req_{i_mem}, pipes_ld_val_{i_mem}, 
-                                    pipes_st_req_{i_mem}, pipes_st_val_{i_mem}, pipe_end_lsq_signal_{i_mem}, {int(mem_info['is_any_speculation'])},
-                                    {mem_info['array_size']}, {mem_info['max_loads_per_bb']}, {mem_info['max_stores_per_bb']}, 
-                                    {LD_Q_SIZE}, {mem_info['store_queue_size']}>({q_name});
+            auto lsqEvent_{i_lsq} = 
+                LoadStoreQueueBRAM<{llvm2ctype(lsq_info['array_type'])}, pipes_ld_req_{i_lsq}, pipes_ld_val_{i_lsq}, 
+                                    pipes_st_req_{i_lsq}, pipes_st_val_{i_lsq}, pipe_end_lsq_signal_{i_lsq}, {int(lsq_info['is_any_speculation'])},
+                                    {lsq_info['array_size']}, {lsq_info['max_loads_per_bb']}, {lsq_info['max_stores_per_bb']}, 
+                                    {LD_Q_SIZE}, {lsq_info['store_queue_size']}>({q_name});
             ''')
         else:
             lsq_kernel_calls.append(f'''
-            auto lsqEvent_{i_mem} = 
-                LoadStoreQueueDRAM<{llvm2ctype(mem_info['array_type'])}, pipes_ld_req_{i_mem}, pipes_ld_val_{i_mem}, 
-                                    pipes_st_req_{i_mem}, pipes_st_val_{i_mem}, pipe_end_lsq_signal_{i_mem}, {int(mem_info['is_any_speculation'])},
-                                    {mem_info['max_loads_per_bb']}, {mem_info['max_stores_per_bb']}, {LD_Q_SIZE}, {mem_info['store_queue_size']}>({q_name});
+            auto lsqEvent_{i_lsq} = 
+                LoadStoreQueueDRAM<{llvm2ctype(lsq_info['array_type'])}, pipes_ld_req_{i_lsq}, pipes_ld_val_{i_lsq}, 
+                                    pipes_st_req_{i_lsq}, pipes_st_val_{i_lsq}, pipe_end_lsq_signal_{i_lsq}, {int(lsq_info['is_any_speculation'])},
+                                    {lsq_info['max_loads_per_bb']}, {lsq_info['max_stores_per_bb']}, {LD_Q_SIZE}, {lsq_info['store_queue_size']}>({q_name});
             ''')
-        lsq_events_waits.append(f'lsqEvent_{i_mem}.wait();')
+        lsq_events_waits.append(f'lsqEvent_{i_lsq}.wait();')
     
     return lsq_kernel_calls, lsq_events_waits
 
@@ -132,33 +132,33 @@ def gen_lsq_pipe_declarations(report):
     res = []
 
     # Pipes for LSQ.
-    for i_mem, mem_info in enumerate(report['memory_to_decouple']):
-        val_type = llvm2ctype(mem_info['array_type'])
-        ld_req_type = 'ld_req_lsq_bram_t' if mem_info['is_onchip'] else 'req_lsq_dram_t'
-        st_req_type = 'st_req_lsq_bram_t' if mem_info['is_onchip'] else 'req_lsq_dram_t'
-        st_val_type = f'tagged_val_lsq_bram_t<{val_type}>' if mem_info['is_onchip'] else f'tagged_val_lsq_dram_t<{val_type}>'
+    for i_lsq, lsq_info in enumerate(report['lsq_array']):
+        val_type = llvm2ctype(lsq_info['array_type'])
+        ld_req_type = 'ld_req_lsq_bram_t' if lsq_info['is_onchip'] else 'req_lsq_dram_t'
+        st_req_type = 'st_req_lsq_bram_t' if lsq_info['is_onchip'] else 'req_lsq_dram_t'
+        st_val_type = f'tagged_val_lsq_bram_t<{val_type}>' if lsq_info['is_onchip'] else f'tagged_val_lsq_dram_t<{val_type}>'
         
         # Adjust pipe sizes going into the LSQ based on num lds/sts.
         # LD pipes only need to be adjusted for BRAM LSQs, because DRAM has multiple ld ports.
-        if mem_info['is_onchip']: 
-            LSQ_LD_PIPE_DEPTH *= max(1, math.ceil(mem_info['max_loads_per_bb']/mem_info['max_stores_per_bb']))
-        LSQ_ST_PIPE_DEPTH *= max(1, math.ceil(mem_info['max_stores_per_bb']/mem_info['max_loads_per_bb']))
+        if lsq_info['is_onchip']: 
+            LSQ_LD_PIPE_DEPTH *= max(1, math.ceil(lsq_info['max_loads_per_bb']/lsq_info['max_stores_per_bb']))
+        LSQ_ST_PIPE_DEPTH *= max(1, math.ceil(lsq_info['max_stores_per_bb']/lsq_info['max_loads_per_bb']))
 
-        res.append(f"using pipes_ld_req_{i_mem} = \
-            PipeArray<class pipes_ld_req_{i_mem}_class, {ld_req_type}, \
-                   {LSQ_LD_PIPE_DEPTH}, {mem_info['max_loads_per_bb']}>;")
-        res.append(f"using pipes_ld_val_{i_mem} = \
-            PipeArray<class pipes_ld_val_{i_mem}_class, {val_type}, \
-                   {LSQ_LD_PIPE_DEPTH}, {mem_info['max_loads_per_bb']}>;")
-        res.append(f"using pipes_st_req_{i_mem} = \
-            PipeArray<class pipes_st_req_{i_mem}_class, {st_req_type}, \
-                   {LSQ_ST_PIPE_DEPTH}, {mem_info['max_stores_per_bb']}>;")
-        res.append(f"using pipes_st_val_{i_mem} = \
-            PipeArray<class pipes_st_val_{i_mem}_class, {st_val_type}, \
-                   {LSQ_ST_PIPE_DEPTH}, {mem_info['max_stores_per_bb']}>;")
+        res.append(f"using pipes_ld_req_{i_lsq} = \
+            PipeArray<class pipes_ld_req_{i_lsq}_class, {ld_req_type}, \
+                   {LSQ_LD_PIPE_DEPTH}, {lsq_info['max_loads_per_bb']}>;")
+        res.append(f"using pipes_ld_val_{i_lsq} = \
+            PipeArray<class pipes_ld_val_{i_lsq}_class, {val_type}, \
+                   {LSQ_LD_PIPE_DEPTH}, {lsq_info['max_loads_per_bb']}>;")
+        res.append(f"using pipes_st_req_{i_lsq} = \
+            PipeArray<class pipes_st_req_{i_lsq}_class, {st_req_type}, \
+                   {LSQ_ST_PIPE_DEPTH}, {lsq_info['max_stores_per_bb']}>;")
+        res.append(f"using pipes_st_val_{i_lsq} = \
+            PipeArray<class pipes_st_val_{i_lsq}_class, {st_val_type}, \
+                   {LSQ_ST_PIPE_DEPTH}, {lsq_info['max_stores_per_bb']}>;")
 
-        res.append(f"using pipe_end_lsq_signal_{i_mem} = \
-            pipe<class pipe_end_lsq_signal_{i_mem}_class, bool>;")
+        res.append(f"using pipe_end_lsq_signal_{i_lsq} = \
+            pipe<class pipe_end_lsq_signal_{i_lsq}_class, bool>;")
 
     # Pipes for predicated PE.
     done_pe_pipes = set()
@@ -229,10 +229,10 @@ if __name__ == '__main__':
     pe_kernels = []
     pe_kernel_forward_decl = []
     pe_kernel_waits = []
-    for i_pe, pe_info in enumerate(report['blocks_to_decouple']):
-        print(f"Info: Generating PE_{i_pe}")
+    for i_pe, pe_info in enumerate(report['pe_array']):
+        pe_name = pe_info['pe_kernel_name']
+        print(f"Info: Generating {pe_name.split(' ')[-1]}")
 
-        pe_name = f"{report['main_kernel_name']}_PE_{i_pe}"
         pe_kernel_forward_decl.append(f"class {pe_name.split(' ')[-1]};")
         # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
         pe_kernel, pe_event = gen_kernel_copy(Q_NAME, kernel_body, pe_name.split(' ')[-1])
@@ -250,10 +250,10 @@ if __name__ == '__main__':
     agu_kernels = []
     agu_kernel_forward_decl = []
     agu_kernel_waits = []
-    for i_mem, mem_info in enumerate(report['memory_to_decouple']):
+    for i_lsq, lsq_info in enumerate(report['lsq_array']):
         # If the address is not decoupled, then the agu pipe calls are in the main kernel.
-        if mem_info['decouple_address']:
-            agu_name = f"{report['main_kernel_name']}_AGU_{i_mem}"
+        if lsq_info['decouple_address']:
+            agu_name = f"{report['main_kernel_name']}_AGU_{i_lsq}"
             agu_kernel_forward_decl.append(f"class {agu_name.split(' ')[-1]};")
             # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
             agu_kernel, agu_event = gen_kernel_copy(Q_NAME, kernel_body, agu_name.split(' ')[-1])
@@ -276,7 +276,7 @@ if __name__ == '__main__':
     src_after_event_waits = insert_after_line(src_after_event_waits, kernel_end_line, all_event_waits)
 
     # Combine all kernels together with the LSQ kernel.
-    lsq_src = get_src(LSQ_BRAM_FILE) + get_src(LSQ_DRAM_FILE)
+    lsq_src = get_src(LSQ_BRAM_FILE) + get_src(LSQ_DRAM_FILE) if len(report['lsq_array']) > 0 else []
     all_combined = pe_kernel_forward_decl + agu_kernel_forward_decl + lsq_src + src_after_event_waits
 
     # The end result is a transformed NEW_SRC_FILENAME and 

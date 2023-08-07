@@ -112,19 +112,9 @@ void ControlDependentDataDependencyAnalysis::collectBlocksToDecouple(
     SmallVector<SmallVector<Instruction *>> &AllSCCInstructionPaths) {
   // Go through all unique SCC paths.
   for (auto Path : AllSCCInstructionPaths) {
-    SetVector<Instruction *> uniquePhisOnPath;
     SetVector<BasicBlock *> allBlocksOnPath;
-    for (auto &I : Path) {
+    for (auto &I : Path) 
       allBlocksOnPath.insert(I->getParent());
-      if (isa<PHINode>(I))
-        uniquePhisOnPath.insert(I);
-    }
-
-    // A recurrence through registers will have at least 2 connected phis.
-    // We handle recurrences through memory in a separate pass.
-    // TODO: Make this more robust: check if the phis use each other.
-    if (uniquePhisOnPath.size() < 2)
-      continue;
 
     // Go through all unique basic blocks on the path.
     for (auto candidateBB : allBlocksOnPath) {
@@ -169,11 +159,8 @@ void ControlDependentDataDependencyAnalysis::collectBlocksToDecouple(
   }
 }
 
-void ControlDependentDataDependencyAnalysis::collectBlocksInOutDependencies() {
-  for (auto blockToInstr : instrToDecoupleInBB) {
-    auto BB = blockToInstr.first;
-    auto instrToDecouple = blockToInstr.second;
-
+void ControlDependentDataDependencyAnalysis::collectBlockInOutDependencies() {
+  for (auto [BB, instrToDecouple] : instrToDecoupleInBB) {
     SetVector<Instruction *> inputDepForThisBB;
     SetVector<Instruction *> outputDepForThisBB;
     for (auto &I : instrToDecouple) {
@@ -181,7 +168,7 @@ void ControlDependentDataDependencyAnalysis::collectBlocksInOutDependencies() {
       for (size_t iOp = 0; iOp < I->getNumOperands(); ++iOp) {
         if (auto opInstr = dyn_cast<Instruction>(I->getOperand(iOp))) {
           if (!instrToDecouple.contains(opInstr)) {
-            inputDependencies[BB].insert(opInstr);
+            blockInputDependencies[BB].insert(opInstr);
           }
         }
       }
@@ -190,7 +177,7 @@ void ControlDependentDataDependencyAnalysis::collectBlocksInOutDependencies() {
       for (auto User : I->users()) {
         if (auto UserI = dyn_cast<Instruction>(User)) {
           if (!instrToDecouple.contains(UserI)) {
-            outputDependencies[BB].insert(I);
+            blockOutputDependencies[BB].insert(I);
           }
         }
       }
@@ -204,13 +191,51 @@ void ControlDependentDataDependencyAnalysis::collectLoopsToDecouple(
     LoopInfo &LI, ControlDependenceGraph &CDG) {
   for (Loop *TopLevelLoop : LI) {
     for (Loop *L : depth_first(TopLevelLoop)) {
-      auto loopHeader = L->getHeader();
-      if (auto ctrlDepSrc = CDG.getControlDependencySource(loopHeader)) {
+      if (auto ctrlDepSrc = CDG.getControlDependencySource(L->getHeader())) {
         if (!LI.isLoopHeader(ctrlDepSrc) && !isLoopUnrolled(L)) {
-          headersOfLoopsToDecouple.push_back(loopHeader);
+          loopsToDecouple.push_back(L);
         }
       }
     }
+  }
+}
+
+void ControlDependentDataDependencyAnalysis::collectLoopInOutDependencies() {
+  for (auto L : loopsToDecouple) {
+    auto F = L->getHeader()->getParent();
+
+    SetVector<Instruction *> inDeps, outDeps;
+    for (auto &BB : *F) {
+      // Instr. from entry block will be left in the loop PE.
+      if (&F->getEntryBlock() == &BB) 
+        continue;
+      
+      // If some I is declared outside L, but used in L, then it is an inDep.
+      if (!L->contains(&BB)) {
+        for (auto &I : BB) {
+          for (auto useOfI : I.users()) {
+            if (auto instrForUse = dyn_cast<Instruction>(useOfI)) {
+              if (L->contains(instrForUse))
+                inDeps.insert(&I);
+            }
+          }
+
+        }
+      } else { // If declared in L and used outside L, then it's an outDep.
+        for (auto &I : BB) {
+          for (auto useOfI : I.users()) {
+            if (auto instrForUse = dyn_cast<Instruction>(useOfI)) {
+              if (!L->contains(instrForUse))
+                outDeps.insert(instrForUse);
+            }
+          }
+        }
+
+      }
+    }
+
+    this->loopInputDependencies[L] = inDeps;
+    this->loopOutputDependencies[L] = outDeps;
   }
 }
 

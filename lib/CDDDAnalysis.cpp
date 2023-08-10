@@ -137,9 +137,9 @@ void ControlDependentDataDependencyAnalysis::collectBlocksToDecouple(
         if (getPathII(subPath) > 1) {
           this->blocksToDecouple.insert(candidateBB);
 
-          // Decoupled all instructions in the BB (except loads and stores).
+          // Decoupled all instructions in the BB (except terminator and phis).
           for (auto &I : *candidateBB) {
-            if (!I.isTerminator()) 
+            if (!I.isTerminator() && !isa<PHINode>(&I)) 
               instrToDecoupleInBB[candidateBB].insert(&I);
           }
 
@@ -163,6 +163,11 @@ void ControlDependentDataDependencyAnalysis::collectBlockInOutDependencies() {
   for (auto [BB, instrToDecouple] : instrToDecoupleInBB) {
     SetVector<Instruction *> inputDepForThisBB;
     SetVector<Instruction *> outputDepForThisBB;
+
+    // PHI nodes in the dcpldBB become input dependencies.
+    for (auto &phi : BB->phis())
+      blockInputDependencies[BB].insert(&phi);
+
     for (auto &I : instrToDecouple) {
       // Check the operands of I for input dependencies.
       for (size_t iOp = 0; iOp < I->getNumOperands(); ++iOp) {
@@ -182,6 +187,7 @@ void ControlDependentDataDependencyAnalysis::collectBlockInOutDependencies() {
         }
       }
     }
+
   }
 }
 

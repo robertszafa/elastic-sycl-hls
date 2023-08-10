@@ -76,6 +76,16 @@ void deleteNonPipeInstrsInBB(BasicBlock *BB,
     deleteInstruction(I);
 }
 
+void deletePhiNodes(BasicBlock *BB) {
+  SmallVector<Instruction *> toRemove;
+  for (auto &I : *BB) 
+    if (isa<PHINode>(&I))
+      toRemove.push_back(&I);
+
+  for (auto I : toRemove) 
+    deleteInstruction(I);
+}
+
 /// Given a {pipeWrite} with a struct address as its operand, collect stores to
 /// the struct fields.
 SmallVector<StoreInst *> getPipeOpStructStores(const CallInst *pipeWrite) {
@@ -468,6 +478,7 @@ void createPredicatedBlockPE(json::Object &i2pInfo) {
     deleteNonPipeInstrsInBB(BB);
     BB->removeFromParent();
   }
+  deletePhiNodes(dcpldBB);
 }
 
 /// Given a loop header BB, wrap the entire loop in the following control flow:

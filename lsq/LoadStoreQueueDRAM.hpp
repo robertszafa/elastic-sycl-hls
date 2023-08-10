@@ -43,11 +43,15 @@ struct addr_dram_val_pair_t { addr_dram_t addr; T value; };
 template <typename T>
 struct tagged_val_lsq_dram_t { T value; uint tag; bool valid; };
 
-// To generate unique kernel names.
-template <int id>
+// To generate unique kernel names for multiple load ports across multiple LSQs.
+template <typename LSQ_ID, int PORT_NUM>
 class LoadPort;
-template <int id>
+template <typename LSQ_ID, int MUX_NUM>
 class LoadMux;
+template <typename LSQ_ID>
+class StorePort;
+template <typename LSQ_ID>
+class LSQ_DRAM;
 
 template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           typename st_req_pipes, typename st_val_pipes,
@@ -71,7 +75,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
 
   /// Store port kernel
   auto storePortEvent = q.submit([&](handler &hnd) {
-    hnd.single_task<class StorePort>([=]() KERNEL_PRAGMAS {
+    hnd.single_task<StorePort<end_signal_pipe>>([=]() KERNEL_PRAGMAS {
       [[intel::speculated_iterations(0)]]
       while (pred_st_port_pipe::read()) {
         addr_dram_val_pair_t<value_t> addr_val = st_port_val_pipe::read();
@@ -85,7 +89,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
   /// Compile time unroll of load port and load mux kernels.
   UnrolledLoop<NUM_LDS>([&](auto iLd) {
     q.submit([&](handler &hnd) {
-      hnd.single_task<LoadPort<iLd>>([=]() KERNEL_PRAGMAS {
+      hnd.single_task<LoadPort<end_signal_pipe, iLd>>([=]() KERNEL_PRAGMAS {
         [[intel::speculated_iterations(0)]]
         while (pred_ld_port_pipes:: template PipeAt<iLd>::read()) {
           addr_dram_t ld_addr = ld_port_addr_pipes:: template PipeAt<iLd>::read();
@@ -98,7 +102,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
     });
 
     q.submit([&](handler &hnd) {
-      hnd.single_task<LoadMux<iLd>>([=]() KERNEL_PRAGMAS {
+      hnd.single_task<LoadMux<end_signal_pipe, iLd>>([=]() KERNEL_PRAGMAS {
         [[intel::speculated_iterations(0)]]
         while (pred_ld_mux_pipes:: template PipeAt<iLd>::read()) {
           value_t val;
@@ -115,7 +119,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
 
   /// Load store queue kernel.
   auto lsqEvent = q.submit([&](handler &hnd) {
-    hnd.single_task<class LSQ>([=]() KERNEL_PRAGMAS {
+    hnd.single_task<LSQ_DRAM<end_signal_pipe>>([=]() KERNEL_PRAGMAS {
       // Registers for store logic.
       [[intel::fpga_register]] addr_dram_t st_alloc_addr[ST_Q_SIZE];
       [[intel::fpga_register]] bool st_alloc_addr_valid[ST_Q_SIZE];

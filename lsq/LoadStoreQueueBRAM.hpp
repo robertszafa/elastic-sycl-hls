@@ -38,6 +38,9 @@ struct tagged_val_lsq_bram_t { T value; uint tag; bool valid; };
 struct st_req_lsq_bram_t { addr_bram_t addr; uint tag; };
 struct ld_req_lsq_bram_t { addr_bram_t addr; uint tag; uint ld_tag; };
 
+template <typename LSQ_ID>
+class LSQ_BRAM;
+
 
 /// Always evaluates to true. Intended for creating artificial dependencies.
 template <typename T>
@@ -55,7 +58,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
   assert(ST_Q_SIZE >= 2 && "Store queue size must be at least 2.");
   
   auto lsqEvent = q.submit([&](handler &hnd) {
-    hnd.single_task<class LSQ>([=]() KERNEL_PRAGMAS {
+    hnd.single_task<LSQ_BRAM<end_signal_pipe>>([=]() KERNEL_PRAGMAS {
       // Dual port memory, capable of 1 rd and 1 wr per cycle.
       [[intel::singlepump]] 
       [[intel::max_replicates(1)]] 
@@ -73,7 +76,6 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         st_alloc_addr[i] = INVALID_BRAM_ADDR;
 
       // Registers for load logic. 
-      // enum LD_STATE { WAIT, SEARCH, RETURN };
       [[intel::fpga_register]] addr_bram_t ld_addr[LD_Q_SIZE];
       [[intel::fpga_register]] uint ld_tag[LD_Q_SIZE];
       [[intel::fpga_register]] bool ld_addr_valid[LD_Q_SIZE];

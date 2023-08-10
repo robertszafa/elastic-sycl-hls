@@ -113,8 +113,17 @@ void ControlDependentDataDependencyAnalysis::collectBlocksToDecouple(
   // Go through all unique SCC paths.
   for (auto Path : AllSCCInstructionPaths) {
     SetVector<BasicBlock *> allBlocksOnPath;
-    for (auto &I : Path) 
+    int numPhisOnPath = 0;
+    for (auto &I : Path) {
       allBlocksOnPath.insert(I->getParent());
+      if (isa<PHINode>(I))
+        numPhisOnPath++;
+    }
+
+    // A recurrence through registers will have at least two PHI nodes.
+    // TODO: Check if the phi nodes are connected.
+    if (numPhisOnPath < 2)
+      continue;
 
     // Go through all unique basic blocks on the path.
     for (auto candidateBB : allBlocksOnPath) {

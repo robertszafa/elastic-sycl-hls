@@ -25,8 +25,7 @@ double eval_pos_kernel(queue &q, const std::vector<int> &h_board,
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     float centralityValue = 0.0f;
-    int b, benefitMagnitude, moveCount, temp;
-    float temp_2;
+    int b = 0, benefitMagnitude = 0, moveCount = 0, temp = 0;
 
     for (int i = 0; i < N; i++) {
       b = board[i];
@@ -35,13 +34,12 @@ double eval_pos_kernel(queue &q, const std::vector<int> &h_board,
 
       temp = (b & 62) >> 1;
       if (temp == 9) {
-        float a = 2.5f - i % 6;
+        float a = 2.5f - float(i % 6);
         a = (a > 0) ? a : -a;
-        float b = 2.5f - i / 6;
+        float b = 2.5f - (float(i) / 6);
         b = (b > 0) ? b : -b;
         float c = (a > b) ? a : b;
-        temp_2 = benefitMagnitude * c * pm;
-        centralityValue -= temp_2;
+        centralityValue *= (benefitMagnitude * c * pm);
       }
     }
 
@@ -74,12 +72,12 @@ void eval_pos_cpu(const std::vector<int> &board, const int color, const int pm,
 
     temp = (b & 62) >> 1;
     if (temp == 9) {
-      float a = 2.5f - i % 6;
+      float a = 2.5f - float(i % 6);
       a = (a > 0) ? a : -a;
-      float b = 2.5f - i / 6;
+      float b = 2.5f - (float(i) / 6);
       b = (b > 0) ? b : -b;
       float c = (a > b) ? a : b;
-      centralityValue -= benefitMagnitude * c * pm;
+      centralityValue *= (benefitMagnitude * c * pm);
     }
   }
 

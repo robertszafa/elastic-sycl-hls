@@ -17,14 +17,16 @@ using namespace fpga_tools;
 // Forward declare kernel name.
 class MainKernel;
 
-double get_tanh_if_kernel(queue &q, std::vector<int> &h_A) {
-  int* A = fpga_tools::toDevice(h_A, q);
+using DATA_TYPE = float;
+
+double get_tanh_if_kernel(queue &q, std::vector<DATA_TYPE> &h_A) {
+  DATA_TYPE* A = fpga_tools::toDevice(h_A, q);
   const int N = h_A.size();
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    int result = 0;
+    DATA_TYPE result = 0;
     for (int i = 0; i < N; i++) {
-      int beta = A[i];
+      DATA_TYPE beta = A[i];
 
       if (beta >= 20480) 
         result = 4096;
@@ -48,10 +50,10 @@ double get_tanh_if_kernel(queue &q, std::vector<int> &h_A) {
   return time_in_ms;
 }
 
-void get_tanh_if_cpu(std::vector<int> &A) {
-  int result;
+void get_tanh_if_cpu(std::vector<DATA_TYPE> &A) {
+  DATA_TYPE result;
   for (int i = 0; i < A.size(); i++) {
-    int beta = A[i];
+    DATA_TYPE beta = A[i];
 
     if (beta >= 20480)
       result = 4096;
@@ -64,13 +66,13 @@ void get_tanh_if_cpu(std::vector<int> &A) {
 }
 
 
-void init_data(std::vector<int> &idxs, const int percentage) {
+void init_data(std::vector<DATA_TYPE> &A, const int percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(1, 99);
   auto dice = std::bind (distribution, generator);
 
-  for (int i = 0; i < idxs.size(); i++) {
-    idxs[i] = (dice() < percentage) ? 1 : 30000;
+  for (int i = 0; i < A.size(); i++) {
+    A[i] = (dice() < percentage) ? 1 : 30000;
   }
 }
 
@@ -106,7 +108,7 @@ int main(int argc, char *argv[]) {
     property_list properties{property::queue::enable_profiling()};
     queue q(d_selector, exception_handler, properties);
 
-    std::vector<int> A(ARRAY_SIZE), A_cpu(ARRAY_SIZE);
+    std::vector<DATA_TYPE> A(ARRAY_SIZE), A_cpu(ARRAY_SIZE);
     init_data(A, PERCENTAGE);
     init_data(A_cpu, PERCENTAGE);
 

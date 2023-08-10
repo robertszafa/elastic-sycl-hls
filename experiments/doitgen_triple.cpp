@@ -28,11 +28,11 @@ double doitgen_triple_kernel(queue &q, std::vector<float> &h_A,
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (int i = 0; i < N; i++) {
       float s = 0;
-      for (int j = 0; j < N; j++) {
+      for (int j = i; j < N; j++) {
         float a = A[j];
         float wt = w[i * N + j];
         if (a > 0.0) {
-          s += (a * wt + wt) * a;
+          s += (a * wt * s) * s;
         }
       }
       sum[i] = s;
@@ -64,11 +64,11 @@ void doitgen_triple_cpu(std::vector<float> &A, std::vector<float> &sum,
 
   for (int i = 0; i < N; i++) {
     float s = 0;
-    for (int j = 0; j < N; j++) {
+    for (int j = i; j < N; j++) {
       float a = A[j];
       float wt = w[i * N + j];
       if (a > 0.0) {
-        s += (a * wt + wt) * a;
+        s += (a * wt * s) * a;
       }
     }
     sum[i] = s;
@@ -82,11 +82,11 @@ void doitgen_triple_cpu(std::vector<float> &A, std::vector<float> &sum,
 void init_data(std::vector<float> &A, std::vector<float> &sum,
                std::vector<float> &w, int percentage) {
   std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution(0, 99);
+  std::uniform_int_distribution<int> distribution(1, 99);
   auto dice = std::bind(distribution, generator);
 
   for (int i = 0; i < A.size(); ++i) {
-    A[i] = (dice() < percentage) ? 1 : -1;
+    A[i] = (dice() < percentage) ? 1.0f : -1.0f;
     sum[i] = 0.0;
     w[i] = rand();
   }

@@ -1,6 +1,15 @@
 ## Overview:
-This repository contains llvm passes which selectively introduce dynamic scheduling into SYCL HLS code.
-The passes are developed out-of-tree, and intended to be loaded as a .so by the llvm _opt_ tool.
+This repository contains llvm passes which selectively introduce dynamic scheduling into SYCL HLS code. You can read [our paper](/docs/FPL23.pdf) for more detail. 
+
+If you want to cite this work:
+```
+@inproceedings{szafarczyk2023fpl,
+  title={Compiler Discovered Dynamic Scheduling of Irregular Code in High-Level Synthesis}, 
+  author={Szafarczyk, Robert and Nabi, Syed Waqar and Vanderbauwhede, Wim},
+  booktitle={2023 33nd International Conference on Field-Programmable Logic and Applications (FPL)}, 
+  year={2023},
+}
+```
 
 ---
 
@@ -15,35 +24,34 @@ The passes are developed out-of-tree, and intended to be loaded as a .so by the 
 - To run in hardware, you can sign up to the Intel DevCloud for free to access Arria 10 and Stratix 10 FPGAs.
 
 **Installation:**
+The install script downloads the intel/llvm github repo and builds it. Then it builds the passes from this repo out-of-tree.
 ```bash
-# This env variable should also be set when using the passes. 
 export ELASTIC_SYCL_HLS_DIR=path/to/elastic_sycl_hls 
-```
-
-```bash
-# Installs llvm/sycl and builds the code from this repo.
 bash install.sh
 ```
 
+ This script generates generic `compile_to_bc.sh` and `compile_from_bc.sh` scripts used to inject our passes into the SYCL compiler pipeline.
+ Remove undesired emu,sim,hw targets (the hw target takes a while).
+ The SYCL compiler is multi-pass -- it consists of multiple sub-commands 
+ to build a host and device binary. This script runs a full compilation in 
+ verbose mode, and then break up the compiler steps into constituent commands.
 ```bash
-# Generates generic `compile_to_bc.sh` and `compile_from_bc.sh`.
-# Choose desired targets: emu,sim,hw. (The hw target can take a while).
-# The SYCL compiler is multi-pass -- it consists of multiple sub-commands 
-# to build a host and device binary. This script runs a full compilation in 
-# verbose mode, and then break up the compiler steps into constituent commands.
-./scripts/compilation/gen_compile_scripts.py --targets=emu,sim
-```
-
-```bash
-# To save time, do the two in parallel:
-bash install.sh & ./scripts/compilation/gen_compile_scripts.py --targets=emu,sim
+./scripts/compilation/gen_compile_scripts.py --targets=emu,sim,hw
 ```
 
 ---
 
 ## Use:
 
+The optional '-d' flag ensures that compiler generated files are not deleted.
 ```bash
-# The optional -d flag ensures that compiler generated files are stored in file_workdir for later inspection.
+export ELASTIC_SYCL_HLS_DIR=path/to/elastic_sycl_hls 
 elastic_pass.sh emu|sim|hw src_file [-d]
+```
+
+To run benchmarks targetted by the passes.
+```bash
+export ELASTIC_SYCL_HLS_DIR=path/to/elastic_sycl_hls 
+cd experiments
+./test_all_in_sim.py
 ```

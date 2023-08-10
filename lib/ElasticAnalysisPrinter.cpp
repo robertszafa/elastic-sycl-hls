@@ -264,7 +264,7 @@ void decoupledBlocksReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
     predPipeReadDirective["pipe_name"] = predicate_pipe_name;
     predPipeReadDirective["read/write"] = "read";
     predPipeReadDirective["kernel_name"] = peKernelName;
-    predPipeReadDirective["pipe_type"] = "bool";
+    predPipeReadDirective["pipe_type"] = "int8_t";
     predPipeReadDirective["basic_block_idx"] = bbIdx;
     predPipeReadDirective["pe_type"] = "block";
     json::Object predPipeWriteDirective;
@@ -272,7 +272,7 @@ void decoupledBlocksReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
     predPipeWriteDirective["pipe_name"] = predicate_pipe_name;
     predPipeWriteDirective["read/write"] = "write";
     predPipeWriteDirective["kernel_name"] = mainKernelName;
-    predPipeWriteDirective["pipe_type"] = "bool";
+    predPipeWriteDirective["pipe_type"] = "int8_t";
     predPipeWriteDirective["basic_block_idx"] = bbIdx;
     predPipeWriteDirective["pe_type"] = "block";
     instr2pipeArray.push_back(std::move(predPipeReadDirective));
@@ -373,7 +373,7 @@ void decoupledLoopsReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
     predPipeReadDirective["pipe_name"] = predicate_pipe_name;
     predPipeReadDirective["read/write"] = "read";
     predPipeReadDirective["kernel_name"] = peKernelName;
-    predPipeReadDirective["pipe_type"] = "bool";
+    predPipeReadDirective["pipe_type"] = "int8_t";
     predPipeReadDirective["basic_block_idx"] = headerIdx;
     predPipeReadDirective["pe_type"] = "loop";
     json::Object predPipeWriteDirective;
@@ -381,7 +381,7 @@ void decoupledLoopsReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
     predPipeWriteDirective["pipe_name"] = predicate_pipe_name;
     predPipeWriteDirective["read/write"] = "write";
     predPipeWriteDirective["kernel_name"] = mainKernelName;
-    predPipeWriteDirective["pipe_type"] = "bool";
+    predPipeWriteDirective["pipe_type"] = "int8_t";
     predPipeWriteDirective["basic_block_idx"] = headerIdx;
     predPipeWriteDirective["pe_type"] = "loop";
     instr2pipeArray.push_back(std::move(predPipeReadDirective));

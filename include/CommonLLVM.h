@@ -298,6 +298,25 @@ template <typename T1, typename T2>
   return nullptr;
 }
 
+[[maybe_unused]] bool isPipeRead(Instruction *I) {
+  if (auto pipeCall = getPipeCall(I)) {
+    auto pipeName =
+        demangle(std::string(pipeCall->getCalledFunction()->getName()));
+    return pipeName.find("::read(") < pipeName.size();
+  }
+
+  return false;
+}
+
+[[maybe_unused]] bool isPipeWrite(Instruction *I) {
+  if (auto pipeCall = getPipeCall(I)) {
+    auto pipeName =
+        demangle(std::string(pipeCall->getCalledFunction()->getName()));
+    return pipeName.find("::write(") < pipeName.size();
+  }
+
+  return false;
+}
 
 [[maybe_unused]] Instruction *getPointerBase(Value *pointerOperand) {
   const BasicBlock *entryBlockF = &dyn_cast<Instruction>(pointerOperand)

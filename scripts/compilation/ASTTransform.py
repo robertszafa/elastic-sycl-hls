@@ -122,7 +122,7 @@ def gen_lsq_kernel_calls(report, q_name):
     return lsq_kernel_calls, lsq_events_waits
 
 
-def gen_lsq_pipe_declarations(report):
+def gen_all_pipe_declarations(report):
     """
     Generate shortcut names for arrays of pipes that are passed to the LSQ IP.
     """
@@ -162,11 +162,13 @@ def gen_lsq_pipe_declarations(report):
 
     # Pipes for predicated PE.
     done_pe_pipes = set()
+    PE_PIPE_DEPTH = 4
     for dir_info in report['instr2pipe_directives']:
         p_name = dir_info['pipe_name']
         if 'pipe_pe_' in p_name and p_name not in done_pe_pipes:
             done_pe_pipes.add(p_name)
-            res.append(f"using {p_name.split('_class')[0]} = pipe<class {p_name}, {llvm2ctype(dir_info['pipe_type'])}>;")
+            p_type = llvm2ctype(dir_info['pipe_type'])
+            res.append(f"using {p_name.split('_class')[0]} = pipe<class {p_name}, {p_type}, {PE_PIPE_DEPTH}>;")
 
     return res
 
@@ -214,7 +216,7 @@ if __name__ == '__main__':
     kernel_body = get_kernel_body(src_lines, kernel_start_line, kernel_end_line)
     Q_NAME = get_queue_name(src_lines[kernel_start_line-1])
 
-    lsq_pipe_decl = gen_lsq_pipe_declarations(report)
+    lsq_pipe_decl = gen_all_pipe_declarations(report)
 
     # Insert pipe type declarations into the src file.
     src_after_pipe_decl = insert_before_line(src_lines, kernel_start_line, lsq_pipe_decl)

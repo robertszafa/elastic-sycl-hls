@@ -6,6 +6,46 @@ namespace llvm {
 
 const std::string REPORT_ENV_NAME = "ELASTIC_PASS_REPORT";
 
+enum PE_PREDICATE_CODES { EXECUTE, RESET, EXIT };
+
+/// For every instruction expressed in json, update the json with a pointer to
+/// the LLVM instruction object in F.
+json::Array getDirectives(Function &F, const json::Object &report) {
+  std::string thisKernelName = demangle(std::string(F.getNameOrAsOperand()));
+
+  json::Array directives;
+  for (auto i2pInfoVal : *report.getArray("instr2pipe_directives")) {
+    auto i2pInfo = *i2pInfoVal.getAsObject();
+    if (i2pInfo.getString("kernel_name") != thisKernelName) 
+      continue;
+
+    // Each directive has a guaranteed pipe call.
+    auto pipeCall = getPipeCall(F, i2pInfo);
+    assert(pipeCall && "JSON directive without a pipe instructions.");
+    i2pInfo["llvm_pipe_call"] = reinterpret_cast<std::intptr_t>(pipeCall);
+
+    // Not every directive has an instruction, e.g. end_signal directives.
+    if (auto optI = i2pInfo.getObject("instruction")) {
+      i2pInfo["llvm_instruction"] =
+          reinterpret_cast<std::intptr_t>(getInstruction(F, *optI));
+    }
+
+    // The poison directives have a predBB --> sucBB edge.
+    if (auto optPredBBIdx = i2pInfo.getInteger("pred_basic_block_idx")) {
+      i2pInfo["llvm_pred_basic_block"] = reinterpret_cast<std::intptr_t>(
+          getChildWithIndex<Function, BasicBlock>(&F, *optPredBBIdx));
+    }
+    if (auto optSuccBBIdx = i2pInfo.getInteger("succ_basic_block_idx")) {
+      i2pInfo["llvm_succ_basic_block"] = reinterpret_cast<std::intptr_t>(
+          getChildWithIndex<Function, BasicBlock>(&F, *optSuccBBIdx));
+    }
+
+    directives.push_back(std::move(i2pInfo));
+  }
+
+  return directives;
+}
+
 // Delete all store instructions in F (except exceptions).
 void deleteAllStores(Function &F, SmallVector<Instruction *> &exceptions) {
   // First collect then delete. Cannot delete I when iterating over I's in BB.
@@ -18,6 +58,21 @@ void deleteAllStores(Function &F, SmallVector<Instruction *> &exceptions) {
     }
   }
   for (auto &I : toDelete)
+    deleteInstruction(I);
+}
+
+/// Delete all instrucions in {BB}, excluding {except} and pipe calls.
+void deleteNonPipeInstrsInBB(BasicBlock *BB,
+                             SmallVector<Instruction *> except = {}) {
+  SmallVector<Instruction *> toRemove;
+  for (auto &I : *BB) {
+    // Also check if not a pipe call. We might have moved some pipe calls out of
+    // the decoupled BB during hoisting.
+    if (!llvm::is_contained(except, &I) && !getPipeCall(&I))
+      toRemove.push_back(&I);
+  }
+
+  for (auto I : toRemove) 
     deleteInstruction(I);
 }
 
@@ -39,6 +94,20 @@ SmallVector<StoreInst *> getPipeOpStructStores(const CallInst *pipeWrite) {
   // The struct stores were collected in reverse above.
   std::reverse(storesToStruct.begin(), storesToStruct.end());
   return storesToStruct;
+}
+
+/// Create an int32 val using alloca at the beginning of {F} and initialize it 
+/// with {initVal}. Return its address.
+Value *createTag(Function &F, SmallVector<Instruction *> &created) {
+  IRBuilder<> Builder(F.getEntryBlock().getTerminator());
+  // LLVM doesn't make a distinction between signed and unsigned. And the only
+  // op done on tags is 2's complement addition, so the bit pattern is the same.
+  auto tagType = Type::getInt32Ty(F.getContext());
+  Value *tagAddr = Builder.CreateAlloca(tagType);
+  auto initStore = Builder.CreateStore(ConstantInt::get(tagType, 0), tagAddr);
+  created.push_back(dyn_cast<Instruction>(tagAddr));
+  created.push_back(initStore);
+  return tagAddr;
 }
 
 void instr2pipeLsqLdReq(json::Object &i2pInfo, Value *stTagAddr,
@@ -337,156 +406,210 @@ void instr2pipeSsaMain(json::Object &i2pInfo,
   }
 }
 
-/// Delete all instrucions in {BB} except the {exceptions}.
-void deleteInstrsInPe(BasicBlock *BB, SmallVector<Instruction *> exceptions) {
-  SmallVector<Instruction *> toRemove;
-  for (auto &I : *BB) {
-    // Also check if not a pipe call. We might have moved some pipe calls out of
-    // the decoupled BB during hoisting.
-    if (!llvm::is_contained(exceptions, &I) && !getPipeCall(&I))
-      toRemove.push_back(&I);
-  }
-
-  for (auto I : toRemove) 
-    deleteInstruction(I);
-}
-
-/// Given a basic block or an entire loop, wrap it into a 
-/// "while (predPipe::read()) { BB/Loop }" code structure.
-void createPredicatedPE(json::Object &i2pInfo, LoopInfo &LI) {
+/// Given a basic block wrap it in the following control flow:
+///                      ↓~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~¬
+///    funcEntry -> preHeader -> header <-> decoupledBB -> exiting -> funcExit
+///                                      \~~~~~~~~~~~~~~~~~~~↑
+/// - the preHeader will read any hoisted out input dependencies (i.e. data
+///   communicated once before the loop of the decoupledBB executes).
+/// - the header reads the predicate, and goes to dcpldBB or exitingBB.
+/// - the dcpld bb has a backedge to the header.
+/// - the exiting BB exits the function (predicate carries EXIT), or takes the 
+///   backedge to the preHeader (predicate carries RESET).
+void createPredicatedBlockPE(json::Object &i2pInfo) {
   auto predPipeRead =
       reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+  auto predType = Type::getInt8Ty(predPipeRead->getContext());
   auto F = predPipeRead->getFunction();
-  auto funcEntryBB = &F->getEntryBlock();
-  auto funcReturnBB = getReturnBlock(*F);
+  auto entryBB = &F->getEntryBlock();
+  auto exitBB = getReturnBlock(*F);
   auto dcpldBB = getChildWithIndex<Function, BasicBlock>(
       F, *i2pInfo.getInteger("basic_block_idx"));
-  auto L = LI.getLoopFor(dcpldBB);
-  bool isLoopPE = *i2pInfo.getString("pe_type") == "loop";
     
   SmallVector<BasicBlock *> blocksToDelete;
   for (auto &BB : *F) {
-    if (dcpldBB == &BB || funcEntryBB == &BB || funcReturnBB == &BB ||
-        (isLoopPE && (L->getExitBlock() == &BB || L->contains(&BB)))) {
-      // Keep the function entry/return block, and the decoupledBlock/loop.
-      // If this is a PE for a loop, then also keep its exit block.
-      continue;
-    }
-    blocksToDelete.push_back(&BB);
+    if (dcpldBB != &BB && entryBB != &BB && exitBB != &BB)
+      blocksToDelete.push_back(&BB);
   }
 
-  // entryBlockF --> peHeader unconditional branch.
-  auto peHeader = BasicBlock::Create(F->getContext(), "peHeader", F, dcpldBB);
-  dyn_cast<BranchInst>(funcEntryBB->getTerminator())->setSuccessor(0, peHeader);
+  auto headerBB = BasicBlock::Create(F->getContext(), "header", F, dcpldBB);
+  auto preHeaderBB =
+      BasicBlock::Create(F->getContext(), "preHeader", F, headerBB);
+  auto exitingBB = BasicBlock::Create(F->getContext(), "exiting", F, exitBB);
 
-  IRBuilder<> Builder(peHeader);
-  // peHeader --> peBody conditional branch.
-  auto peBranch = Builder.CreateCondBr(predPipeRead, dcpldBB, funcReturnBB);
-  predPipeRead->moveBefore(peBranch);
+  // entry -> preHeader
+  dyn_cast<BranchInst>(entryBB->getTerminator())->setSuccessor(0, preHeaderBB);
 
-  // peBody --> peHeader unconditional branch.
-  auto blockWithBackedge =
-      (*i2pInfo.getString("pe_type") == "loop") ? L->getExitBlock() : dcpldBB;
-  auto oldBranch = blockWithBackedge->getTerminator();
-  Builder.SetInsertPoint(oldBranch);
-  Builder.CreateBr(peHeader);
+  // preHeader -> header
+  IRBuilder<> Builder(preHeaderBB);
+  Builder.CreateBr(headerBB);
+
+  // header -> body | header -> exiting
+  Builder.SetInsertPoint(headerBB);
+  auto isExec = Builder.CreateICmpEQ(predPipeRead, 
+      ConstantInt::get(predType, PE_PREDICATE_CODES::EXECUTE));
+  Builder.CreateCondBr(isExec, dcpldBB, exitingBB);
+  predPipeRead->moveBefore(&headerBB->front());
+
+  // body -> header
+  Builder.SetInsertPoint(dcpldBB);
+  auto oldBranch = dcpldBB->getTerminator();
+  Builder.CreateBr(headerBB);
   deleteInstruction(oldBranch);
 
-  if (isLoopPE) {
-    // Move depIn pipe reads from decoupledBB to peHeader.
-    SmallVector<Instruction *> toMove;
-    for (auto &I : *dcpldBB) 
-      if (getPipeCall(&I)) 
-        toMove.push_back(&I);
-    for (auto I : toMove) 
-      I->moveBefore(peBranch);
+  // exiting -> preHeader | exiting -> exit
+  Builder.SetInsertPoint(exitingBB);
+  auto isReset = Builder.CreateICmpEQ(predPipeRead,
+      ConstantInt::get(predType, PE_PREDICATE_CODES::RESET));
+  Builder.CreateCondBr(isReset, preHeaderBB, exitBB);
+
+  // Delete the collected blocks and the instructions within them.
+  for (auto BB : blocksToDelete) {
+    deleteNonPipeInstrsInBB(BB);
+    BB->removeFromParent();
   }
-    
-  // Update phi sources in decoupledBB
-  for (auto &phi : dcpldBB->phis()) {
+}
+
+/// Given a loop header BB, wrap the entire loop in the following control flow:
+///    funcEntry -> headerPE <-> decoupledLoop -> funcExit
+///                           \~~~~~~~~~~~~~~~~~~~~~~↑
+/// - the headerPE reads all input dependencies and the predicate. Based on the 
+///   predicate, it goes to the decoupled loop or to the function exit.
+/// - the only change in the dcpldLoop control flow is that the loop exit block
+///   transfers control to the headerPE bb.
+/// - the decoupled loop exit block also writes out any dependenciesOut.
+void createPredicatedLoopPE(json::Object &i2pInfo, LoopInfo &LI) {
+  auto predPipeRead =
+      reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+  auto predType = Type::getInt8Ty(predPipeRead->getContext());
+  auto F = predPipeRead->getFunction();
+  auto headerOfDcpldLoop = getChildWithIndex<Function, BasicBlock>(
+      F, *i2pInfo.getInteger("basic_block_idx"));
+  auto L = LI.getLoopFor(headerOfDcpldLoop);
+  auto funcEntry = &F->getEntryBlock();
+  auto funcExit = getReturnBlock(*F);
+  auto loopExit = L->getExitBlock();
+
+  SmallVector<BasicBlock *> blocksToDelete;
+  SmallVector<BasicBlock *> blocksToKeep{headerOfDcpldLoop, funcEntry,
+                                         funcExit, loopExit};
+  llvm::append_range(blocksToKeep, L->getBlocksVector());
+  for (auto &BB : *F) 
+    if (!llvm::is_contained(blocksToKeep, &BB)) 
+      blocksToDelete.push_back(&BB);
+
+  auto headerPE =
+      BasicBlock::Create(F->getContext(), "header", F, headerOfDcpldLoop);
+
+  // entry -> headerPE
+  dyn_cast<BranchInst>(funcEntry->getTerminator())->setSuccessor(0, headerPE);
+
+  // headerPE -> dcpldLoop | headerPE -> funcExit
+  IRBuilder<> Builder(headerPE);
+  Builder.SetInsertPoint(headerPE);
+  auto isExec = Builder.CreateICmpEQ(predPipeRead, 
+      ConstantInt::get(predType, PE_PREDICATE_CODES::EXECUTE));
+  Builder.CreateCondBr(isExec, headerOfDcpldLoop, funcExit);
+  predPipeRead->moveBefore(&headerPE->front());
+
+  // loopExit -> headerPE
+  Builder.SetInsertPoint(loopExit);
+  auto oldBranch = loopExit->getTerminator();
+  Builder.CreateBr(headerPE);
+  deleteInstruction(oldBranch);
+
+  // Pipe read/writes with dependencies should only be called once per entire
+  // decoupled loop exec. So move them to headerPE/decoupledLoopExit.
+  SmallVector<Instruction *> moveToHeader, moveToLoopExit;
+  // All depIn/out will be in the headerOfDcpldLoop.
+  for (auto &I : *headerOfDcpldLoop) {
+    if (isPipeRead(&I)) 
+      moveToHeader.push_back(&I);
+    else if (isPipeWrite(&I)) 
+      moveToLoopExit.push_back(&I);
+  }
+  for (auto I : moveToHeader) 
+    I->moveBefore(&headerPE->front());
+  for (auto I : moveToLoopExit) 
+    I->moveBefore(&loopExit->front());
+
+  // Update phi sources in decoupledLoopHeaderBB.
+  for (auto &phi : headerOfDcpldLoop->phis()) {
     for (auto srcBB : phi.blocks()) {
       if (llvm::is_contained(blocksToDelete, srcBB))
-        dcpldBB->replacePhiUsesWith(srcBB, peHeader);
+        headerOfDcpldLoop->replacePhiUsesWith(srcBB, headerPE);
     }
   }
 
   // Delete the collected blocks and the instructions within them.
-  SmallVector<Instruction *> instrsToDelete;
-  for (auto BB : blocksToDelete) 
-    for (auto &I : *BB)
-      instrsToDelete.push_back(&I);
-  for (auto &I : instrsToDelete)
-    deleteInstruction(I);
-  for (auto BB : blocksToDelete) 
+  for (auto BB : blocksToDelete) {
+    deleteNonPipeInstrsInBB(BB);
     BB->removeFromParent();
+  }
 }
 
 void addPredicateWrites(json::Object &i2pInfo, LoopInfo &LI,
                         SmallVector<Instruction *> &created) {
   auto predPipeWrite =
       reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
+  auto predType = Type::getInt8Ty(predPipeWrite->getContext());
   auto dcpldBB = getChildWithIndex<Function, BasicBlock>(
       predPipeWrite->getFunction(), *i2pInfo.getInteger("basic_block_idx"));
-  auto predType = Type::getInt8Ty(predPipeWrite->getContext());
+  auto L = LI.getLoopFor(dcpldBB);
+  auto loopExitBlock = L->getExitBlock();
+  auto funcExitBlock = getReturnBlock(*dcpldBB->getParent());
   bool isLoopPE = (*i2pInfo.getString("pe_type") == "loop");
 
-  // In decoupled BB invoke the predicated PE.
+  // Write PRED::EXEC in the dcpldBB. 
   predPipeWrite->moveBefore(dcpldBB->getFirstNonPHI());
-  auto stTrue = storeValIntoPipe(ConstantInt::get(predType, 1), predPipeWrite);
+  auto gotoBodySt = storeValIntoPipe(
+      ConstantInt::get(predType, PE_PREDICATE_CODES::EXECUTE), predPipeWrite);
+  created.push_back(gotoBodySt);
 
-  // Terminate the predicated PE kernel at the end of the loop/function.
-  // TODO: Change this when moving to multi-value predicates.
-  auto predPipeClone = dyn_cast<CallInst>(predPipeWrite->clone());
-  auto insertInBlock = isLoopPE ? getReturnBlock(*dcpldBB->getParent())
-                                : LI.getLoopFor(dcpldBB)->getExitBlock();
-  predPipeClone->insertBefore(insertInBlock->getTerminator());
-  auto stFalse = storeValIntoPipe(ConstantInt::get(predType, 0), predPipeClone);
-    
-  if (isLoopPE) {
-    // Skip loop body: unconditional branch from loop header (i.e. dcpldBB) to
-    // the successor of the loop exit block.
-    IRBuilder<> Builder(dcpldBB->getTerminator());
-    Builder.CreateBr(
-        LI.getLoopFor(dcpldBB)->getExitBlock()->getSingleSuccessor());
+  // Write PRED::EXIT in the function exit block.
+  auto predPipeExit = dyn_cast<CallInst>(predPipeWrite->clone());
+  predPipeExit->insertBefore(&funcExitBlock->front());
+  auto exitPredSt = storeValIntoPipe(
+      ConstantInt::get(predType, PE_PREDICATE_CODES::EXIT), predPipeExit);
+  created.push_back(exitPredSt);
+
+  // Write PRED::RESET in the loop exit block of the dcpldBB. 
+  // This is only needed when decoupling a single BB sitting in a nested loop.
+  if (loopExitBlock != funcExitBlock && !isLoopPE) {
+    auto predPipeReset = dyn_cast<CallInst>(predPipeWrite->clone());
+    predPipeReset->insertBefore(&loopExitBlock->front());
+    auto resetPredSt = storeValIntoPipe(
+        ConstantInt::get(predType, PE_PREDICATE_CODES::RESET), predPipeReset);
+    created.push_back(resetPredSt);
   }
-
-  created.push_back(stTrue);
-  created.push_back(stFalse);
 }
 
-/// Create an int32 val using alloca at the beginning of {F} and initialize it 
-/// with {initVal}. Return its address.
-Value *createTag(Function &F, SmallVector<Instruction *> &created) {
-  IRBuilder<> Builder(F.getEntryBlock().getTerminator());
-  // LLVM doesn't make a distinction between signed and unsigned. And the only
-  // op done on tags is 2's complement addition, so the bit pattern is the same.
-  auto tagType = Type::getInt32Ty(F.getContext());
-  Value *tagAddr = Builder.CreateAlloca(tagType);
-  auto initStore = Builder.CreateStore(ConstantInt::get(tagType, 0), tagAddr);
-  created.push_back(dyn_cast<Instruction>(tagAddr));
-  created.push_back(initStore);
-  return tagAddr;
-}
-
-void hoistPipesPE(json::Array &directives) {
+/// Given dependencyIn/Out directives hoist the associated pipe calls out of the 
+/// decoupled BB into the loop preheader (if read), or the exitingBB (if write).
+void hoistPipesBlockPE(json::Array &directives) {
   for (const json::Value &i2pInfoVal : directives) {
     auto i2pInfo = *i2pInfoVal.getAsObject();
+
+    assert(i2pInfo.getString("pe_type") != "loop" &&
+           "Loop PEs cannot have dependency pipe read/writes hoisted.");
 
     auto pipeCall =
         reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
     auto F = pipeCall->getFunction();
     auto decoupledBB = pipeCall->getParent();
-    auto loopHeader = decoupledBB->getPrevNode();
+    auto preHeaderBB = F->getEntryBlock().getSingleSuccessor();
+    auto headerBB = preHeaderBB->getSingleSuccessor();
+    auto exitingBB = getReturnBlock(*F)->getSinglePredecessor();
     
     if (i2pInfo.getString("read/write") == "read") {
-      pipeCall->moveBefore(F->getEntryBlock().getTerminator());
+      pipeCall->moveBefore(preHeaderBB->getTerminator());
     } else {
       auto recStartPipeRead = reinterpret_cast<Instruction *>(
           *i2pInfo.getInteger("llvm_recurrence_start_pipe_read"));
 
       auto storeIntoPipe = pipeCall->getPrevNode();
       auto storedValue = storeIntoPipe->getOperand(0);
-      pipeCall->moveBefore(&getReturnBlock(*F)->front());
+      pipeCall->moveBefore(&exitingBB->front());
       storeIntoPipe->moveBefore(pipeCall);
 
       // If the {storedValue} is used by a phi recurrence start, then we need to
@@ -494,12 +617,12 @@ void hoistPipesPE(json::Array &directives) {
       if (*i2pInfo.getBoolean("used_by_recurrence_start")) {
         auto recPhi =
             PHINode::Create(storedValue->getType(), 2, "hoistedRecurrence",
-                            &loopHeader->front());
-        recPhi->addIncoming(recStartPipeRead, &F->getEntryBlock());
+                            &headerBB->front());
+        recPhi->addIncoming(recStartPipeRead, preHeaderBB);
         recPhi->addIncoming(storedValue, decoupledBB);
         storeIntoPipe->setOperand(0, recPhi);
 
-        recStartPipeRead->replaceUsesOutsideBlock(recPhi, loopHeader);
+        recStartPipeRead->replaceUsesOutsideBlock(recPhi, headerBB);
       }
     }
   }
@@ -510,6 +633,9 @@ void hoistPipesMain(json::Array &directives, LoopInfo &LI) {
  for (const json::Value &i2pInfoVal : directives) {
     auto i2pInfo = *i2pInfoVal.getAsObject();
 
+    assert(i2pInfo.getString("pe_type") != "loop" &&
+           "Loop PEs cannot have dependency pipe read/writes hoisted.");
+
     auto isPipeRead = (i2pInfo.getString("read/write") == "read");
     auto pipeCall =
         reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
@@ -519,6 +645,8 @@ void hoistPipesMain(json::Array &directives, LoopInfo &LI) {
     auto L = LI.getLoopFor(decoupledBB);
     auto loopHeader = L->getHeader();
     auto loopPreHeader = L->getLoopPreheader();
+    auto loopExit = L->getExitBlock();
+    auto funcExit = getReturnBlock(*pipeCall->getFunction());
     
     if (!isPipeRead) {
       // Supply initital value to the PE before entering loop. 
@@ -536,14 +664,32 @@ void hoistPipesMain(json::Array &directives, LoopInfo &LI) {
       pipeCall->moveBefore(loopPreHeader->getTerminator());
       storeValIntoPipe(initVal, pipeCall);
       deleteInstruction(toDeleteStore);
+
+      if (loopExit != funcExit) {
+        pipeCall->clone()->insertBefore(funcExit->getFirstNonPHI());
+      }
     } else {
-      pipeCall->moveBefore(&L->getExitBlock()->front());
+      // The pipe read should happen after the pred::GOTO_EXIT/PREHEADER call.
+      Instruction *insertPoint = loopExit->getFirstNonPHI();
+      for (auto &I : *loopExit) {
+        if (getPipeCall(&I)) {
+          insertPoint = &I;
+          break;
+        }
+      }
+
+      pipeCall->moveAfter(insertPoint);
       recStart->replaceAllUsesWith(pipeCall);
       if (auto recEnd = dyn_cast<Instruction>(
               recStart->DoPHITranslation(loopHeader, L->getLoopLatch()))) {
         deleteInstruction(recEnd);
       }
       deleteInstruction(recStart);
+
+      // // TODO: For every predicate call, read the recurrence out.
+      if (loopExit != funcExit) {
+        pipeCall->clone()->insertBefore(funcExit->getTerminator());
+      }
     }
   }
 }
@@ -730,7 +876,8 @@ SmallVector<Instruction *> getDecoupledI(Function &F, LoopInfo &LI,
       auto L = LI.getLoopFor(dcpldBB);
       for (auto BB : L->getBlocksVector()) {
         for (auto &I : *BB) {
-          res.push_back(&I);
+          if (!I.isTerminator()) // Leave control flow.
+            res.push_back(&I);
         }
       }
     }
@@ -749,50 +896,23 @@ void deleteDecoupledLoopBodies(Function &F, LoopInfo &LI,
 
     if (peInfo["pe_type"] == "loop") {
       auto L = LI.getLoopFor(dcpldBB);
+
+      // Skip loop body: unconditional loop header -> loop exit branch.
+      IRBuilder<> Builder(dcpldBB);
+      auto oldBranch = dcpldBB->getTerminator();
+      Builder.CreateBr(L->getExitBlock());
+      deleteInstruction(oldBranch);
+
       for (auto BB : L->getBlocksVector()) {
-        if (BB != dcpldBB)
+        if (BB != dcpldBB) {
+          deleteNonPipeInstrsInBB(BB);
           BB->removeFromParent();
+        }
       }
     }
   }
 }
 
-/// For every instruction expressed in json, update the json with a pointer to
-/// the LLVM instruction object in F.
-json::Array getDirectives(Function &F, const json::Object &report) {
-  std::string thisKernelName = demangle(std::string(F.getNameOrAsOperand()));
-
-  json::Array directives;
-  for (auto i2pInfoVal : *report.getArray("instr2pipe_directives")) {
-    auto i2pInfo = *i2pInfoVal.getAsObject();
-    if (i2pInfo.getString("kernel_name") != thisKernelName) 
-      continue;
-
-    // Each directive has a guaranteed pipe call.
-    i2pInfo["llvm_pipe_call"] =
-        reinterpret_cast<std::intptr_t>(getPipeCall(F, i2pInfo));
-
-    // Not every directive has an instruction, e.g. end_signal directives.
-    if (auto optI = i2pInfo.getObject("instruction")) {
-      i2pInfo["llvm_instruction"] =
-          reinterpret_cast<std::intptr_t>(getInstruction(F, *optI));
-    }
-
-    // The poison directives have a predBB --> sucBB edge.
-    if (auto optPredBBIdx = i2pInfo.getInteger("pred_basic_block_idx")) {
-      i2pInfo["llvm_pred_basic_block"] = reinterpret_cast<std::intptr_t>(
-          getChildWithIndex<Function, BasicBlock>(&F, *optPredBBIdx));
-    }
-    if (auto optSuccBBIdx = i2pInfo.getInteger("succ_basic_block_idx")) {
-      i2pInfo["llvm_succ_basic_block"] = reinterpret_cast<std::intptr_t>(
-          getChildWithIndex<Function, BasicBlock>(&F, *optSuccBBIdx));
-    }
-
-    directives.push_back(std::move(i2pInfo));
-  }
-
-  return directives;
-}
 
 struct ElasticTransform : PassInfoMixin<ElasticTransform> {
   json::Object report;
@@ -861,8 +981,10 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
         instr2pipeSsaPe(i2pInfo, toKeep);
       else if (directiveType == "ssa" && isMain) 
         instr2pipeSsaMain(i2pInfo, toKeep);
-      else if (directiveType == "pred" && (isBlockPE || isLoopPE)) 
-        createPredicatedPE(i2pInfo, LI);
+      else if (directiveType == "pred" && isBlockPE) 
+        createPredicatedBlockPE(i2pInfo);
+      else if (directiveType == "pred" && isLoopPE) 
+        createPredicatedLoopPE(i2pInfo, LI);
       else if (directiveType == "pred" && isMain)
         addPredicateWrites(i2pInfo, LI, toKeep);
     }
@@ -870,7 +992,7 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
     // The hoisting transformation can move some pipes out of the decoupled BB
     // to the loop preheader or exit blocks to remove unnecessary read/writes.
     if (isBlockPE)
-      hoistPipesPE(hoistDirectives);
+      hoistPipesBlockPE(hoistDirectives);
     else if (isMain)
       hoistPipesMain(hoistDirectives, LI);
     

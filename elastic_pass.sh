@@ -99,7 +99,9 @@ cleanup_ir $SRC_FILE_AST.elastic.bc
 echo "Info: Passing transformed IR to downstream HLS compiler" 
 echo "---------------- Elastic passes end ----------------"
 echo "Compiling $FINAL_BINARY"
+($ELASTIC_SYCL_HLS_DIR/scripts/compilation/ip_param_change.sh &) # subshell to avoid later kill messages
 $ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_from_bc.sh $TARGET $SRC_FILE_AST.elastic.bc $SRC_FILE_AST $FINAL_BINARY
+killall -9 ip_param_change
 
 # Remove created temporaried, if the "-d" flag was not supplied.
 if [[ "$*" != *"-d"* ]] 

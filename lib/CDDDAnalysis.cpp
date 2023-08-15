@@ -241,7 +241,7 @@ void ControlDependentDataDependencyAnalysis::collectLoopInOutDependencies() {
           for (auto useOfI : I.users()) {
             if (auto instrForUse = dyn_cast<Instruction>(useOfI)) {
               if (!L->contains(instrForUse))
-                outDeps.insert(instrForUse);
+                outDeps.insert(&I);
             }
           }
         }

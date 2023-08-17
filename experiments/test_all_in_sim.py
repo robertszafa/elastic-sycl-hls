@@ -26,7 +26,7 @@ BENCHMARKS = {
     'spmv_if_2': 1000, 
 
     # Some edge cases
-    'spmv_if_pe_and_lsq': 1000, # decoupled for loop that uses an LSQ.
+    'spmv_if_pe_and_lsq_dram': 1000, # decoupled for loop that uses an LSQ.
     'histogram_2_addresses_1_speculated': 1000, # 2 LSQ, 1 with speculation
     'histogram_2_addresses_1_decoupled': 1000, # 2 LSQ, 1 without decoupled addresses
     

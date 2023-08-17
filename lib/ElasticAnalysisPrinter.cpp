@@ -1,3 +1,7 @@
+/// This file is the analysis driver. It uses DataHazardAnalysis and
+/// CDDDAnalysis to identify memory instructions, basic blocks, and whole loops
+/// which can benefit from dynamic scheduling.
+
 #include "CommonLLVM.h"
 #include "DataHazardAnalysis.h"
 #include "CDDDAnalysis.h"
@@ -404,6 +408,48 @@ void decoupledLoopsReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
   report["instr2pipe_directives"] = std::move(instr2pipeArray);
 }
 
+/// Given CDDD analysis information about decoupled basic blocks and loops,
+/// update the kernel names for LSQ ld/st value pipe read/writes if they occur
+/// in the decoupled blocks. 
+void adjustLsqValuePipesPlacement(Function &F,
+                                  ControlDependentDataDependencyAnalysis *CDDD,
+                                  json::Object &report) {
+  auto freshDirectivesArray = json::Array();
+  auto blocksToDecouple = CDDD->getBlocksToDecouple();
+  auto loopsToDecouple = CDDD->getLoopsToDecouple();
+  auto mainKernelName = std::string(*report["main_kernel_name"].getAsString());
+
+  for (auto i2pInfoVal : *report.getArray("instr2pipe_directives")) {
+    auto i2pInfo = *i2pInfoVal.getAsObject();
+    if (i2pInfo.getString("directive_type") == "st_val" ||
+        i2pInfo.getString("directive_type") == "ld_val") {
+
+      auto instrObj = i2pInfo.getObject("instruction");
+      auto bbIdx = instrObj->getInteger("basic_block_idx");
+      auto pipeBB = getChildWithIndex<Function, BasicBlock>(&F, *bbIdx);
+
+      for (size_t iL = 0; iL < loopsToDecouple.size(); ++iL) {
+        if (loopsToDecouple[iL]->contains(pipeBB)) {
+          i2pInfo["kernel_name"] =
+              mainKernelName + "_PE_LOOP_" + std::to_string(iL);
+        }
+      }
+
+      // A decoupled block will take precedence over a decoupled loop.
+      for (size_t iPE = 0; iPE < blocksToDecouple.size(); ++iPE) {
+        if (blocksToDecouple[iPE] == pipeBB) {
+          i2pInfo["kernel_name"] =
+              mainKernelName + "_PE_BB_" + std::to_string(iPE);
+        }
+      }
+    }
+
+    freshDirectivesArray.push_back(std::move(i2pInfo));
+  }
+
+  report["instr2pipe_directives"] = std::move(freshDirectivesArray);
+}
+
 /// Generate a report for memory instructions that form 
 /// a RAW inter-iteration data hazard.
 struct ElasticAnalysisPrinter : PassInfoMixin<ElasticAnalysisPrinter> {
@@ -435,9 +481,14 @@ struct ElasticAnalysisPrinter : PassInfoMixin<ElasticAnalysisPrinter> {
       report["lsq_array"] = json::Array();
       report["pe_array"] = json::Array();
 
+      // TODO: save all info in a struct and only write out to json at the end
+      //       to avoid needless copying of the {report} json object.
       lsqReportPrinter(DHA, report);
       decoupledBlocksReportPrinter(CDDD, report);
       decoupledLoopsReportPrinter(CDDD, report);
+      // If a LSQ ld/st value pipe ends up in a decoupled basic block, then we
+      // need to update the associated instr2pipe directive kernel name.
+      adjustLsqValuePipesPlacement(F, CDDD, report);
 
       // Print report to stdout to be picked up by later tools.
       outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n";

@@ -23,35 +23,24 @@ double spmv_if_kernel(queue &q, std::vector<int> &h_w,
                       const int M) {
   int *w = fpga_tools::toDevice(h_w, q);
   int *all_zero = fpga_tools::toDevice(h_all_zero, q);
-  int *dram_data = fpga_tools::toDevice(h_data, q);
+  int *data = fpga_tools::toDevice(h_data, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    int data[kM *kM];
-
-    #if TEST
-    for (int i=0; i<N*N; ++i)
-      data[i] = data_dram[i];
-    #endif
-
     for (int j = 0; j < M; j++) {
       if (!all_zero[j]) {
+        // Loop should be decoupled.
         for (int i = 0; i < M; i++) {
+          // Memory should be connected to LSQ.
           data[w[i]] += w[i * M + j] * data[i];
         }
       }
     }
-
-    #if TEST
-    for (int i=0; i<N*N; ++i)
-      data_dram[i] = data[i];
-    #endif 
   });
 
   event.wait();
 
-  q.copy(dram_data, h_data.data(), h_data.size()).wait();
-  sycl::free(dram_data, q);
-
+  q.copy(data, h_data.data(), h_data.size()).wait();
+  sycl::free(data, q);
   sycl::free(w, q);
   sycl::free(all_zero, q);
 
@@ -67,7 +56,7 @@ void spmv_if_cpu(std::vector<int> &w, std::vector<int> &all_zero,
     for (int j = 0; j < kM; j++) {
       if (!all_zero[j]) {
         for (int i = 0; i < kM; i++) {
-          data[i] += w[i * kM + j] * data[i];
+          data[w[i]] += w[i * kM + j] * data[i];
         }
       }
     }
@@ -133,15 +122,12 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Kernel time (ms): " << kernel_time << "\n";
 
-    #if TEST
     spmv_if_cpu(w, all_zero, cpu_data);
     if (std::equal(cpu_data.begin(), cpu_data.begin(), h_data.begin())) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed\n";
     }
-    #endif
-
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

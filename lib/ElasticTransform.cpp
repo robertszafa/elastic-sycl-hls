@@ -196,7 +196,7 @@ void instr2pipeLsqStReq(json::Object &i2pInfo, Value *stTagAddr,
   auto tagType = stTagStore->getOperand(0)->getType();
 
   // Move everything needed to setup the pipe write call to memInst's location.
-  pipeWrite->moveBefore(I);
+  pipeWrite->moveAfter(I);
   stTagStore->moveBefore(pipeWrite);
   addressStore->moveBefore(pipeWrite);
 
@@ -231,7 +231,9 @@ void instr2pipeLdVal(json::Object &i2pInfo) {
       reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
   auto I =
       reinterpret_cast<Instruction *>(*i2pInfo.getInteger("llvm_instruction"));
-  pipeRead->moveBefore(I);
+  // Move after I. Ensures ld_val comes after ld_req in case when both the
+  // ld_val and ld_req pipes are in the same kernel.
+  pipeRead->moveAfter(I);
   Value *loadVal = dyn_cast<Value>(I);
   loadVal->replaceAllUsesWith(pipeRead);
 }
@@ -269,7 +271,15 @@ void instr2pipeStVal(json::Object &i2pInfo, Value *tagAddr,
 
   // Instead of storing value to memory, store into the valStore struct member.
   pipeWrite->moveAfter(I);
-  I->setOperand(1, valStore->getOperand(1));
+  if (*i2pInfo.getBoolean("is_address_decoupled")) {
+    // The "I" store will no longer be needed.
+    I->setOperand(1, valStore->getOperand(1));
+  } else {
+    // The "I" store will be used by the stReq transformation. Don't change it.
+    auto storeValueClone = I->clone();
+    storeValueClone->insertBefore(pipeWrite);
+    storeValueClone->setOperand(1, valStore->getOperand(1));
+  }
 }
 
 /// Create a new basic block with a poison pipe read/write to deallocate
@@ -970,6 +980,7 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
     auto lsqLdReqTag = createTag(F, toKeep);
 
     // Process all instruction-to-pipe directives for this function.
+    // The transformation matters and is ensured by ElasticAnalysisPrinter.
     for (json::Value &i2pInfoVal : directives) {
       auto i2pInfo = *i2pInfoVal.getAsObject();
       auto directiveType = i2pInfo.getString("directive_type");

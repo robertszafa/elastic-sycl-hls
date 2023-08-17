@@ -3,7 +3,7 @@
 import os
 
 BENCHMARKS = {
-
+    # LSQ protecting BRAM (set TEST pragma in the files to test correctness)
     'histogram_bram': 1000,
     'get_tanh_bram': 1000,
     'get_tanh_double_bram': 1000,
@@ -14,15 +14,22 @@ BENCHMARKS = {
     'histogram_if_bram': 1000,
     'maximal_matching_bram': 1000,
     'floyd_warshall_bram': 10,
-    
+
+    # Decoupled single basic blocks.    
     'filter_sum': 1000,
     'get_tanh_if': 1000,
     'vec_norm_trans': 1000,
-    'spmv_if': 1000,
-    'spmv_if_2': 1000,
     'doitgen_triple': 100,
     'eval_pos': 1000,
+    # Decoupled whole loops.    
+    'spmv_if': 1000,
+    'spmv_if_2': 1000, 
 
+    # Some edge cases
+    'spmv_if_pe_and_lsq': 1000, # decoupled for loop that uses an LSQ.
+    'histogram_2_addresses_1_speculated': 1000, # 2 LSQ, 1 with speculation
+    'histogram_2_addresses_1_decoupled': 1000, # 2 LSQ, 1 without decoupled addresses
+    
     # DRAM LSQ codes need to be run on a real board to get meaningful perf numbers
     'histogram_dram': 1000,
     'get_tanh_dram': 1000,

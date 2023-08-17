@@ -10,7 +10,6 @@
 
 #include "memory_utils.hpp"
 #include "exception_handler.hpp"
-#include "device_print.hpp"
 
 using namespace sycl;
 
@@ -22,7 +21,7 @@ double histogram_2_addresses_1_decoupled_kernel(queue &q,
                                                 std::vector<float> &h_hist,
                                                 const std::vector<int> &h_idx2,
                                                 std::vector<int> &h_hist2) {
-  const int N = h_idx.size();
+  const int array_size = h_idx.size();
 
   int *idx = fpga_tools::toDevice(h_idx, q);
   float *hist = fpga_tools::toDevice(h_hist, q);
@@ -31,15 +30,15 @@ double histogram_2_addresses_1_decoupled_kernel(queue &q,
   auto *hist2 = fpga_tools::toDevice(h_hist2, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < array_size; ++i) {
       auto idx_scalar = idx[i];
       auto x = hist[idx_scalar];
       hist[idx_scalar] = x + 10.0;
 
       auto idx_scalar2 = idx2[i];
       auto x2 = hist2[idx_scalar2];
-      if (x2 > 0 && x2 < N) 
-        hist2[x2] = x2 + 3; // this address. gen cannot be decoupled.
+      if (x2 > 0) 
+        hist2[idx_scalar2] = x2 + 3; // this address gen. be decoupled, but only with speculation
     }
   });
 
@@ -68,10 +67,25 @@ void histogram_cpu(const int *idx, float *hist, const int *idx2, int *hist2,
 
     auto idx_scalar2 = idx2[i];
     auto x2 = hist2[idx_scalar2];
-    if (x2 > 0 && x2 < N) 
-      hist2[x2] = x2 + 3; // this address. gen cannot be decoupled.
+    if (x2 > 0) // this cannot be decoupled.
+      hist2[idx_scalar2] = x2 + 3;
   }
 }
+
+
+void init_data(std::vector<int> &feature, 
+               const int percentage) {
+  std::default_random_engine generator;
+  std::uniform_int_distribution<int> distribution(0, 99);
+  auto dice = std::bind (distribution, generator);
+
+  int counter=0;
+  for (int i = 0; i < feature.size(); i++) {
+    feature[i] = (dice() < percentage) ? feature[std::max(i-1, 0)] : i;
+  }
+}
+
+
 
 int main(int argc, char *argv[]) {
   int ARRAY_SIZE = 1000;
@@ -108,22 +122,21 @@ int main(int argc, char *argv[]) {
     // Print out the device information used for the kernel code.
     std::cout << "Running on device: " << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<int> feature(ARRAY_SIZE, 0);
+    std::vector<int> feature(ARRAY_SIZE);
     std::vector<float> hist(ARRAY_SIZE, 0.0);
-    std::vector<float> hist_cpu(ARRAY_SIZE, 0.0);
-    std::vector<int> hist2(ARRAY_SIZE, 1);
-    std::vector<int> hist2_cpu(ARRAY_SIZE, 1);
-    
-    // std::iota(feature.begin(), feature.end(), 0);
-    for (size_t i=0; i<ARRAY_SIZE; ++i) {
-      feature[i] = rand() % ARRAY_SIZE;
-      hist2[i] = rand() % 10;
-      hist2_cpu[i] = hist2[i];
-    }
+    std::vector<float> hist_cpu(ARRAY_SIZE);
+    std::vector<int> feature2(ARRAY_SIZE);
+    std::vector<int> hist2(ARRAY_SIZE, 0);
+    std::vector<int> hist2_cpu(ARRAY_SIZE);
 
-    auto kernel_time = histogram_2_addresses_1_decoupled_kernel(q, feature, hist, feature, hist2);
+    init_data(feature,  PERCENTAGE);
+    init_data(feature2,  PERCENTAGE);
+    std::copy(hist.begin(), hist.end(), hist_cpu.begin());
+    std::copy(hist2.begin(), hist2.end(), hist2_cpu.begin());
 
-    histogram_cpu(feature.data(), hist_cpu.data(), feature.data(),
+    auto kernel_time = histogram_2_addresses_1_decoupled_kernel(q, feature, hist, feature2, hist2);
+
+    histogram_cpu(feature.data(), hist_cpu.data(), feature2.data(),
                   hist2_cpu.data(), hist_cpu.size());
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
@@ -133,11 +146,6 @@ int main(int argc, char *argv[]) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed\n";
-
-      for (size_t i=0; i<ARRAY_SIZE; ++i) {
-        if (hist2[i] != hist2_cpu[i])
-          std::cout << i << ": " << hist2[i] << " != " << hist2_cpu[i] << "\n";
-      }
     }
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";

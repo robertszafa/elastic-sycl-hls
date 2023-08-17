@@ -68,6 +68,7 @@ void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
           "pipes_ld_val_" + std::to_string(iLSQ) + "_class";
       ldValDirective["pipe_type"] = typeStr;
       ldValDirective["seq_in_bb"] = loadsPerBB[loads[iLd]->getParent()];
+      ldValDirective["is_address_decoupled"] = isDecoupled;
       instr2pipeArray.push_back(std::move(ldValDirective));
 
       // Load request write in AGU (or possibly main) kernel.
@@ -82,6 +83,7 @@ void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
           isOnChip ? "ld_req_lsq_bram_t" : "req_lsq_dram_t";
       ldReqDirective["seq_in_bb"] = loadsPerBB[loads[iLd]->getParent()];
       ldReqDirective["max_loads_per_bb"] = maxLdsBB;
+      ldReqDirective["is_address_decoupled"] = isDecoupled;
       instr2pipeArray.push_back(std::move(ldReqDirective));
 
       loadsPerBB[loads[iLd]->getParent()]++;
@@ -105,6 +107,7 @@ void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
                    : "tagged_val_lsq_dram_t<" + typeStr + ">";
       stValDirective["seq_in_bb"] = storesPerBB[stores[iSt]->getParent()];
       stValDirective["max_stores_per_bb"] = maxStsBB;
+      stValDirective["is_address_decoupled"] = isDecoupled;
       instr2pipeArray.push_back(std::move(stValDirective));
 
       json::Object stReqDirective;
@@ -117,6 +120,7 @@ void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
       stReqDirective["pipe_type"] = 
           isOnChip ? "st_req_lsq_bram_t" : "st_req_lsq_dram_t";
       stReqDirective["seq_in_bb"] = storesPerBB[stores[iSt]->getParent()];
+      stReqDirective["is_address_decoupled"] = isDecoupled;
       instr2pipeArray.push_back(std::move(stReqDirective));
 
       storesPerBB[stores[iSt]->getParent()]++;
@@ -124,48 +128,50 @@ void lsqReportPrinter(DataHazardAnalysis *DHA, json::Object &report) {
 
     // Info about speculatively allocating addresses in the AGU.
     json::Array hoistingInfoArray;
-    for (auto [specBB, allocStack] : DHA->getSpeculationStack()) {
-      json::Object thisSpecBB;
-      thisSpecBB["hoist_into_basic_block_idx"] =
-          getIndexOfChild(specBB->getParent(), specBB);
+    if (isAnySpeculation) {
+      for (auto [specBB, allocStack] : DHA->getSpeculationStack()) {
+        json::Object thisSpecBB;
+        thisSpecBB["hoist_into_basic_block_idx"] =
+            getIndexOfChild(specBB->getParent(), specBB);
 
-      json::Array speculativeAllocations;
-      for (auto I : allocStack)
-        speculativeAllocations.push_back(genJsonForInstruction(I));
-      thisSpecBB["hoisted_instructions"] = std::move(speculativeAllocations);
+        json::Array speculativeAllocations;
+        for (auto I : allocStack)
+          speculativeAllocations.push_back(genJsonForInstruction(I));
+        thisSpecBB["hoisted_instructions"] = std::move(speculativeAllocations);
 
-      hoistingInfoArray.push_back(std::move(thisSpecBB));
-    }
-    thisMemory["speculation_hoisting_info"] = std::move(hoistingInfoArray);
+        hoistingInfoArray.push_back(std::move(thisSpecBB));
+      }
 
-    // Directives for poison read/writes on misspeculation.
-    DenseMap<std::pair<BasicBlock *, BasicBlock *>, int> loadsPerPoisonBB,
-        storesPerPoisonBB;
-    for (auto [I, poisonLocations] : DHA->getPoisonLocations()) {
-      for (auto [predBB, succBB] : poisonLocations) {
-        json::Object poisonDirective;
-        poisonDirective["directive_type"] = "poison";
-        poisonDirective["read/write"] = isaLoad(I) ? "read" : "write";
-        poisonDirective["kernel_name"] = mainKernelName;
-        poisonDirective["pipe_name"] =
-            isaLoad(I) ? "pipes_ld_val_" + std::to_string(iLSQ) + "_class"
-                       : "pipes_st_val_" + std::to_string(iLSQ) + "_class";
-        // A poison block will be inserted on pred->succ edge.
-        poisonDirective["pred_basic_block_idx"] = 
-            getIndexOfChild(predBB->getParent(), predBB);
-        poisonDirective["succ_basic_block_idx"] = 
-            getIndexOfChild(succBB->getParent(), succBB);
-        
-        auto &ldOrStSeq = isaLoad(I) ? loadsPerPoisonBB : storesPerPoisonBB;
-        if (!ldOrStSeq.contains({predBB, succBB}))
-          ldOrStSeq[{predBB, succBB}] = 0;
-        poisonDirective["seq_in_bb"] = ldOrStSeq[{predBB, succBB}];
-        poisonDirective["max_stores_per_bb"] = maxStsBB;
-        ldOrStSeq[{predBB, succBB}]++;
-        
-        instr2pipeArray.push_back(std::move(poisonDirective));
+      // Directives for poison read/writes on misspeculation.
+      DenseMap<std::pair<BasicBlock *, BasicBlock *>, int> loadsPerPoisonBB,
+          storesPerPoisonBB;
+      for (auto [I, poisonLocations] : DHA->getPoisonLocations()) {
+        for (auto [predBB, succBB] : poisonLocations) {
+          json::Object poisonDirective;
+          poisonDirective["directive_type"] = "poison";
+          poisonDirective["read/write"] = isaLoad(I) ? "read" : "write";
+          poisonDirective["kernel_name"] = mainKernelName;
+          poisonDirective["pipe_name"] =
+              isaLoad(I) ? "pipes_ld_val_" + std::to_string(iLSQ) + "_class"
+                        : "pipes_st_val_" + std::to_string(iLSQ) + "_class";
+          // A poison block will be inserted on pred->succ edge.
+          poisonDirective["pred_basic_block_idx"] = 
+              getIndexOfChild(predBB->getParent(), predBB);
+          poisonDirective["succ_basic_block_idx"] = 
+              getIndexOfChild(succBB->getParent(), succBB);
+          
+          auto &ldOrStSeq = isaLoad(I) ? loadsPerPoisonBB : storesPerPoisonBB;
+          if (!ldOrStSeq.contains({predBB, succBB}))
+            ldOrStSeq[{predBB, succBB}] = 0;
+          poisonDirective["seq_in_bb"] = ldOrStSeq[{predBB, succBB}];
+          poisonDirective["max_stores_per_bb"] = maxStsBB;
+          ldOrStSeq[{predBB, succBB}]++;
+          
+          instr2pipeArray.push_back(std::move(poisonDirective));
+        }
       }
     }
+    thisMemory["speculation_hoisting_info"] = std::move(hoistingInfoArray);
 
     auto end_signal_pipe_name =
         "pipe_end_lsq_signal_" + std::to_string(iLSQ) + "_class";

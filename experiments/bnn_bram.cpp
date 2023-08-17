@@ -18,6 +18,10 @@ class MainKernel;
 
 constexpr int kN = 100;
 
+// Setting TEST will ensure test data is transfered from FPGA DRAM to to BRAM
+// and back. This adds latency, so leave unset for the benchmarks.
+#define TEST 0
+
 double bnn_kernel(queue &q, const std::vector<int> &h_addr_in,
                    const std::vector<int> &h_addr_out,
                    std::vector<int> &h_data, const int N) {
@@ -34,7 +38,7 @@ double bnn_kernel(queue &q, const std::vector<int> &h_addr_in,
     int alpha = 2;
 
     // Ignore for benchmarks.
-    #ifdef TEST
+    #if TEST
     for (int i=0; i<N*N; ++i)
       data[i] = data_dram[i];
     #endif
@@ -58,7 +62,7 @@ double bnn_kernel(queue &q, const std::vector<int> &h_addr_in,
       data[addr_out[y]] = z;
     }
 
-    #ifdef TEST
+    #if TEST
     for (int i=0; i<N*N; ++i)
       data_dram[i] = data[i];
     #endif 
@@ -116,7 +120,7 @@ void init_data(std::vector<int> &h_addr_in, std::vector<int> &h_addr_out,
   auto dice = std::bind(distribution, generator);
 
   for (int i = 0; i < h_addr_in.size(); i++) {
-    h_addr_in[i] = (dice() < percentage) ? 1 : i;
+    h_addr_in[i] = (dice() < percentage) ? i%6 : i;
     h_addr_out[i] = h_addr_in[i];
 
     h_data[i] = 1;
@@ -168,7 +172,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    #ifdef TEST
+    #if TEST
     bnn_cpu(addr_in, addr_out, cpu_data);
     if (std::equal(h_data.begin(), h_data.end(), cpu_data.begin()))
       std::cout << "Passed\n";

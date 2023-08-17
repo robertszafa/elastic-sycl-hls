@@ -20,6 +20,10 @@ constexpr int kN = 1000;
 
 using DATA_TYPE = int;
 
+// Setting TEST will ensure test data is transfered from FPGA DRAM to to BRAM
+// and back. This adds latency, so leave unset for the benchmarks.
+#define TEST 0
+
 double get_tanh_double_kernel(queue &q, std::vector<DATA_TYPE> &h_A,
                               const std::vector<int> h_addr_in,
                               const std::vector<int> h_addr_out) {
@@ -32,7 +36,7 @@ double get_tanh_double_kernel(queue &q, std::vector<DATA_TYPE> &h_A,
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     DATA_TYPE A[kN];
 
-#ifdef TEST
+#if TEST
     for (int i = 0; i < kN; i++)
       A[i] = A_dram[i];
 #endif
@@ -45,7 +49,7 @@ double get_tanh_double_kernel(queue &q, std::vector<DATA_TYPE> &h_A,
       A[addr_out[i]] = result;
     }
 
-#ifdef TEST
+#if TEST
     for (int i = 0; i < kN; i++)
       A_dram[i] = A[i];
 #endif
@@ -144,7 +148,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-#ifdef TEST
+#if TEST
     get_tanh_double_cpu(A_cpu, addr_in, addr_out);
     if (std::equal(A.begin(), A.end(), A_cpu.begin())) {
       std::cout << "Passed\n";

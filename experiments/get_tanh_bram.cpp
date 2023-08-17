@@ -19,6 +19,10 @@ class MainKernel;
 
 constexpr int kN = 1000;
 
+// Setting TEST will ensure test data is transfered from FPGA DRAM to to BRAM
+// and back. This adds latency, so leave unset for the benchmarks.
+#define TEST 0
+
 double get_tanh_kernel(queue &q, const std::vector<int> &h_idx,
                        std::vector<int> &h_A) {
   const int N = h_A.size();
@@ -29,7 +33,7 @@ double get_tanh_kernel(queue &q, const std::vector<int> &h_idx,
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     int A[kN];
 
-#ifdef TEST
+#if TEST
     for (int i = 0; i < N; i++)
       A[i] = A_dram[i];
 #endif
@@ -119,7 +123,7 @@ double get_tanh_kernel(queue &q, const std::vector<int> &h_idx,
       A[idx[i]] = result;
     }
 
-#ifdef TEST
+#if TEST
     for (int i = 0; i < N; i++)
       A_dram[i] = A[i];
 #endif
@@ -279,7 +283,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-#ifdef TEST
+#if TEST
     get_tanh_cpu(idxs, cpu_A);
     if (std::equal(cpu_A.begin(), cpu_A.end(), h_A.begin()))
       std::cout << "Passed\n";

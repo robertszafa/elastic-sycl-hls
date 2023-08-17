@@ -18,6 +18,10 @@ class MainKernel;
 
 constexpr int kBO = 1000;
 
+// Setting TEST will ensure test data is transfered from FPGA DRAM to to BRAM
+// and back. This adds latency, so leave unset for the benchmarks.
+#define TEST 0
+
 double chaos_ncg_kernel(queue &q, int I, int bo, int X, int Y, int params0,
                         int params1, const std::vector<int> &h_M,
                         std::vector<int> &h_buffer) {
@@ -27,7 +31,7 @@ double chaos_ncg_kernel(queue &q, int I, int bo, int X, int Y, int params0,
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     int buffer[kBO * 3];
 
-#ifdef TEST
+#if TEST
     for (int i = 0; i < kBO*3; ++i)
       buffer[i] = buffer_dram[i];
 #endif
@@ -48,7 +52,7 @@ double chaos_ncg_kernel(queue &q, int I, int bo, int X, int Y, int params0,
       buffer[M[i + 1]] = b1;
     }
 
-#ifdef TEST
+#if TEST
     for (int i = 0; i < kBO*3; ++i)
       buffer_dram[i] = buffer[i];
 #endif
@@ -138,7 +142,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-#ifdef TEST
+#if TEST
     chaos_ncg_cpu(I, BO, X, Y, 127, 41, M, buffer_cpu);
     if (std::equal(buffer.data(), buffer.data() + BO * 2, buffer_cpu.data())) {
       std::cout << "Passed\n";

@@ -19,6 +19,10 @@ class MainKernel;
 
 constexpr int kN = 1000;
 
+// Setting TEST will ensure test data is transfered from FPGA DRAM to to BRAM
+// and back. This adds latency, so leave unset for the benchmarks.
+#define TEST 0
+
 double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
                                std::vector<int> &h_vertices, int *h_out,
                                std::vector<int> &h_is_true,
@@ -31,8 +35,8 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     int vertices[kN*2];
 
-    #ifdef TEST
-    for (int i = 0; i < N*2; ++i)
+    #if TEST
+    for (int i = 0; i < kN*2; ++i)
       vertices[i] = vertices_dram[i];
     #endif
 
@@ -49,8 +53,8 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
       auto v2 = vertices[e2];
 
       if (v1 == 0 && v2 == 0) {
-        vertices[e1] = e2;
-        vertices[e2] = e1;
+        vertices[e1] = v2;
+        vertices[e2] = v1;
 
         out_scalar = out_scalar + 1;
       } 
@@ -92,8 +96,7 @@ int maximal_matching_cpu(const std::vector<int> &edges,
     auto v1 = vertices[e1];
     auto v2 = vertices[e2];
     
-    // if (vertex_u < 0 && vertex_v < 0) {
-    if (is_true[i]) {
+    if (v1 == 0 && v2 == 0) {
       vertices[e1] = v2;
       vertices[e2] = v1;
 
@@ -113,18 +116,16 @@ void init_data(std::vector<int> &edges, std::vector<int> &vertices,
   std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind (distribution, generator);
 
-  edges[0] = 0;
-  edges[1] = 1;
-  vertices[0] = -1;
-  vertices[1] = -1;
-  for (int i = 2; i < num_edges*2; i += 2) {
-    is_true[i] =  (dice() < percentage) ? 1 : 0;
+  std::fill(vertices.begin(), vertices.end(), 0);
+  std::iota(edges.begin(), edges.end(), 0);
+  
+  for (int i = 0; i < num_edges*2; i += 1) {
+    // is_true[i] =  (dice() < percentage) ? 1 : 0;
 
-    edges[i] = (dice() < percentage) ? edges[i-2] : i;
-    edges[i+1] = (dice() < percentage) ? edges[i-1] : i+1;
+    edges[i] = (dice() < percentage) ? rand() % 4 : i;
+    // edges[i+1] = (dice() < percentage) ? rand() % 4 : i+1;
 
-    vertices[i] = -1;
-    vertices[i+1] = -1;
+    vertices[i] = rand() % 10;
   }
 }
 
@@ -179,7 +180,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    #ifdef TEST
+    #if TEST
     int out_cpu = maximal_matching_cpu(edges, vertices_cpu, is_true, NUM_EDGES);
     if (out == out_cpu) {
       std::cout << "Passed\n";

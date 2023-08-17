@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
+#include <random>
 #include <stdlib.h>
 #include <vector>
-#include <random>
 
 #include <sycl/ext/intel/fpga_extensions.hpp>
 
@@ -12,54 +12,48 @@
 #include "exception_handler.hpp"
 
 using namespace sycl;
-using namespace fpga_tools;
 
 // Forward declare kernel name.
 class MainKernel;
 
-constexpr int kN = 1000;
+constexpr int kM = 100;
 
-// Setting TEST will ensure test data is transfered from FPGA DRAM to to BRAM
-// and back. This adds latency, so leave unset for the benchmarks.
-#define TEST 0
-
-double vec_trans_kernel(queue &q, std::vector<int> &h_A, const std::vector<int> &h_b) {
-
-  const int N = h_A.size();
-
-  int *A_dram = fpga_tools::toDevice(h_A, q);
-  int *b = fpga_tools::toDevice(h_b, q);
+double spmv_if_kernel(queue &q, std::vector<int> &h_w,
+                      std::vector<int> &h_all_zero, std::vector<int> &h_data,
+                      const int M) {
+  int *w = fpga_tools::toDevice(h_w, q);
+  int *all_zero = fpga_tools::toDevice(h_all_zero, q);
+  int *dram_data = fpga_tools::toDevice(h_data, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    int A[kN];
+    int data[kM *kM];
 
     #if TEST
-    for (int i=0; i < kN; ++i) 
-      A[i] = A_dram[i];
+    for (int i=0; i<N*N; ++i)
+      data[i] = data_dram[i];
     #endif
 
-    for (int i = 0; i < N; i++) {
-      int d = A[i];
-      A[b[i]] =
-          (((((((d + 112) * d + 23) * d + 36) * d + 82) * d + 127) * d + 2) *
-               d +
-           20) *
-              d +
-          100;
+    for (int j = 0; j < M; j++) {
+      if (!all_zero[j]) {
+        for (int i = 0; i < M; i++) {
+          data[w[i]] += w[i * M + j] * data[i];
+        }
+      }
     }
 
     #if TEST
-    for (int i=0; i < kN; ++i) 
-      A_dram[i] = A[i];
-    #endif
-
+    for (int i=0; i<N*N; ++i)
+      data_dram[i] = data[i];
+    #endif 
   });
 
   event.wait();
-  q.copy(A_dram, h_A.data(), h_A.size()).wait();
 
-  sycl::free(A_dram, q);
-  sycl::free(b, q);
+  q.copy(dram_data, h_data.data(), h_data.size()).wait();
+  sycl::free(dram_data, q);
+
+  sycl::free(w, q);
+  sycl::free(all_zero, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -68,32 +62,30 @@ double vec_trans_kernel(queue &q, std::vector<int> &h_A, const std::vector<int> 
   return time_in_ms;
 }
 
-void vec_trans_cpu(std::vector<int> &A, const std::vector<int> &b) {
-  const int N = A.size();
-
-  for (int i = 0; i < N; i++) {
-    int d = A[i];
-    A[b[i]] =
-        (((((((d + 112) * d + 23) * d + 36) * d + 82) * d + 127) * d + 2) * d +
-         20) *
-            d +
-        100;
-  }
+void spmv_if_cpu(std::vector<int> &w, std::vector<int> &all_zero,
+                 std::vector<int> &data) {
+    for (int j = 0; j < kM; j++) {
+      if (!all_zero[j]) {
+        for (int i = 0; i < kM; i++) {
+          data[i] += w[i * kM + j] * data[i];
+        }
+      }
+    }
 }
 
-void init_data(std::vector<int> &A, std::vector<int> &b,  
-               const int percentage) {
+void init_data(std::vector<int> &h_w, std::vector<int> &h_all_zero,
+                const uint percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 99);
-  auto dice = std::bind (distribution, generator);
+  auto dice = std::bind(distribution, generator);
 
-  for (size_t i = 0; i < A.size(); i++) {
-    b[i] = (dice() < percentage) ? std::min(i+1, A.size()-1) : i;
-
-    A[i] = i % 50-25;
+  for (int r = 0; r < kM; ++r) {
+    h_all_zero[r] = (dice() < percentage) ? 0 : 1;
+    
+    for (int c = 0; c < kM; ++c) 
+      h_w[r*kM + c] = (dice() < percentage) ? 0 : r*kM + c;
   }
 }
-
 
 int main(int argc, char *argv[]) {
   int ARRAY_SIZE = 1000;
@@ -130,27 +122,26 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<int> A(ARRAY_SIZE);
-    std::vector<int> b(ARRAY_SIZE); 
+    std::vector<int> w(kM*kM);
+    std::vector<int> all_zero(kM);
+    std::vector<int> h_data(kM, 1);
+    std::vector<int> cpu_data(kM, 1);
 
-    init_data(A, b,  PERCENTAGE);
+    init_data(w, all_zero, PERCENTAGE);
 
-    std::vector<int> A_cpu(ARRAY_SIZE);
-    std::copy(A.begin(), A.end(), A_cpu.begin());
+    auto kernel_time = spmv_if_kernel(q, w, all_zero, h_data, kM);
 
-    auto kernel_time = vec_trans_kernel(q, A, b);
+    std::cout << "Kernel time (ms): " << kernel_time << "\n";
 
-    vec_trans_cpu(A_cpu, b);
-
-    std::cout << "\nKernel time (ms): " << kernel_time << "\n";
-    
     #if TEST
-    if (std::equal(A.begin(), A.end(), A_cpu.begin())) {
+    spmv_if_cpu(w, all_zero, cpu_data);
+    if (std::equal(cpu_data.begin(), cpu_data.begin(), h_data.begin())) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed\n";
     }
     #endif
+
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();
@@ -158,4 +149,3 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
-

@@ -20,6 +20,10 @@ class MainKernel;
 
 constexpr int kN = 1000;
 
+// Setting TEST will ensure test data is transfered from FPGA DRAM to to BRAM
+// and back. This adds latency, so leave unset for the benchmarks.
+#define TEST 0
+
 double histogram_kernel(queue &q, const std::vector<int> &h_idx,
                         std::vector<int> &h_hist) {
   const int N = h_idx.size();
@@ -30,10 +34,10 @@ double histogram_kernel(queue &q, const std::vector<int> &h_idx,
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     int hist[kN];
 
-#ifdef TEST
-    for (int i = 0; i < array_size; ++i)
-      hist[i] = hist_dram[i];
-#endif
+    #if TEST
+      for (int i = 0; i < N; ++i)
+        hist[i] = hist_dram[i];
+    #endif
 
     for (int i = 0; i < N; ++i) {
       auto idx_scalar = idx[i];
@@ -41,10 +45,10 @@ double histogram_kernel(queue &q, const std::vector<int> &h_idx,
       hist[idx_scalar] = x + 1;
     }
 
-#ifdef TEST
-    for (int i = 0; i < array_size; ++i)
-      hist_dram[i] = hist[i];
-#endif
+    #if TEST
+      for (int i = 0; i < N; ++i)
+        hist_dram[i] = hist[i];
+    #endif
   });
 
   event.wait();
@@ -76,7 +80,7 @@ void init_data(std::vector<int> &feature, std::vector<int> &hist,
 
   int counter = 0;
   for (int i = 0; i < feature.size(); i++) {
-    feature[i] = (dice() < percentage) ? 1: i;
+    feature[i] = (dice() < percentage) ? 1 : i;
 
     hist[i] = 0;
   }
@@ -131,12 +135,12 @@ int main(int argc, char *argv[]) {
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-#ifdef TEST
-    if (std::equal(hist.begin(), hist.end(), hist_cpu.begin()))
-      std::cout << "Passed\n";
-    else
-      std::cout << "Failed\n";
-#endif
+    #if TEST
+      if (std::equal(hist.begin(), hist.end(), hist_cpu.begin()))
+        std::cout << "Passed\n";
+      else
+        std::cout << "Failed\n";
+    #endif
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

@@ -19,6 +19,10 @@ class MainKernel;
 
 constexpr int kM = 20;
 
+// Setting TEST will ensure test data is transfered from FPGA DRAM to to BRAM
+// and back. This adds latency, so leave unset for the benchmarks.
+#define TEST 0
+
 double spmv_kernel(queue &q, std::vector<int> &h_matrix,
                    const std::vector<int> &h_row, const std::vector<int> &h_col,
                    const std::vector<int> &h_a, const int M) {
@@ -31,7 +35,7 @@ double spmv_kernel(queue &q, std::vector<int> &h_matrix,
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     int matrix[kM * kM]; 
 
-    #ifdef TEST
+    #if TEST
     for (int i=0; i < (M * M); ++i) 
       matrix[i] = matrix_dram[i];
     #endif
@@ -44,7 +48,7 @@ double spmv_kernel(queue &q, std::vector<int> &h_matrix,
       }
     }
 
-    #ifdef TEST
+    #if TEST
     for (int i=0; i < (M * M); ++i) 
       matrix_dram[i] = matrix[i];
     #endif
@@ -143,7 +147,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Kernel time (ms): " << kernel_time << "\n";
 
-#ifdef TEST
+#if TEST
     if (std::equal(matrix.begin(), matrix.end(), golden_matrix.begin())) {
       std::cout << "Passed\n";
     } else {

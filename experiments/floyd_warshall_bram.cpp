@@ -11,12 +11,18 @@
 #include "memory_utils.hpp"
 #include "exception_handler.hpp"
 
+#include "device_print.hpp"
+
 using namespace sycl;
 
 // Forward declare kernel name.
 class MainKernel;
 
 constexpr int kN = 10;
+
+// Setting TEST will ensure test data is transfered from FPGA DRAM to to BRAM
+// and back. This adds latency, so leave unset for the benchmarks.
+#define TEST 0
 
 double floydWarshall_kernel(queue &q, std::vector<int> &h_vertices,
                    std::vector<int> &h_distance) {
@@ -28,22 +34,22 @@ double floydWarshall_kernel(queue &q, std::vector<int> &h_vertices,
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     int dist[kN*kN];
 
-#ifdef TEST
-    for (int i=0; i < N*N; ++i)
+#if TEST
+    for (int i=0; i < kN*kN; ++i) 
       dist[i] = dist_dram[i];
 #endif
 
     for (int k=0; k < kN; ++k) {
       for (int i=0; i < kN; ++i) {
         for (int j=0; j < kN; ++j) {
-          if (dist[i*kN + j] > dist[i*kN + k] + dist[k*kN + j])
+          if (dist[i*kN + j] > (dist[i*kN + k] + dist[k*kN + j]))
             dist[i*kN + j] = dist[i*kN + k] + dist[k*kN + j];
         }
       }
     }
 
-#ifdef TEST
-    for (int i=0; i < N*N; ++i)
+#if TEST
+    for (int i=0; i < kN*kN; ++i) 
       dist_dram[i] = dist[i];
 #endif
   });
@@ -67,7 +73,7 @@ void floydWarshall_cpu(const std::vector<int> &vertices, std::vector<int> &dist)
     for (int k=0; k < N; ++k) {
       for (int i=0; i < N; ++i) {
         for (int j=0; j < N; ++j) {
-          if (dist[i*N + j] > dist[i*N + k] + dist[k*N + j])
+          if (dist[i*N + j] > (dist[i*N + k] + dist[k*N + j]))
             dist[i*N + j] = dist[i*N + k] + dist[k*N + j];
         }
       }
@@ -123,16 +129,16 @@ int main(int argc, char *argv[]) {
 
     std::vector<int> vertices(NUM_NODES);
     std::vector<int> distance(NUM_NODES * NUM_NODES);
-    std::vector<int> distance_cpu(NUM_NODES);
+    std::vector<int> distance_cpu(NUM_NODES * NUM_NODES);
 
     init_data(vertices, distance);
-    std::copy_n(distance.data(), NUM_NODES, distance_cpu.data());
+    std::copy_n(distance.data(), NUM_NODES*NUM_NODES, distance_cpu.data());
 
     auto kernel_time = floydWarshall_kernel(q, vertices, distance);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-#ifdef TEST
+#if TEST
     floydWarshall_cpu(vertices, distance_cpu);
     if (std::equal(distance.begin(), distance.end(), distance_cpu.begin())) {
       std::cout << "Passed\n";

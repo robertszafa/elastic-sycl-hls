@@ -253,10 +253,12 @@ template <typename T1, typename T2>
                                 pipeInfo.getString("read/write")->str() +
                                 std::to_string(seqNum);
   int pipeCallsToSkip = 0;
-  if (collectedCalls.contains(pipeIdKey)) 
+  if (collectedCalls.contains(pipeIdKey)) {
     pipeCallsToSkip = collectedCalls[pipeIdKey];
-  else 
+    collectedCalls[pipeIdKey]++;
+  } else {
     collectedCalls[pipeIdKey] = 1;
+  }
 
   /// Lambda. Returns true if {call} is a call to our pipe.
   auto isThisPipe = [&pipeName, &seqNum](std::string call) {

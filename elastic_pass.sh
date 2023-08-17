@@ -79,8 +79,6 @@ $LLVM_BIN_DIR/opt -load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libElasticAn
 # The json report provides a precise src location range for the kernel body.
 # Nothing else is required (no variable/array names, etc.).
 python3 $ELASTIC_SYCL_HLS_DIR/scripts/compilation/ASTTransform.py $ANALYSIS_REPORT $SRC_FILE_WORKDIR $SRC_FILE_AST
-# Make the AST transformed code pretty
-$LLVM_BIN_DIR/clang-format $SRC_FILE_AST > $SRC_FILE_AST.tmp && mv $SRC_FILE_AST.tmp $SRC_FILE_AST
 
 ###
 ### STAGE 4: Fix IR inside kernels.

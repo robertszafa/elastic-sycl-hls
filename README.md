@@ -1,12 +1,12 @@
 ## Overview:
-This repository contains llvm passes which selectively introduce dynamic scheduling into SYCL HLS code. You can read [our paper](/docs/FPL23.pdf) for more detail. 
+This repository contains llvm passes which selectively introduce dynamic scheduling into SYCL HLS code. You can read [our paper](https://arxiv.org/pdf/2308.15120.pdf) for more details. 
 
 If you want to cite this work:
 ```
 @inproceedings{szafarczyk2023fpl,
   title={Compiler Discovered Dynamic Scheduling of Irregular Code in High-Level Synthesis}, 
   author={Szafarczyk, Robert and Nabi, Syed Waqar and Vanderbauwhede, Wim},
-  booktitle={2023 33nd International Conference on Field-Programmable Logic and Applications (FPL)}, 
+  booktitle={2023 33rd International Conference on Field-Programmable Logic and Applications (FPL)}, 
   year={2023},
 }
 ```

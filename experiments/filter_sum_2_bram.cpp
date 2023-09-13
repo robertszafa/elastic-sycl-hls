@@ -12,44 +12,47 @@
 #include "exception_handler.hpp"
 
 using namespace sycl;
+using namespace fpga_tools;
+
+using DATA_TYPE = float;
 
 // Forward declare kernel name.
 class MainKernel;
 
-double doitgen_triple_kernel(queue &q, std::vector<float> &h_A,
-                             std::vector<float> &h_sum,
-                             const std::vector<float> &h_w) {
-  auto *A = fpga_tools::toDevice(h_A, q);
-  auto *sum = fpga_tools::toDevice(h_sum, q);
-  auto *w = fpga_tools::toDevice(h_w, q);
+constexpr int N = 1000;
 
-  const int N = h_A.size();
+double filter_sum_kernel(queue &q, const std::vector<int> &h_idxs,
+                   std::vector<DATA_TYPE> &h_A) {
+  int *idxs = fpga_tools::toDevice(h_idxs, q);
+  auto *A_dram = fpga_tools::toDevice(h_A, q);
+  auto *B = fpga_tools::toDevice(h_A, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    DATA_TYPE A[N];
+    DATA_TYPE d = DATA_TYPE(0), s = DATA_TYPE(0);
+
+    for (int i = 0; i < N; i++) 
+      A[i] = A_dram[i];
+
+
     for (int i = 0; i < N; i++) {
-      float s = 0;
-      for (int j = i; j < N; j++) {
-        float a = A[j];
-        float wt = w[i * N + j];
-        if (a > 0.0) {
-          s += (a * wt * s) * s;
-        }
+      d = A_dram[i] + B[i];
+      if (idxs[i] > 0) {
+        s += (s * s + DATA_TYPE(0.7));
+        A[idxs[i]] = s + d;
       }
-      sum[i] = s;
     }
-    
-    for (int i = 0; i < N; i++) {
-      float q = sum[i];
-      A[i] = A[i] + q * q * q;
-    }
+
+    for (int i = 0; i < N; i++) 
+      A_dram[i] = A[i];
   });
 
   event.wait();
-  q.copy(sum, h_sum.data(), h_sum.size()).wait();
+  q.copy(A_dram, h_A.data(), h_A.size()).wait();
 
-  sycl::free((void *)A, q);
-  sycl::free((void *)sum, q);
-  sycl::free((void *)w, q);
+  sycl::free(idxs, q);
+  sycl::free(A_dram, q);
+  sycl::free(B, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -58,47 +61,36 @@ double doitgen_triple_kernel(queue &q, std::vector<float> &h_A,
   return time_in_ms;
 }
 
-void doitgen_triple_cpu(std::vector<float> &A, std::vector<float> &sum,
-                        const std::vector<float> &w) {
-  const int N = A.size();
+void filter_sum_cpu(const std::vector<int> &idxs, std::vector<DATA_TYPE> &A) {
+  std::vector<DATA_TYPE> B(A.size());
+  std::copy(A.begin(), A.end(), B.begin());
 
-  for (int i = 0; i < N; i++) {
-    float s = 0;
-    for (int j = i; j < N; j++) {
-      float a = A[j];
-      float wt = w[i * N + j];
-      if (a > 0.0) {
-        s += (a * wt * s) * a;
+  DATA_TYPE d = DATA_TYPE(0), s = DATA_TYPE(0);
+    for (int i = 0; i < N; i++) {
+      d = A[i] + B[i];
+      if (idxs[i] > 0) {
+        s += (s * s + DATA_TYPE(0.7));
+        A[idxs[i]] = s + d;
       }
     }
-    sum[i] = s;
-  }
-  for (int i = 0; i < N; i++) {
-    float q = sum[i];
-    A[i] = A[i] + q * q * q;
-  }
 }
 
-void init_data(std::vector<float> &A, std::vector<float> &sum,
-               std::vector<float> &w, int percentage) {
+void init_data(std::vector<int> &idxs, const int percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(1, 99);
-  auto dice = std::bind(distribution, generator);
+  auto dice = std::bind (distribution, generator);
 
-  for (int i = 0; i < A.size(); ++i) {
-    A[i] = (dice() < percentage) ? 1.0f : -1.0f;
-    sum[i] = 0.0;
-    w[i] = rand();
+  for (int i = 0; i < idxs.size(); i++) {
+    idxs[i] = (dice() < percentage) ? i : 0;
   }
 }
 
-
 int main(int argc, char *argv[]) {
-  int N = 10;
+  int ARRAY_SIZE = 10;
   int PERCENTAGE = 0;
   try {
     if (argc > 1) {
-      N = int(atoi(argv[1]));
+      ARRAY_SIZE = int(atoi(argv[1]));
     }
     if (argc > 2) {
       PERCENTAGE = int(atoi(argv[2]));
@@ -125,33 +117,26 @@ int main(int argc, char *argv[]) {
     property_list properties{property::queue::enable_profiling()};
     queue q(d_selector, exception_handler, properties);
 
+    std::vector<int> idxs(ARRAY_SIZE);
+    std::vector<DATA_TYPE> h_A(ARRAY_SIZE), cpu_A(ARRAY_SIZE);
+    std::fill_n(h_A.begin(), ARRAY_SIZE, DATA_TYPE(0));
+    std::fill_n(cpu_A.begin(), ARRAY_SIZE, DATA_TYPE(0));
+    init_data(idxs, PERCENTAGE);
+
     // Print out the device information used for the kernel code.
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<float> A(N);
-    std::vector<float> sum(N);
-    std::vector<float> w(N*N);
-    std::vector<float> A_cpu(N);
-    std::vector<float> sum_cpu(N);
-
-    init_data(A, sum, w, PERCENTAGE);
-
-    std::copy(A.begin(), A.end(), A_cpu.begin());
-    std::copy(sum.begin(), sum.end(), sum_cpu.begin());
-
-    
-    auto kernel_time = doitgen_triple_kernel(q, A, sum, w);
-
-    doitgen_triple_cpu(A_cpu, sum_cpu, w);
+    auto kernel_time = filter_sum_kernel(q, idxs, h_A);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    if (std::equal(sum.begin(), sum.end(), sum_cpu.begin())) {
+    filter_sum_cpu(idxs, cpu_A);
+
+    if (std::equal(h_A.begin(), h_A.end(), cpu_A.begin()))
       std::cout << "Passed\n";
-    } else {
+    else
       std::cout << "Failed\n";
-    }
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

@@ -26,6 +26,8 @@ double doitgen_triple_kernel(queue &q, std::vector<float> &h_A,
   const int N = h_A.size();
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+    int idx[1000];
+
     for (int i = 0; i < N; i++) {
       float s = 0;
       for (int j = i; j < N; j++) {
@@ -33,6 +35,7 @@ double doitgen_triple_kernel(queue &q, std::vector<float> &h_A,
         float wt = w[i * N + j];
         if (a > 0.0) {
           s += (a * wt * s) * s;
+          A[idx[i]] = a + 1; // speculated store
         }
       }
       sum[i] = s;

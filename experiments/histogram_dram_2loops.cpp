@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
-#include <random>
 #include <stdlib.h>
 #include <vector>
+#include <random>
 
 #include <sycl/ext/intel/fpga_extensions.hpp>
 
@@ -16,33 +16,38 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-constexpr int kM = 100;
+double histogram_kernel(queue &q, const std::vector<int> &h_idx, std::vector<int> &h_hist, const int m) {
+  const int array_size = h_idx.size();
 
-double spmv_if_kernel(queue &q, std::vector<int> &h_w,
-                      std::vector<int> &h_all_zero, std::vector<int> &h_data,
-                      const int M) {
-  int *w = fpga_tools::toDevice(h_w, q);
-  int *all_zero = fpga_tools::toDevice(h_all_zero, q);
-  int *data = fpga_tools::toDevice(h_data, q);
+  int *idx = fpga_tools::toDevice(h_idx, q);
+  int *hist = fpga_tools::toDevice(h_hist, q);
+  int *hist2 = fpga_tools::toDevice(h_hist, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    for (int j = 0; j < M; j++) {
-      if (!all_zero[j]) {
-        for (int i = 0; i < M; i++) {
-          data[i] += w[i * M + j] * data[i];
-        }
+    // [[intel::loop_fuse]]
+
+    sycl::ext::intel::fpga_loop_fuse<2>([&] {
+      for (int i = 0; i < 100; ++i) {
+        auto x = hist[i];
+        hist[i] = x + 1;
       }
-    }
+
+      // auto xRec = hist2[0];
+      for (int i = 0; i < 50; ++i) {
+        // xRec += (x*x);
+        auto x = hist2[i + m];
+        // auto x = hist2[i];
+        hist2[i] = x + 2;
+      }
+    });
 
   });
 
   event.wait();
+  q.copy(hist, h_hist.data(), h_hist.size()).wait();
 
-  q.copy(data, h_data.data(), h_data.size()).wait();
-  sycl::free(data, q);
-
-  sycl::free(w, q);
-  sycl::free(all_zero, q);
+  sycl::free(idx, q);
+  sycl::free(hist, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -51,28 +56,25 @@ double spmv_if_kernel(queue &q, std::vector<int> &h_w,
   return time_in_ms;
 }
 
-void spmv_if_cpu(std::vector<int> &w, std::vector<int> &all_zero,
-                 std::vector<int> &data) {
-    for (int j = 0; j < kM; j++) {
-      if (!all_zero[j]) {
-        for (int i = 0; i < kM; i++) {
-          data[i] += w[i * kM + j] * data[i];
-        }
-      }
-    }
+void histogram_cpu(const int *idx, int *hist, const int N) {
+  for (int i = 0; i < N; ++i) {
+    auto idx_scalar = idx[i];
+    auto x = hist[idx_scalar];
+    hist[idx_scalar] = x + 1;
+  }
 }
 
-void init_data(std::vector<int> &h_w, std::vector<int> &h_all_zero,
-                const uint percentage) {
+void init_data(std::vector<int> &feature, std::vector<int> &hist,
+                const int percentage) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 99);
-  auto dice = std::bind(distribution, generator);
+  auto dice = std::bind (distribution, generator);
 
-  for (int r = 0; r < kM; ++r) {
-    h_all_zero[r] = (dice() < percentage) ? 0 : 1;
-    
-    for (int c = 0; c < kM; ++c) 
-      h_w[r*kM + c] = (dice() < percentage) ? 0 : r*kM + c;
+  int counter=0;
+  for (int i = 0; i < feature.size(); i++) {
+    feature[i] = (dice() < percentage) ? 1 : i;
+
+    hist[i] = 0.0;
   }
 }
 
@@ -85,6 +87,7 @@ int main(int argc, char *argv[]) {
     }
     if (argc > 2) {
       PERCENTAGE = int(atoi(argv[2]));
+      
       if (PERCENTAGE < 0 || PERCENTAGE > 100)
         throw std::invalid_argument("Invalid percentage.");
     }
@@ -108,27 +111,25 @@ int main(int argc, char *argv[]) {
     queue q(d_selector, exception_handler, properties);
 
     // Print out the device information used for the kernel code.
-    std::cout << "Running on device: "
-              << q.get_device().get_info<info::device::name>() << "\n";
+    std::cout << "Running on device: " << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<int> w(kM*kM);
-    std::vector<int> all_zero(kM);
-    std::vector<int> h_data(kM, 1);
-    std::vector<int> cpu_data(kM, 1);
+    std::vector<int> feature(ARRAY_SIZE);
+    std::vector<int> hist(ARRAY_SIZE);
+    std::vector<int> hist_cpu(ARRAY_SIZE);
 
-    init_data(w, all_zero, PERCENTAGE);
+    init_data(feature, hist,  PERCENTAGE);
+    std::copy(hist.begin(), hist.end(), hist_cpu.begin());
 
-    auto kernel_time = spmv_if_kernel(q, w, all_zero, h_data, kM);
+    auto kernel_time = histogram_kernel(q, feature, hist, 4);
 
-    std::cout << "Kernel time (ms): " << kernel_time << "\n";
+    histogram_cpu(feature.data(), hist_cpu.data(), hist_cpu.size());
 
-    spmv_if_cpu(w, all_zero, cpu_data);
-    if (std::equal(cpu_data.begin(), cpu_data.begin(), h_data.begin())) {
+    std::cout << "\nKernel time (ms): " << kernel_time << "\n";
+
+    if (std::equal(hist.begin(), hist.end(), hist_cpu.begin())) 
       std::cout << "Passed\n";
-    } else {
+    else 
       std::cout << "Failed\n";
-    }
-
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();
@@ -136,3 +137,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+

@@ -16,9 +16,9 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-constexpr int kM = 100;
+constexpr int kM = 20;
 
-#define TEST 1
+#define TEST 0
 
 double spmv_if_kernel(queue &q, std::vector<int> &h_w,
                       std::vector<int> &h_all_zero, std::vector<int> &h_data,
@@ -87,7 +87,8 @@ void init_data(std::vector<int> &h_w, std::vector<int> &h_all_zero,
     h_all_zero[r] = (dice() < percentage) ? 0 : 1;
     
     for (int c = 0; c < kM; ++c) 
-      h_w[r*kM + c] = (dice() < percentage) ? 0 : r*kM + c;
+      h_w[r*kM + c] = r*kM + c;
+      // h_w[r*kM + c] = (dice() < percentage) ? 0 : r*kM + c;
   }
 }
 

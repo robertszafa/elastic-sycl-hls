@@ -239,14 +239,14 @@ template <typename T1, typename T2>
 }
 
 /// Return the pipe call instruction corresponding to the pipeInfo json obj.
-[[maybe_unused]] CallInst *getPipeCall(Function &F, json::Object pipeInfo) {
+[[maybe_unused]] CallInst *getPipeCall(Function &F, json::Object &pipeInfo) {
   static StringMap<int> collectedCalls;
 
   auto pipeNameOpt = pipeInfo.getString("pipe_name");
   assert(pipeNameOpt && "Pipe with given {pipe_name} not found.");
   auto pipeName = pipeNameOpt->str();
-  // If no seq_in_bb or repeat_id, then use defaults.
-  auto seqNumOpt = pipeInfo.getInteger("seq_in_bb");
+  // If no pipe_array_idx or repeat_id, then use defaults.
+  auto seqNumOpt = pipeInfo.getInteger("pipe_array_idx");
   auto seqNum = seqNumOpt ? seqNumOpt.value() : -1;
 
   const std::string pipeIdKey = pipeName +
@@ -296,7 +296,38 @@ template <typename T1, typename T2>
     }
   }
 
-  assert(false && "Pipe for given {pipeInfo} not found.");
+  errs() << "Pipe name: " << pipeName << "\n";
+  assert(false && "... not found.");
+  return nullptr;
+}
+
+[[maybe_unused]] CallInst *getPipeWithPattern(BasicBlock &BB,
+                                              const std::string &pattern) {
+  for (auto &I : BB) {
+    if (auto pipeCall = getPipeCall(&I)) {
+      auto pipeName =
+          demangle(std::string(pipeCall->getCalledFunction()->getName()));
+      if (pipeName.find(pattern) < pipeName.size())
+        return pipeCall;
+    }
+  }
+
+  return nullptr;
+}
+
+[[maybe_unused]] CallInst *getPipeWithPattern(Function &F,
+                                              const std::string &pattern) {
+  for (auto &BB : F) {
+    for (auto &I : BB) {
+      if (auto pipeCall = getPipeCall(&I)) {
+        auto pipeName =
+            demangle(std::string(pipeCall->getCalledFunction()->getName()));
+        if (pipeName.find(pattern) < pipeName.size())
+          return pipeCall;
+      }
+    }
+  }
+
   return nullptr;
 }
 

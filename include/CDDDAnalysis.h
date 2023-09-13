@@ -9,10 +9,10 @@ using namespace llvm;
 
 namespace llvm {
 
-/// Calculates whether a {bottleneckI} instruction, which is a source of an
-/// inter-iteration data dependency, is control dependent on a basic block from
-/// the same loop. If yes, collect values which are used (dependencies in) and
-/// defined (dependencies out) inside the {bottleneckI} basic block.
+/// Collects basic blocks and loops that can benefit from being decoupled into
+/// their own modulo-schedling instance. If decoupled, collects values which are
+/// used (dependencies in) and defined (dependencies out) inside the decoupled
+/// BB or loop. 
 class ControlDependentDataDependencyAnalysis {
 public:
   explicit ControlDependentDataDependencyAnalysis(

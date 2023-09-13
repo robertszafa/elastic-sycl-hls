@@ -115,7 +115,7 @@ struct DOTGraphTraits<DataDependenceGraph *> : public DefaultDOTGraphTraits {
 struct DDGDotPrinter : PassInfoMixin<DDGDotPrinter> {
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     // Only interested in kernel functions.
-    if (F.getCallingConv() == CallingConv::SPIR_FUNC) {
+    if (F.getCallingConv() == CallingConv::SPIR_KERNEL) {
       auto &DI = AM.getResult<DependenceAnalysis>(F);
       auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
       auto &LI = AM.getResult<LoopAnalysis>(F);

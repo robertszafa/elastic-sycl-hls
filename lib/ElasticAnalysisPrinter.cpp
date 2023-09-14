@@ -496,7 +496,8 @@ void decoupledLoopsReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
 /// Given CDDD analysis information about decoupled basic blocks and loops,
 /// update the kernel names for LSQ ld/st value pipe read/writes if they occur
 /// in the decoupled blocks. 
-void adjustLsqValuePipesPlacement(Function &F,
+void adjustLsqValuePipesPlacement(Function &F, ControlDependenceGraph &CDG,
+                                  ScalarEvolution &SE, LoopInfo &LI,
                                   ControlDependentDataDependencyAnalysis *CDDD,
                                   json::Object &report) {
   auto freshDirectivesArray = json::Array();
@@ -514,14 +515,30 @@ void adjustLsqValuePipesPlacement(Function &F,
 
   auto countStoresInBB = [] (int bbIdx, const json::Object &lsqInfo) {
     int count = 0;
-
     for (auto stIVal : *lsqInfo.getArray("store_instructions")) {
       auto stI = *stIVal.getAsObject();
       if (*stI.getInteger("basic_block_idx") == bbIdx)
         count++;
     }
-
     return count;
+  };
+  
+  // Count stores in L. If any of them is conditional, then return -1.
+  auto countUncondStoresInLoop = [&] (Loop *L, const json::Object &lsqInfo) {
+    int numStoresInL = 0;
+
+    for (auto stIVal : *lsqInfo.getArray("store_instructions")) {
+      auto stI = *stIVal.getAsObject();
+      auto stBB = getChildWithIndex<Function, BasicBlock>(
+          &F, *stI.getInteger("basic_block_idx"));
+      if (L->contains(stBB)) {
+        numStoresInL++;
+        if (CDG.getControlDependencySource(stBB) != L->getHeader()) 
+          return -1;
+      }
+    }
+
+    return numStoresInL;
   };
 
   for (auto i2pInfoVal : *report.getArray("instr2pipe_directives")) {
@@ -542,11 +559,13 @@ void adjustLsqValuePipesPlacement(Function &F,
       auto pipeBB = getChildWithIndex<Function, BasicBlock>(&F, bbIdx);
 
       for (size_t iL = 0; iL < loopsToDecouple.size(); ++iL) {
-        if (loopsToDecouple[iL]->contains(pipeBB)) {
-          auto headerBB = loopsToDecouple[iL]->getHeader();
+        auto L = loopsToDecouple[iL];
+
+        if (L->contains(pipeBB)) {
+          auto headerBB = L->getHeader();
           auto headerBBIdx = getIndexOfChild(headerBB->getParent(), headerBB);
           auto exitBBIdx = getIndexOfChild(headerBB->getParent(),
-                                           loopsToDecouple[iL]->getExitBlock());
+                                           L->getExitBlock());
 
           auto peKernelName = mainKernelName + "_PE_LOOP_" + std::to_string(iL);
           i2pInfo["kernel_name"] = peKernelName;
@@ -555,7 +574,7 @@ void adjustLsqValuePipesPlacement(Function &F,
           // the st_val tag to the decoupled loop, and then get it back. 
           if (i2pInfo.getString("directive_type") == "st_val" &&
               !(*lsqInfo.getBoolean("all_stores_in_same_kernel")) &&
-              !createdStValTagDirsForLoopPEs.contains(loopsToDecouple[iL])) {
+              !createdStValTagDirsForLoopPEs.contains(L)) {
 
             auto st_val_tag_in_pipe = "pipe_pe_loop_" + std::to_string(iL) +
                                       "_st_val_tag_in_lsq_" +
@@ -563,6 +582,15 @@ void adjustLsqValuePipesPlacement(Function &F,
             auto st_val_tag_out_pipe = "pipe_pe_loop_" + std::to_string(iL) +
                                        "_st_val_tag_out_lsq_" +
                                        std::to_string(lsqIdx) + "_class";
+
+            // Check if we can incement the stValTag in main, without waiting
+            // for the PE to communicate it
+            int numUncodStoresInL = countUncondStoresInLoop(L, lsqInfo);
+            bool canBuildNumStExpr =
+                numUncodStoresInL != -1 &&
+                SE.hasLoopInvariantBackedgeTakenCount(L) &&
+                buildSCEVExpr(F, SE.getBackedgeTakenCount(L),
+                              headerBB->getTerminator()) != nullptr;
 
             // main -> PE pipe read
             json::Object stValTagPeRdDirective;
@@ -584,31 +612,36 @@ void adjustLsqValuePipesPlacement(Function &F,
             stValTagMainWrDirective["kernel_name"] = mainKernelName;
             stValTagMainWrDirective["pipe_type"] = "uint";
             stValTagMainWrDirective["basic_block_idx"] = headerBBIdx;
+            stValTagMainWrDirective["can_build_num_stores_exp"] =
+                canBuildNumStExpr;
+            stValTagMainWrDirective["stores_in_loop"] = numUncodStoresInL;
             newDirectives.push_back(std::move(stValTagMainWrDirective));
 
-            // PE -> main pipe write
-            json::Object stValTagPeWrDirective;
-            stValTagPeWrDirective["directive_type"] = "st_val_tag";
-            stValTagPeWrDirective["pipe_name"] = st_val_tag_out_pipe;
-            stValTagPeWrDirective["read/write"] = "write";
-            stValTagPeWrDirective["pe_type"] = "loop";
-            stValTagPeWrDirective["kernel_name"] = peKernelName;
-            stValTagPeWrDirective["pipe_type"] = "uint";
-            stValTagPeWrDirective["basic_block_idx"] = exitBBIdx;
-            newDirectives.push_back(std::move(stValTagPeWrDirective));
+            if (!canBuildNumStExpr) {
+              // PE -> main pipe write
+              json::Object stValTagPeWrDirective;
+              stValTagPeWrDirective["directive_type"] = "st_val_tag";
+              stValTagPeWrDirective["pipe_name"] = st_val_tag_out_pipe;
+              stValTagPeWrDirective["read/write"] = "write";
+              stValTagPeWrDirective["pe_type"] = "loop";
+              stValTagPeWrDirective["kernel_name"] = peKernelName;
+              stValTagPeWrDirective["pipe_type"] = "uint";
+              stValTagPeWrDirective["basic_block_idx"] = exitBBIdx;
+              newDirectives.push_back(std::move(stValTagPeWrDirective));
 
-            // PE -> main pipe read
-            json::Object stValTagMainRdDirective;
-            stValTagMainRdDirective["directive_type"] = "st_val_tag";
-            stValTagMainRdDirective["pipe_name"] = st_val_tag_out_pipe;
-            stValTagMainRdDirective["read/write"] = "read";
-            stValTagMainRdDirective["pe_type"] = "loop";
-            stValTagMainRdDirective["kernel_name"] = mainKernelName;
-            stValTagMainRdDirective["pipe_type"] = "uint";
-            stValTagMainRdDirective["basic_block_idx"] = headerBBIdx;
-            newDirectives.push_back(std::move(stValTagMainRdDirective));
+              // PE -> main pipe read
+              json::Object stValTagMainRdDirective;
+              stValTagMainRdDirective["directive_type"] = "st_val_tag";
+              stValTagMainRdDirective["pipe_name"] = st_val_tag_out_pipe;
+              stValTagMainRdDirective["read/write"] = "read";
+              stValTagMainRdDirective["pe_type"] = "loop";
+              stValTagMainRdDirective["kernel_name"] = mainKernelName;
+              stValTagMainRdDirective["pipe_type"] = "uint";
+              stValTagMainRdDirective["basic_block_idx"] = headerBBIdx;
+              newDirectives.push_back(std::move(stValTagMainRdDirective));
+            }
 
-            createdStValTagDirsForLoopPEs.insert(loopsToDecouple[iL]);
+            createdStValTagDirsForLoopPEs.insert(L);
           }
         }
       }
@@ -748,7 +781,7 @@ struct ElasticAnalysisPrinter : PassInfoMixin<ElasticAnalysisPrinter> {
       decoupledLoopsReportPrinter(CDDD, report);
       // If a LSQ ld/st value pipe ends up in a decoupled kernel, then we
       // need to update the associated instr2pipe directive kernel name.
-      adjustLsqValuePipesPlacement(F, CDDD, report);
+      adjustLsqValuePipesPlacement(F, *CDG, SE, LI, CDDD, report);
 
       // Print report to stdout to be picked up by later tools.
       outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n";

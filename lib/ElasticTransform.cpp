@@ -300,9 +300,10 @@ void instr2pipeStVal(json::Object &i2pInfo, Value *tagAddr,
 }
 
 /// Communicate the store_val tag across decoupled kernels.
-void instr2pipeStValTag(Function &F, json::Object &i2pInfo, Value *tagAddr, 
+void instr2pipeStValTag(Function &F, LoopInfo &LI, ScalarEvolution &SE,
+                        json::Object &i2pInfo, Value *tagAddr,
                         SmallVector<Instruction *> &created) {
-  auto pipeOp = 
+  auto pipeOp =
       reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
 
   std::string thisKernelName = demangle(std::string(F.getNameOrAsOperand()));
@@ -330,10 +331,26 @@ void instr2pipeStValTag(Function &F, json::Object &i2pInfo, Value *tagAddr,
     stIntoTagPipe->setOperand(0, tagValLd);
     created.push_back(stIntoTagPipe);
 
-    // Since the loopPE has a stVal pipe read in the header that will be called 
-    // every time a pred is read, we need to supply a dummy tag on func exit.
-    if (i2pInfo.getString("pe_type") == "loop" && !inLoopPE) 
+    if (i2pInfo.getString("pe_type") == "loop" && !inLoopPE) {
+      // Since the loopPE has a stVal pipe read in PE header that will be called 
+      // every time a pred is read, we need to supply a dummy tag on func exit.
       pipeOp->clone()->insertBefore(getReturnBlock(F)->getFirstNonPHI());
+
+      // Sometimes we can just increment the tag in the main kernel by the
+      // number of total stores that will happen in the decoupled loop.
+      if (*i2pInfo.getBoolean("can_build_num_stores_exp")) {
+        int numStoresInL = *i2pInfo.getInteger("stores_in_loop");
+        auto numIterExpr = buildSCEVExpr(
+            F, SE.getBackedgeTakenCount(LI.getLoopFor(pipeBB)), pipeOp);
+        auto totalStoresInL =
+            IR.CreateMul(ConstantInt::get(tagType, numStoresInL), numIterExpr);
+
+        // Add the total to the tag.
+        auto newTagVal = IR.CreateAdd(tagValLd, totalStoresInL);
+        created.push_back(IR.CreateStore(newTagVal, tagAddr));
+        created.push_back(dyn_cast<Instruction>(newTagVal));
+      }
+    }
 
     // When communicating a st_val_tag to a decoupled basic block, we can
     // directly increment the tag in the main kernel by the number of stores in
@@ -344,7 +361,7 @@ void instr2pipeStValTag(Function &F, json::Object &i2pInfo, Value *tagAddr,
       auto newTagVal = IR.CreateAdd(tagValLd, incr);
       created.push_back(IR.CreateStore(newTagVal, tagAddr));
       created.push_back(dyn_cast<Instruction>(newTagVal));
-    }
+    } 
   }
 }
 
@@ -1155,6 +1172,7 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
     // Each loop is in Loop Simplify Form -- preheader, header, body, latch,
     // exit blocks. Get LoopInfo to use these blocks.
     auto &LI = AM.getResult<LoopAnalysis>(F);
+    auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
 
     // Instruction-2-pipe transformation directives for this function. 
     json::Array directives = getDirectives(F, report);
@@ -1189,7 +1207,7 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
       else if (directiveType == "st_val")
         instr2pipeStVal(i2pInfo, lsqStValTag, toKeep);
       else if (directiveType == "st_val_tag")
-        instr2pipeStValTag(F, i2pInfo, lsqStValTag, toKeep);
+        instr2pipeStValTag(F, LI, SE, i2pInfo, lsqStValTag, toKeep);
       else if (directiveType == "ld_req")
         instr2pipeLsqLdReq(i2pInfo, lsqStReqTag, lsqLdReqTag, toKeep);
       else if (directiveType == "st_req")
@@ -1245,6 +1263,7 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
 
   void getAnalysisUsage(AnalysisUsage &AU) const {
     AU.addRequiredID(LoopAnalysis::ID());
+    AU.addRequiredID(ScalarEvolutionAnalysis::ID());
   }
 };
 

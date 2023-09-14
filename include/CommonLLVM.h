@@ -391,6 +391,76 @@ template <typename T1, typename T2>
   return false;
 }
 
+/// Given a SCEV, return its string representation.
+[[maybe_unused]] std::string getSCEVString(const SCEV *scev) {
+  std::string valueStr;
+  llvm::raw_string_ostream rso(valueStr);
+  scev->print(rso);
+
+  return valueStr;
+}
+
+/// Given a SCEV string name, return its LLVM value.
+[[maybe_unused]] Value *getValueForSCEVName(Function &F,
+                                            const std::string &name) {
+  // If not LLVM value, then create a constant.
+  if (name[0] != '%') {
+    return ConstantInt::get(Type::getInt32Ty(F.getContext()), std::stoi(name));
+  }
+
+  // Check function arguments.
+  for (auto &Arg : F.args()) {
+    if (auto ArgVal = dyn_cast<Value>(&Arg)) {
+      // The first char in <name> is "%", so ignore that.
+      if (name.find(ArgVal->getName()) == 1)
+        return ArgVal;
+    }
+  }
+  // Check function instructions.
+  for (auto &BB : F) {
+    for (auto &I : BB) {
+      if (auto IVal = dyn_cast<Value>(&I)) {
+        if (name.find(IVal->getName()) == 1)
+          return IVal;
+      }
+    }
+  }
+
+  return nullptr;
+}
+
+/// Given a SCEV, recursively build an expression using LLVM instructions that
+/// calculates its value. Return the final LLVM value. 
+[[maybe_unused]] Value *buildSCEVExpr(Function &F, const SCEV *scev,
+                                      Instruction *insrtBefore) {
+  const int numOperands = scev->operands().size();
+
+  if (numOperands == 0) {
+    return getValueForSCEVName(F, getSCEVString(scev));
+  } else if (numOperands == 1) {
+    // TODO single oper SCEVs: scVScale, scTruncate, scZeroExtend, scSignExtend,
+    return nullptr;
+  } else {
+    auto LHS = buildSCEVExpr(F, scev->operands()[0], insrtBefore);
+    auto RHS = buildSCEVExpr(F, scev->operands()[1], insrtBefore);
+    IRBuilder<> IR(insrtBefore);
+
+    auto type = scev->getSCEVType();
+    if (type == scAddExpr || type == scAddRecExpr)
+      return IR.CreateAdd(LHS, RHS);
+    else if (type == scMulExpr)
+      return IR.CreateMul(LHS, RHS);
+    else if (type == scUDivExpr)
+      return IR.CreateUDiv(LHS, RHS);
+    else if (type == scUMaxExpr || type == scSMaxExpr)
+      return IR.CreateMaximum(LHS, RHS);
+    else if (type == scUMinExpr || type == scSMinExpr)
+      return IR.CreateMaximum(LHS, RHS);
+  }
+  
+  return nullptr;
+}
+
 } // namespace
 
 #endif

@@ -374,8 +374,6 @@ void instr2pipePoisonAlloc(json::Object &i2pInfo, Value *tagAddr,
   // For each CFG edge, at most one stValTag pipe write.
   static SetVector<std::pair<BasicBlock *, BasicBlock *>> stValTagWriteDone;
 
-  // TODO: If we have to kill a misspeculated load, then just move the pipe call
-  //       to the first non-spec-ctrl-dep src block that dominates it.
   auto pipeCall =
       reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
   
@@ -470,8 +468,6 @@ void instr2pipePoisonAllocInPE(json::Object &i2pInfo, Value *tagAddr,
   // For each LSQ used by this PE, at most one stValTag read.
   static SetVector<int> stValTagReadForLSQ;
 
-  // TODO: If we have to kill a misspeculated load, then just move the pipe call
-  //       to the first non-spec-ctrl-dep src block that dominates it.
   auto pipePoisonCall =
       reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
   auto F = pipePoisonCall->getFunction();
@@ -921,7 +917,7 @@ void hoistPipesMain(json::Array &directives, LoopInfo &LI) {
       }
       deleteInstruction(recStart);
 
-      // // TODO: For every predicate call, read the recurrence out.
+      // For every predicate call, read the recurrence out.
       if (loopExit != funcExit) {
         pipeCall->clone()->insertBefore(funcExit->getTerminator());
       }
@@ -1188,34 +1184,36 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
     if (isAGU) 
       hoistSpeculativeLSQAllocations(F, report);
 
-    // Tags for ordering of LSQ reqeusts and values. Not necessarily used, e.g.
-    // the st val tag will only be used if lsq_info[num_store_pipes] > 1.
-    // TODO: These should be unique for every LSQ.
-    auto lsqStValTag = createTag(F, toKeep);
+    // Tags for ordering of LSQ reqeusts and values. 
     auto lsqStReqTag = createTag(F, toKeep);
     auto lsqLdReqTag = createTag(F, toKeep);
+    // There can be multiple LSQ connections main, so also multiple stValTags.
+    SmallVector<Value *> lsqStValTags; 
+    for (auto _ : *report.getArray("lsq_array"))
+      lsqStValTags.push_back(createTag(F, toKeep));
 
     // Process all instruction-to-pipe directives for this function.
     // The transformation matters and is ensured by ElasticAnalysisPrinter.
     for (json::Value &i2pInfoVal : directives) {
       auto i2pInfo = *i2pInfoVal.getAsObject();
       auto directiveType = i2pInfo.getString("directive_type");
+      int lsqId = i2pInfo.get("lsq_id") ? *i2pInfo.getInteger("lsq_id") : 0;
 
       // LSQ related: 
       if (directiveType == "ld_val")
         instr2pipeLdVal(i2pInfo);
       else if (directiveType == "st_val")
-        instr2pipeStVal(i2pInfo, lsqStValTag, toKeep);
+        instr2pipeStVal(i2pInfo, lsqStValTags[lsqId], toKeep);
       else if (directiveType == "st_val_tag")
-        instr2pipeStValTag(F, LI, SE, i2pInfo, lsqStValTag, toKeep);
+        instr2pipeStValTag(F, LI, SE, i2pInfo, lsqStValTags[lsqId], toKeep);
       else if (directiveType == "ld_req")
         instr2pipeLsqLdReq(i2pInfo, lsqStReqTag, lsqLdReqTag, toKeep);
       else if (directiveType == "st_req")
         instr2pipeLsqStReq(i2pInfo, lsqStReqTag, toKeep);
       else if (directiveType == "poison" || directiveType == "pred_poison")
-        instr2pipePoisonAlloc(i2pInfo, lsqStValTag, toKeep);
+        instr2pipePoisonAlloc(i2pInfo, lsqStValTags[lsqId], toKeep);
       else if (directiveType == "poison_in_bb_pe")
-        instr2pipePoisonAllocInPE(i2pInfo, lsqStValTag, toKeep);
+        instr2pipePoisonAllocInPE(i2pInfo, lsqStValTags[lsqId], toKeep);
       else if (directiveType == "end_lsq_signal")
         moveEndLsqSignalToReturnBB(i2pInfo);
       // Predicated PE related:

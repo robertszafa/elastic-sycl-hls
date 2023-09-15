@@ -736,11 +736,18 @@ void createPredicatedLoopPE(json::Object &i2pInfo, LoopInfo &LI) {
   Builder.CreateCondBr(isExec, headerOfDcpldLoop, funcExit);
   predPipeRead->moveBefore(&headerPE->front());
 
-  // loopExit -> headerPE
-  Builder.SetInsertPoint(loopExit);
-  auto oldBranch = loopExit->getTerminator();
-  Builder.CreateBr(headerPE);
-  deleteInstruction(oldBranch);
+  // loopExit -> headerPE. (if the loop exit is the func exit, then create BB)
+  if (loopExit == funcExit) {
+    loopExit = BasicBlock::Create(F->getContext(), "loopExit", F, funcExit);
+    Builder.SetInsertPoint(loopExit);
+    Builder.CreateBr(headerPE);
+    headerOfDcpldLoop->getTerminator()->setOperand(1, loopExit);
+  } else {
+    Builder.SetInsertPoint(loopExit);
+    auto oldBranch = loopExit->getTerminator();
+    Builder.CreateBr(headerPE);
+    deleteInstruction(oldBranch);
+  }
 
   // Pipe read/writes with dependencies should only be called once per entire
   // decoupled loop exec. So move them to headerPE/decoupledLoopExit.
@@ -760,8 +767,10 @@ void createPredicatedLoopPE(json::Object &i2pInfo, LoopInfo &LI) {
   // Update phi sources in decoupledLoopHeaderBB.
   for (auto &phi : headerOfDcpldLoop->phis()) {
     for (auto srcBB : phi.blocks()) {
-      if (llvm::is_contained(blocksToDelete, srcBB))
+      if (llvm::is_contained(blocksToDelete, srcBB) ||
+          srcBB == &F->getEntryBlock()) {
         headerOfDcpldLoop->replacePhiUsesWith(srcBB, headerPE);
+      }
     }
   }
 
@@ -1089,9 +1098,9 @@ json::Array getPipesToHoist(const json::Array &allDirectives, LoopInfo &LI) {
 }
 
 /// Return a vector of all instructions that will be decoupled into a PE.
-SmallVector<Instruction *> getDecoupledI(Function &F, LoopInfo &LI,
-                                         const json::Object &report) {
-  SmallVector<Instruction *> res;
+SetVector<Instruction *> getDecoupledI(Function &F, LoopInfo &LI,
+                                       const json::Object &report) {
+  SetVector<Instruction *> res;
 
   for (auto peInfoVal : *report.getArray("pe_array")) {
     auto peInfo = *peInfoVal.getAsObject();
@@ -1101,14 +1110,14 @@ SmallVector<Instruction *> getDecoupledI(Function &F, LoopInfo &LI,
     if (peInfo["pe_type"] == "block") {
       for (auto &I : *dcpldBB) {
         if (!I.isTerminator())
-          res.push_back(&I);
+          res.insert(&I);
       }
     } else { // entire loop, dcpldBB is the loop header
       auto L = LI.getLoopFor(dcpldBB);
       for (auto BB : L->getBlocksVector()) {
         for (auto &I : *BB) {
           if (!I.isTerminator()) // Leave control flow.
-            res.push_back(&I);
+            res.insert(&I);
         }
       }
     }
@@ -1120,30 +1129,42 @@ SmallVector<Instruction *> getDecoupledI(Function &F, LoopInfo &LI,
 /// Delete all basic blocks that belong to decoupled loops.
 void deleteDecoupledLoopBodies(Function &F, LoopInfo &LI,
                                const json::Object &report) {
+  // First, collect loop headers, loop exits, and all block to delete.
+  SmallVector<BasicBlock *> loopHeaders;
+  SmallVector<BasicBlock *> loopExits;
+  SetVector<BasicBlock *> toDelete;
   for (auto peInfoVal : *report.getArray("pe_array")) {
     auto peInfo = *peInfoVal.getAsObject();
-    auto dcpldBB = getChildWithIndex<Function, BasicBlock>(
-      &F, *peInfo.getInteger("basic_block_idx"));
 
     if (peInfo["pe_type"] == "loop") {
-      auto L = LI.getLoopFor(dcpldBB);
+      auto headerBB = getChildWithIndex<Function, BasicBlock>(
+          &F, *peInfo.getInteger("basic_block_idx"));
+      auto L = LI.getLoopFor(headerBB);
+      auto exitBB = L->getExitBlock();
 
-      // Skip loop body: unconditional loop header -> loop exit branch.
-      IRBuilder<> Builder(dcpldBB);
-      auto oldBranch = dcpldBB->getTerminator();
-      Builder.CreateBr(L->getExitBlock());
-      deleteInstruction(oldBranch);
-
-      for (auto BB : L->getBlocksVector()) {
-        if (BB != dcpldBB) {
-          deleteNonPipeInstrsInBB(BB);
-          BB->removeFromParent();
-        }
+      for (auto BB : L->getBlocks()) {
+        if (BB != headerBB && BB != exitBB)
+          toDelete.insert(BB);
       }
+      loopHeaders.push_back(headerBB);
+      loopExits.push_back(exitBB);
     }
   }
-}
 
+  // Next, connect directly the loop header to exit (body becomes uncreachable).
+  for (size_t i = 0; i < loopHeaders.size(); ++i) {
+    IRBuilder<> Builder(loopHeaders[i]);
+    auto oldBranch = loopHeaders[i]->getTerminator();
+    Builder.CreateBr(loopExits[i]);
+    deleteInstruction(oldBranch);
+  }
+
+  // Finally, delete the loop bodies.
+  for (auto BB : toDelete) {
+    deleteNonPipeInstrsInBB(BB);
+    BB->removeFromParent();
+  }
+}
 
 struct ElasticTransform : PassInfoMixin<ElasticTransform> {
   json::Object report;
@@ -1176,7 +1197,7 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
     // This is used to remove unnecessary blockPE <--> MainKernel comms.
     json::Array hoistDirectives = getPipesToHoist(directives, LI);
     // Instructions decoupled out of the main kernel into a predicated PE.
-    SmallVector<Instruction *> decoupledI = getDecoupledI(F, LI, report);
+    SetVector<Instruction *> decoupledI = getDecoupledI(F, LI, report);
     // Record instructions during transformation, which shouldn't be deleted.
     SmallVector<Instruction *> toKeep;
 

@@ -178,10 +178,10 @@ void ControlDependentDataDependencyAnalysis::collectBlockInOutDependencies() {
       blockInputDependencies[BB].insert(&phi);
 
     for (auto &I : instrToDecouple) {
-      // Check the operands of I for input dependencies.
       for (size_t iOp = 0; iOp < I->getNumOperands(); ++iOp) {
         if (auto opInstr = dyn_cast<Instruction>(I->getOperand(iOp))) {
-          if (!instrToDecouple.contains(opInstr)) {
+          if (!opInstr->getParent()->isEntryBlock() &&
+              !instrToDecouple.contains(opInstr)) {
             blockInputDependencies[BB].insert(opInstr);
           }
         }
@@ -196,22 +196,93 @@ void ControlDependentDataDependencyAnalysis::collectBlockInOutDependencies() {
         }
       }
     }
-
   }
 }
 
-/// Collect loops that are control dependent where the ctr dep src is not a loop
-/// header of another loop. Ignore unrolled loops.
+/// Collect loops to decouple. A loop will be marked for decoupling if either:
+// 1. it is ctrl dependent on anything else than another loop's header, 
+// 2. it has sibling loops (loops at the same nesting depth), such that there 
+//    are no data and memory dependencies between the sibling loops. 
+// Unrolled loops are ignored in all cases.
 void ControlDependentDataDependencyAnalysis::collectLoopsToDecouple(
     LoopInfo &LI, ControlDependenceGraph &CDG) {
-  for (Loop *TopLevelLoop : LI) {
-    for (Loop *L : depth_first(TopLevelLoop)) {
-      if (auto ctrlDepSrc = CDG.getControlDependencySource(L->getHeader())) {
-        if (!LI.isLoopHeader(ctrlDepSrc) && !isLoopUnrolled(L)) {
-          loopsToDecouple.push_back(L);
+  // Traverse all loops in breadth first order. This is important for marking,
+  // because we add to {doNotDecouple} loops that come later in the traversal.
+  auto loopsInBFS = LI.getLoopsInPreorder();
+  llvm::sort(loopsInBFS, [](Loop *L1, Loop *L2) {
+    return L1->getLoopDepth() < L2->getLoopDepth();
+  });
+
+  // First, collect some useful information about each loop. 
+  MapVector<Loop *, SetVector<Instruction *>> memoryUsesInLoop;
+  MapVector<int, int> numLoopsAtLevel;
+  SetVector<Instruction *> atLeastOneStore;
+  for (Loop *L : loopsInBFS) {
+    // Init.
+    if (!memoryUsesInLoop.contains(L))
+      memoryUsesInLoop[L] = SetVector<Instruction *>();
+    if (!numLoopsAtLevel.contains(L->getLoopDepth()))
+      numLoopsAtLevel[L->getLoopDepth()] = 1;
+    else
+      numLoopsAtLevel[L->getLoopDepth()]++;
+
+    // Collect memory arrays used in the loop and check if there are any stores.
+    for (auto &BB : getUniqueLoopBlocks(L)) {
+      for (auto &I : *BB) {
+        if (auto si = dyn_cast<StoreInst>(&I)) {
+          memoryUsesInLoop[L].insert(getPointerBase(si->getPointerOperand()));
+          atLeastOneStore.insert(getPointerBase(si->getPointerOperand()));
+        } else if (auto li = dyn_cast<LoadInst>(&I)) {
+          memoryUsesInLoop[L].insert(getPointerBase(li->getPointerOperand()));
         }
       }
     }
+  }
+
+  // Used to record loops that contain the destination of a register dependence.
+  SetVector<Loop *> doNotDecouple; 
+  // Now, check which loops should be decoupled. 
+  for (auto &[L, memories] : memoryUsesInLoop) {
+    // Condition 1: loop inside an if-condition.
+    if (auto ctrlDepSrc = CDG.getControlDependencySource(L->getHeader())) {
+      if (!LI.isLoopHeader(ctrlDepSrc) && !isLoopUnrolled(L)) {
+        loopsToDecouple.push_back(L);
+        continue;
+      }
+    }
+
+    // At this point, skip if has no siblings, or marked 'doNotDecouple'.
+    if (doNotDecouple.contains(L) || numLoopsAtLevel[L->getLoopDepth()] == 1) 
+      continue;
+
+    // Condition 2: sibling loops with no dependencies between any other loop.
+    bool noMemAliasWithOther = true, noRegisterDep = true;
+    for (auto &[otherL, otherMemories] : memoryUsesInLoop) {
+      if (otherL == L)
+        continue;
+      
+      // Check mem aliasing.
+      for (auto mem : memories) 
+        if (atLeastOneStore.contains(mem) && otherMemories.contains(mem)) 
+          noMemAliasWithOther = false;
+      
+      // Check for register dep.
+      auto otherLoopInstrs = getUniqueLoopInstructions(otherL);
+      for (auto &I : *L->getHeader()) {
+        for (auto UserOfI : I.users()) {
+          if (auto UserI = dyn_cast<Instruction>(UserOfI)) {
+            if (llvm::is_contained(otherLoopInstrs, UserI)) {
+              noRegisterDep = false;
+              // The destination of the reg. dep. should also not be decoupled.
+              doNotDecouple.insert(otherL);
+            }
+          }
+        }
+      }
+    }
+
+    if (noMemAliasWithOther && noRegisterDep && !isLoopUnrolled(L)) 
+      loopsToDecouple.push_back(L);
   }
 }
 

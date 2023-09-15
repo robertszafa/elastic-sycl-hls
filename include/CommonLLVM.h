@@ -461,6 +461,36 @@ template <typename T1, typename T2>
   return nullptr;
 }
 
+/// Return blocks unique to this loop, i.e. not contained in any subloop. 
+[[maybe_unused]] SmallVector<BasicBlock *> getUniqueLoopBlocks(Loop *L) {
+  SetVector<BasicBlock *> blocksOfSubloops;
+  for (auto subLoop : L->getSubLoops()) {
+    for (auto BB : subLoop->blocks())
+      blocksOfSubloops.insert(BB);
+  }
+
+  SmallVector<BasicBlock *> thisLoopBlocks;
+  for (auto BB : L->getBlocks()) {
+    if (!blocksOfSubloops.contains(BB))
+      thisLoopBlocks.push_back(BB);
+  }
+
+  return thisLoopBlocks;
+}
+
+/// Return instructions unique to this loop, i.e. not contained in any subloop. 
+[[maybe_unused]] SmallVector<Instruction *> getUniqueLoopInstructions(Loop *L) {
+  SmallVector<Instruction *> res;
+
+  for (auto BB : getUniqueLoopBlocks(L)) {
+    for (auto &I : *BB) {
+      res.push_back(&I);
+    }
+  }
+
+  return res;
+}
+
 } // namespace
 
 #endif

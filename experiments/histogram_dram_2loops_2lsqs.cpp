@@ -26,13 +26,13 @@ double histogram_kernel(queue &q, const std::vector<int> &h_idx,
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (int i = 0; i < array_size; ++i) {
-      auto x = hist[i];
-      hist[i] = x + 1;
+      auto x = hist[idx[i]];
+      hist[idx[i]] = x + 1;
     }
 
     for (int i = 0; i < array_size; ++i) {
-      auto x = hist2[i];
-      hist2[i] = x + 2;
+      auto x = hist2[idx[i]];
+      hist2[idx[i]] = x + 2;
     }
   
   });
@@ -54,13 +54,13 @@ double histogram_kernel(queue &q, const std::vector<int> &h_idx,
 
 void histogram_cpu(const int *idx, int *hist, int *hist2, const int N) {
     for (int i = 0; i < N; ++i) {
-      auto x = hist[i];
-      hist[i] = x + 1;
+      auto x = hist[idx[i]];
+      hist[idx[i]] = x + 1;
     }
 
     for (int i = 0; i < N; ++i) {
-      auto x = hist2[i];
-      hist2[i] = x + 2;
+      auto x = hist2[idx[i]];
+      hist2[idx[i]] = x + 2;
     }
   
 }

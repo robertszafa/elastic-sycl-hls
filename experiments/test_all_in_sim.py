@@ -47,7 +47,9 @@ BENCHMARKS = {
     'filter_sum_2_bram': 1000,
     'filter_sum_2_dram': 1000,
     'nested_if_mul': 1000,
-    'histogram_dram_2loops': 1000,
+    'histogram_dram_2loops': 1000, # Sibling loops decoupled
+    'histogram_dram_2loops_1nested': 1000, # Sibling loops decoupled
+    'histogram_dram_4loops_1triplenested': 1000, # Sibling loops decoupled
 }
 
 GIT_DIR = os.environ["ELASTIC_SYCL_HLS_DIR"]

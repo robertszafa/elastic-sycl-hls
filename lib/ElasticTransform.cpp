@@ -553,6 +553,9 @@ void moveEndLsqSignalToReturnBB(json::Object &i2pInfo) {
 }
 
 void instr2pipeSsaPe(json::Object &i2pInfo, SetVector<Instruction *> &created) {
+  // Keep track of instructions already replaced by a pipe read.
+  static MapVector<Instruction *, Instruction *> instruction2pipe;
+
   auto pipeCall =
       reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
   auto I =
@@ -572,18 +575,27 @@ void instr2pipeSsaPe(json::Object &i2pInfo, SetVector<Instruction *> &created) {
       pipeReadCasted->insertAfter(pipeCall);
       I->replaceAllUsesWith(pipeReadCasted);
       created.insert(pipeReadCasted);
+      instruction2pipe[I] = pipeReadCasted;
     } else {
       I->replaceAllUsesWith(pipeCall);
+      instruction2pipe[I] = pipeCall;
     }
+
   } else {
+    // If an instruction has been replaced by a pipe read, then use that.
+    if (instruction2pipe.contains(I))
+      I = instruction2pipe[I];
+
     pipeCall->moveBefore(decoupledBB->getTerminator());
     created.insert(storeValIntoPipe(I, pipeCall));
-    // pipeCall->moveBefore(getFirstAfterAllPipes(decoupledBB));
   } 
 }
 
 void instr2pipeSsaMain(json::Object &i2pInfo,
                        SetVector<Instruction *> &created) {
+  // Keep track of instructions already replaced by a pipe read.
+  static MapVector<Instruction *, Instruction *> instruction2pipe;
+
   auto pipeCall =
       reinterpret_cast<CallInst *>(*i2pInfo.getInteger("llvm_pipe_call"));
   auto I =
@@ -595,8 +607,13 @@ void instr2pipeSsaMain(json::Object &i2pInfo,
   if (i2pInfo.getString("read/write") == "read") {
     pipeCall->moveBefore(decoupledBB->getTerminator());
     I->replaceAllUsesWith(pipeCall);
+    instruction2pipe[I] = pipeCall;
   } else {
     pipeCall->moveBefore(getFirstAfterAllPipes(decoupledBB));
+
+    // If an instruction has been replaced by a pipe read, then use that.
+    if (instruction2pipe.contains(I))
+      I = instruction2pipe[I];
 
     // Check if we need to cast, e.g. when communicating an address.
     auto pipeOpType =

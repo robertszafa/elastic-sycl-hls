@@ -19,14 +19,15 @@ class MainKernel;
 double doitgen_triple_kernel(queue &q, std::vector<float> &h_A,
                              std::vector<float> &h_sum,
                              const std::vector<float> &h_w) {
+  const int N = h_A.size();
+
   auto *A = fpga_tools::toDevice(h_A, q);
   auto *sum = fpga_tools::toDevice(h_sum, q);
   auto *w = fpga_tools::toDevice(h_w, q);
-
-  const int N = h_A.size();
+  std::vector<int> h_idx(N, 1);
+  auto *idx = fpga_tools::toDevice(h_idx, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    int idx[1000];
 
     for (int i = 0; i < N; i++) {
       float s = 0;
@@ -51,6 +52,7 @@ double doitgen_triple_kernel(queue &q, std::vector<float> &h_A,
   q.copy(sum, h_sum.data(), h_sum.size()).wait();
 
   sycl::free((void *)A, q);
+  sycl::free((void *)idx, q);
   sycl::free((void *)sum, q);
   sycl::free((void *)w, q);
 

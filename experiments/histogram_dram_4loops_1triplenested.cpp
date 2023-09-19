@@ -60,7 +60,7 @@ void histogram_cpu(const int *idx, int *hist, int *hist2, const int N) {
   for (int k = 0; k < 2; ++k) {
     for (int j = 0; j < 2; ++j) {
       for (int i = 0; i < N; ++i) {
-        auto x = hist[k]; 
+        auto x = hist[i];
         hist[i] = x + 1;
       }
     }

@@ -24,7 +24,7 @@ double vec_norm_trans_kernel(queue &q, const std::vector<DATA_TYPE> &h_a,
   DATA_TYPE *r = fpga_tools::toDevice(h_r, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    DATA_TYPE weight = DATA_TYPE{0};
+    DATA_TYPE weight = DATA_TYPE{1};
     for (int i = 0; i < N; i++) {
       DATA_TYPE d = a[i];
       if (d < DATA_TYPE{1})
@@ -52,7 +52,7 @@ double vec_norm_trans_kernel(queue &q, const std::vector<DATA_TYPE> &h_a,
 
 void vec_norm_trans_cpu(const std::vector<DATA_TYPE> &a,
                         std::vector<DATA_TYPE> &r, const int N) {
-  DATA_TYPE weight = DATA_TYPE{0};
+  DATA_TYPE weight = DATA_TYPE{1};
   for (int i = 0; i < N; i++) {
     DATA_TYPE d = a[i];
     if (d < DATA_TYPE{1})

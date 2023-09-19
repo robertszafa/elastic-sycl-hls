@@ -124,16 +124,17 @@ getSeqInBB(const SmallVector<Instruction *> &Range) {
   return Builder.CreateStore(val, pipeOperandAddr);
 }
 
-/// Delete {inst} from it's function.
+/// Delete {inst} from its function.
 [[maybe_unused]] void deleteInstruction(Instruction *I) {
-  I->dropAllReferences();
-  I->replaceAllUsesWith(UndefValue::get(I->getType()));
-  I->eraseFromParent();
+    I->dropAllReferences();
+    I->replaceAllUsesWith(UndefValue::get(I->getType()));
+    I->eraseFromParent();
+  // }
 }
 
 /// Given Function {F}, return all Functions that call {F}.
 [[maybe_unused]] SmallVector<Function *> getCallerFunctions(Module *M,
-                                                               Function &F) {
+                                                            Function &F) {
   // The expected case is one caller.
   SmallVector<Function *> callers;
   auto &functionList = M->getFunctionList();
@@ -318,14 +319,8 @@ template <typename T1, typename T2>
 [[maybe_unused]] CallInst *getPipeWithPattern(Function &F,
                                               const std::string &pattern) {
   for (auto &BB : F) {
-    for (auto &I : BB) {
-      if (auto pipeCall = getPipeCall(&I)) {
-        auto pipeName =
-            demangle(std::string(pipeCall->getCalledFunction()->getName()));
-        if (pipeName.find(pattern) < pipeName.size())
-          return pipeCall;
-      }
-    }
+    if (auto pipeCall = getPipeWithPattern(BB, pattern))
+      return pipeCall;
   }
 
   return nullptr;
@@ -486,6 +481,19 @@ template <typename T1, typename T2>
     for (auto &I : *BB) {
       res.push_back(&I);
     }
+  }
+
+  return res;
+}
+
+// Return the first instruction in {BB} after the last pipe call.
+[[maybe_unused]] Instruction *getFirstAfterAllPipes(BasicBlock *BB) {
+  Instruction *res = nullptr;
+  for (auto &I : *BB) {
+    if (getPipeCall(&I)) 
+      res = nullptr;
+    else if (!res)
+      res = &I;
   }
 
   return res;

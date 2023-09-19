@@ -286,7 +286,8 @@ void decoupledBlocksReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
                       std::to_string(iDepIn) + "_class";
 
       json::Object depInWriteDirective;
-      depInWriteDirective["directive_type"] = "ssa";
+      depInWriteDirective["directive_type"] = "ssa_block";
+      depInWriteDirective["dep_direction"] = "in";
       depInWriteDirective["instruction"] = genJsonForInstruction(thisInstr);
       depInWriteDirective["basic_block_idx"] = bbIdx;
       depInWriteDirective["loop_exit_block_idx"] = loopExitIdx;
@@ -298,9 +299,12 @@ void decoupledBlocksReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
       depInWriteDirective["pe_type"] = "block";
 
       json::Object depInReadDirective;
-      depInReadDirective["directive_type"] = "ssa";
+      depInReadDirective["directive_type"] = "ssa_block";
+      depInReadDirective["dep_direction"] = "in";
       depInReadDirective["instruction"] = genJsonForInstruction(thisInstr);
       depInReadDirective["basic_block_idx"] = bbIdx;
+      depInReadDirective["loop_exit_block_idx"] = loopExitIdx;
+      depInReadDirective["loop_header_block_idx"] = loopHeaderIdx;
       depInReadDirective["read/write"] = "read";
       depInReadDirective["kernel_name"] = peKernelName;
       depInReadDirective["pipe_name"] = pipeName;
@@ -314,13 +318,16 @@ void decoupledBlocksReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
     auto depOut = CDDD->getBlockOutputDependencies(BB);
     for (size_t iDepOut = 0; iDepOut < depOut.size(); ++iDepOut) {
       auto thisInstr = depOut[iDepOut];
-      auto pipeName = "pipe_pe_" + std::to_string(iBB) + "_dep_out_" +
+      auto pipeName = "pipe_pe_bb_" + std::to_string(iBB) + "_dep_out_" +
                       std::to_string(iDepOut) + "_class";
 
       json::Object depOutWriteDirective;
-      depOutWriteDirective["directive_type"] = "ssa";
+      depOutWriteDirective["directive_type"] = "ssa_block";
+      depOutWriteDirective["dep_direction"] = "out";
       depOutWriteDirective["instruction"] = genJsonForInstruction(thisInstr);
       depOutWriteDirective["basic_block_idx"] = bbIdx;
+      depOutWriteDirective["loop_exit_block_idx"] = loopExitIdx;
+      depOutWriteDirective["loop_header_block_idx"] = loopHeaderIdx;
       depOutWriteDirective["read/write"] = "write";
       depOutWriteDirective["kernel_name"] = peKernelName;
       depOutWriteDirective["pipe_name"] = pipeName;
@@ -328,7 +335,8 @@ void decoupledBlocksReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
       depOutWriteDirective["pe_type"] = "block";
 
       json::Object depOutReadDirective;
-      depOutReadDirective["directive_type"] = "ssa";
+      depOutReadDirective["directive_type"] = "ssa_block";
+      depOutReadDirective["dep_direction"] = "out";
       depOutReadDirective["instruction"] = genJsonForInstruction(thisInstr);
       depOutReadDirective["basic_block_idx"] = bbIdx;
       depOutReadDirective["loop_exit_block_idx"] = loopExitIdx;
@@ -346,15 +354,17 @@ void decoupledBlocksReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
     // One predicate pipe per decoupled PE.
     auto pred_pipe_name = "pipe_pe_bb_" + std::to_string(iBB) + "_pred_class";
     json::Object predPipeReadDirective;
-    predPipeReadDirective["directive_type"] = "pred";
+    predPipeReadDirective["directive_type"] = "pred_block";
     predPipeReadDirective["pipe_name"] = pred_pipe_name;
     predPipeReadDirective["read/write"] = "read";
     predPipeReadDirective["kernel_name"] = peKernelName;
     predPipeReadDirective["pipe_type"] = "int8_t";
     predPipeReadDirective["basic_block_idx"] = bbIdx;
+    predPipeReadDirective["loop_exit_block_idx"] = loopExitIdx;
+    predPipeReadDirective["loop_header_block_idx"] = loopHeaderIdx;
     predPipeReadDirective["pe_type"] = "block";
     json::Object predPipeWriteDirective;
-    predPipeWriteDirective["directive_type"] = "pred";
+    predPipeWriteDirective["directive_type"] = "pred_block";
     predPipeWriteDirective["pipe_name"] = pred_pipe_name;
     predPipeWriteDirective["read/write"] = "write";
     predPipeWriteDirective["kernel_name"] = mainKernelName;
@@ -402,7 +412,7 @@ void decoupledLoopsReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
                       std::to_string(iDepIn) + "_class";
 
       json::Object depInWriteDirective;
-      depInWriteDirective["directive_type"] = "ssa";
+      depInWriteDirective["directive_type"] = "ssa_loop";
       depInWriteDirective["instruction"] = genJsonForInstruction(thisInstr);
       depInWriteDirective["basic_block_idx"] = loopHeaderIdx;
       depInWriteDirective["loop_exit_block_idx"] = loopExitIdx;
@@ -414,7 +424,7 @@ void decoupledLoopsReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
       depInWriteDirective["pe_type"] = "loop";
 
       json::Object depInReadDirective;
-      depInReadDirective["directive_type"] = "ssa";
+      depInReadDirective["directive_type"] = "ssa_loop";
       depInReadDirective["instruction"] = genJsonForInstruction(thisInstr);
       depInReadDirective["basic_block_idx"] = loopHeaderIdx;
       depInReadDirective["read/write"] = "read";
@@ -434,7 +444,7 @@ void decoupledLoopsReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
                       std::to_string(iDepOut) + "_class";
 
       json::Object depOutWriteDirective;
-      depOutWriteDirective["directive_type"] = "ssa";
+      depOutWriteDirective["directive_type"] = "ssa_loop";
       depOutWriteDirective["instruction"] = genJsonForInstruction(thisInstr);
       depOutWriteDirective["basic_block_idx"] = loopHeaderIdx;
       depOutWriteDirective["read/write"] = "write";
@@ -444,7 +454,7 @@ void decoupledLoopsReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
       depOutWriteDirective["pe_type"] = "loop";
 
       json::Object depOutReadDirective;
-      depOutReadDirective["directive_type"] = "ssa";
+      depOutReadDirective["directive_type"] = "ssa_loop";
       depOutReadDirective["instruction"] = genJsonForInstruction(thisInstr);
       depOutReadDirective["basic_block_idx"] = loopHeaderIdx;
       depOutReadDirective["loop_exit_block_idx"] = loopExitIdx;
@@ -462,15 +472,17 @@ void decoupledLoopsReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
     // One predicate pipe per decoupled PE.
     auto pred_pipe_name = "pipe_pe_loop_" + std::to_string(iL) + "_pred_class";
     json::Object predPipeReadDirective;
-    predPipeReadDirective["directive_type"] = "pred";
+    predPipeReadDirective["directive_type"] = "pred_loop";
     predPipeReadDirective["pipe_name"] = pred_pipe_name;
     predPipeReadDirective["read/write"] = "read";
     predPipeReadDirective["kernel_name"] = peKernelName;
     predPipeReadDirective["pipe_type"] = "int8_t";
     predPipeReadDirective["basic_block_idx"] = loopHeaderIdx;
+    predPipeReadDirective["loop_exit_block_idx"] = loopExitIdx;
+    predPipeReadDirective["loop_header_block_idx"] = loopHeaderIdx;
     predPipeReadDirective["pe_type"] = "loop";
     json::Object predPipeWriteDirective;
-    predPipeWriteDirective["directive_type"] = "pred";
+    predPipeWriteDirective["directive_type"] = "pred_loop";
     predPipeWriteDirective["pipe_name"] = pred_pipe_name;
     predPipeWriteDirective["read/write"] = "write";
     predPipeWriteDirective["kernel_name"] = mainKernelName;
@@ -543,12 +555,46 @@ void adjustLsqValuePipesPlacement(Function &F, ControlDependenceGraph &CDG,
 
   for (auto i2pInfoVal : *report.getArray("instr2pipe_directives")) {
     auto i2pInfo = *i2pInfoVal.getAsObject();
+    const auto dirType = *i2pInfo.getString("directive_type");
 
     bool appendDirectiveToEnd = false;
 
-    if (i2pInfo.getString("directive_type") == "st_val" ||
-        i2pInfo.getString("directive_type") == "ld_val" ||
-        i2pInfo.getString("directive_type") == "poison") {
+    // TODO: nested decoupled loops.
+    if ((dirType == "ssa_block" && i2pInfo.getString("dep_direction") == "in" &&
+         i2pInfo.getString("read/write") == "write") ||
+        (dirType == "ssa_block" &&
+         i2pInfo.getString("dep_direction") == "out" &&
+         i2pInfo.getString("read/write") == "read") ||
+        (dirType == "pred_block" &&
+         i2pInfo.getString("read/write") == "write")) {
+      auto instrObj = i2pInfo.getObject("instruction");
+      auto bbIdx = (instrObj) ? *instrObj->getInteger("basic_block_idx")
+                              : *i2pInfo.getInteger("basic_block_idx");
+      auto dcpldBlock = getChildWithIndex<Function, BasicBlock>(&F, bbIdx);
+      auto loopForDirective = LI.getLoopFor(dcpldBlock);
+      
+      bool stopSearch = false;
+      for (size_t iL = 0; iL < loopsToDecouple.size(); ++iL) {
+        if (loopsToDecouple[iL] == loopForDirective) {
+          i2pInfo["kernel_name"] =
+              mainKernelName + "_PE_LOOP_" + std::to_string(iL);
+          stopSearch = true;
+        }
+      }
+      // Walk up parents until hitting a decoupled loop or a top-level loop.
+      auto parentLoop = loopForDirective->getParentLoop();
+      while (parentLoop && !stopSearch) {
+        for (size_t iL = 0; iL < loopsToDecouple.size(); ++iL) {
+          if (parentLoop == loopsToDecouple[iL]) {
+            i2pInfo["kernel_name"] =
+                mainKernelName + "_PE_LOOP_" + std::to_string(iL);
+            stopSearch = true;
+          }
+        }
+        parentLoop = parentLoop->getParentLoop();
+      }
+    } else if (dirType == "st_val" || dirType == "ld_val" ||
+               dirType == "poison") {
       auto instrObj = i2pInfo.getObject("instruction");
       // TODO: flatten instruction object.
       auto bbIdx = (instrObj) ? *instrObj->getInteger("basic_block_idx")

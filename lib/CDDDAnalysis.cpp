@@ -251,9 +251,13 @@ void ControlDependentDataDependencyAnalysis::collectLoopsToDecouple(
       }
     }
 
-    // At this point, skip if has no siblings, or marked 'doNotDecouple'.
-    if (doNotDecouple.contains(L) || numLoopsAtLevel[L->getLoopDepth()] == 1) 
+    // At this point, Skip if has no siblings, or marked 'doNotDecouple'.
+    // Also, ignore very last outermost loop (i.e. getTopLevelLoops().front()).
+    if (doNotDecouple.contains(L) ||
+        (numLoopsAtLevel[L->getLoopDepth()] == 1) ||
+        (LI.getTopLevelLoops().front() == L)) {
       continue;
+    }
 
     // Condition 2: sibling loops with no dependencies between any other loop.
     bool noMemAliasWithOther = true, noRegisterDep = true;
@@ -281,7 +285,7 @@ void ControlDependentDataDependencyAnalysis::collectLoopsToDecouple(
       }
     }
 
-    if (noMemAliasWithOther && noRegisterDep && !isLoopUnrolled(L)) 
+    if (noMemAliasWithOther && noRegisterDep && !isLoopUnrolled(L))  
       loopsToDecouple.push_back(L);
   }
 }

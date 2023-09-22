@@ -1045,21 +1045,39 @@ json::Array getPipesToHoist(const json::Array &allDirectives, LoopInfo &LI) {
     auto I = instructions[iP];
     auto decoupledBB = decoupledBBs[iP];
     auto L = LI.getLoopFor(decoupledBB);
+    auto loopLatch = L->getLoopLatch();
+    auto loopHeader = L->getHeader();
 
     bool canBeHoisted = true;
     PHINode *recStart = nullptr;
     auto loopUsesOfI = getLoopInstructionsDependingOnI(I, L);
-    auto allowedBlocks = {L->getHeader(), decoupledBB, L->getLoopLatch()};
+    auto allowedBlocks = {loopHeader, decoupledBB, loopLatch};
+    
     for (auto instrUseInL : loopUsesOfI) {
+      if (instrUseInL == I)
+        continue;
+
+      auto blockForUse = instrUseInL->getParent();
+
       // A pipe call cannot be hosited if:
       // 1: If I is used in the L loop in other blocks then {allowedBlocks}.
       // 2: I is a load in the loop L.
       // 3: I is a store operand for an instruction in the loop L.
-      if (!llvm::is_contained(allowedBlocks, instrUseInL->getParent()) ||
+      if (!llvm::is_contained(allowedBlocks, blockForUse) ||
           (isaLoad(I) && L->contains(I)) ||
           (isaStore(instrUseInL) && L->contains( instrUseInL))) {
         canBeHoisted = false;
         break;
+      }
+      if (auto phiUseInLatch = dyn_cast<PHINode>(instrUseInL)) {
+        if (blockForUse == loopLatch) {
+          for (auto &phiBlock : phiUseInLatch->blocks()) {
+            if (!llvm::is_contained(allowedBlocks, phiBlock)) {
+              canBeHoisted = false;
+              break;
+            }
+          }
+        }
       }
       
       // Record the instructions for the start of the recurrence. 

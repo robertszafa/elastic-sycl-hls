@@ -213,7 +213,7 @@ void ControlDependentDataDependencyAnalysis::collectLoopsToDecouple(
     return L1->getLoopDepth() < L2->getLoopDepth();
   });
 
-  // First, collect some useful information about each loop. 
+  // 1) collect some useful information about each loop. 
   MapVector<Loop *, SetVector<Instruction *>> memoryUsesInLoop;
   MapVector<int, int> numLoopsAtLevel;
   SetVector<Instruction *> atLeastOneStore;
@@ -239,28 +239,30 @@ void ControlDependentDataDependencyAnalysis::collectLoopsToDecouple(
     }
   }
 
+  // 2) check which loops should be decoupled. 
   // Used to record loops that contain the destination of a register dependence.
   SetVector<Loop *> doNotDecouple; 
-  // Now, check which loops should be decoupled. 
   for (auto &[L, memories] : memoryUsesInLoop) {
     // Condition 1: loop inside an if-condition.
+    bool noMemAliasWithOther = true, noRegisterDep = true, isControlDep = false;
+
     if (auto ctrlDepSrc = CDG.getControlDependencySource(L->getHeader())) {
       if (!LI.isLoopHeader(ctrlDepSrc) && !isLoopUnrolled(L)) {
-        loopsToDecouple.push_back(L);
-        continue;
+        isControlDep = true;
       }
     }
 
-    // At this point, Skip if has no siblings, or marked 'doNotDecouple'.
-    // Also, ignore very last outermost loop (i.e. getTopLevelLoops().front()).
-    if (doNotDecouple.contains(L) ||
-        (numLoopsAtLevel[L->getLoopDepth()] == 1) ||
-        (LI.getTopLevelLoops().front() == L)) {
+    // At this point: skip aloop if either holds:
+    // - marked unrolled, or as doNotDecouple (i.e. dst of register dependency)
+    // - is the very last outermost loop (front() gives the last not first...)
+    // - has no siblings and is not control dependent
+    if (!isLoopUnrolled(L) || doNotDecouple.contains(L) || 
+        (LI.getTopLevelLoops().front() == L) ||
+        (numLoopsAtLevel[L->getLoopDepth()] == 1 && !isControlDep)) {
       continue;
     }
 
     // Condition 2: sibling loops with no dependencies between any other loop.
-    bool noMemAliasWithOther = true, noRegisterDep = true;
     for (auto &[otherL, otherMemories] : memoryUsesInLoop) {
       if (otherL == L)
         continue;
@@ -285,7 +287,7 @@ void ControlDependentDataDependencyAnalysis::collectLoopsToDecouple(
       }
     }
 
-    if (noMemAliasWithOther && noRegisterDep && !isLoopUnrolled(L))  
+    if (noMemAliasWithOther && (noRegisterDep || isControlDep)) 
       loopsToDecouple.push_back(L);
   }
 }

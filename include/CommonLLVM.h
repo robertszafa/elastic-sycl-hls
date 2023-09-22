@@ -129,7 +129,6 @@ getSeqInBB(const SmallVector<Instruction *> &Range) {
     I->dropAllReferences();
     I->replaceAllUsesWith(UndefValue::get(I->getType()));
     I->eraseFromParent();
-  // }
 }
 
 /// Given Function {F}, return all Functions that call {F}.

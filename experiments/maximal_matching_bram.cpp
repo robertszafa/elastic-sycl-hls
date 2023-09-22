@@ -43,23 +43,21 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
     int i = 0;
     int out_scalar = 0;
 
-    while (i < N) {
-      int j = i * 2;
-
-      int e1 = edges[j];
-      int e2 = edges[j + 1];
+    while (i < N*2) {
+      int e1 = edges[i];
+      int e2 = edges[i + 1];
 
       auto v1 = vertices[e1];
       auto v2 = vertices[e2];
-
-      if (v1 == 0 && v2 == 0) {
+      auto cond = (v1 == 0 && v2 == 0);
+      if (cond) {
         vertices[e1] = v2;
         vertices[e2] = v1;
 
         out_scalar = out_scalar + 1;
       } 
 
-      i = i + 1;
+      i = i + 2;
     }
 
     *out = out_scalar;
@@ -86,16 +84,13 @@ int maximal_matching_cpu(const std::vector<int> &edges,
   int i = 0;
   int out = 0;
 
-  while (i < num_edges) {
-
-    int j = i * 2;
-
-    int e1 = edges[j];
-    int e2 = edges[j + 1];
+  while (i < num_edges*2) {
+    int e1 = edges[i];
+    int e2 = edges[i + 1];
 
     auto v1 = vertices[e1];
     auto v2 = vertices[e2];
-    
+
     if (v1 == 0 && v2 == 0) {
       vertices[e1] = v2;
       vertices[e2] = v1;
@@ -103,7 +98,7 @@ int maximal_matching_cpu(const std::vector<int> &edges,
       out = out + 1;
     }
 
-    i = i + 1;
+    i = i + 2;
   }
 
   return out;
@@ -123,9 +118,9 @@ void init_data(std::vector<int> &edges, std::vector<int> &vertices,
     // is_true[i] =  (dice() < percentage) ? 1 : 0;
 
     edges[i] = (dice() < percentage) ? rand() % 4 : i;
-    // edges[i+1] = (dice() < percentage) ? rand() % 4 : i+1;
+    edges[i+1] = (dice() < percentage) ? rand() % 4 : i+1;
 
-    vertices[i] = rand() % 10;
+    vertices[i] = 0;
   }
 }
 

@@ -256,7 +256,7 @@ void ControlDependentDataDependencyAnalysis::collectLoopsToDecouple(
     // - marked unrolled, or as doNotDecouple (i.e. dst of register dependency)
     // - is the very last outermost loop (front() gives the last not first...)
     // - has no siblings and is not control dependent
-    if (!isLoopUnrolled(L) || doNotDecouple.contains(L) || 
+    if (isLoopUnrolled(L) || doNotDecouple.contains(L) || 
         (LI.getTopLevelLoops().front() == L) ||
         (numLoopsAtLevel[L->getLoopDepth()] == 1 && !isControlDep)) {
       continue;

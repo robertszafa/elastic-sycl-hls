@@ -159,7 +159,7 @@ def gen_all_pipe_declarations(report):
                    {st_pipe_depth}, {lsq_info['num_store_pipes']}>;")
 
         res.append(f"using pipe_end_lsq_signal_{i_lsq} = \
-            pipe<class pipe_end_lsq_signal_{i_lsq}_class, bool>;")
+            pipe<class pipe_end_lsq_signal_{i_lsq}_class, bool, 1>;")
 
     # Pipes for predicated PE.
     done_pe_pipes = set()

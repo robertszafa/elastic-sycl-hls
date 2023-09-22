@@ -222,29 +222,6 @@ void DataHazardAnalysis::calculateDecoupling(ControlDependenceGraph &CDG) {
   }
 }
 
-/// Does {BB} exist on the {PathStart} ~~> {PathEnd} CFG path?
-bool existsOnPath(BasicBlock *BB, BasicBlock *PathStart, BasicBlock *PathEnd) {
-  SetVector<BasicBlock*> done;
-  SmallVector<BasicBlock *> stack = {PathStart};
-
-  while (!stack.empty()) {
-    auto curr = stack.pop_back_val();
-    done.insert(curr);
-    if (curr == BB)
-      return true;
-    
-    if (curr == PathEnd)
-      continue;
-
-    for (auto succBB : successors(curr)) {
-      if (!done.contains(succBB))
-        stack.push_back(succBB);
-    }
-  }
-
-  return false;
-}
-
 /// Given {memOps} which will be routed through an LSQ, return the required
 /// number of out-of-order store addresses that the LSQ needs to hold in order 
 /// to achieve perfect pipelining in the case of no true data hazards.
@@ -351,36 +328,42 @@ int getStoreQueueSize(SmallVector<Instruction *> &memOps, LoopInfo &LI,
 /// Record the first {predBB} --> {succBB} edge where this is true.
 void DataHazardAnalysis::calculatePoisonBlocks(DominatorTree &DT,
                                                LoopInfo &LI) {
+  // Go through every specBB that contains speculative allocations.
   for (auto [specBB, allocStack] : speculationStack) {
-    auto L = LI.getLoopFor(specBB);
-    auto loopLatch = L->getLoopLatch();
-
     // Init
     for (auto alloc : allocStack) 
       poisonLocations[alloc] = SmallVector<PoisonLocation>();
 
-    for (auto predBB : L->blocks()) {
-      if (L->isLoopLatch(predBB) || !DT.dominates(specBB, predBB)) 
-        continue;
+    // Go through speculative allocations in stack order.
+    for (auto alloc : allocStack) {
+      auto trueBB = alloc->getParent();
 
-      for (auto succBB : successors(predBB)) {
-        for (auto alloc : allocStack) {
+      // Check every pred~>succ CFG edge dominated by specBB.
+      for (auto predBB : LI.getLoopFor(specBB)->blocks()) {
+        if (!DT.dominates(specBB, predBB))
+          continue;
 
-          auto allocBB = alloc->getParent();
-          if (allocBB == predBB)
+        for (auto succBB : successors(predBB)) {
+          // Ignore the CFG edge where the speculation is becomes or is true.
+          if (predBB == trueBB || succBB == trueBB)
             continue;
 
-          // Cond 1
-          bool usedOnPath = existsOnPath(allocBB, specBB, predBB);
-          bool poisonedOnPath = false;
-          for (auto poisonLoc : poisonLocations[alloc]) {
-            if (existsOnPath(poisonLoc.second, specBB, predBB))
-              poisonedOnPath = true;
+          // Check if a poisonBB for {alloc} here would break allocStack order.
+          bool breaksSpeculationOrder = false;
+          for (auto allocI : allocStack) {
+            // Go up to current trueBB. 
+            if (allocI->getParent() == trueBB)
+              break;
+            // Check if we would break the speculation order.
+            if (DT.dominates(succBB, allocI->getParent()))
+              breaksSpeculationOrder = true;
           }
-          // Cond 2
-          bool isAllocStillPossible = existsOnPath(allocBB, succBB, loopLatch);
 
-          if (!usedOnPath && !poisonedOnPath && !isAllocStillPossible) 
+          // When taking the pred~>suc CFG edge, does trueBB become unreachable?
+          bool trueBlockBecomesUnreachable =
+              DT.dominates(predBB, trueBB) && !DT.dominates(succBB, trueBB);
+
+          if (trueBlockBecomesUnreachable && !breaksSpeculationOrder) 
             poisonLocations[alloc].push_back({predBB, succBB});
         }
       }

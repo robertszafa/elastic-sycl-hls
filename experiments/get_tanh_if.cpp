@@ -51,15 +51,14 @@ double get_tanh_if_kernel(queue &q, std::vector<DATA_TYPE> &h_A) {
 }
 
 void get_tanh_if_cpu(std::vector<DATA_TYPE> &A) {
-  DATA_TYPE result;
+  DATA_TYPE result = 0;
   for (int i = 0; i < A.size(); i++) {
     DATA_TYPE beta = A[i];
 
     if (beta >= 20480)
       result = 4096;
     else
-      result =
-          ((result * result + 19) * result * result + 3) * result;
+      result = ((result * result + 19) * result * result + 3) * result;
 
     A[i] = result;
   }

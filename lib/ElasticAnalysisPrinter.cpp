@@ -3,6 +3,7 @@
 /// which can benefit from dynamic scheduling.
 
 #include "CommonLLVM.h"
+#include "AnalysisReportSchema.h"
 #include "DataHazardAnalysis.h"
 #include "CDDDAnalysis.h"
 
@@ -10,53 +11,49 @@ using namespace llvm;
 
 namespace llvm {
 
-/// For any given pipe, all its reads an all writes should be in the same kernel
-/// (reads and writes in a different kernel). Therefore, we cannot reuse the
-/// same LSQ pipe if the BBs of its use will be decoupled into different kernel.
-bool canReusePipesToLSQ(SmallVector<Instruction *> &memOps,
-                        ControlDependentDataDependencyAnalysis *CDDD) {
-  // We will count the unique blocks where any of the memOps are used.
-  SetVector<BasicBlock *> usedInPE, usedInMain; 
-  for (auto &memOp : memOps) {
-    auto BB = memOp->getParent();
-    if (CDDD->getBlocksToDecouple().contains(BB)) {
-      usedInPE.insert(BB);
-      continue;
-    } 
-    
-    bool isInLoopPE = false;
-    for (auto L : CDDD->getLoopsToDecouple()) {
-      if (L->contains(BB)) {
-        // When a memOp is used in a decoupled loop, then use the loop header
-        // to cluster all memOps from that loop to one BB.
-        usedInPE.insert(L->getHeader());
-        isInLoopPE = true;
-        break;
-      }
-    }
-
-    if (!isInLoopPE)
-      usedInMain.insert(BB);
+/// Given a basic block, return the name of the kernel that contains it.
+std::string getKernelName(BasicBlock *BB, const SmallVector<PEInfo> &peArray) {
+  // If the BB is decoupled into a block PE, then return its name.
+  for (auto &peInfo : peArray) {
+    if (peInfo.peType == BLOCK && peInfo.basicBlock == BB)
+      return peInfo.peKernelName;
   }
-
-  // Can reuse if nothing decoupled, or everything decoupled into same kernel.
-  return (usedInPE.size() == 0) || 
-         (usedInPE.size() == 1 && usedInMain.size() == 0);
+  // Otherwise, if the BB is part of a loop PE, then return its name.
+  for (auto &peInfo : peArray) {
+    if (peInfo.peType == LOOP && peInfo.loop->contains(BB))
+      return peInfo.peKernelName;
+  }
+  // Otherwise, the BB will not be decoupled. Return the original kernel name.
+  return demangle(std::string(BB->getParent()->getName()));
 }
 
-/// Print all analysis information related to dynamically scheduling memory.
-void lsqReportPrinter(DataHazardAnalysis *DHA,
-                      ControlDependentDataDependencyAnalysis *CDDD,
-                      json::Object &report) {
-  auto instr2pipeArray = *report["instr2pipe_directives"].getAsArray();
-  auto lsqArray = *report["lsq_array"].getAsArray();
-  auto mainKernelName = std::string(*report["main_kernel_name"].getAsString());
+/// Fill the lsqArray with info about LSQs to generate.
+/// Fill the rewriteRules with info about transformations needed to use the LSQ.
+void generateInfoLSQ(Function &F, DataHazardAnalysis *DHA,
+                     const SmallVector<PEInfo> &peArray,
+                     SmallVector<LSQInfo> &lsqArray,
+                     SmallVector<RewriteRule> &rewriteRules) {
+  auto mainKernelName = demangle(std::string(F.getName()));
+
+  /// We cannot reuse the same LSQ pipe across BBs if some of the BBs get
+  /// decoupled into different kernels.
+  auto canReuseLSQPipes = [&](SmallVector<Instruction *> &memOps) -> bool {
+    // We will count the unique blocks where any of the memOps are used.
+    SetVector<BasicBlock *> peUse, mainUse;
+    for (auto &memOp : memOps) {
+      auto BB = memOp->getParent();
+      if (getKernelName(BB, peArray) == mainKernelName)
+        mainUse.insert(BB);
+      else
+        peUse.insert(BB);
+    }
+    // Can reuse if nothing decoupled, or everything decoupled into one PE.
+    return (peUse.size() == 0) || (peUse.size() == 1 && mainUse.size() == 0);
+  };
 
   for (size_t iLSQ = 0; iLSQ < DHA->getHazardInstructions().size(); ++iLSQ) {
-    bool isDecoupled = DHA->getDecoupligDecisions()[iLSQ];
-    bool isOnChip = DHA->getIsOnChip()[iLSQ];
+    // First collect some info about the memory accesses for this LSQ.
     auto instrCluster = DHA->getHazardInstructions()[iLSQ];
-    auto isAnySpeculation = DHA->getSpeculationDecisions()[iLSQ];
     SmallVector<Instruction *> loads, stores;
     for (size_t i = 0; i < instrCluster.size(); ++i) {
       if (isaLoad(instrCluster[i])) 
@@ -64,729 +61,468 @@ void lsqReportPrinter(DataHazardAnalysis *DHA,
       else
         stores.push_back(instrCluster[i]);
     }
-
-    // We can reuse ld/st pipes connected to the LSQ for ld/st from different 
-    // BB if all the BBs are in the same kernel.
-    const bool reuseLdPipesLSQ = canReusePipesToLSQ(loads, CDDD);
-    const bool reuseStPipesLSQ = canReusePipesToLSQ(stores, CDDD);
-
-    // Only used when reusePipesLSQ is true. Multiple loads/stores pipes
-    // connected to the LSQ are represented as an array of pipes. The array is
-    // named, and the individual pipes within it are identified via indices.
+    const bool reuseLdPipesLSQ = canReuseLSQPipes(loads);
+    const bool reuseStPipesLSQ = canReuseLSQPipes(stores);
+    // LSQ ld/st pipes are represented as an array of pipes (name + idx).
+    // If we can reuse pipes across BBs, then we need to keep track of the
+    // indexes, otherwsise we can use a unique pipe for every ld/st.
     SmallVector<int> ldSeqInBB = getSeqInBB(loads);
     SmallVector<int> stSeqInBB = getSeqInBB(stores);
     int maxLdsBB = *std::max_element(ldSeqInBB.begin(), ldSeqInBB.end()) + 1;
     int maxStsBB = *std::max_element(stSeqInBB.begin(), stSeqInBB.end()) + 1;
     // Mapping used to reuse LSQ pipes across basic blocks.
     MapVector<BasicBlock *, int> loadsPerBB, storesPerBB;
-    // Mapping used to recover the pipe array idx for a given instruction.
-    MapVector<Instruction *, int> pipeArrayIdxMap;
 
     // General info about the LSQ as a whole.
-    auto aguName = mainKernelName + "_AGU_" + std::to_string(iLSQ);
-    json::Object thisMemory;
-    thisMemory["lsq_id"] = int(iLSQ);
-    thisMemory["num_load_pipes"] =
-        reuseLdPipesLSQ ? maxLdsBB : int(loads.size());
-    thisMemory["num_store_pipes"] =
-        reuseStPipesLSQ ? maxStsBB : int(stores.size());
-    thisMemory["all_stores_in_same_kernel"] = reuseStPipesLSQ;
-    thisMemory["all_loads_in_same_kernel"] = reuseLdPipesLSQ;
-    thisMemory["is_onchip"] = isOnChip;
-    thisMemory["store_queue_size"] = DHA->getStoreQueueSizes()[iLSQ];
-    thisMemory["decouple_address"] = isDecoupled;
-    thisMemory["is_any_speculation"] = isAnySpeculation;
-    thisMemory["agu_kernel_name"] = isDecoupled ? aguName : "";
-    thisMemory["array_size"] = DHA->getMemorySizes()[iLSQ];
-    std::string typeStr;
-    llvm::raw_string_ostream rso(typeStr);
-    instrCluster[0]->getOperand(0)->getType()->print(rso);
-    thisMemory["array_type"] = typeStr;
-    json::Array storeIs;
-    for (auto stI : stores) 
-      storeIs.push_back(genJsonForInstruction(stI));
-    thisMemory["store_instructions"] = std::move(storeIs);
+    LSQInfo lsqInfo;
+    lsqInfo.lsqIdx = iLSQ;
+    lsqInfo.numLoadPipes = reuseLdPipesLSQ ? maxLdsBB : int(loads.size());
+    lsqInfo.numStorePipes = reuseStPipesLSQ ? maxStsBB : int(stores.size());
+    lsqInfo.reuseLdPipesAcrossBB = reuseLdPipesLSQ;
+    lsqInfo.reuseStPipesAcrossBB = reuseStPipesLSQ;
+    lsqInfo.isOnChipMem = DHA->getIsOnChip()[iLSQ];
+    lsqInfo.allocationQueueSize = DHA->getStoreQueueSizes()[iLSQ];
+    lsqInfo.isAddressGenDecoupled = DHA->getDecoupligDecisions()[iLSQ];
+    lsqInfo.isAnySpeculation = DHA->getSpeculationDecisions()[iLSQ];
+    lsqInfo.arraySize = DHA->getMemorySizes()[iLSQ];
+    lsqInfo.arrayType = getTypeString(dyn_cast<Instruction>(loads[0]));
+    lsqInfo.aguKernelName = lsqInfo.isAddressGenDecoupled
+                            ? mainKernelName + "_AGU_" + std::to_string(iLSQ)
+                            : mainKernelName;
+    lsqArray.push_back(lsqInfo);
 
-    // Directives for load request/allocation writes and load value reads.
+    // Now generate rewrite rules needed to swap load/store instructions with
+    // pipe read/writes, and to implement speculated LSQ allocations, if needed.
+
+    // Loads
     for (size_t iLd = 0; iLd < loads.size(); ++iLd) {
-      // Only used when reusePipesLSQ is true.
-      if (!loadsPerBB.contains(loads[iLd]->getParent()))
-        loadsPerBB[loads[iLd]->getParent()] = 0;
+      // {loadsPerBB} is only used when reusePipesLSQ is true.
+      auto ldBB = loads[iLd]->getParent();
+      if (!loadsPerBB.contains(ldBB))
+        loadsPerBB[ldBB] = 0;
+      int pipeIdx = reuseLdPipesLSQ ? loadsPerBB[ldBB]++ : iLd;
 
-      // Load value read in main kernel.
-      json::Object ldValDirective;
-      int ldValPipeArrayIdx =
-          reuseLdPipesLSQ ? loadsPerBB[loads[iLd]->getParent()] : iLd;
-      ldValDirective["directive_type"] = "ld_val";
-      ldValDirective["instruction"] = genJsonForInstruction(loads[iLd]);
-      ldValDirective["read/write"] = "read";
-      ldValDirective["kernel_name"] = mainKernelName;
-      ldValDirective["pipe_name"] =
-          "pipes_ld_val_" + std::to_string(iLSQ) + "_class";
-      ldValDirective["pipe_type"] = typeStr;
-      ldValDirective["pipe_array_reuse"] = reuseLdPipesLSQ;
-      ldValDirective["pipe_array_idx"] = ldValPipeArrayIdx;
-      ldValDirective["is_address_decoupled"] = isDecoupled;
-      ldValDirective["lsq_id"] = int(iLSQ);
-      instr2pipeArray.push_back(std::move(ldValDirective));
+      RewriteRule ldReq{LD_REQ_WRITE, lsqInfo.aguKernelName, loads[iLd], ldBB};
+      ldReq.lsqIdx = iLSQ;
+      ldReq.pipeName = "pipes_ld_req_" + std::to_string(iLSQ) + "_class";
+      ldReq.pipeType =
+          lsqInfo.isOnChipMem ? "ld_req_lsq_bram_t" : "req_lsq_dram_t";
+      ldReq.pipeArrayIdx = pipeIdx;
+      ldReq.specBasicBlock = DHA->getSpeculationBlock(loads[iLd]);
 
-      // Load request write in AGU (or possibly main) kernel.
-      json::Object ldReqDirective;
-      ldReqDirective["directive_type"] = "ld_req";
-      ldReqDirective["instruction"] = genJsonForInstruction(loads[iLd]);
-      ldReqDirective["read/write"] = "write";
-      ldReqDirective["kernel_name"] = isDecoupled ? aguName : mainKernelName;
-      ldReqDirective["pipe_name"] =
-          "pipes_ld_req_" + std::to_string(iLSQ) + "_class";
-      ldReqDirective["pipe_type"] =
-          isOnChip ? "ld_req_lsq_bram_t" : "req_lsq_dram_t";
-      ldReqDirective["pipe_array_idx"] =
-          reuseLdPipesLSQ ? loadsPerBB[loads[iLd]->getParent()] : iLd;
-      ldReqDirective["num_load_pipes"] =
-          reuseLdPipesLSQ ? maxLdsBB : loads.size();
-      ldReqDirective["is_address_decoupled"] = isDecoupled;
-      ldReqDirective["lsq_id"] = int(iLSQ);
-      instr2pipeArray.push_back(std::move(ldReqDirective));
+      auto ldKernelName = getKernelName(loads[iLd]->getParent(), peArray);
+      RewriteRule ldVal{LD_VAL_READ, ldKernelName, loads[iLd], ldBB};
+      ldVal.lsqIdx = iLSQ;
+      ldVal.pipeName = "pipes_ld_val_" + std::to_string(iLSQ) + "_class";
+      ldVal.pipeType = lsqInfo.arrayType;
+      ldVal.pipeArrayIdx = pipeIdx;
 
-      pipeArrayIdxMap[loads[iLd]] = ldValPipeArrayIdx;
-      loadsPerBB[loads[iLd]->getParent()]++;
-    }
+      rewriteRules.push_back(ldReq);
+      rewriteRules.push_back(ldVal);
 
-    // Directives for store request/allocation writes and store value writes.
-    for (size_t iSt = 0; iSt < stores.size(); ++iSt) {
-      // Only used when reusePipesLSQ is true.
-      if (!storesPerBB.contains(stores[iSt]->getParent()))
-        storesPerBB[stores[iSt]->getParent()] = 0;
+      if (auto specBB = DHA->getSpeculationBlock(loads[iLd])) {
+        for (auto [predBB, succBB] : DHA->getPoisonLocations(loads[iLd])) {
+          RewriteRule poison{POISON_LD_READ, mainKernelName, loads[iLd], ldBB};
+          poison.lsqIdx = iLSQ;
+          poison.pipeName = "pipes_ld_val_" + std::to_string(iLSQ) + "_class";
+          poison.predBasicBlock = predBB;
+          poison.succBasicBlock = succBB;
+          poison.specBasicBlock = specBB;
+          poison.pipeArrayIdx = pipeIdx;
 
-      // Store value write in main kernel.
-      json::Object stValDirective;
-      int stValPipeArrayIdx =
-          reuseStPipesLSQ ? storesPerBB[stores[iSt]->getParent()] : iSt;
-      stValDirective["directive_type"] = "st_val";
-      stValDirective["instruction"] = genJsonForInstruction(stores[iSt]);
-      stValDirective["read/write"] = "write";
-      stValDirective["kernel_name"] = mainKernelName;
-      stValDirective["pipe_name"] =
-          "pipes_st_val_" + std::to_string(iLSQ) + "_class";
-      stValDirective["pipe_type"] =
-          isOnChip ? "tagged_val_lsq_bram_t<" + typeStr + ">"
-                   : "tagged_val_lsq_dram_t<" + typeStr + ">";
-      stValDirective["pipe_array_reuse"] = reuseStPipesLSQ;
-      stValDirective["pipe_array_idx"] = stValPipeArrayIdx;
-      stValDirective["num_store_pipes"] =
-          reuseStPipesLSQ ? maxStsBB : stores.size();
-      stValDirective["lsq_id"] = int(iLSQ);
-      stValDirective["is_address_decoupled"] = isDecoupled;
-      instr2pipeArray.push_back(std::move(stValDirective));
-
-      json::Object stReqDirective;
-      stReqDirective["directive_type"] = "st_req";
-      stReqDirective["instruction"] = genJsonForInstruction(stores[iSt]);
-      stReqDirective["read/write"] = "write";
-      stReqDirective["kernel_name"] = isDecoupled ? aguName : mainKernelName;
-      stReqDirective["pipe_name"] =
-          "pipes_st_req_" + std::to_string(iLSQ) + "_class";
-      stReqDirective["pipe_type"] = 
-          isOnChip ? "st_req_lsq_bram_t" : "st_req_lsq_dram_t";
-      stReqDirective["pipe_array_idx"] =
-          reuseStPipesLSQ ? storesPerBB[stores[iSt]->getParent()] : iSt;
-      stReqDirective["lsq_id"] = int(iLSQ);
-      stReqDirective["is_address_decoupled"] = isDecoupled;
-      instr2pipeArray.push_back(std::move(stReqDirective));
-
-      pipeArrayIdxMap[stores[iSt]] = stValPipeArrayIdx;
-      storesPerBB[stores[iSt]->getParent()]++;
-    }
-
-    // Info about speculatively allocating addresses in the AGU.
-    json::Array hoistingInfoArray;
-    if (isAnySpeculation) {
-      for (auto [specBB, allocStack] : DHA->getSpeculationStack()) {
-        json::Object thisSpecBB;
-        thisSpecBB["hoist_into_basic_block_idx"] =
-            getIndexOfChild(specBB->getParent(), specBB);
-
-        json::Array speculativeAllocations;
-        for (auto I : allocStack)
-          speculativeAllocations.push_back(genJsonForInstruction(I));
-        thisSpecBB["hoisted_instructions"] = std::move(speculativeAllocations);
-
-        hoistingInfoArray.push_back(std::move(thisSpecBB));
-      }
-
-      // Directives for poison read/writes on misspeculation.
-      for (auto [I, poisonLocations] : DHA->getPoisonLocations()) {
-        for (auto [predBB, succBB] : poisonLocations) {
-          json::Object poisonDirective;
-          poisonDirective["directive_type"] = "poison";
-          poisonDirective["read/write"] = isaLoad(I) ? "read" : "write";
-          poisonDirective["kernel_name"] = mainKernelName;
-          poisonDirective["pipe_name"] =
-              isaLoad(I) ? "pipes_ld_val_" + std::to_string(iLSQ) + "_class"
-                         : "pipes_st_val_" + std::to_string(iLSQ) + "_class";
-          // The block where the speculation is true.
-          poisonDirective["basic_block_idx"] = 
-              getIndexOfChild(predBB->getParent(), I->getParent());
-          // A poison block will be inserted on pred->succ edge.
-          poisonDirective["pred_basic_block_idx"] = 
-              getIndexOfChild(predBB->getParent(), predBB);
-          poisonDirective["succ_basic_block_idx"] = 
-              getIndexOfChild(succBB->getParent(), succBB);
-          poisonDirective["lsq_id"] = int(iLSQ);
-          poisonDirective["num_store_pipes"] = 
-            reuseStPipesLSQ ? maxStsBB : int(stores.size());
-          poisonDirective["num_load_pipes"] = 
-            reuseLdPipesLSQ ? maxLdsBB : int(loads.size());
-          poisonDirective["pipe_array_reuse"] = reuseStPipesLSQ;
-          poisonDirective["pipe_array_idx"] = pipeArrayIdxMap[I];
-          
-          instr2pipeArray.push_back(std::move(poisonDirective));
+          rewriteRules.push_back(poison);
         }
-      }
+      } 
     }
-    thisMemory["speculation_hoisting_info"] = std::move(hoistingInfoArray);
 
-    auto end_signal_pipe_name =
+    // Stores
+    for (size_t iSt = 0; iSt < stores.size(); ++iSt) {
+      // {storesPerBB} i only used when reusePipesLSQ is true.
+      auto stBB = stores[iSt]->getParent();
+      if (!storesPerBB.contains(stBB))
+        storesPerBB[stBB] = 0;
+      int pipeIdx = reuseStPipesLSQ ? storesPerBB[stBB]++ : iSt;
+
+      RewriteRule stReq{ST_REQ_WRITE, lsqInfo.aguKernelName, stores[iSt], stBB};
+      stReq.lsqIdx = iLSQ;
+      stReq.pipeName = "pipes_st_req_" + std::to_string(iLSQ) + "_class";
+      stReq.pipeType =
+          lsqInfo.isOnChipMem ? "st_req_lsq_bram_t" : "st_req_lsq_dram_t";
+      stReq.pipeArrayIdx = pipeIdx;
+      stReq.specBasicBlock = DHA->getSpeculationBlock(stores[iSt]);
+
+      RewriteRule stVal{ST_VAL_WRITE, mainKernelName, stores[iSt], stBB};
+      stVal.lsqIdx = iLSQ;
+      stVal.pipeName = "pipes_st_val_" + std::to_string(iLSQ) + "_class";
+      stVal.pipeType = lsqInfo.isOnChipMem
+                           ? "tagged_val_lsq_bram_t<" + lsqInfo.arrayType + ">"
+                           : "tagged_val_lsq_dram_t<" + lsqInfo.arrayType + ">";
+      stVal.pipeArrayIdx = pipeIdx;
+
+      rewriteRules.push_back(stReq);
+      rewriteRules.push_back(stVal);
+      
+      if (auto specBB = DHA->getSpeculationBlock(stores[iSt])) {
+        for (auto [predBB, succBB] : DHA->getPoisonLocations(stores[iSt])) {
+          RewriteRule poison{POISON_ST_WRITE, mainKernelName, stores[iSt], stBB};
+          poison.lsqIdx = iLSQ;
+          poison.pipeName = "pipes_st_val_" + std::to_string(iLSQ) + "_class";
+          poison.predBasicBlock = predBB;
+          poison.succBasicBlock = succBB;
+          poison.specBasicBlock = specBB;
+          poison.pipeArrayIdx = pipeIdx;
+
+          rewriteRules.push_back(poison);
+        }
+      } 
+    }
+
+    // At the end of the function, each LSQ needs an "end signal".
+    auto funcExit = getReturnBlock(F);
+    RewriteRule endSignal{END_LSQ_SIGNAL_WRITE, mainKernelName,
+                          funcExit->getTerminator(), funcExit};
+    endSignal.pipeName =
         "pipe_end_lsq_signal_" + std::to_string(iLSQ) + "_class";
-    json::Object endSignalPipeDirective;
-    endSignalPipeDirective["directive_type"] = "end_lsq_signal";
-    endSignalPipeDirective["pipe_name"] = end_signal_pipe_name;
-    endSignalPipeDirective["read/write"] = "write";
-    endSignalPipeDirective["kernel_name"] = mainKernelName;
-    endSignalPipeDirective["pipe_type"] = "bool";
-    instr2pipeArray.push_back(std::move(endSignalPipeDirective));
-
-    lsqArray.push_back(std::move(thisMemory));
+    endSignal.pipeType = "bool";
+    rewriteRules.push_back(endSignal);
   }
-
-  report["lsq_array"] = std::move(lsqArray);
-  report["instr2pipe_directives"] = std::move(instr2pipeArray);
 }
 
-/// Print all analysis information related to dynamically scheduling BBs.
-void decoupledBlocksReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
-                                  LoopInfo &LI, json::Object &report) {
-  auto instr2pipeArray = *report["instr2pipe_directives"].getAsArray();
-  auto peArray = *report["pe_array"].getAsArray();
-  auto mainKernelName = std::string(*report["main_kernel_name"].getAsString());
+/// Fill the peArray with info about block PEs to generate.
+/// Fill the rewriteRules with info about transformations needed to use the PE.
+void generateInfoBlockPE(Function &F, LoopInfo &LI,
+                         ControlDependentDataDependencyAnalysis *CDDD,
+                         SmallVector<PEInfo> &peArray,
+                         SmallVector<RewriteRule> &rewriteRules) {
+  auto mainKernelName = demangle(std::string(F.getName()));
   auto blocksToDecouple = CDDD->getBlocksToDecouple();
-
   for (size_t iBB = 0; iBB < blocksToDecouple.size(); ++iBB) {
-    auto peKernelName = mainKernelName + "_PE_BB_" + std::to_string(iBB);
+    auto peKernelName = mainKernelName + BLOCK_PE_ID + std::to_string(iBB);
     auto BB = blocksToDecouple[iBB];
-    int bbIdx = getIndexOfChild(BB->getParent(), BB);
     auto L = LI.getLoopFor(BB);
-    int loopExitIdx = getIndexOfChild(BB->getParent(), L->getExitBlock());
-    int loopHeaderIdx = getIndexOfChild(BB->getParent(), L->getHeader());
+    auto loopHeader = L->getHeader();
+    auto loopLatch = L->getLoopLatch();
+    auto loopExit = L->getExitBlock();
 
+    peArray.push_back({PE_TYPE::BLOCK, peKernelName, BB});
+    const int peIdx = peArray.size() - 1;
+
+    // MainKernel --> blockPE dependencies
     auto depIn = CDDD->getBlockInputDependencies(BB);
-    for (size_t iDepIn = 0; iDepIn < depIn.size(); ++iDepIn) {
-      auto thisInstr = depIn[iDepIn];
-      auto pipeName = "pipe_pe_bb_" + std::to_string(iBB) + "_dep_in_" +
-                      std::to_string(iDepIn) + "_class";
+    for (size_t iDep = 0; iDep < depIn.size(); ++iDep) {
+      RewriteRule ssaInWr{SSA_BB_IN_WRITE, mainKernelName, depIn[iDep], BB};
+      ssaInWr.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_bb_dep_in_" +
+                         std::to_string(iDep) + "_class";
+      ssaInWr.pipeType = getTypeString(depIn[iDep]);
+      ssaInWr.loopHeaderBlock = loopHeader;
+      ssaInWr.loopLatchBlock = loopLatch;
+      ssaInWr.loopExitBlock = loopExit;
+      ssaInWr.peIdx = peIdx;
 
-      json::Object depInWriteDirective;
-      depInWriteDirective["directive_type"] = "ssa_block";
-      depInWriteDirective["dep_direction"] = "in";
-      depInWriteDirective["instruction"] = genJsonForInstruction(thisInstr);
-      depInWriteDirective["basic_block_idx"] = bbIdx;
-      depInWriteDirective["loop_exit_block_idx"] = loopExitIdx;
-      depInWriteDirective["loop_header_block_idx"] = loopHeaderIdx;
-      depInWriteDirective["read/write"] = "write";
-      depInWriteDirective["kernel_name"] = mainKernelName;
-      depInWriteDirective["pipe_name"] = pipeName;
-      depInWriteDirective["pipe_type"] = getTypeString(thisInstr);
-      depInWriteDirective["pe_type"] = "block";
+      RewriteRule ssaInRd{ssaInWr};
+      ssaInRd.ruleType = SSA_BB_IN_READ;
+      ssaInRd.kernelName = peKernelName;
 
-      json::Object depInReadDirective;
-      depInReadDirective["directive_type"] = "ssa_block";
-      depInReadDirective["dep_direction"] = "in";
-      depInReadDirective["instruction"] = genJsonForInstruction(thisInstr);
-      depInReadDirective["basic_block_idx"] = bbIdx;
-      depInReadDirective["loop_exit_block_idx"] = loopExitIdx;
-      depInReadDirective["loop_header_block_idx"] = loopHeaderIdx;
-      depInReadDirective["read/write"] = "read";
-      depInReadDirective["kernel_name"] = peKernelName;
-      depInReadDirective["pipe_name"] = pipeName;
-      depInReadDirective["pipe_type"] = getTypeString(thisInstr);
-      depInReadDirective["pe_type"] = "block";
-
-      instr2pipeArray.push_back(std::move(depInWriteDirective));
-      instr2pipeArray.push_back(std::move(depInReadDirective));
+      rewriteRules.push_back(ssaInWr);
+      rewriteRules.push_back(ssaInRd);
     }
 
+    // blockPE --> MainKernel dependencies
     auto depOut = CDDD->getBlockOutputDependencies(BB);
-    for (size_t iDepOut = 0; iDepOut < depOut.size(); ++iDepOut) {
-      auto thisInstr = depOut[iDepOut];
-      auto pipeName = "pipe_pe_bb_" + std::to_string(iBB) + "_dep_out_" +
-                      std::to_string(iDepOut) + "_class";
+    for (size_t iDep = 0; iDep < depOut.size(); ++iDep) {
+      RewriteRule ssaOutWr{SSA_BB_OUT_WRITE, peKernelName, depOut[iDep], BB};
+      ssaOutWr.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_bb_dep_out_" +
+                          std::to_string(iDep) + "_class";
+      ssaOutWr.pipeType = getTypeString(depOut[iDep]);
+      ssaOutWr.loopHeaderBlock = loopHeader;
+      ssaOutWr.loopLatchBlock = loopLatch;
+      ssaOutWr.loopExitBlock = loopExit;
+      ssaOutWr.peIdx = peIdx;
 
-      json::Object depOutWriteDirective;
-      depOutWriteDirective["directive_type"] = "ssa_block";
-      depOutWriteDirective["dep_direction"] = "out";
-      depOutWriteDirective["instruction"] = genJsonForInstruction(thisInstr);
-      depOutWriteDirective["basic_block_idx"] = bbIdx;
-      depOutWriteDirective["loop_exit_block_idx"] = loopExitIdx;
-      depOutWriteDirective["loop_header_block_idx"] = loopHeaderIdx;
-      depOutWriteDirective["read/write"] = "write";
-      depOutWriteDirective["kernel_name"] = peKernelName;
-      depOutWriteDirective["pipe_name"] = pipeName;
-      depOutWriteDirective["pipe_type"] = getTypeString(thisInstr);
-      depOutWriteDirective["pe_type"] = "block";
+      RewriteRule ssaOutRd{ssaOutWr};
+      ssaOutRd.ruleType = SSA_BB_OUT_READ;
+      ssaOutRd.kernelName = mainKernelName;
 
-      json::Object depOutReadDirective;
-      depOutReadDirective["directive_type"] = "ssa_block";
-      depOutReadDirective["dep_direction"] = "out";
-      depOutReadDirective["instruction"] = genJsonForInstruction(thisInstr);
-      depOutReadDirective["basic_block_idx"] = bbIdx;
-      depOutReadDirective["loop_exit_block_idx"] = loopExitIdx;
-      depOutReadDirective["loop_header_block_idx"] = loopHeaderIdx;
-      depOutReadDirective["read/write"] = "read";
-      depOutReadDirective["kernel_name"] = mainKernelName;
-      depOutReadDirective["pipe_name"] = pipeName;
-      depOutReadDirective["pipe_type"] = getTypeString(thisInstr);
-      depOutReadDirective["pe_type"] = "block";
-
-      instr2pipeArray.push_back(std::move(depOutWriteDirective));
-      instr2pipeArray.push_back(std::move(depOutReadDirective));
+      rewriteRules.push_back(ssaOutWr);
+      rewriteRules.push_back(ssaOutRd);
     }
-    
-    // One predicate pipe per decoupled PE.
-    auto pred_pipe_name = "pipe_pe_bb_" + std::to_string(iBB) + "_pred_class";
-    json::Object predPipeReadDirective;
-    predPipeReadDirective["directive_type"] = "pred_block";
-    predPipeReadDirective["pipe_name"] = pred_pipe_name;
-    predPipeReadDirective["read/write"] = "read";
-    predPipeReadDirective["kernel_name"] = peKernelName;
-    predPipeReadDirective["pipe_type"] = "int8_t";
-    predPipeReadDirective["basic_block_idx"] = bbIdx;
-    predPipeReadDirective["loop_exit_block_idx"] = loopExitIdx;
-    predPipeReadDirective["loop_header_block_idx"] = loopHeaderIdx;
-    predPipeReadDirective["pe_type"] = "block";
-    json::Object predPipeWriteDirective;
-    predPipeWriteDirective["directive_type"] = "pred_block";
-    predPipeWriteDirective["pipe_name"] = pred_pipe_name;
-    predPipeWriteDirective["read/write"] = "write";
-    predPipeWriteDirective["kernel_name"] = mainKernelName;
-    predPipeWriteDirective["pipe_type"] = "int8_t";
-    predPipeWriteDirective["basic_block_idx"] = bbIdx;
-    predPipeWriteDirective["loop_exit_block_idx"] = loopExitIdx;
-    predPipeWriteDirective["loop_header_block_idx"] = loopHeaderIdx;
-    predPipeWriteDirective["pe_type"] = "block";
-    instr2pipeArray.push_back(std::move(predPipeReadDirective));
-    instr2pipeArray.push_back(std::move(predPipeWriteDirective));
 
-    json::Object thisBlockOb;
-    thisBlockOb["pe_kernel_name"] = peKernelName;
-    thisBlockOb["basic_block_idx"] = bbIdx;
-    thisBlockOb["pe_type"] = "block";
-    peArray.push_back(std::move(thisBlockOb));
-
-
+    // One predicate pipe per decoupled block PE.
+    RewriteRule predWr{PRED_BB_WRITE, mainKernelName, BB->getFirstNonPHI(), BB};
+    predWr.loopHeaderBlock = loopHeader;
+    predWr.loopLatchBlock = loopLatch;
+    predWr.loopExitBlock = loopExit;
+    predWr.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_bb_pred_class";
+    predWr.pipeType = "int8_t";
+    predWr.peIdx = peIdx;
+    RewriteRule predRd{predWr};
+    predRd.ruleType = PRED_BB_READ;
+    predRd.kernelName = peKernelName;
+    rewriteRules.push_back(predWr);
+    rewriteRules.push_back(predRd);
   }
-
-  report["pe_array"] = std::move(peArray);
-  report["instr2pipe_directives"] = std::move(instr2pipeArray);
 }
 
-/// Print all analysis information related to dynamically scheduling loops.
-void decoupledLoopsReportPrinter(ControlDependentDataDependencyAnalysis *CDDD,
-                                 json::Object &report) {
-  auto instr2pipeArray = *report["instr2pipe_directives"].getAsArray();
-  auto peArray = *report["pe_array"].getAsArray();
-  auto mainKernelName = std::string(*report["main_kernel_name"].getAsString());
+/// Fill the peArray with info about loop PEs to generate.
+/// Fill the rewriteRules with info about transformations needed to use the PE.
+void generateInfoLoopPE(Function &F,
+                        ControlDependentDataDependencyAnalysis *CDDD,
+                        SmallVector<PEInfo> &peArray,
+                        SmallVector<RewriteRule> &rewriteRules) {
+  auto mainKernelName = demangle(std::string(F.getName()));
   auto loopsToDecouple = CDDD->getLoopsToDecouple();
-
   for (size_t iL = 0; iL < loopsToDecouple.size(); ++iL) {
-    auto peKernelName = mainKernelName + "_PE_LOOP_" + std::to_string(iL);
+    auto peKernelName = mainKernelName + LOOP_PE_ID + std::to_string(iL);
     auto L = loopsToDecouple[iL];
-    auto F = L->getHeader()->getParent();
-    int loopHeaderIdx = getIndexOfChild(F, L->getHeader());
-    int loopExitIdx = getIndexOfChild(F, L->getExitBlock());
+    // All rewrite rules for loop PEs have the loop header as is "basicBlock".
+    auto loopHeader = L->getHeader();
+    auto loopLatch = L->getLoopLatch();
+    auto loopExit = L->getExitBlock();
+
+    peArray.push_back({PE_TYPE::LOOP, peKernelName, loopHeader, L});
+    const int peIdx = peArray.size() - 1;
+
+    // MainKernel --> loopPE dependencies
     auto depIn = CDDD->getLoopInputDependencies(L);
-    auto depout = CDDD->getLoopOutputDependencies(L);
+    for (size_t iDep = 0; iDep < depIn.size(); ++iDep) {
+      RewriteRule ssaInWr{SSA_LOOP_IN_WRITE, mainKernelName, depIn[iDep],
+                          loopHeader};
+      ssaInWr.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_loop_dep_in_" +
+                         std::to_string(iDep) + "_class";
+      ssaInWr.pipeType = getTypeString(depIn[iDep]);
+      ssaInWr.loopHeaderBlock = loopHeader;
+      ssaInWr.loopLatchBlock = loopLatch;
+      ssaInWr.loopExitBlock = loopExit;
+      ssaInWr.peIdx = peIdx;
 
-    for (size_t iDepIn = 0; iDepIn < depIn.size(); ++iDepIn) {
-      auto thisInstr = depIn[iDepIn];
-      auto pipeName = "pipe_pe_loop_" + std::to_string(iL) + "_dep_in_" +
-                      std::to_string(iDepIn) + "_class";
+      RewriteRule ssaInRd{ssaInWr};
+      ssaInRd.ruleType = SSA_LOOP_IN_READ;
+      ssaInRd.kernelName = peKernelName;
 
-      json::Object depInWriteDirective;
-      depInWriteDirective["directive_type"] = "ssa_loop";
-      depInWriteDirective["instruction"] = genJsonForInstruction(thisInstr);
-      depInWriteDirective["basic_block_idx"] = loopHeaderIdx;
-      depInWriteDirective["loop_exit_block_idx"] = loopExitIdx;
-      depInWriteDirective["loop_header_block_idx"] = loopHeaderIdx;
-      depInWriteDirective["read/write"] = "write";
-      depInWriteDirective["kernel_name"] = mainKernelName;
-      depInWriteDirective["pipe_name"] = pipeName;
-      depInWriteDirective["pipe_type"] = getTypeString(thisInstr);
-      depInWriteDirective["pe_type"] = "loop";
-
-      json::Object depInReadDirective;
-      depInReadDirective["directive_type"] = "ssa_loop";
-      depInReadDirective["instruction"] = genJsonForInstruction(thisInstr);
-      depInReadDirective["basic_block_idx"] = loopHeaderIdx;
-      depInReadDirective["read/write"] = "read";
-      depInReadDirective["kernel_name"] = peKernelName;
-      depInReadDirective["pipe_name"] = pipeName;
-      depInReadDirective["pipe_type"] = getTypeString(thisInstr);
-      depInReadDirective["pe_type"] = "loop";
-
-      instr2pipeArray.push_back(std::move(depInWriteDirective));
-      instr2pipeArray.push_back(std::move(depInReadDirective));
+      rewriteRules.push_back(ssaInWr);
+      rewriteRules.push_back(ssaInRd);     
     }
 
+    // loopPE --> MainKernel dependencies
     auto depOut = CDDD->getLoopOutputDependencies(L);
-    for (size_t iDepOut = 0; iDepOut < depOut.size(); ++iDepOut) {
-      auto thisInstr = depOut[iDepOut];
-      auto pipeName = "pipe_pe_loop_" + std::to_string(iL) + "_dep_out_" +
-                      std::to_string(iDepOut) + "_class";
+    for (size_t iDep = 0; iDep < depOut.size(); ++iDep) {
+      RewriteRule ssaOutWr{SSA_LOOP_OUT_WRITE, peKernelName, depOut[iDep],
+                           loopHeader};
+      ssaOutWr.pipeName = "pipe_pe_" + std::to_string(peIdx) +
+                          "_loop_dep_out_" + std::to_string(iDep) + "_class";
+      ssaOutWr.pipeType = getTypeString(depOut[iDep]);
+      ssaOutWr.loopHeaderBlock = loopHeader;
+      ssaOutWr.loopLatchBlock = loopLatch;
+      ssaOutWr.loopExitBlock = loopExit;
+      ssaOutWr.peIdx = peIdx;
 
-      json::Object depOutWriteDirective;
-      depOutWriteDirective["directive_type"] = "ssa_loop";
-      depOutWriteDirective["instruction"] = genJsonForInstruction(thisInstr);
-      depOutWriteDirective["basic_block_idx"] = loopHeaderIdx;
-      depOutWriteDirective["read/write"] = "write";
-      depOutWriteDirective["kernel_name"] = peKernelName;
-      depOutWriteDirective["pipe_name"] = pipeName;
-      depOutWriteDirective["pipe_type"] = getTypeString(thisInstr);
-      depOutWriteDirective["pe_type"] = "loop";
+      RewriteRule ssaOutRd{ssaOutWr};
+      ssaOutRd.ruleType = SSA_LOOP_OUT_READ;
+      ssaOutRd.kernelName = mainKernelName;
 
-      json::Object depOutReadDirective;
-      depOutReadDirective["directive_type"] = "ssa_loop";
-      depOutReadDirective["instruction"] = genJsonForInstruction(thisInstr);
-      depOutReadDirective["basic_block_idx"] = loopHeaderIdx;
-      depOutReadDirective["loop_exit_block_idx"] = loopExitIdx;
-      depOutReadDirective["loop_header_block_idx"] = loopHeaderIdx;
-      depOutReadDirective["read/write"] = "read";
-      depOutReadDirective["kernel_name"] = mainKernelName;
-      depOutReadDirective["pipe_name"] = pipeName;
-      depOutReadDirective["pipe_type"] = getTypeString(thisInstr);
-      depOutReadDirective["pe_type"] = "loop";
-
-      instr2pipeArray.push_back(std::move(depOutWriteDirective));
-      instr2pipeArray.push_back(std::move(depOutReadDirective));
+      rewriteRules.push_back(ssaOutWr);
+      rewriteRules.push_back(ssaOutRd);     
     }
 
-    // One predicate pipe per decoupled PE.
-    auto pred_pipe_name = "pipe_pe_loop_" + std::to_string(iL) + "_pred_class";
-    json::Object predPipeReadDirective;
-    predPipeReadDirective["directive_type"] = "pred_loop";
-    predPipeReadDirective["pipe_name"] = pred_pipe_name;
-    predPipeReadDirective["read/write"] = "read";
-    predPipeReadDirective["kernel_name"] = peKernelName;
-    predPipeReadDirective["pipe_type"] = "int8_t";
-    predPipeReadDirective["basic_block_idx"] = loopHeaderIdx;
-    predPipeReadDirective["loop_exit_block_idx"] = loopExitIdx;
-    predPipeReadDirective["loop_header_block_idx"] = loopHeaderIdx;
-    predPipeReadDirective["pe_type"] = "loop";
-    json::Object predPipeWriteDirective;
-    predPipeWriteDirective["directive_type"] = "pred_loop";
-    predPipeWriteDirective["pipe_name"] = pred_pipe_name;
-    predPipeWriteDirective["read/write"] = "write";
-    predPipeWriteDirective["kernel_name"] = mainKernelName;
-    predPipeWriteDirective["pipe_type"] = "int8_t";
-    predPipeWriteDirective["basic_block_idx"] = loopHeaderIdx;
-    predPipeWriteDirective["loop_exit_block_idx"] = loopExitIdx;
-    predPipeWriteDirective["loop_header_block_idx"] = loopHeaderIdx;
-    predPipeWriteDirective["pe_type"] = "loop";
-    instr2pipeArray.push_back(std::move(predPipeReadDirective));
-    instr2pipeArray.push_back(std::move(predPipeWriteDirective));
-
-    json::Object thisLoopOb;
-    thisLoopOb["pe_kernel_name"] = peKernelName;
-    thisLoopOb["basic_block_idx"] = loopHeaderIdx;
-    thisLoopOb["pe_type"] = "loop";
-    peArray.push_back(std::move(thisLoopOb));
+    // One predicate pipe per decoupled loop PE.
+    RewriteRule predWr{PRED_LOOP_WRITE, mainKernelName,
+                       loopHeader->getFirstNonPHI(), loopHeader};
+    predWr.loopHeaderBlock = loopHeader;
+    predWr.loopLatchBlock = loopLatch;
+    predWr.loopExitBlock = loopExit;
+    predWr.pipeType = "int8_t";
+    predWr.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_loop_pred_class";
+    predWr.peIdx = peIdx;
+    RewriteRule predRd{predWr};
+    predRd.ruleType = PRED_LOOP_READ;
+    predRd.kernelName = peKernelName;
+    rewriteRules.push_back(predWr);
+    rewriteRules.push_back(predRd);
   }
-
-  report["pe_array"] = std::move(peArray);
-  report["instr2pipe_directives"] = std::move(instr2pipeArray);
 }
 
-/// Given CDDD analysis information about decoupled basic blocks and loops,
-/// update the kernel names for LSQ ld/st value pipe read/writes if they occur
-/// in the decoupled blocks. 
-void adjustLsqValuePipesPlacement(Function &F, ControlDependenceGraph &CDG,
-                                  ScalarEvolution &SE, LoopInfo &LI,
-                                  ControlDependentDataDependencyAnalysis *CDDD,
-                                  json::Object &report) {
-  auto freshDirectivesArray = json::Array();
-  auto blocksToDecouple = CDDD->getBlocksToDecouple();
-  auto loopsToDecouple = CDDD->getLoopsToDecouple();
-  auto mainKernelName = std::string(*report["main_kernel_name"].getAsString());
-  const auto lsqArray = *report.getArray("lsq_array");
-
-  auto newDirectives = json::Array();
-  // Ensure only one stValTag directive per PE.
-  SetVector<Loop *> createdStValTagDirsForLoopPEs;
-  SetVector<BasicBlock *> createdStValTagDirsForBlockPEs;
-  // On any given CFG edge, there should be at most one PREDICATE::POISON.
-  SetVector<std::pair<int, int>> poisonPredicatesForCFGEdge;
-
-  auto countStoresInBB = [] (int bbIdx, const json::Object &lsqInfo) {
+/// Given information about decoupled memory instructions, basic blocks, and
+/// loops ensure that the pipe calls specified by the rewrite rules are placed
+/// in the correct kernel. Some compositions require the creation of additional
+/// rewrite rules (e.g. to communicate a store value tag across kernels).
+void composeDecoupledKernels(Function &F, ControlDependenceGraph &CDG,
+                             ScalarEvolution &SE, LoopInfo &LI,
+                             SmallVector<LSQInfo> &lsqArray,
+                             SmallVector<PEInfo> &peArray,
+                             SmallVector<RewriteRule> &rewriteRules) {
+  /// Return the number of stores to {lsqIdx} in {BB}.
+  auto countStoresInBB = [&rewriteRules](int lsqIdx, BasicBlock *BB) {
     int count = 0;
-    for (auto stIVal : *lsqInfo.getArray("store_instructions")) {
-      auto stI = *stIVal.getAsObject();
-      if (*stI.getInteger("basic_block_idx") == bbIdx)
+    for (auto &rule : rewriteRules) {
+      if (rule.ruleType == ST_VAL_WRITE && rule.lsqIdx == lsqIdx &&
+          rule.basicBlock == BB) {
         count++;
+      }
     }
     return count;
   };
-  
-  // Count stores in L. If any of them is conditional, then return -1.
-  auto countUncondStoresInLoop = [&] (Loop *L, const json::Object &lsqInfo) {
-    int numStoresInL = 0;
 
-    for (auto stIVal : *lsqInfo.getArray("store_instructions")) {
-      auto stI = *stIVal.getAsObject();
-      auto stBB = getChildWithIndex<Function, BasicBlock>(
-          &F, *stI.getInteger("basic_block_idx"));
-      if (L->contains(stBB)) {
-        numStoresInL++;
-        if (CDG.getControlDependencySource(stBB) != L->getHeader()) 
-          return -1;
+  /// Return the number of {lsqIdx} stores in {L}. Return -1, if uncertain.
+  auto countUncondStoresInLoop = [&rewriteRules, &CDG] (Loop *L, int lsqIdx) {
+    int count = 0;
+    for (auto &rule : rewriteRules) {
+      if (rule.ruleType == ST_VAL_WRITE && rule.lsqIdx == lsqIdx &&
+          L->contains(rule.basicBlock)) {
+        count++;
+        if (CDG.getControlDependencySource(rule.basicBlock) != L->getHeader())
+          return -1; // Conditional store.
       }
     }
-
-    return numStoresInL;
+    return count;
   };
 
-  for (auto i2pInfoVal : *report.getArray("instr2pipe_directives")) {
-    auto i2pInfo = *i2pInfoVal.getAsObject();
-    const auto dirType = *i2pInfo.getString("directive_type");
-
-    bool appendDirectiveToEnd = false;
-
-    // TODO: nested decoupled loops.
-    if ((dirType == "ssa_block" && i2pInfo.getString("dep_direction") == "in" &&
-         i2pInfo.getString("read/write") == "write") ||
-        (dirType == "ssa_block" &&
-         i2pInfo.getString("dep_direction") == "out" &&
-         i2pInfo.getString("read/write") == "read") ||
-        (dirType == "pred_block" &&
-         i2pInfo.getString("read/write") == "write")) {
-      auto instrObj = i2pInfo.getObject("instruction");
-      auto bbIdx = (instrObj) ? *instrObj->getInteger("basic_block_idx")
-                              : *i2pInfo.getInteger("basic_block_idx");
-      auto dcpldBlock = getChildWithIndex<Function, BasicBlock>(&F, bbIdx);
-      auto loopForDirective = LI.getLoopFor(dcpldBlock);
-      
-      bool stopSearch = false;
-      for (size_t iL = 0; iL < loopsToDecouple.size(); ++iL) {
-        if (loopsToDecouple[iL] == loopForDirective) {
-          i2pInfo["kernel_name"] =
-              mainKernelName + "_PE_LOOP_" + std::to_string(iL);
-          stopSearch = true;
-        }
-      }
-      // Walk up parents until hitting a decoupled loop or a top-level loop.
-      auto parentLoop = loopForDirective->getParentLoop();
-      while (parentLoop && !stopSearch) {
-        for (size_t iL = 0; iL < loopsToDecouple.size(); ++iL) {
-          if (parentLoop == loopsToDecouple[iL]) {
-            i2pInfo["kernel_name"] =
-                mainKernelName + "_PE_LOOP_" + std::to_string(iL);
-            stopSearch = true;
-          }
-        }
-        parentLoop = parentLoop->getParentLoop();
-      }
-    } else if (dirType == "st_val" || dirType == "ld_val" ||
-               dirType == "poison") {
-      auto instrObj = i2pInfo.getObject("instruction");
-      // TODO: flatten instruction object.
-      auto bbIdx = (instrObj) ? *instrObj->getInteger("basic_block_idx")
-                              : *i2pInfo.getInteger("basic_block_idx");
-      auto lsqIdx = *i2pInfo.getInteger("lsq_id");
-      auto lsqInfo = *lsqArray[lsqIdx].getAsObject();
-      int storesInBB = countStoresInBB(bbIdx, lsqInfo);
-      auto pipeBB = getChildWithIndex<Function, BasicBlock>(&F, bbIdx);
-
-      for (size_t iL = 0; iL < loopsToDecouple.size(); ++iL) {
-        auto L = loopsToDecouple[iL];
-
-        if (L->contains(pipeBB)) {
-          auto headerBB = L->getHeader();
-          auto headerBBIdx = getIndexOfChild(headerBB->getParent(), headerBB);
-          auto exitBBIdx = getIndexOfChild(headerBB->getParent(),
-                                           L->getExitBlock());
-
-          auto peKernelName = mainKernelName + "_PE_LOOP_" + std::to_string(iL);
-          i2pInfo["kernel_name"] = peKernelName;
-
-          // If a st_val pipe ends up in a decoupled loop, we might need to send
-          // the st_val tag to the decoupled loop, and then get it back. 
-          if (i2pInfo.getString("directive_type") == "st_val" &&
-              !(*lsqInfo.getBoolean("all_stores_in_same_kernel")) &&
-              !createdStValTagDirsForLoopPEs.contains(L)) {
-
-            auto st_val_tag_in_pipe = "pipe_pe_loop_" + std::to_string(iL) +
-                                      "_st_val_tag_in_lsq_" +
-                                      std::to_string(lsqIdx) + "_class";
-            auto st_val_tag_out_pipe = "pipe_pe_loop_" + std::to_string(iL) +
-                                       "_st_val_tag_out_lsq_" +
-                                       std::to_string(lsqIdx) + "_class";
-
-            // Check if we can incement the stValTag in main, without waiting
-            // for the PE to communicate it
-            int numUncodStoresInL = countUncondStoresInLoop(L, lsqInfo);
-            bool canBuildNumStExpr =
-                numUncodStoresInL != -1 &&
-                SE.hasLoopInvariantBackedgeTakenCount(L) &&
-                buildSCEVExpr(F, SE.getBackedgeTakenCount(L),
-                              headerBB->getTerminator()) != nullptr;
-
-            // main -> PE pipe read
-            json::Object stValTagPeRdDirective;
-            stValTagPeRdDirective["directive_type"] = "st_val_tag";
-            stValTagPeRdDirective["pipe_name"] = st_val_tag_in_pipe;
-            stValTagPeRdDirective["read/write"] = "read";
-            stValTagPeRdDirective["pe_type"] = "loop";
-            stValTagPeRdDirective["kernel_name"] = peKernelName;
-            stValTagPeRdDirective["pipe_type"] = "uint";
-            stValTagPeRdDirective["basic_block_idx"] = headerBBIdx;
-            newDirectives.push_back(std::move(stValTagPeRdDirective));
-
-            // main -> PE pipe write
-            json::Object stValTagMainWrDirective;
-            stValTagMainWrDirective["directive_type"] = "st_val_tag";
-            stValTagMainWrDirective["pipe_name"] = st_val_tag_in_pipe;
-            stValTagMainWrDirective["read/write"] = "write";
-            stValTagMainWrDirective["pe_type"] = "loop";
-            stValTagMainWrDirective["kernel_name"] = mainKernelName;
-            stValTagMainWrDirective["pipe_type"] = "uint";
-            stValTagMainWrDirective["basic_block_idx"] = headerBBIdx;
-            stValTagMainWrDirective["can_build_num_stores_exp"] =
-                canBuildNumStExpr;
-            stValTagMainWrDirective["stores_in_loop"] = numUncodStoresInL;
-            newDirectives.push_back(std::move(stValTagMainWrDirective));
-
-            if (!canBuildNumStExpr) {
-              // PE -> main pipe write
-              json::Object stValTagPeWrDirective;
-              stValTagPeWrDirective["directive_type"] = "st_val_tag";
-              stValTagPeWrDirective["pipe_name"] = st_val_tag_out_pipe;
-              stValTagPeWrDirective["read/write"] = "write";
-              stValTagPeWrDirective["pe_type"] = "loop";
-              stValTagPeWrDirective["kernel_name"] = peKernelName;
-              stValTagPeWrDirective["pipe_type"] = "uint";
-              stValTagPeWrDirective["basic_block_idx"] = exitBBIdx;
-              newDirectives.push_back(std::move(stValTagPeWrDirective));
-
-              // PE -> main pipe read
-              json::Object stValTagMainRdDirective;
-              stValTagMainRdDirective["directive_type"] = "st_val_tag";
-              stValTagMainRdDirective["pipe_name"] = st_val_tag_out_pipe;
-              stValTagMainRdDirective["read/write"] = "read";
-              stValTagMainRdDirective["pe_type"] = "loop";
-              stValTagMainRdDirective["kernel_name"] = mainKernelName;
-              stValTagMainRdDirective["pipe_type"] = "uint";
-              stValTagMainRdDirective["basic_block_idx"] = headerBBIdx;
-              newDirectives.push_back(std::move(stValTagMainRdDirective));
-            }
-
-            createdStValTagDirsForLoopPEs.insert(L);
-          }
-        }
-      }
-
-      // A decoupled block will take precedence over a decoupled loop.
-      for (size_t iPE = 0; iPE < blocksToDecouple.size(); ++iPE) {
-        if (blocksToDecouple[iPE] == pipeBB) {
-          auto peKernelName = mainKernelName + "_PE_BB_" + std::to_string(iPE);
-          i2pInfo["kernel_name"] = peKernelName;
-
-          // If a st_val pipe end up in a decoupled BB, we need to send
-          // the st_val tag to the decoupled BB. We don't need to read it back,
-          // since we can just increment it by the number of stores in the BB.
-          if (i2pInfo.getString("directive_type") == "st_val" &&
-              !(*lsqInfo.getBoolean("all_stores_in_same_kernel")) &&
-              !createdStValTagDirsForBlockPEs.contains(pipeBB)) {
-            auto st_val_tag_pipe = "pipe_pe_block_" + std::to_string(iPE) +
-                                   "_st_val_tag_in_lsq_" +
-                                   std::to_string(lsqIdx) + "_class";
-
-            // Main --> PE st_val_tag write
-            json::Object stValTagPipeReadDirective;
-            stValTagPipeReadDirective["directive_type"] = "st_val_tag";
-            stValTagPipeReadDirective["pipe_name"] = st_val_tag_pipe;
-            stValTagPipeReadDirective["read/write"] = "read";
-            stValTagPipeReadDirective["pe_type"] = "block";
-            stValTagPipeReadDirective["kernel_name"] = peKernelName;
-            stValTagPipeReadDirective["pipe_type"] = "uint";
-            stValTagPipeReadDirective["basic_block_idx"] = bbIdx;
-            json::Object stValTagPipeWriteDirective;
-            stValTagPipeWriteDirective["directive_type"] = "st_val_tag";
-            stValTagPipeWriteDirective["pipe_name"] = st_val_tag_pipe;
-            stValTagPipeWriteDirective["read/write"] = "write";
-            stValTagPipeWriteDirective["pe_type"] = "block";
-            stValTagPipeWriteDirective["kernel_name"] = mainKernelName;
-            stValTagPipeWriteDirective["pipe_type"] = "uint";
-            stValTagPipeWriteDirective["basic_block_idx"] = bbIdx;
-            stValTagPipeWriteDirective["stores_in_bb"] = storesInBB;
-
-            newDirectives.push_back(std::move(stValTagPipeReadDirective));
-            newDirectives.push_back(std::move(stValTagPipeWriteDirective));
-            
-            // Ensure we only communicate the tag once.
-            createdStValTagDirsForBlockPEs.insert(pipeBB);
-          }
-
-          // If a poison happens in a dcpld BB...
-          if (i2pInfo.getString("directive_type") == "poison") {
-            // Then the poison BB in the main kernel will supply a specific
-            // PEDICATE to the PE that will cause the PE to supply the poison.
-            std::pair<int, int> edgeCFG {
-                *i2pInfo.getInteger("pred_basic_block_idx"),
-                *i2pInfo.getInteger("succ_basic_block_idx")};
-            if (!poisonPredicatesForCFGEdge.contains(edgeCFG)) {
-              json::Object predPoisonDir;
-              predPoisonDir["directive_type"] = "pred_poison";
-              predPoisonDir["basic_block_idx"] =
-                  *i2pInfo.getInteger("basic_block_idx");
-              predPoisonDir["kernel_name"] = mainKernelName;
-              predPoisonDir["lsq_id"] = *i2pInfo.getInteger("lsq_id");
-              predPoisonDir["pipe_name"] = 
-                  "pipe_pe_bb_" + std::to_string(iPE) + "_pred_class";
-              predPoisonDir["pipe_type"] = "int8_t";
-              predPoisonDir["read/write"] = "write";
-              predPoisonDir["stores_in_bb"] = storesInBB; // To incr stValTag
-              predPoisonDir["num_store_pipes"] =
-                  *i2pInfo.getInteger("num_store_pipes");
-              predPoisonDir["pred_basic_block_idx"] =
-                  *i2pInfo.getInteger("pred_basic_block_idx");
-              predPoisonDir["succ_basic_block_idx"] =
-                  *i2pInfo.getInteger("succ_basic_block_idx");
-              newDirectives.push_back(std::move(predPoisonDir));
-
-              poisonPredicatesForCFGEdge.insert(edgeCFG);
-            }
-
-            // And the actual poison pipe call will happen in the PE.
-            i2pInfo["directive_type"] = "poison_in_bb_pe";
-            i2pInfo["kernel_name"] = peKernelName;
-            appendDirectiveToEnd = true;
-          }
-        }
-      }
+  /// Return the index into the peArray of the PE with {peName}.
+  auto getPeIdx = [&peArray](const std::string &peName) -> int {
+    for (size_t iPE = 0; iPE < peArray.size(); ++iPE) {
+      if (peArray[iPE].peKernelName == peName)
+        return iPE;
     }
+    return -1;
+  };
 
-    // TODO: specify a partial order of directive_types, and sort at the end.
-    if (appendDirectiveToEnd)
-      newDirectives.push_back(std::move(i2pInfo));
-    else
-      freshDirectivesArray.push_back(std::move(i2pInfo));
+  auto isLoopPE = [](std::string &N) {
+    return N.find(LOOP_PE_ID) != std::string::npos;
+  };
+  auto isBlockPE = [](std::string &N) {
+    return N.find(BLOCK_PE_ID) != std::string::npos;
+  };
+
+  // Ensure only one POISON_IN_BB_PE per instruction directive in block PE.
+  SetVector<Instruction *> poisonsInBlockPE;
+  // Ensure only one ST_VAL_TAG_TO_BLOCK_WRITE per block PE.
+  SetVector<BasicBlock *> stValTagInBlockPE;
+  // Ensure only one ST_VAL_TAG_TO_LOOP_WRITE per loop PE.
+  SetVector<Loop *> stValTagInLoopPE;
+
+  // For each rule, check if its kerneName should be changed.
+  for (auto &rule : rewriteRules) {
+    auto L = LI.getLoopFor(rule.basicBlock);
+    auto newKernelName = getKernelName(rule.basicBlock, peArray);
+    auto peIdx = getPeIdx(newKernelName);
+    // If the BB for this rule is not in a loop, then no change.
+    auto parentKernelName =
+        L ? getKernelName(L->getHeader(), peArray) : rule.kernelName;
+
+    if (rule.ruleType == LD_VAL_READ || rule.ruleType == ST_VAL_WRITE) {
+      // LSQ ld/st decoupled into a block or loop PE.
+      rule.kernelName = newKernelName;
+
+      // If stores happen across kernels, then need to send stValTag.
+      if (isBlockPE(newKernelName) && rule.ruleType == ST_VAL_WRITE &&
+          !lsqArray[rule.lsqIdx].reuseStPipesAcrossBB &&
+          !stValTagInBlockPE.contains(rule.basicBlock)) {
+        auto stValTagPipeName = "pipe_pe_" + std::to_string(peIdx) +
+                                "_bb_st_val_tag_in_lsq_" +
+                                std::to_string(rule.lsqIdx) + "_class";
+
+      RewriteRule stValTagWr{rule};
+      stValTagWr.ruleType = ST_VAL_TAG_TO_BB_WRITE;
+      stValTagWr.kernelName = parentKernelName;
+      stValTagWr.pipeName = stValTagPipeName;
+      stValTagWr.pipeType = "uint";
+      stValTagWr.pipeArrayIdx = -1;
+      stValTagWr.numStoresInBlock =
+          countStoresInBB(rule.lsqIdx, rule.basicBlock);
+      rewriteRules.push_back(stValTagWr);
+
+      RewriteRule stValTagRd{stValTagWr};
+      stValTagRd.ruleType = ST_VAL_TAG_IN_READ;
+      stValTagRd.kernelName = newKernelName;
+      stValTagRd.peIdx = peIdx;
+      rewriteRules.push_back(stValTagRd);
+
+      stValTagInBlockPE.insert(rule.basicBlock);
+      } else if (isLoopPE(newKernelName) && rule.ruleType == ST_VAL_WRITE &&
+                 !lsqArray[rule.lsqIdx].reuseStPipesAcrossBB &&
+                 !stValTagInLoopPE.contains(L)) {
+        auto L = LI.getLoopFor(rule.basicBlock);
+        auto stValTagPipeName = "pipe_pe_" + std::to_string(peIdx) +
+                                "_loop_st_val_tag_in_lsq_" +
+                                std::to_string(rule.lsqIdx) + "_class";
+
+        RewriteRule stValTagInWr{rule};
+        stValTagInWr.ruleType = ST_VAL_TAG_TO_LOOP_WRITE;
+        stValTagInWr.kernelName = parentKernelName;
+        stValTagInWr.basicBlock = L->getHeader();
+        stValTagInWr.pipeName = stValTagPipeName;
+        stValTagInWr.pipeType = "uint";
+        stValTagInWr.pipeArrayIdx = -1;
+        stValTagInWr.numStoresInLoop = countUncondStoresInLoop(L, rule.lsqIdx);
+        // Check if we can directly calculate the number of stores in the loop.
+        stValTagInWr.canBuildNumStoresInLoopExpr =
+            (stValTagInWr.numStoresInLoop != -1) &&
+            SE.hasLoopInvariantBackedgeTakenCount(L) &&
+            (buildSCEVExpr(F, SE.getBackedgeTakenCount(L),
+                           L->getHeader()->getTerminator()) != nullptr);
+        rewriteRules.push_back(stValTagInWr);
+
+        RewriteRule stValTagInRd{stValTagInWr};
+        stValTagInRd.ruleType = ST_VAL_TAG_IN_READ;
+        stValTagInRd.kernelName = newKernelName;
+        stValTagInRd.peIdx = peIdx;
+        rewriteRules.push_back(stValTagInRd);
+        
+        // If we can't, then need to communicate stValTag back from loopPE.
+        if (!stValTagInWr.canBuildNumStoresInLoopExpr) {
+          RewriteRule stValTagOutWr{stValTagInRd};
+          stValTagOutWr.ruleType = ST_VAL_TAG_LOOP_OUT_WRITE;
+          stValTagOutWr.basicBlock = L->getExitBlock();
+          rewriteRules.push_back(stValTagOutWr);
+
+          RewriteRule stValTagOutRd{stValTagInWr};
+          stValTagOutWr.ruleType = ST_VAL_TAG_IN_READ;
+          stValTagOutWr.kernelName = parentKernelName;
+          stValTagOutWr.basicBlock = L->getExitBlock();
+          rewriteRules.push_back(stValTagOutRd);
+        }
+
+        stValTagInLoopPE.insert(LI.getLoopFor(rule.basicBlock));
+      }
+    } else if (rule.ruleType == POISON_LD_READ ||
+               rule.ruleType == POISON_ST_WRITE) {
+      rule.kernelName = newKernelName;
+
+      if (isBlockPE(newKernelName)) {
+        // 1) Then create a new POISON_IN_BB_PE rewrite rule (but only one).
+        if (!poisonsInBlockPE.contains(rule.instruction)) {
+          RewriteRule poisonInBB{rule};
+          poisonInBB.ruleType = (rule.ruleType == POISON_LD_READ)
+                                    ? POISON_IN_BB_PE_LD_READ
+                                    : POISON_IN_BB_PE_ST_WRITE;
+          poisonInBB.peIdx = peIdx;
+
+          peArray[peIdx].needsPoisonBlock = true;
+
+          rewriteRules.push_back(poisonInBB);
+          poisonsInBlockPE.insert(rule.instruction);
+        }
+
+        // 2) Change this rule to send a poisonPredicate to the blockPE. The
+        // predicate should be sent from the kernel that contains the blockPE.
+        rule.kernelName = parentKernelName;
+        rule.ruleType = POISON_PRED_BB_WRITE;
+        rule.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_bb_pred_class";
+        rule.pipeType = "int8_t";
+        rule.pipeArrayIdx = -1;
+        rule.numStoresInBlock = countStoresInBB(rule.lsqIdx, rule.basicBlock);
+      }
+    } else if (rule.ruleType == SSA_BB_IN_WRITE ||
+               rule.ruleType == SSA_BB_OUT_READ ||
+               rule.ruleType == PRED_BB_WRITE) {
+      rule.kernelName = parentKernelName;
+    } else if (rule.ruleType == SSA_LOOP_IN_WRITE ||
+               rule.ruleType == SSA_LOOP_OUT_READ ||
+               rule.ruleType == PRED_LOOP_WRITE) {
+      // A loopPE is activated by another loopPE (i.e. its parent loop).
+      if (auto parentLoop = L->getParentLoop())
+        rule.kernelName = getKernelName(parentLoop->getHeader(), peArray);
+    }
   }
-
-  // Append st_val_tag directives at the end.
-  for (auto i2pInfoVal : newDirectives) {
-    auto i2pInfo = *i2pInfoVal.getAsObject();
-    freshDirectivesArray.push_back(std::move(i2pInfo));
-  }
-
-  report["instr2pipe_directives"] = std::move(freshDirectivesArray);
 }
 
 /// Generate a report for memory instructions that form 
@@ -807,30 +543,31 @@ struct ElasticAnalysisPrinter : PassInfoMixin<ElasticAnalysisPrinter> {
 
       // Get all memory loads and stores that form a RAW data hazard.
       auto *DHA = new DataHazardAnalysis(F, LI, SE, DT, PDT, *DDG, *CDG);
-      // Get all control-dependent data dependencies that increase the recII.
+      // Get all control-dependent data dependencies that increase the
+      // recurrence constrained initiation interval of a loop.
       auto *CDDD = new ControlDependentDataDependencyAnalysis(LI, *DDG, *CDG);
 
-      // Generate a json report with the required info for a transformation that
-      // wioll decouple the data hazards and cddd recurrences.
-      json::Object report;
-      report["main_kernel_name"] = demangle(std::string(F.getName()));
-      report["kernel_start_line"] = F.getSubprogram()->getLine();
-      // This info will be filled out by the data hazard and cddd analysis.
-      report["instr2pipe_directives"] = json::Array();
-      report["lsq_array"] = json::Array();
-      report["pe_array"] = json::Array();
+      // These structs define the analysis/transformation interface.
+      SmallVector<LSQInfo> lsqArray;
+      SmallVector<PEInfo> peArray;
+      SmallVector<RewriteRule> rewriteRules;
 
-      // TODO: save all info in a struct and only write out to json at the end
-      //       to avoid needless copying of the {report} json object.
-      lsqReportPrinter(DHA, CDDD, report);
-      decoupledBlocksReportPrinter(CDDD, LI, report);
-      decoupledLoopsReportPrinter(CDDD, report);
-      // If a LSQ ld/st value pipe ends up in a decoupled kernel, then we
-      // need to update the associated instr2pipe directive kernel name.
-      adjustLsqValuePipesPlacement(F, *CDG, SE, LI, CDDD, report);
+      generateInfoBlockPE(F, LI, CDDD, peArray, rewriteRules);
+      generateInfoLoopPE(F, CDDD, peArray, rewriteRules);
+      // Do LSQ at the end, to check if LSQ is used across kernels.
+      generateInfoLSQ(F, DHA, peArray, lsqArray, rewriteRules);
+
+      composeDecoupledKernels(F, *CDG, SE, LI, lsqArray, peArray, rewriteRules);
+
+      // Ensure rewrite rules are always applied in the same order.
+      llvm::sort(rewriteRules, [](RewriteRule &ruleA, RewriteRule &ruleB) {
+        return ruleA.ruleType < ruleB.ruleType;
+      });
 
       // Print report to stdout to be picked up by later tools.
-      outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n";
+      auto reportJson = serializeAnalysis(F, lsqArray, peArray, rewriteRules);
+
+      outs() << formatv("{0:2}", json::Value(std::move(reportJson))) << "\n";
     }
 
     return PreservedAnalyses::all();

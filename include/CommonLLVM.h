@@ -35,19 +35,11 @@ using namespace llvm;
 // Use an anonymous namespace to avoid multiple same definitions.
 namespace {
 
-/// A mapping between a pipe read/write and a load/store that it will replace.
-struct Pipe2Inst {
-  CallInst *pipeCall;
-  Instruction *instr;
-  bool isOnchip;
-};
-
 /// Lambdas for easier use in range based algorithms.
 auto isaLoad = [](auto i) { return isa<LoadInst>(i); };
 auto isaStore = [](auto i) { return isa<StoreInst>(i); };
 
-
-CallInst *getPipeCall (Instruction *I) {
+[[maybe_unused]] CallInst *getPipeCall(Instruction *I) {
   const std::string PIPE_CALL = "ext::intel::pipe";
 
   if (CallInst *callInst = dyn_cast<CallInst>(I)) {
@@ -63,37 +55,21 @@ CallInst *getPipeCall (Instruction *I) {
   return nullptr;
 }
 
-[[maybe_unused]] SmallVector<Instruction *>
-getLoads(const SmallVector<Instruction *> &memInstr) {
-  SmallVector<Instruction *> loads;
-  for (auto &I : memInstr)
-    if (isaLoad(I))
-      loads.push_back(I);
-  return loads;
-}
-
-[[maybe_unused]] SmallVector<Instruction *>
-getStores(const SmallVector<Instruction *> &memInstr) {
-  SmallVector<Instruction *> stores;
-  for (auto &I : memInstr)
-    if (isaStore(I))
-      stores.push_back(I);
-  return stores;
-}
-
-[[maybe_unused]] SmallVector<int> 
+/// Given a range of instructions, for each I return its position in its basic
+/// block relative to all other instructions in the range.
+[[maybe_unused]] SmallVector<int>
 getSeqInBB(const SmallVector<Instruction *> &Range) {
   SmallMapVector<BasicBlock *, int, 4> seen;
   SmallVector<int> seqInBB;
   for (auto &I : Range) {
-    if (seen.contains(I->getParent())) 
+    if (seen.contains(I->getParent()))
       seen[I->getParent()]++;
-    else 
+    else
       seen[I->getParent()] = 0;
-    
+
     seqInBB.push_back(seen[I->getParent()]);
   }
-  
+
   return seqInBB;
 }
 
@@ -126,77 +102,53 @@ getSeqInBB(const SmallVector<Instruction *> &Range) {
 
 /// Delete {inst} from its function.
 [[maybe_unused]] void deleteInstruction(Instruction *I) {
-    I->dropAllReferences();
-    I->replaceAllUsesWith(UndefValue::get(I->getType()));
-    I->eraseFromParent();
-}
-
-/// Given Function {F}, return all Functions that call {F}.
-[[maybe_unused]] SmallVector<Function *> getCallerFunctions(Module *M,
-                                                            Function &F) {
-  // The expected case is one caller.
-  SmallVector<Function *> callers;
-  auto &functionList = M->getFunctionList();
-  for (auto &function : functionList) {
-    for (auto &bb : function) {
-      for (auto &instruction : bb) {
-        if (CallInst *callInst = dyn_cast<CallInst>(&instruction)) {
-          if (Function *calledFunction = callInst->getCalledFunction()) {
-            if (calledFunction->getName() == F.getName()) {
-              callers.push_back(&function);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  return callers;
+  I->dropAllReferences();
+  I->replaceAllUsesWith(UndefValue::get(I->getType()));
+  I->eraseFromParent();
 }
 
 /// Return the Basic Block with the return instruction from {F}. {F} is assumed
 /// to have a single return, if not, then the first block is returned.
 [[maybe_unused]] BasicBlock *getReturnBlock(Function &F) {
-    for (auto &BB : llvm::reverse(F)) {
-      if (BB.getTerminator() && isa<ReturnInst>(BB.getTerminator())) 
-        return &BB;
-    }
+  for (auto &BB : llvm::reverse(F)) {
+    if (BB.getTerminator() && isa<ReturnInst>(BB.getTerminator()))
+      return &BB;
+  }
 
-    return nullptr;
+  return nullptr;
 }
 
-/// Return the index of {child} inside of the default traverse of {parent}. 
+/// Return the index of {child} inside of the default traverse of {parent}.
 /// Returns -1 if not found.
-template <typename T1, typename T2> 
-[[maybe_unused]] int getIndexOfChild(T1 *Parent, T2 *Child) {
+template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   int idx = -1;
-  for (auto &ch : *Parent) {
+  for (auto &ch : *Child->getParent()) {
     idx++;
     if (&ch == Child)
       break;
   }
-  
   return idx;
 }
 
-[[maybe_unused]] SmallVector<Instruction*> getInstructions(BasicBlock *BB) {
-  SmallVector<Instruction *> res;
-  for (auto &Child : *BB) 
-    res.push_back(&Child);
-
-  return res;
-}
-
-/// Return the Child at {idx} in {Parent}. Return a nullptr if out of bounds.
-template <typename T1, typename T2> 
-[[maybe_unused]] T2 *getChildWithIndex(T1 *Parent, int idx) {
+[[maybe_unused]] BasicBlock *getBlock(Function &F, const int idx) {
   int i = 0;
-  for (auto &ch : *Parent) {
+  for (auto &BB : F) {
     if (i == idx)
-      return &ch;
+      return &BB;
     i++;
   }
-  
+
+  return nullptr;
+}
+
+[[maybe_unused]] Instruction *getInstruction(BasicBlock &BB, const int idx) {
+  int i = 0;
+  for (auto &I : BB) {
+    if (i == idx)
+      return &I;
+    i++;
+  }
+
   return nullptr;
 }
 
@@ -217,41 +169,19 @@ template <typename T1, typename T2>
   return json::Value(nullptr);
 }
 
-/// Given an instruction, return a json object with its description. E.g.:
-///   {"basic_block_idx": 8, "instruction_idx": 9}
-[[maybe_unused]] json::Object genJsonForInstruction(Instruction *I) {
-  llvm::json::Object obj;
-  auto iBB = I->getParent();
-  obj["basic_block_idx"] = getIndexOfChild(iBB->getParent(), iBB);
-  obj["instruction_idx"] = getIndexOfChild(iBB, I);
-
-  return obj;
-}
-
-/// Return the instruction corresponding to {iDesc}: BB index and Instr index.
-[[maybe_unused]] Instruction *getInstruction(Function &F, json::Object iDescr) {
-  auto bbIdx = int(iDescr["basic_block_idx"].getAsInteger().value());
-  auto instrIdx = int(iDescr["instruction_idx"].getAsInteger().value());
-  auto BB = getChildWithIndex<Function, BasicBlock>(&F, bbIdx);
-  auto I = getChildWithIndex<BasicBlock, Instruction>(BB, instrIdx);
-  assert(I && "Instruction for given iDescr not found.");
-  return I;
-}
-
 /// Return the pipe call instruction corresponding to the pipeInfo json obj.
 [[maybe_unused]] CallInst *getPipeCall(Function &F, json::Object &pipeInfo) {
   static StringMap<int> collectedCalls;
 
-  auto pipeNameOpt = pipeInfo.getString("pipe_name");
-  assert(pipeNameOpt && "Pipe with given {pipe_name} not found.");
+  auto pipeNameOpt = pipeInfo.getString("pipeName");
+  assert(pipeNameOpt && "Pipe in getPipeCall(F, json::Object) not found.");
   auto pipeName = pipeNameOpt->str();
   // If no pipe_array_idx or repeat_id, then use defaults.
-  auto seqNumOpt = pipeInfo.getInteger("pipe_array_idx");
+  auto seqNumOpt = pipeInfo.getInteger("pipeArrayIdx");
   auto seqNum = seqNumOpt ? seqNumOpt.value() : -1;
 
-  const std::string pipeIdKey = pipeName +
-                                pipeInfo.getString("read/write")->str() +
-                                std::to_string(seqNum);
+  const std::string pipeIdKey =
+      std::string(F.getName()) + pipeName + std::to_string(seqNum);
   int pipeCallsToSkip = 0;
   if (collectedCalls.contains(pipeIdKey)) {
     pipeCallsToSkip = collectedCalls[pipeIdKey];
@@ -296,8 +226,8 @@ template <typename T1, typename T2>
     }
   }
 
-  errs() << "Pipe name: " << pipeName << "\n";
-  assert(false && "... not found.");
+  errs() << "Pipe name " << pipeName << "\n";
+  assert(false && "Pipe in getPipeCall(F, json::Object) not found.");
   return nullptr;
 }
 
@@ -424,7 +354,7 @@ template <typename T1, typename T2>
 }
 
 /// Given a SCEV, recursively build an expression using LLVM instructions that
-/// calculates its value. Return the final LLVM value. 
+/// calculates its value. Return the final LLVM value.
 [[maybe_unused]] Value *buildSCEVExpr(Function &F, const SCEV *scev,
                                       Instruction *insrtBefore) {
   const int numOperands = scev->operands().size();
@@ -451,11 +381,11 @@ template <typename T1, typename T2>
     else if (type == scUMinExpr || type == scSMinExpr)
       return IR.CreateMaximum(LHS, RHS);
   }
-  
+
   return nullptr;
 }
 
-/// Return blocks unique to this loop, i.e. not contained in any subloop. 
+/// Return blocks unique to this loop, i.e. not contained in any subloop.
 [[maybe_unused]] SmallVector<BasicBlock *> getUniqueLoopBlocks(Loop *L) {
   SetVector<BasicBlock *> blocksOfSubloops;
   for (auto subLoop : L->getSubLoops()) {
@@ -472,7 +402,7 @@ template <typename T1, typename T2>
   return thisLoopBlocks;
 }
 
-/// Return instructions unique to this loop, i.e. not contained in any subloop. 
+/// Return instructions unique to this loop, i.e. not contained in any subloop.
 [[maybe_unused]] SmallVector<Instruction *> getUniqueLoopInstructions(Loop *L) {
   SmallVector<Instruction *> res;
 
@@ -480,19 +410,6 @@ template <typename T1, typename T2>
     for (auto &I : *BB) {
       res.push_back(&I);
     }
-  }
-
-  return res;
-}
-
-// Return the first instruction in {BB} after the last pipe call.
-[[maybe_unused]] Instruction *getFirstAfterAllPipes(BasicBlock *BB) {
-  Instruction *res = nullptr;
-  for (auto &I : *BB) {
-    if (getPipeCall(&I)) 
-      res = nullptr;
-    else if (!res)
-      res = &I;
   }
 
   return res;

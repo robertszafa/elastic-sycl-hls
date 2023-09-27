@@ -43,6 +43,20 @@ public:
     return poisonLocations;
   }
 
+  SmallVector<PoisonLocation> getPoisonLocations(Instruction *I) {
+    return poisonLocations[I];
+  }
+
+  /// Return the block at which {I} is speculated, or nullptr if not speculated.
+  BasicBlock *getSpeculationBlock(Instruction *I) {
+    for (auto [specBB, allocStack] : speculationStack) {
+      if (llvm::is_contained(allocStack, I))
+        return specBB;
+    }
+
+    return nullptr;
+  }
+
 private:
   /// Memory load and store instructions for each base address that is part
   /// of a data hazard.

@@ -415,6 +415,19 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   return res;
 }
 
+/// Given an instruction {I}, return the first user of {I} in {BB}. 
+/// Return a nullptr if none exists.
+[[maybe_unused]] Instruction *getFirstUserInBB(Instruction *I, BasicBlock *BB) {
+  for (auto user : I->users()) {
+    if (auto userI = dyn_cast<Instruction>(user)) {
+      if (userI->getParent() == BB)
+        return userI;
+    }
+  }
+
+  return nullptr;
+}
+
 } // namespace
 
 #endif

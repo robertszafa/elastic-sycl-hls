@@ -93,8 +93,13 @@ struct PEInfo {
   BasicBlock *basicBlock = nullptr;
   Loop *loop = nullptr;
 
+  /// A block PE will have a special poisonBB if its LSQ allocations are
+  /// speculated. Poison blocks in loop PEs are constructed in the usual way.
   bool needsPoisonBlock = false;
-  
+  /// If a block PE is invoked inside a nested loop, then it needs to be reset
+  /// when exiting the nested loop.
+  bool needsResetPredicate = false;
+
   /// New blocks defining the PE FSM. Created during transformation.
   BasicBlock *pePreHeader = nullptr;
   BasicBlock *peHeader = nullptr;
@@ -126,41 +131,46 @@ struct LSQInfo {
 };
 
 struct RewriteRule {
-  // Every rule has to have the following 6 pieces of information:
+  // Every rule has to have the following 5 pieces of information:
   REWRITE_RULE_TYPE ruleType = UNDEF;
   std::string kernelName = "";
   Instruction *instruction = nullptr;
   BasicBlock *basicBlock = nullptr;
   CallInst *pipeCall = nullptr;
-  
-  // The rest if optional and rule-type-specific.
-  Loop *loop = nullptr;
-  BasicBlock *loopHeaderBlock = nullptr;
-  BasicBlock *loopLatchBlock = nullptr;
-  BasicBlock *loopExitBlock = nullptr;
-
-  int lsqIdx = -1;
-  int peIdx = -1;
-
-  /// Info used to increment the store value tag.
-  int numStoresInBlock = -1;
-  int numStoresInLoop = -1;
-  bool canBuildNumStoresInLoopExpr = false;
-
-  /// Info used to create LSQ poison basic blocks.
-  BasicBlock *predBasicBlock = nullptr;
-  BasicBlock *succBasicBlock = nullptr;
-  /// The basic block to which a speculated LSQ allocation should be hoisted to. 
-  BasicBlock *specBasicBlock = nullptr;
-
-  /// Used for hoisting SSA pipes to loop header/exit blocks.
-  // bool isHoistedOutOfLoop = false;
 
   // Info used to find a specific pipeCall instruction in a function.
   std::string pipeName = "";
   std::string pipeType = "";
   int pipeArrayIdx = -1;
+  
+  /// Which LSQ or predicated PE does this rule correspond to.
+  int lsqIdx = -1;
+  int peIdx = -1;
 
+  /// The recurrence start/end PHIs for instructions in a decoupled block PE.
+  PHINode *recurrenceStart = nullptr;
+  PHINode *recurrenceEnd = nullptr;
+
+  /// Used for hoisting SSA pipes to loop header/exit blocks.
+  bool isHoistedOutOfLoop = false;
+
+  /// Info used to increment the store value tag when LSQ stores span kernels.
+  int numStoresInBlock = -1;
+  int numStoresInLoop = -1;
+  bool canBuildNumStoresInLoopExpr = false;
+
+  /// The basic block to which a speculated LSQ allocation should be hoisted to. 
+  BasicBlock *specBasicBlock = nullptr;
+  /// Info used to create LSQ poison basic blocks.
+  BasicBlock *predBasicBlock = nullptr;
+  BasicBlock *succBasicBlock = nullptr;
+
+  // Loop info is only added during transformation.
+  Loop *loop = nullptr;
+  BasicBlock *loopPreHeaderBlock = nullptr;
+  BasicBlock *loopHeaderBlock = nullptr;
+  BasicBlock *loopLatchBlock = nullptr;
+  BasicBlock *loopExitBlock = nullptr;
 };
 
 [[maybe_unused]] std::string toString(REWRITE_RULE_TYPE type) {
@@ -204,6 +214,7 @@ struct RewriteRule {
   res.basicBlock = getBlock(F, *obj.getInteger("basicBlockIdx"));
   res.loop = LI.getLoopFor(res.basicBlock);
   res.needsPoisonBlock = *obj.getBoolean("needsPoisonBlock");
+  res.needsResetPredicate = res.loop->getLoopDepth() > 1;
 
   return res;
 }
@@ -268,14 +279,7 @@ struct RewriteRule {
   res.instruction = getInstruction(*instrBB, *obj.getInteger("instructionIdx"));
   res.basicBlock = getBlock(F, *obj.getInteger("basicBlockIdx"));
   res.pipeCall = getPipeCall(F, obj);
-  res.loop = LI.getLoopFor(res.basicBlock);
 
-  if (auto opt = obj.getInteger("loopHeaderBlockIdx"))
-    res.loopHeaderBlock = getBlock(F, *opt);
-  if (auto opt = obj.getInteger("loopLatchBlockIdx"))
-    res.loopLatchBlock = getBlock(F, *opt);
-  if (auto opt = obj.getInteger("loopExitBlockIdx"))
-    res.loopExitBlock = getBlock(F, *opt);
   if (auto opt = obj.getInteger("lsqIdx"))
     res.lsqIdx = *opt;
   if (auto opt = obj.getInteger("peIdx"))
@@ -290,6 +294,27 @@ struct RewriteRule {
     res.succBasicBlock = getBlock(F, *opt);
   if (auto opt = obj.getInteger("specBasicBlockIdx"))
     res.specBasicBlock = getBlock(F, *opt);
+  if (auto opt = obj.getBoolean("isHoistedOutOfLoop"))
+    res.isHoistedOutOfLoop = *opt;
+  if (auto opt = obj.getInteger("recurrenceStartBasicBlockIdx")) {
+    auto recStartBB = getBlock(F, *opt);
+    res.recurrenceStart = dyn_cast<PHINode>(
+        getInstruction(*recStartBB, *obj.getInteger("recurrenceStartIdx")));
+  }
+  if (auto opt = obj.getInteger("recurrenceEndBasicBlockIdx")) {
+    auto recEndBB = getBlock(F, *opt);
+    res.recurrenceEnd = dyn_cast<PHINode>(
+        getInstruction(*recEndBB, *obj.getInteger("recurrenceEndIdx")));
+  }
+
+  // Get loop info.
+  res.loop = LI.getLoopFor(res.basicBlock);
+  if (res.loop) {
+    res.loopPreHeaderBlock = res.loop->getLoopPreheader();
+    res.loopHeaderBlock = res.loop->getHeader();
+    res.loopLatchBlock = res.loop->getLoopLatch();
+    res.loopExitBlock = res.loop->getExitBlock();
+  }
 
   return res;
 }
@@ -312,12 +337,6 @@ struct RewriteRule {
   if (rule.pipeArrayIdx >= 0)
     res["pipeArrayIdx"] = rule.pipeArrayIdx;
 
-  if (rule.loopHeaderBlock)
-    res["loopHeaderBlockIdx"] = getIndexIntoParent(rule.loopHeaderBlock);
-  if (rule.loopLatchBlock)
-    res["loopLatchBlockIdx"] = getIndexIntoParent(rule.loopLatchBlock);
-  if (rule.loopExitBlock)
-    res["loopExitBlockIdx"] = getIndexIntoParent(rule.loopExitBlock);
   if (rule.lsqIdx >= 0)
     res["lsqIdx"] = rule.lsqIdx;
   if (rule.peIdx >= 0)
@@ -332,6 +351,18 @@ struct RewriteRule {
     res["succBasicBlockIdx"] = getIndexIntoParent(rule.succBasicBlock);
   if (rule.specBasicBlock)
     res["specBasicBlockIdx"] = getIndexIntoParent(rule.specBasicBlock);
+  if (rule.peIdx >= 0)
+    res["isHoistedOutOfLoop"] = rule.isHoistedOutOfLoop;
+  if (rule.recurrenceStart) {
+    res["recurrenceStartBasicBlockIdx"] =
+        getIndexIntoParent(rule.recurrenceStart->getParent());
+    res["recurrenceStartIdx"] = getIndexIntoParent(rule.recurrenceStart);
+  }
+  if (rule.recurrenceEnd) {
+    res["recurrenceEndBasicBlockIdx"] =
+        getIndexIntoParent(rule.recurrenceEnd->getParent());
+    res["recurrenceEndIdx"] = getIndexIntoParent(rule.recurrenceEnd);
+  }
 
   return res;
 }

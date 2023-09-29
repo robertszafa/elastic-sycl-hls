@@ -413,29 +413,37 @@ void doEndLsqSignalWrite(const RewriteRule &rule) {
 }
 
 /******************** PE related: */ 
-/** Block PEs: */ 
+/** Block PEs: */
 
-void doPredBbWrite(const RewriteRule &rule, SetVector<Instruction *> &toKeep) {
-  auto F = rule.pipeCall->getFunction();
-  auto predType = Type::getInt8Ty(F->getContext());
+void doPredBbWrite(const RewriteRule &rule, const PEInfo &peInfo,
+                   SetVector<Instruction *> &toKeep) {
+  auto funcExitBB = getReturnBlock(*rule.pipeCall->getFunction());
+  auto predType = Type::getInt8Ty(funcExitBB->getContext());
 
   // Write PRED::EXEC in the decoupled block.
   rule.pipeCall->moveBefore(rule.basicBlock->getFirstNonPHI());
   toKeep.insert(storeValIntoPipe(
       ConstantInt::get(predType, PE_PREDICATE_CODES::EXECUTE), rule.pipeCall));
 
-  // Write PRED::EXIT in the function exit block.
-  auto pipeExitCall = dyn_cast<CallInst>(rule.pipeCall->clone());
-  pipeExitCall->insertBefore(getReturnBlock(*F)->getFirstNonPHI());
-  toKeep.insert(storeValIntoPipe(
-      ConstantInt::get(predType, PE_PREDICATE_CODES::EXIT), pipeExitCall));
-
-  // If the decoupledBB is inside a nested loop, write PRED::RESET in loop exit.
-  if (rule.loop->getLoopDepth() > 1) {
+  // If the predicated PE needs to be reset, then write the RESET predicate on
+  // loop exit and the EXIT predicate on function exit.
+  if (peInfo.needsResetPredicate) {
     auto pipeResetCall = dyn_cast<CallInst>(rule.pipeCall->clone());
     pipeResetCall->insertBefore(rule.loopExitBlock->getFirstNonPHI());
     toKeep.insert(storeValIntoPipe(
         ConstantInt::get(predType, PE_PREDICATE_CODES::RESET), pipeResetCall));
+
+    // Write PRED::EXIT in the function exit block.
+    auto pipeExitCall = dyn_cast<CallInst>(rule.pipeCall->clone());
+    pipeExitCall->insertBefore(funcExitBB->getFirstNonPHI());
+    toKeep.insert(storeValIntoPipe(
+        ConstantInt::get(predType, PE_PREDICATE_CODES::EXIT), pipeExitCall));
+  } else {
+    // Otherwise, just write the EXIT predicate on loop exit.
+    auto pipeResetCall = dyn_cast<CallInst>(rule.pipeCall->clone());
+    pipeResetCall->insertBefore(rule.loopExitBlock->getFirstNonPHI());
+    toKeep.insert(storeValIntoPipe(
+        ConstantInt::get(predType, PE_PREDICATE_CODES::EXIT), pipeResetCall));
   }
 }
 
@@ -504,29 +512,111 @@ void doPredBbRead(const RewriteRule &rule, PEInfo &peInfo) {
   }
 }
 
-void doSsaBbInWrite(const RewriteRule &rule, SetVector<Instruction *> &toKeep) {
-  rule.pipeCall->moveBefore(rule.basicBlock->getFirstNonPHI());
-  auto valToWrite = castIfNeeded(rule.pipeCall, rule.instruction);
-  toKeep.insert(storeValIntoPipe(valToWrite, rule.pipeCall));
+void doSsaBbInWrite(const RewriteRule &rule, const PEInfo &peInfo,
+                    SetVector<Instruction *> &toKeep) {
+  if (rule.isHoistedOutOfLoop) {
+    assert(rule.instruction == rule.recurrenceStart &&
+           "Can only hoist instructions at the start/end of a recurrence.");
+
+    // Hoist pipe write to loop preHeader.
+    rule.pipeCall->moveBefore(rule.loopPreHeaderBlock->getTerminator());
+    auto valToWrite =
+        rule.recurrenceStart->getIncomingValueForBlock(rule.loopPreHeaderBlock);
+    toKeep.insert(storeValIntoPipe(valToWrite, rule.pipeCall));
+
+    // PEs that use a RESET predicate will only receive an EXIT predicate on
+    // function exit. To prevent deadlock, we need to repeat hoisted input
+    // depedencies writes in function exit because the PE will wait for them.
+    if (peInfo.needsResetPredicate) {
+      auto funcExitBB = getReturnBlock(*rule.pipeCall->getFunction());
+      rule.pipeCall->clone()->insertBefore(funcExitBB->getFirstNonPHI());
+    }
+  } else {
+    rule.pipeCall->moveBefore(rule.basicBlock->getFirstNonPHI());
+    auto valToWrite = castIfNeeded(rule.pipeCall, rule.instruction);
+    toKeep.insert(storeValIntoPipe(valToWrite, rule.pipeCall));
+  }
 }
 
-void doSsaBbInRead(const RewriteRule &rule) {
-  rule.pipeCall->moveBefore(rule.basicBlock->getFirstNonPHI());
-  auto valRead = castIfNeeded(rule.pipeCall, rule.instruction);
-  rule.instruction->replaceAllUsesWith(valRead);
+void doSsaBbInRead(const RewriteRule &rule, const PEInfo &peInfo) {
+  if (rule.isHoistedOutOfLoop) {
+    assert(rule.instruction == rule.recurrenceStart &&
+           "Can only hoist instructions at the start/end of a recurrence.");
+
+    // Hoist to pePreHeader. Note no "rule.instruction->replaceUsesWith()".
+    // The PE body will still use the recStartPHI. The pipeCall value will be
+    // one of the incoming values into the PHI./
+    rule.pipeCall->moveBefore(peInfo.pePreHeader->getTerminator());
+    rule.recurrenceStart->moveBefore(peInfo.peHeader->getFirstNonPHI());
+
+    // recurrenceStart inititalization coming from pipe read in the pePrehEader.
+    rule.recurrenceStart->replaceIncomingBlockWith(rule.loopPreHeaderBlock,
+                                                   peInfo.pePreHeader);
+    rule.recurrenceStart->setIncomingValueForBlock(peInfo.pePreHeader,
+                                                   rule.pipeCall);
+
+    // recurrenceStart value from PE execution coming from rule.basicBlock
+    auto valFromPE = rule.recurrenceEnd->DoPHITranslation(
+        rule.recurrenceEnd->getParent(), rule.basicBlock);
+    rule.recurrenceStart->replaceIncomingBlockWith(rule.loopLatchBlock,
+                                                   rule.basicBlock);
+    rule.recurrenceStart->setIncomingValueForBlock(rule.basicBlock, valFromPE);
+
+    // If we have a poisonBB in the PE, then also add it to the phi.
+    if (peInfo.pePoisonBlock) {
+      rule.recurrenceStart->addIncoming(rule.recurrenceStart,
+                                        peInfo.pePoisonBlock);
+    }
+  } else {
+    rule.pipeCall->moveBefore(rule.basicBlock->getFirstNonPHI());
+    auto valRead = castIfNeeded(rule.pipeCall, rule.instruction);
+    rule.instruction->replaceAllUsesWith(valRead);
+  }
 }
 
-void doSsaBbOutWrite(const RewriteRule &rule,
+void doSsaBbOutWrite(const RewriteRule &rule, const PEInfo &peInfo,
                      SetVector<Instruction *> &toKeep) {
-  rule.pipeCall->moveBefore(rule.basicBlock->getTerminator());
-  auto valToWrite = castIfNeeded(rule.pipeCall, rule.instruction);
-  toKeep.insert(storeValIntoPipe(valToWrite, rule.pipeCall));
+  if (rule.isHoistedOutOfLoop) {
+    // A hoisted output dependency from the PE to its parentKernel is
+    // communicated in the peExiting block. The value is the recurrenceStartPhi.
+    rule.pipeCall->moveBefore(peInfo.peExiting->getTerminator());
+    toKeep.insert(storeValIntoPipe(rule.recurrenceStart, rule.pipeCall));
+  } else {
+    rule.pipeCall->moveBefore(rule.basicBlock->getTerminator());
+    auto valToWrite = castIfNeeded(rule.pipeCall, rule.instruction);
+    toKeep.insert(storeValIntoPipe(valToWrite, rule.pipeCall));
+  }
 }
 
-void doSsaBbOutRead(const RewriteRule &rule) {
-  rule.pipeCall->moveBefore(rule.basicBlock->getTerminator());
-  auto valRead = castIfNeeded(rule.pipeCall, rule.instruction);
-  rule.instruction->replaceAllUsesWith(valRead);
+void doSsaBbOutRead(const RewriteRule &rule, const PEInfo &peInfo) {
+  if (rule.isHoistedOutOfLoop) {
+    // The depOut pipe read should happen after the predicate pipe write for
+    // that PE. So insert at end of block, or before the first use if exists.
+    auto firstUse = getFirstUserInBB(rule.recurrenceStart, rule.loopExitBlock);
+    auto insertPt = firstUse ? firstUse : rule.loopExitBlock->getTerminator();
+    rule.pipeCall->moveBefore(insertPt);
+
+    // The final recurrence value is held by the recStartPhi in the loop header
+    // after the loop exits. Change the uses of that value to the pipe call.
+    auto valRead = castIfNeeded(rule.pipeCall, rule.recurrenceEnd);
+    rule.recurrenceStart->replaceAllUsesWith(valRead);
+
+    // PEs that use a RESET predicate will only receive an EXIT predicate on
+    // function exit. At that point, a PE will send hoisted output dependencies
+    // one final time. Repeat the pipe read to prevent deadlock.
+    if (peInfo.needsResetPredicate) {
+      auto funcExitBB = getReturnBlock(*rule.pipeCall->getFunction());
+      rule.pipeCall->clone()->insertBefore(funcExitBB->getTerminator());
+    }
+
+    // The recurrence PHIs have been completely hoisted out of the loop now.
+    deleteInstruction(rule.recurrenceStart);
+    deleteInstruction(rule.recurrenceEnd);
+  } else {
+    rule.pipeCall->moveBefore(rule.basicBlock->getTerminator());
+    auto valRead = castIfNeeded(rule.pipeCall, rule.instruction);
+    rule.instruction->replaceAllUsesWith(valRead);
+  }
 }
 
 /** Loop PEs: */ 
@@ -829,17 +919,17 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
         doEndLsqSignalWrite(rule);
       /******************** PE related: */ 
       else if (rule.ruleType == PRED_BB_WRITE)
-        doPredBbWrite(rule, toKeepI);
+        doPredBbWrite(rule, peArray[rule.peIdx], toKeepI);
       else if (rule.ruleType == PRED_BB_READ)
         doPredBbRead(rule, peArray[rule.peIdx]);
       else if (rule.ruleType == SSA_BB_IN_WRITE)
-        doSsaBbInWrite(rule, toKeepI);
+        doSsaBbInWrite(rule, peArray[rule.peIdx], toKeepI);
       else if (rule.ruleType == SSA_BB_IN_READ)
-        doSsaBbInRead(rule);
+        doSsaBbInRead(rule, peArray[rule.peIdx]);
       else if (rule.ruleType == SSA_BB_OUT_WRITE)
-        doSsaBbOutWrite(rule, toKeepI);
+        doSsaBbOutWrite(rule, peArray[rule.peIdx], toKeepI);
       else if (rule.ruleType == SSA_BB_OUT_READ)
-        doSsaBbOutRead(rule);
+        doSsaBbOutRead(rule, peArray[rule.peIdx]);
       else if (rule.ruleType == PRED_LOOP_WRITE)
         doPredLoopWrite(rule, toKeepI);
       else if (rule.ruleType == PRED_LOOP_READ)

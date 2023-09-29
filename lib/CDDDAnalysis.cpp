@@ -112,17 +112,27 @@ void ControlDependentDataDependencyAnalysis::collectBlocksToDecouple(
     SmallVector<SmallVector<Instruction *>> &AllSCCInstructionPaths) {
   // Go through all unique SCC paths.
   for (auto Path : AllSCCInstructionPaths) {
+    if (Path.empty()) continue;
+
+    auto L = LI.getLoopFor(Path[0]->getParent());
+    auto loopHeader = L->getHeader();
+    auto loopLatch = L->getLoopLatch();
+
+    PHINode *recStart = nullptr, *recEnd = nullptr;
     SetVector<BasicBlock *> allBlocksOnPath;
-    int numPhisOnPath = 0;
     for (auto &I : Path) {
       allBlocksOnPath.insert(I->getParent());
-      if (isa<PHINode>(I))
-        numPhisOnPath++;
+
+      if (auto phiI = dyn_cast<PHINode>(I)) {
+        if (phiI->getParent() == loopHeader)
+          recStart = phiI;
+        else if (phiI->getParent() == loopLatch)
+          recEnd = phiI;
+      }
     }
 
     // A recurrence through registers will have at least two PHI nodes.
-    // TODO: Check if the phi nodes are connected.
-    if (numPhisOnPath < 2)
+    if (!recStart || !recEnd)
       continue;
 
     // Go through all unique basic blocks on the path.
@@ -131,7 +141,7 @@ void ControlDependentDataDependencyAnalysis::collectBlocksToDecouple(
 
       // These conditions have to hold for candidateBB to be considered:
       if (getPathII(Path) > 1 && ctrlDepSrc && !LI.isLoopHeader(ctrlDepSrc) &&
-          !isLoopUnrolled(LI.getLoopFor(candidateBB))) {
+          !isLoopUnrolled(L)) {
         SmallVector<Instruction *> pathWithoutBB;
         for (auto &I : Path)
           if (I->getParent() != candidateBB)
@@ -145,6 +155,8 @@ void ControlDependentDataDependencyAnalysis::collectBlocksToDecouple(
         // when the candidate block would be decoupled.
         if (getPathII(subPath) > 1) {
           this->blocksToDecouple.insert(candidateBB);
+          this->recurrenceStarts[candidateBB] = recStart;
+          this->recurrenceEnds[candidateBB] = recEnd;
 
           // Decoupled all instructions in the BB (except terminator and phis).
           for (auto &I : *candidateBB) {
@@ -195,6 +207,64 @@ void ControlDependentDataDependencyAnalysis::collectBlockInOutDependencies() {
           }
         }
       }
+    }
+  }
+}
+
+/// Collect decoupled LLVM values that are only updated by decoupled blocks:
+///   loopHeader: 
+///     recStart = phi(loopPreheader, loopLatch)
+///   decoupledBlock:
+///     update = use(recStart) 
+///   loopLatch:
+///     recEnd = phi(loopHEader, decoupledBlock) 
+/// Such in/out dependencies can be communicated once before and after the loop.
+void ControlDependentDataDependencyAnalysis::collectDependenciesToHoist(
+    LoopInfo &LI) {
+  for (auto [decoupledBB, inDeps] : blockInputDependencies) {
+    auto outDeps = blockOutputDependencies[decoupledBB];
+
+    auto L = LI.getLoopFor(decoupledBB);
+    auto loopHeader = L->getHeader();
+    auto loopLatch = L->getLoopLatch();
+    auto recStart = recurrenceStarts[decoupledBB];
+    auto recEnd = recurrenceEnds[decoupledBB];
+
+    // Cannot hoist if the recurrence start is used anywhere else in the loop
+    // body but the decoupled block.
+    bool canHoistStart = true;
+    for (auto User : recStart->users()) {
+      if (auto UserI = dyn_cast<Instruction>(User)) {
+        auto UserBB = UserI->getParent();
+        if (!L->contains(UserBB))
+          continue;
+        if (UserBB != decoupledBB && UserBB != loopLatch) 
+          canHoistStart = false;
+      }
+    }
+
+    // Also cannot hoist if any of the incoming values to the reccurence end
+    // have been produced in any loop body block but the decoupled block.
+    bool canHoistEnd = true;
+    bool recEndUsesRecStart = false;
+    // Get the value coming from the PE during the traversal.
+    Instruction *recEndValFromPE = nullptr;
+    for (auto &srcVal : recEnd->incoming_values()) {
+      if (srcVal == recStart)
+        recEndUsesRecStart = true;
+
+      if (auto srcI = dyn_cast<Instruction>(&srcVal)) {
+        auto srcBB = srcI->getParent();
+        if (srcBB != loopHeader && srcBB != decoupledBB)
+          canHoistEnd = false;
+        else if (outDeps.contains(srcI))
+          recEndValFromPE = srcI;
+      }
+    }
+
+    if (canHoistStart && canHoistEnd && recEndUsesRecStart && recEndValFromPE) {
+      instrToHoistInBB[decoupledBB].insert(recStart);
+      instrToHoistInBB[decoupledBB].insert(recEndValFromPE);
     }
   }
 }

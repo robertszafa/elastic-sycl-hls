@@ -207,6 +207,10 @@ void generateInfoBlockPE(Function &F, LoopInfo &LI,
     peArray.push_back({PE_TYPE::BLOCK, peKernelName, BB});
     const int peIdx = peArray.size() - 1;
 
+    auto dependenciesToHoist = CDDD->getInstructionsToHoist(BB);
+    auto recStart = CDDD->getRecurrenceStart(BB);
+    auto recEnd = CDDD->getRecurrenceEnd(BB);
+
     // MainKernel --> blockPE dependencies
     auto depIn = CDDD->getBlockInputDependencies(BB);
     for (size_t iDep = 0; iDep < depIn.size(); ++iDep) {
@@ -217,6 +221,9 @@ void generateInfoBlockPE(Function &F, LoopInfo &LI,
       ssaInWr.loopHeaderBlock = loopHeader;
       ssaInWr.loopLatchBlock = loopLatch;
       ssaInWr.loopExitBlock = loopExit;
+      ssaInWr.isHoistedOutOfLoop = dependenciesToHoist.contains(depIn[iDep]);
+      ssaInWr.recurrenceStart = recStart;
+      ssaInWr.recurrenceEnd = recEnd;
       ssaInWr.peIdx = peIdx;
 
       RewriteRule ssaInRd{ssaInWr};
@@ -237,6 +244,9 @@ void generateInfoBlockPE(Function &F, LoopInfo &LI,
       ssaOutWr.loopHeaderBlock = loopHeader;
       ssaOutWr.loopLatchBlock = loopLatch;
       ssaOutWr.loopExitBlock = loopExit;
+      ssaOutWr.isHoistedOutOfLoop = dependenciesToHoist.contains(depOut[iDep]);
+      ssaOutWr.recurrenceStart = recStart;
+      ssaOutWr.recurrenceEnd = recEnd;
       ssaOutWr.peIdx = peIdx;
 
       RewriteRule ssaOutRd{ssaOutWr};

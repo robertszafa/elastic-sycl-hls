@@ -11,8 +11,6 @@ const std::string REPORT_ENV_NAME = "ELASTIC_PASS_REPORT";
 
 enum PE_PREDICATE_CODES { EXECUTE, RESET, EXIT, POISON };
 
-using CFGEdge = std::pair<BasicBlock *, BasicBlock *>;
-
 /// Create and return a new basic blocks on the predBB --> succBB CFG edge.
 /// Cache the created block and return it if called again with the same edge.
 BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB,
@@ -65,7 +63,7 @@ Value *createTag(Function &F, SetVector<Instruction *> &toKeep) {
   // LLVM doesn't make a distinction between signed and unsigned. And the only
   // op done on tags is 2's complement addition, so the bit pattern is the same.
   auto tagType = Type::getInt32Ty(F.getContext());
-  Value *tagAddr = Builder.CreateAlloca(tagType);
+  Value *tagAddr = Builder.CreateAlloca(tagType, nullptr, "tagAddr");
   auto initStore = Builder.CreateStore(ConstantInt::get(tagType, 0), tagAddr);
   toKeep.insert(initStore);
   return tagAddr;
@@ -138,6 +136,7 @@ void splitCode(Function &F, SmallVector<PEInfo> &peArray,
     if (isThisPE && peInfo.peType == PE_TYPE::BLOCK) {
       blockPEs.insert(peInfo.basicBlock);
 
+      /// TODO: Use toDecouple I's from analysis?
       for (auto &I : *peInfo.basicBlock) {
         if (isa<PHINode>(&I))
           toDeleteI.insert(&I);
@@ -167,18 +166,14 @@ void splitCode(Function &F, SmallVector<PEInfo> &peArray,
         if (!I.isTerminator()) // Leave control flow.
           toDeleteI.insert(&I);
     } else if (!isThisPE && peInfo.peType == PE_TYPE::LOOP) {
-      // Connect loop header directly to loop exit successor.
+      // Connect loop header directly to loop exit.
       auto loopHeader = peInfo.loop->getHeader();
-      auto oldLoopExit = peInfo.loop->getExitBlock();
-      auto newLoopExit = peInfo.loop->getExitBlock()->getSingleSuccessor();
+      auto loopExit = peInfo.loop->getExitBlock();
 
-      toDeleteBB.insert(oldLoopExit);
       IRBuilder<> Builder(loopHeader);
       auto oldBranch = loopHeader->getTerminator();
-      Builder.CreateBr(newLoopExit);
+      Builder.CreateBr(loopExit);
       deleteInstruction(oldBranch);
-      // Update PHIs in newLoopExit to come from loop header, not oldLoopExit.
-      newLoopExit->replacePhiUsesWith(oldLoopExit, loopHeader);
       
       for (auto &I : *loopHeader) {
         if (isa<PHINode>(&I))
@@ -713,7 +708,15 @@ void doSsaLoopOutRead(const RewriteRule &rule) {
 
 void doStValTagInRead(const RewriteRule &rule, const LSQInfo &lsqInfo,
                       const PEInfo &peInfo, SetVector<Instruction *> &toKeep) {
-  rule.pipeCall->moveBefore(peInfo.peHeader->getFirstNonPHI());
+  if (peInfo.peType == PE_TYPE::LOOP) {
+    rule.pipeCall->moveBefore(peInfo.peHeader->getFirstNonPHI());
+  }
+  else { // BLOCK PE
+    // The read might happen in the blockPE poison block.
+    auto isInPoisonBB = rule.predBasicBlock && rule.succBasicBlock;
+    auto insertInBlock = isInPoisonBB ? peInfo.pePoisonBlock : rule.basicBlock;
+    rule.pipeCall->moveBefore(insertInBlock->getFirstNonPHI());
+  }
 
   // Read tag from pipe and store into tagAddr.
   IRBuilder<> IR(rule.pipeCall);
@@ -723,8 +726,15 @@ void doStValTagInRead(const RewriteRule &rule, const LSQInfo &lsqInfo,
 }
 
 void doStValTagToBBWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
+                         const PEInfo &peInfo,
                          SetVector<Instruction *> &toKeep) {
-  rule.pipeCall->moveBefore(rule.basicBlock->getFirstNonPHI());
+  // The write might happen in a poison block.
+  auto isInPoisonBB = rule.predBasicBlock && rule.succBasicBlock;
+  auto insertInBlock = isInPoisonBB
+                           ? createBlockOnEdge(rule.predBasicBlock,
+                                               rule.succBasicBlock, "poisonBB")
+                           : rule.basicBlock;
+  rule.pipeCall->moveBefore(insertInBlock->getFirstNonPHI());
 
   // Load lsq st tag and store into pipe 
   IRBuilder<> IR(rule.pipeCall);
@@ -746,44 +756,14 @@ void doStValTagToBBWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
 /// Create a new basic block with a poison pipe to the LSQ.
 void doPoisonPredBbWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
                          SetVector<Instruction *> &toKeep) {
-  // For each poison block with a poison predicate, at most one stValTag write.
-  static SetVector<BasicBlock *> stValTagWriteDone;
-
-  auto poisonBB = createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock);
+  auto poisonBB =
+      createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock, "poisonBB");
 
   rule.pipeCall->moveBefore(poisonBB->getTerminator());
 
   auto predType = Type::getInt8Ty(rule.pipeCall->getContext());
   toKeep.insert(storeValIntoPipe(
       ConstantInt::get(predType, PE_PREDICATE_CODES::POISON), rule.pipeCall));
-
-  // We might also need to insert a new stValTag pipe write in the poisonBB.
-  if (!stValTagWriteDone.contains(poisonBB) && lsqInfo.numStorePipes > 1) {
-    // Just copy the pipe from the "true block".
-    auto stValTagPipeName =
-        "st_val_tag_in_lsq_" + std::to_string(lsqInfo.lsqIdx);
-    auto stValTagPipe = dyn_cast<CallInst>(
-        getPipeWithPattern(*poisonBB->getParent(), stValTagPipeName)
-            ->clone());
-    stValTagPipe->insertBefore(&poisonBB->front());
-    
-    // Load tag from tag from lsqInfo.stTagAddr.
-    IRBuilder<> Builder(stValTagPipe);
-    auto stIntoTagPipe = getPipeOpStructStores(stValTagPipe)[0]->clone();
-    auto tagType = stIntoTagPipe->getOperand(0)->getType();
-    auto tagValLd = Builder.CreateLoad(tagType, lsqInfo.stTagAddr);
-    stIntoTagPipe->insertAfter(tagValLd);
-    stIntoTagPipe->setOperand(0, tagValLd);
-    toKeep.insert(stIntoTagPipe);
-
-    // Increment the tag in the this kernel by the number of stores in BB.
-    auto incr = ConstantInt::get(tagType, rule.numStoresInBlock);
-    auto newTagVal = Builder.CreateAdd(tagValLd, incr);
-    toKeep.insert(Builder.CreateStore(newTagVal, lsqInfo.stTagAddr));
-
-    // Only one stValTag communication for each lsq per poison block.
-    stValTagWriteDone.insert(poisonBB); 
-  }
 }
 
 void doPoisonInBbPeLdRead(const RewriteRule &rule, const PEInfo &peInfo,
@@ -797,16 +777,18 @@ void doPoisonInBbPeStWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
                            SetVector<Instruction *> &toKeep) {
   rule.pipeCall->moveBefore(peInfo.pePoisonBlock->getTerminator());
 
-  // Use tag for the poison st_val write.
-  IRBuilder<> Builder(rule.pipeCall);
-  auto stValPipeStructStores = getPipeOpStructStores(rule.pipeCall);
-  StoreInst *tagStore = stValPipeStructStores[1];
-  auto tagType = tagStore->getOperand(0)->getType();
-  LoadInst *tagVal = Builder.CreateLoad(tagType, lsqInfo.stTagAddr);
-  auto tagPlusOne = Builder.CreateAdd(tagVal, ConstantInt::get(tagType, 1));
-  
-  toKeep.insert(Builder.CreateStore(tagPlusOne, lsqInfo.stTagAddr));
-  toKeep.insert(Builder.CreateStore(tagPlusOne, tagStore->getOperand(1)));
+  // Use tag for the poison st_val write if needed.
+  if (lsqInfo.numStorePipes > 1) {
+    IRBuilder<> Builder(rule.pipeCall);
+    auto stValPipeStructStores = getPipeOpStructStores(rule.pipeCall);
+    StoreInst *tagStore = stValPipeStructStores[1];
+    auto tagType = tagStore->getOperand(0)->getType();
+    LoadInst *tagVal = Builder.CreateLoad(tagType, lsqInfo.stTagAddr);
+    auto tagPlusOne = Builder.CreateAdd(tagVal, ConstantInt::get(tagType, 1));
+
+    toKeep.insert(Builder.CreateStore(tagPlusOne, lsqInfo.stTagAddr));
+    toKeep.insert(Builder.CreateStore(tagPlusOne, tagStore->getOperand(1)));
+  }
 }
 
 void doStValTagToLoopWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
@@ -946,7 +928,7 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
       else if (rule.ruleType == ST_VAL_TAG_IN_READ)
         doStValTagInRead(rule, lsqArray[rule.lsqIdx], peArray[rule.peIdx], toKeepI);
       else if (rule.ruleType == ST_VAL_TAG_TO_BB_WRITE)
-        doStValTagToBBWrite(rule, lsqArray[rule.lsqIdx], toKeepI);
+        doStValTagToBBWrite(rule, lsqArray[rule.lsqIdx], peArray[rule.peIdx], toKeepI);
       else if (rule.ruleType == POISON_PRED_BB_WRITE)
         doPoisonPredBbWrite(rule, lsqArray[rule.lsqIdx], toKeepI);
       else if (rule.ruleType == POISON_IN_BB_PE_LD_READ)

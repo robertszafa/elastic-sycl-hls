@@ -35,6 +35,8 @@ using namespace llvm;
 // Use an anonymous namespace to avoid multiple same definitions.
 namespace {
 
+using CFGEdge = std::pair<BasicBlock *, BasicBlock *>;
+
 /// Lambdas for easier use in range based algorithms.
 auto isaLoad = [](auto i) { return isa<LoadInst>(i); };
 auto isaStore = [](auto i) { return isa<StoreInst>(i); };

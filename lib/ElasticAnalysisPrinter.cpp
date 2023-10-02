@@ -404,10 +404,16 @@ void composeDecoupledKernels(Function &F, ControlDependenceGraph &CDG,
 
   // Ensure only one POISON_IN_BB_PE per instruction directive in block PE.
   SetVector<Instruction *> poisonsInBlockPE;
-  // Ensure only one ST_VAL_TAG_TO_BLOCK_WRITE per block PE.
-  SetVector<BasicBlock *> stValTagInBlockPE;
-  // Ensure only one ST_VAL_TAG_TO_LOOP_WRITE per loop PE.
-  SetVector<Loop *> stValTagInLoopPE;
+  // Ensure only one ST_VAL_TAG_TO_BLOCK_WRITE per lsqIdx & per block PE.
+  SetVector<std::pair<int, BasicBlock *>> stValTagInBlockPE;
+  // Ensure only one POISON_PRED_WRITE per poison block.
+  SetVector<std::pair<int, CFGEdge>> poisonPredWrPoisonBlock;
+  // Ensure only one ST_VAL_TAG_TO_BLOCK_WRITE per poison block.
+  SetVector<std::pair<int, CFGEdge>> stValTagWrPoisonBlock;
+  // Ensure only one ST_VAL_TAG_IN_READ for poison per in blockPE.
+  SetVector<int> stValTagRdPoisonBlock;
+  // Ensure only one ST_VAL_TAG_TO_LOOP_WRITE per lsqIdx & loop PE.
+  SetVector<std::pair<int, Loop *>> stValTagInLoopPE;
 
   // For each rule, check if its kerneName should be changed.
   for (auto &rule : rewriteRules) {
@@ -425,7 +431,7 @@ void composeDecoupledKernels(Function &F, ControlDependenceGraph &CDG,
       // If stores happen across kernels, then need to send stValTag.
       if (isBlockPE(newKernelName) && rule.ruleType == ST_VAL_WRITE &&
           !lsqArray[rule.lsqIdx].reuseStPipesAcrossBB &&
-          !stValTagInBlockPE.contains(rule.basicBlock)) {
+          !stValTagInBlockPE.contains({rule.lsqIdx, rule.basicBlock})) {
         auto stValTagPipeName = "pipe_pe_" + std::to_string(peIdx) +
                                 "_bb_st_val_tag_in_lsq_" +
                                 std::to_string(rule.lsqIdx) + "_class";
@@ -436,6 +442,7 @@ void composeDecoupledKernels(Function &F, ControlDependenceGraph &CDG,
       stValTagWr.pipeName = stValTagPipeName;
       stValTagWr.pipeType = "uint";
       stValTagWr.pipeArrayIdx = -1;
+      stValTagWr.peIdx = peIdx;
       stValTagWr.numStoresInBlock =
           countStoresInBB(rule.lsqIdx, rule.basicBlock);
       rewriteRules.push_back(stValTagWr);
@@ -443,13 +450,12 @@ void composeDecoupledKernels(Function &F, ControlDependenceGraph &CDG,
       RewriteRule stValTagRd{stValTagWr};
       stValTagRd.ruleType = ST_VAL_TAG_IN_READ;
       stValTagRd.kernelName = newKernelName;
-      stValTagRd.peIdx = peIdx;
       rewriteRules.push_back(stValTagRd);
 
-      stValTagInBlockPE.insert(rule.basicBlock);
+      stValTagInBlockPE.insert({rule.lsqIdx, rule.basicBlock});
       } else if (isLoopPE(newKernelName) && rule.ruleType == ST_VAL_WRITE &&
                  !lsqArray[rule.lsqIdx].reuseStPipesAcrossBB &&
-                 !stValTagInLoopPE.contains(L)) {
+                 !stValTagInLoopPE.contains({rule.lsqIdx, L})) {
         auto L = LI.getLoopFor(rule.basicBlock);
         auto stValTagPipeName = "pipe_pe_" + std::to_string(peIdx) +
                                 "_loop_st_val_tag_in_lsq_" +
@@ -491,19 +497,21 @@ void composeDecoupledKernels(Function &F, ControlDependenceGraph &CDG,
           rewriteRules.push_back(stValTagOutRd);
         }
 
-        stValTagInLoopPE.insert(LI.getLoopFor(rule.basicBlock));
+        stValTagInLoopPE.insert({rule.lsqIdx, LI.getLoopFor(rule.basicBlock)});
       }
     } else if (rule.ruleType == POISON_LD_READ ||
                rule.ruleType == POISON_ST_WRITE) {
       rule.kernelName = newKernelName;
 
       if (isBlockPE(newKernelName)) {
+        const bool isaStore = rule.ruleType == POISON_ST_WRITE;
+        CFGEdge poisonBB = {rule.predBasicBlock, rule.succBasicBlock};
+
         // 1) Then create a new POISON_IN_BB_PE rewrite rule (but only one).
         if (!poisonsInBlockPE.contains(rule.instruction)) {
           RewriteRule poisonInBB{rule};
-          poisonInBB.ruleType = (rule.ruleType == POISON_LD_READ)
-                                    ? POISON_IN_BB_PE_LD_READ
-                                    : POISON_IN_BB_PE_ST_WRITE;
+          poisonInBB.ruleType =
+              isaStore ? POISON_IN_BB_PE_ST_WRITE : POISON_IN_BB_PE_LD_READ;
           poisonInBB.peIdx = peIdx;
 
           peArray[peIdx].needsPoisonBlock = true;
@@ -514,12 +522,53 @@ void composeDecoupledKernels(Function &F, ControlDependenceGraph &CDG,
 
         // 2) Change this rule to send a poisonPredicate to the blockPE. The
         // predicate should be sent from the kernel that contains the blockPE.
-        rule.kernelName = parentKernelName;
-        rule.ruleType = POISON_PRED_BB_WRITE;
-        rule.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_bb_pred_class";
-        rule.pipeType = "int8_t";
-        rule.pipeArrayIdx = -1;
-        rule.numStoresInBlock = countStoresInBB(rule.lsqIdx, rule.basicBlock);
+        if (!poisonPredWrPoisonBlock.contains({rule.lsqIdx, poisonBB})) {
+          rule.kernelName = parentKernelName;
+          rule.ruleType = POISON_PRED_BB_WRITE;
+          rule.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_bb_pred_class";
+          rule.pipeType = "int8_t";
+          rule.pipeArrayIdx = -1;
+          rule.numStoresInBlock = countStoresInBB(rule.lsqIdx, rule.basicBlock);
+
+          poisonPredWrPoisonBlock.insert({rule.lsqIdx, poisonBB});
+        } else {
+          // If a poisonPred already exists for this block, then drop the rule.
+          rule.ruleType = UNDEF;
+        }
+
+        // 3) Deal with stValTag communication for poisoned blocks. 
+        if (isaStore &&
+            !stValTagWrPoisonBlock.contains({rule.lsqIdx, poisonBB}) &&
+            !lsqArray[rule.lsqIdx].reuseStPipesAcrossBB) {
+          auto stValTagPipeName = "pipe_pe_" + std::to_string(peIdx) +
+                                  "_bb_st_val_tag_in_lsq_" +
+                                  std::to_string(rule.lsqIdx) + "_class";
+
+          RewriteRule stValTagWr{rule};
+          stValTagWr.ruleType = ST_VAL_TAG_TO_BB_WRITE;
+          stValTagWr.kernelName = parentKernelName;
+          stValTagWr.pipeName = stValTagPipeName;
+          stValTagWr.pipeType = "uint";
+          stValTagWr.pipeArrayIdx = -1;
+          stValTagWr.peIdx = peIdx;
+          stValTagWr.numStoresInBlock =
+              countStoresInBB(rule.lsqIdx, rule.basicBlock);
+          rewriteRules.push_back(stValTagWr);
+          
+          stValTagWrPoisonBlock.insert({rule.lsqIdx, poisonBB});
+
+          // There can be multiple poisonBBs in the parentKernel CFG where a
+          // ST_VAL_WR happens, but in the block PE, there will be only one
+          // poisonBB, and so only one read is needed.
+          if (!stValTagRdPoisonBlock.contains(rule.lsqIdx)) {
+            RewriteRule stValTagRd{stValTagWr};
+            stValTagRd.ruleType = ST_VAL_TAG_IN_READ;
+            stValTagRd.kernelName = newKernelName;
+            rewriteRules.push_back(stValTagRd);
+
+            stValTagRdPoisonBlock.insert(rule.lsqIdx);
+          }
+        }
       }
     } else if (rule.ruleType == SSA_BB_IN_WRITE ||
                rule.ruleType == SSA_BB_OUT_READ ||
@@ -569,7 +618,9 @@ struct ElasticAnalysisPrinter : PassInfoMixin<ElasticAnalysisPrinter> {
 
       composeDecoupledKernels(F, *CDG, SE, LI, lsqArray, peArray, rewriteRules);
 
-      // Ensure rewrite rules are always applied in the same order.
+      // Remove UNDEF rules and ensure deterministic order.
+      llvm::remove_if(rewriteRules,
+                      [](RewriteRule &rule) { return rule.ruleType == UNDEF; });
       llvm::sort(rewriteRules, [](RewriteRule &ruleA, RewriteRule &ruleB) {
         return ruleA.ruleType < ruleB.ruleType;
       });

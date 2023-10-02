@@ -115,6 +115,8 @@ void ControlDependentDataDependencyAnalysis::collectBlocksToDecouple(
     if (Path.empty()) continue;
 
     auto L = LI.getLoopFor(Path[0]->getParent());
+    if (!L) continue;
+
     auto loopHeader = L->getHeader();
     auto loopLatch = L->getLoopLatch();
 

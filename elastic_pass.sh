@@ -18,6 +18,7 @@ SRC_FILE_WORKDIR=$PASS_WORKDIR/$SRC_FILE_BASENAME_WITH_EXT
 SRC_FILE_AST="$PASS_WORKDIR/$SRC_FILE_BASENAME.ast.cpp"
 ANALYSIS_REPORT="$PASS_WORKDIR/elastic_pass_report.json"
 FINAL_BINARY="$SRC_FILE_DIR/bin/${SRC_FILE_BASENAME}.elastic.fpga_$TARGET"
+TMP_DIR=${TMPDIR:-${TEMP:-${TMP:-/tmp}}}
 
 # Run the following passes to ensure canonical SSA form for analysis:
 # hoist-const-gep: Ensure SYCL global pointers are declared in function entry block.
@@ -45,11 +46,38 @@ cleanup_ir() {
   $LLVM_BIN_DIR/llvm-dis $1 -o $1.ll && $LLVM_BIN_DIR/llvm-cxxfilt < $1.ll > $1.demangled.ll
 }
 
+# During compilation, change the pipe and bram verilog IPs to our amended 
+# versions located in {ELASTIC_SYCL_HLS_DIR}/ip.
+change_ip() {
+  if ! test -d $ELASTIC_SYCL_HLS_DIR/ip; then
+    echo "No amended IPs in {ELASTIC_SYCL_HLS_DIR}/ip (see README to generate). Will use default IPs."
+    return
+  fi
+
+  # Wait for IP files to be coppied by the driver into TMP_DIR.
+  while [ ! `find $TMP_DIR/example-* -nowarn -name "acl_channel_fifo.v" 2>/dev/null` ]; do :; done
+  # Get exact dirname of IP files.
+  IP_DIR=$(dirname $TMP_DIR/example-*/ip/acl_channel_fifo.v)
+
+  # Copy the changed IPs into IP_DIR every time the compiler changes them.
+  while [ ! -f $FINAL_BINARY ]; do # stop when full compile done
+    # Use grep to check if our changes are still there.
+    if grep -q -s '(ALLOW_HIGH_SPEED_FIFO_USAGE ? "hs" : "ms")' $IP_DIR/acl_channel_fifo.v ; then
+      cp $ELASTIC_SYCL_HLS_DIR/ip/acl_channel_fifo.v $IP_DIR
+    fi
+    if grep -q -s '= RDW_MODE' $IP_DIR/acl_mem1x.v ; then
+      cp $ELASTIC_SYCL_HLS_DIR/ip/acl_mem1x.v $IP_DIR
+    fi
+  done
+}
+
 
 echo "---------------- Elastic passes start ----------------"
 mkdir -p $PASS_WORKDIR
 cp $SRC_FILE $PASS_WORKDIR
 mkdir -p "$SRC_FILE_DIR/bin"
+# Remove files from previous compilations.
+rm -rf $TMP_DIR/example-* $FINAL_BINARY
 
 ###
 ### STAGE 0: Ensure a canonical kernel call: queue.single_task<> submission on one line, no empty lines, no commnets.
@@ -97,9 +125,8 @@ cleanup_ir $SRC_FILE_AST.elastic.bc
 echo "Info: Passing transformed IR to downstream HLS compiler" 
 echo "---------------- Elastic passes end ----------------"
 echo "Compiling $FINAL_BINARY"
-($ELASTIC_SYCL_HLS_DIR/scripts/compilation/ip_param_change.sh &) # subshell to avoid later kill messages
+change_ip & \
 $ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_from_bc.sh $TARGET $SRC_FILE_AST.elastic.bc $SRC_FILE_AST $FINAL_BINARY
-pkill -f ip_param_change
 
 # Remove created temporaried, if the "-d" flag was not supplied.
 if [[ "$*" != *"-d"* ]] 

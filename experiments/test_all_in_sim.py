@@ -14,6 +14,7 @@ BENCHMARKS = {
     'histogram_if_bram': 1000,
     'maximal_matching_bram': 1000,
     'floyd_warshall_bram': 10,
+    'bitonic_sort_bram': 64,
 
     # Decoupled single basic blocks.    
     'filter_sum': 1000,
@@ -22,7 +23,7 @@ BENCHMARKS = {
     'doitgen_triple': 100,
     'eval_pos': 1000,
     # Decoupled whole loops.    
-    'spmv_if': 1000,
+    'spmv_if': 100,
 
     # DRAM LSQ codes need to be run on a real board to get meaningful perf numbers
     'histogram_dram': 1000,
@@ -35,15 +36,16 @@ BENCHMARKS = {
     'histogram_if_dram': 1000,
     'maximal_matching_dram': 1000,
     'floyd_warshall_dram': 10,
+    'bitonic_sort_dram': 64,
 
-    # Some edge cases to stress the composability of 1). decoupling BBs 2). decoupling loops 3). LSQ 4). Address Gen 5). Speculation
-    'spmv_if_2': 1000, 
-    'spmv_if_pe_and_lsq_dram': 1000, # decoupled for loop that uses an LSQ.
-    'spmv_if_pe_and_lsq_bram': 1000, # decoupled for loop that uses an LSQ.
-    'histogram_2_addresses_1_speculated': 1000, # 2 LSQ, 1 with speculation
-    'histogram_2_addresses_1_decoupled': 1000, # 2 LSQ, 1 without decoupled addresses
-    'doitgen_triple_2': 100, # decoupled BB, LSQ connection to both main loop and PE, speculated store where the true BB is decoupled
-    'doitgen_triple_3': 100, # decoupled BB, LSQ connection to both main loop and PE, speculation load & store where the true BB is decoupled
+    # # # Some edge cases to stress the composability of 1). decoupling BBs 2). decoupling loops 3). LSQ 4). Address Gen 5). Speculation
+    'spmv_if_2': 100, 
+    'spmv_if_pe_and_lsq_dram': 100, # decoupled for loop that uses an LSQ.
+    'spmv_if_pe_and_lsq_bram': 100, # decoupled for loop that uses an LSQ.
+    'histogram_2_addresses_1_speculated': 100, # 2 LSQ, 1 with speculation
+    'histogram_2_addresses_1_decoupled': 100, # 2 LSQ, 1 without decoupled addresses
+    'doitgen_triple_2': 10, # decoupled BB, LSQ connection to both main loop and PE, speculated store where the true BB is decoupled
+    'doitgen_triple_3': 10, # decoupled BB, LSQ connection to both main loop and PE, speculation load & store where the true BB is decoupled
     'filter_sum_2_bram': 1000,
     'filter_sum_2_dram': 1000,
     'nested_if_mul': 1000,

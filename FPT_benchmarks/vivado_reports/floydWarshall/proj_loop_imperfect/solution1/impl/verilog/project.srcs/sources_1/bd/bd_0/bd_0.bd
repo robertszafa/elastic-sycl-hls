@@ -1,0 +1,206 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x9099A43096F6A2BC",
+      "device": "xc7k160tfbg484-1",
+      "name": "bd_0",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2019.2",
+      "validated": "true"
+    },
+    "design_tree": {
+      "hls_inst": ""
+    },
+    "interface_ports": {
+      "ap_ctrl": {
+        "mode": "Slave",
+        "vlnv": "xilinx.com:interface:acc_handshake_rtl:1.0"
+      }
+    },
+    "ports": {
+      "ap_clk": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "ASSOCIATED_RESET": {
+            "value": "ap_rst",
+            "value_src": "default"
+          },
+          "CLK_DOMAIN": {
+            "value": "bd_0_ap_clk_0",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "250000000.0"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.000",
+            "value_src": "default"
+          }
+        }
+      },
+      "ap_rst": {
+        "type": "rst",
+        "direction": "I",
+        "parameters": {
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "POLARITY": {
+            "value": "ACTIVE_HIGH"
+          }
+        }
+      },
+      "dist_address0": {
+        "type": "data",
+        "direction": "O",
+        "left": "6",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "dist_address1": {
+        "type": "data",
+        "direction": "O",
+        "left": "6",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "dist_ce0": {
+        "direction": "O"
+      },
+      "dist_ce1": {
+        "direction": "O"
+      },
+      "dist_d1": {
+        "type": "data",
+        "direction": "O",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "dist_q0": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "dist_q1": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "dist_we1": {
+        "direction": "O"
+      }
+    },
+    "components": {
+      "hls_inst": {
+        "vlnv": "xilinx.com:hls:loop_imperfect:0.1",
+        "xci_name": "bd_0_hls_inst_0"
+      }
+    },
+    "interface_nets": {
+      "ap_ctrl_0_1": {
+        "interface_ports": [
+          "ap_ctrl",
+          "hls_inst/ap_ctrl"
+        ]
+      }
+    },
+    "nets": {
+      "ap_clk_0_1": {
+        "ports": [
+          "ap_clk",
+          "hls_inst/ap_clk"
+        ]
+      },
+      "ap_rst_0_1": {
+        "ports": [
+          "ap_rst",
+          "hls_inst/ap_rst"
+        ]
+      },
+      "hls_inst_dist_address0": {
+        "ports": [
+          "hls_inst/dist_address0",
+          "dist_address0"
+        ]
+      },
+      "hls_inst_dist_address1": {
+        "ports": [
+          "hls_inst/dist_address1",
+          "dist_address1"
+        ]
+      },
+      "hls_inst_dist_ce0": {
+        "ports": [
+          "hls_inst/dist_ce0",
+          "dist_ce0"
+        ]
+      },
+      "hls_inst_dist_ce1": {
+        "ports": [
+          "hls_inst/dist_ce1",
+          "dist_ce1"
+        ]
+      },
+      "hls_inst_dist_d1": {
+        "ports": [
+          "hls_inst/dist_d1",
+          "dist_d1"
+        ]
+      },
+      "dist_q0_0_1": {
+        "ports": [
+          "dist_q0",
+          "hls_inst/dist_q0"
+        ]
+      },
+      "dist_q1_0_1": {
+        "ports": [
+          "dist_q1",
+          "hls_inst/dist_q1"
+        ]
+      },
+      "hls_inst_dist_we1": {
+        "ports": [
+          "hls_inst/dist_we1",
+          "dist_we1"
+        ]
+      }
+    }
+  }
+}

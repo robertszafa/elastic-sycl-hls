@@ -1,0 +1,814 @@
+{
+  "columns":
+  ["", "ALUTs", "FFs", "RAMs", "DSPs", "MLABs", "Details"]
+  , "debug_enabled":"true"
+  , "type":"module"
+  , "total_percent":
+  [41.8791, 21.5481, 21.5778, 19.941, 8.8274]
+  , "total":
+  [183627, 368721, 541, 134, 24]
+  , "name":"Kernel System"
+  , "max_resources":
+  [854400, 1708800, 2713, 1518, 42720]
+  , "children":
+  [
+    {
+      "name":"Static Partition"
+      , "type":"partition"
+      , "children":
+      [
+        {
+          "name":"Board interface"
+          , "type":"resource"
+          , "data":
+          [179950, 358572, 492, 123, 0]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Platform interface logic."
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"Global interconnect"
+      , "type":"resource"
+      , "data":
+      [1289, 6591, 26, 0, 0]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"Global interconnect for 1 global load and 0 global stores."
+        }
+        , {
+          "type":"brief"
+          , "text":"For 1 global load and 0 global stores."
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Global Memory Interconnect"
+              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/hnj1476724450050.html"
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"System description ROM"
+      , "type":"resource"
+      , "data":
+      [0, 67, 2, 0, 0]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"This read-only memory contains information for the host about the system and about each kernel in the system, including kernel names, arguments, and attributes. The system description ROM ensures that the binary image on the FPGA is compatible with the host program."
+        }
+        , {
+          "type":"brief"
+          , "text":"Contains information for the host."
+        }
+      ]
+    }
+    , {
+      "name":"MainKernel"
+      , "compute_units":1
+      , "type":"function"
+      , "total_percent":
+      [0.507363, 0.335674, 0.204295, 0.774051, 0.724638]
+      , "total_kernel_resources":
+      [2388, 3491, 21, 10.5, 24]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"Number of compute units: 1"
+        }
+        , {
+          "type":"brief"
+          , "text":"1 compute unit."
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"Function overhead"
+          , "type":"resource"
+          , "data":
+          [1072, 2225, 0, 0, 10]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Kernel dispatch logic."
+            }
+            , {
+              "type":"brief"
+              , "text":"Kernel dispatch logic."
+            }
+          ]
+        }
+        , {
+          "name":"Private Variable: \n - 'i' (vec_trans_bram.cpp:37)"
+          , "type":"resource"
+          , "data":
+          [14, 73, 0, 0, 0]
+          , "debug":
+          [
+            [
+              {
+                "filename":"vec_trans_bram.cpp"
+                , "line":37
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Type: Register"
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 32 bits and depth 1"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":" Depth was increased by a factor of 30 due to a loop initiation interval of 30."
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 33 bits and depth 1"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":" Depth was increased by a factor of 30 due to a loop initiation interval of 30."
+                }
+              ]
+            }
+            , {
+              "type":"brief"
+              , "text":"Register,\n1 reg, 32 width by 1 depth,\n1 reg, 33 width by 1 depth"
+            }
+          ]
+        }
+        , {
+          "name":"vec_trans_bram.cpp:30 (A)"
+          , "type":"resource"
+          , "data":
+          [0, 0, 2, 0, 0]
+          , "debug":
+          [
+            [
+              {
+                "filename":"vec_trans_bram.cpp"
+                , "line":30
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Private memory":"Stall-free"
+              , "Requested size":"4000 bytes"
+              , "Implemented size":"4096 bytes"
+              , "Memory Usage":"2 RAMs"
+              , "Number of banks":"1"
+              , "Bank width":"32 bits"
+              , "Bank depth":"1024 words"
+              , "Number of replicates":"1"
+              , "Number of private copies":"1"
+              , "Additional information":
+              [
+                {
+                  "type":"text"
+                  , "text":"Requested size 4000 bytes, implemented size 4096 bytes, stall-free, 1 read and 1 write. "
+                }
+                , {
+                  "type":"text"
+                  , "text":"Private memory implemented in on-chip block RAM."
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information."
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Local Memory"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"brief"
+              , "text":"Stall-free,\n4000B requested,\n4096B implemented."
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B0"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"State"
+              , "type":"resource"
+              , "data":
+              [0, 34, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Live values and control logic"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for live values and control logic. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce size of local variables"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce scope of local variables, localizing them as much as possible"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce number of nested loops"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > vec_trans_bram.cpp:37"
+                  , "type":"resource"
+                  , "data":
+                  [0, 34, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                        , "line":37
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [8, 2, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [8, 2, 0, 0, 0]
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > vec_trans_bram.cpp:37"
+                  , "type":"resource"
+                  , "data":
+                  [102, 2, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                        , "line":37
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [70, 2, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [32, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B1"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"State"
+              , "type":"resource"
+              , "data":
+              [425, 613, 1, 0, 14]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Live values and control logic"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for live values and control logic. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce size of local variables"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce scope of local variables, localizing them as much as possible"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce number of nested loops"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [425, 613, 1, 0, 14]
+                }
+              ]
+            }
+            , {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [41, 30, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > vec_trans_bram.cpp:37"
+                  , "type":"resource"
+                  , "data":
+                  [32, 22, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                        , "line":37
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > vec_trans_bram.cpp:39"
+                  , "type":"resource"
+                  , "data":
+                  [9, 8, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                        , "line":39
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Cluster logic"
+              , "type":"resource"
+              , "data":
+              [44, 32, 5, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Logic required to efficiently support sets of operations that do not stall"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Logic required to efficiently support sets of operations that do not stall. This area cannot be affected directly."
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > vec_trans_bram.cpp:37"
+                  , "type":"resource"
+                  , "data":
+                  [50, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                        , "line":37
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [2, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":4
+                      , "data":
+                      [2, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"2-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [2, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"33-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [11, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"33-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [33, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > vec_trans_bram.cpp:38"
+                  , "type":"resource"
+                  , "data":
+                  [9, 8, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                        , "line":38
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Load"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [9, 8, 0, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load uses a Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Stall-free read from memory declared on %L."
+                          , "links":
+                          [
+                            {
+                              "filename":"vec_trans_bram.cpp"
+                              , "line":"30"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Load-Store Units"
+                              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > vec_trans_bram.cpp:39"
+                  , "type":"resource"
+                  , "data":
+                  [394, 464, 13, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                        , "line":39
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Load"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [360, 440, 13, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load uses a Prefetching LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Prefetching LSU"
+                        }
+                      ]
+                    }
+                    , {
+                      "name":"Store"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [34, 24, 0, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Store uses a Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Stall-free write to memory declared on %L."
+                          , "links":
+                          [
+                            {
+                              "filename":"vec_trans_bram.cpp"
+                              , "line":"30"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Load-Store Units"
+                              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > vec_trans_bram.cpp:40"
+                  , "type":"resource"
+                  , "data":
+                  [192, 0, 0, 9, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                        , "line":40
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Integer Multiply"
+                      , "type":"resource"
+                      , "count":6
+                      , "data":
+                      [192, 0, 0, 9, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > vec_trans_bram.cpp:42"
+                  , "type":"resource"
+                  , "data":
+                  [32, 0, 0, 1.5, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                        , "line":42
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Integer Multiply"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [32, 0, 0, 1.5, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B2"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [5, 8, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1170"
+                  , "type":"resource"
+                  , "data":
+                  [5, 8, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1170
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

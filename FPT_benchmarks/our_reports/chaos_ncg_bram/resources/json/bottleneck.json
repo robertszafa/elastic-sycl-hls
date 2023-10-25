@@ -1,0 +1,338 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"Feedback"
+      , "id":2128
+      , "src":"105"
+      , "dst":"1548"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":">.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Loop: ":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16chaos_ncg_kernelRNS1_5queueEiiiiiiRKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                  , "line":"110"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"216.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                  , "line":"306"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"<<(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                  , "line":"49"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                  , "line":"239"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"LD(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                  , "line":"119"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                  , "line":"50"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Sext(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                  , "line":"119"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Ptr. Comp.(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Feedback"
+          , "id":105
+          , "start":"1.00"
+          , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16chaos_ncg_kernelRNS1_5queueEiiiiiiRKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":107
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                , "line":119
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Ptr. Comp."
+          , "id":106
+          , "type":"inst"
+        }
+        , {
+          "name":"Sext"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                , "line":119
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"<<"
+          , "id":139
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                , "line":49
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":143
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":144
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                , "line":50
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":237
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":274
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                , "line":239
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":735
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":1063
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":1129
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":1533
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                , "line":306
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":1548
+          , "end":"2.00"
+          , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16chaos_ncg_kernelRNS1_5queueEiiiiiiRKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":105
+          , "to":106
+        }
+        , {
+          "from":107
+          , "to":139
+        }
+        , {
+          "from":139
+          , "to":143
+        }
+        , {
+          "from":143
+          , "to":144
+        }
+        , {
+          "from":105
+          , "to":1063
+        }
+        , {
+          "from":274
+          , "to":1063
+        }
+        , {
+          "from":1063
+          , "to":1548
+        }
+        , {
+          "from":105
+          , "to":1548
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

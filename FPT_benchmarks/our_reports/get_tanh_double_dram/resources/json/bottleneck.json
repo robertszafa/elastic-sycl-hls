@@ -1,0 +1,562 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"Feedback"
+      , "id":1001
+      , "src":"427"
+      , "dst":"840"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":">.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Loop: ":"_ZTS8LSQ_DRAMIN4sycl3_V13ext5intel4pipeIZ22get_tanh_double_kernelRNS1_5queueERSt6vectorIiSaIiEES9_S9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"485"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"And(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"596"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"596"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"633"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"662"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"639"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"639"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"639"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"639"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"639"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"641"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"596"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"633"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"641"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"667"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Xor(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                  , "line":"641"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Feedback"
+          , "id":427
+          , "start":"3.00"
+          , "parent":"_ZTS8LSQ_DRAMIN4sycl3_V13ext5intel4pipeIZ22get_tanh_double_kernelRNS1_5queueERSt6vectorIiSaIiEES9_S9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":667
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":558
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":639
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"And"
+          , "id":428
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":596
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":429
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":596
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":444
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":596
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":445
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":542
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":633
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":543
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":633
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":573
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":639
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":580
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":639
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":584
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":639
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":586
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":639
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":587
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":641
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":760
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":662
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Xor"
+          , "id":817
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":641
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":818
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":641
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":819
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":667
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":823
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":840
+          , "end":"4.00"
+          , "parent":"_ZTS8LSQ_DRAMIN4sycl3_V13ext5intel4pipeIZ22get_tanh_double_kernelRNS1_5queueERSt6vectorIiSaIiEES9_S9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_dram_elastic_pass_workdir/get_tanh_double_dram.ast.cpp"
+                , "line":667
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":427
+          , "to":428
+        }
+        , {
+          "from":428
+          , "to":429
+        }
+        , {
+          "from":429
+          , "to":444
+        }
+        , {
+          "from":444
+          , "to":445
+        }
+        , {
+          "from":542
+          , "to":543
+        }
+        , {
+          "from":558
+          , "to":573
+        }
+        , {
+          "from":573
+          , "to":580
+        }
+        , {
+          "from":580
+          , "to":584
+        }
+        , {
+          "from":584
+          , "to":586
+        }
+        , {
+          "from":586
+          , "to":587
+        }
+        , {
+          "from":445
+          , "to":760
+        }
+        , {
+          "from":587
+          , "to":817
+        }
+        , {
+          "from":760
+          , "to":818
+        }
+        , {
+          "from":817
+          , "to":818
+        }
+        , {
+          "from":427
+          , "to":819
+        }
+        , {
+          "from":818
+          , "to":819
+        }
+        , {
+          "from":760
+          , "to":823
+        }
+        , {
+          "from":819
+          , "to":840
+        }
+        , {
+          "from":427
+          , "to":840
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

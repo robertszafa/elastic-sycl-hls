@@ -1,0 +1,558 @@
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Sun Jun 25 11:59:29 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_timing -max_paths 10 -file ./report/loop_imperfect_timing_paths_routed.rpt
+| Design       : bd_0_wrapper
+| Device       : 7k160t-fbg484
+| Speed File   : -1  PRODUCTION 1.12 2017-02-17
+---------------------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             0.119ns  (required time - arrival time)
+  Source:                 bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[10]/D
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             ap_clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (ap_clk rise@4.000ns - ap_clk rise@0.000ns)
+  Data Path Delay:        3.863ns  (logic 0.859ns (22.235%)  route 3.004ns (77.765%))
+  Logic Levels:           3  (CARRY4=2 LUT1=1)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock ap_clk rise edge)     0.000     0.000 r  
+                                                      0.000     0.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.672     0.672    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X13Y98         FDRE                                         r  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X13Y98         FDRE (Prop_fdre_C_Q)         0.269     0.941 f  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/Q
+                         net (fo=135, routed)         3.004     3.945    bd_0_i/hls_inst/inst/phi_mul_reg_3242[6]
+    SLICE_X27Y93         LUT1 (Prop_lut1_I0_O)        0.053     3.998 r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967[8]_i_2/O
+                         net (fo=1, routed)           0.000     3.998    bd_0_i/hls_inst/inst/add_ln106_95_reg_10967[8]_i_2_n_1
+    SLICE_X27Y93         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.324     4.322 r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[8]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.322    bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[8]_i_1_n_1
+    SLICE_X27Y94         CARRY4 (Prop_carry4_CI_O[1])
+                                                      0.213     4.535 r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[12]_i_1/O[1]
+                         net (fo=1, routed)           0.000     4.535    bd_0_i/hls_inst/inst/add_ln106_95_fu_5809_p2[10]
+    SLICE_X27Y94         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[10]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock ap_clk rise edge)     4.000     4.000 r  
+                                                      0.000     4.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.638     4.638    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X27Y94         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[10]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+    SLICE_X27Y94         FDRE (Setup_fdre_C_D)        0.051     4.654    bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[10]
+  -------------------------------------------------------------------
+                         required time                          4.654    
+                         arrival time                          -4.535    
+  -------------------------------------------------------------------
+                         slack                                  0.119    
+
+Slack (MET) :             0.125ns  (required time - arrival time)
+  Source:                 bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[10]/D
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             ap_clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (ap_clk rise@4.000ns - ap_clk rise@0.000ns)
+  Data Path Delay:        3.857ns  (logic 0.859ns (22.273%)  route 2.998ns (77.728%))
+  Logic Levels:           3  (CARRY4=2 LUT1=1)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock ap_clk rise edge)     0.000     0.000 r  
+                                                      0.000     0.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.672     0.672    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X13Y98         FDRE                                         r  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X13Y98         FDRE (Prop_fdre_C_Q)         0.269     0.941 f  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/Q
+                         net (fo=135, routed)         2.998     3.939    bd_0_i/hls_inst/inst/phi_mul_reg_3242[6]
+    SLICE_X33Y85         LUT1 (Prop_lut1_I0_O)        0.053     3.992 r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992[8]_i_2/O
+                         net (fo=1, routed)           0.000     3.992    bd_0_i/hls_inst/inst/add_ln106_64_reg_9992[8]_i_2_n_1
+    SLICE_X33Y85         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.324     4.316 r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[8]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.316    bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[8]_i_1_n_1
+    SLICE_X33Y86         CARRY4 (Prop_carry4_CI_O[1])
+                                                      0.213     4.529 r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[12]_i_1/O[1]
+                         net (fo=1, routed)           0.000     4.529    bd_0_i/hls_inst/inst/add_ln106_64_fu_5061_p2[10]
+    SLICE_X33Y86         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[10]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock ap_clk rise edge)     4.000     4.000 r  
+                                                      0.000     4.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.638     4.638    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X33Y86         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[10]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+    SLICE_X33Y86         FDRE (Setup_fdre_C_D)        0.051     4.654    bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[10]
+  -------------------------------------------------------------------
+                         required time                          4.654    
+                         arrival time                          -4.529    
+  -------------------------------------------------------------------
+                         slack                                  0.125    
+
+Slack (MET) :             0.132ns  (required time - arrival time)
+  Source:                 bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[10]/D
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             ap_clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (ap_clk rise@4.000ns - ap_clk rise@0.000ns)
+  Data Path Delay:        3.850ns  (logic 0.859ns (22.309%)  route 2.991ns (77.691%))
+  Logic Levels:           3  (CARRY4=2 LUT1=1)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock ap_clk rise edge)     0.000     0.000 r  
+                                                      0.000     0.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.672     0.672    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X13Y98         FDRE                                         r  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X13Y98         FDRE (Prop_fdre_C_Q)         0.269     0.941 f  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/Q
+                         net (fo=135, routed)         2.991     3.932    bd_0_i/hls_inst/inst/phi_mul_reg_3242[6]
+    SLICE_X36Y90         LUT1 (Prop_lut1_I0_O)        0.053     3.985 r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862[8]_i_2/O
+                         net (fo=1, routed)           0.000     3.985    bd_0_i/hls_inst/inst/add_ln106_60_reg_9862[8]_i_2_n_1
+    SLICE_X36Y90         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.324     4.309 r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[8]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.309    bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[8]_i_1_n_1
+    SLICE_X36Y91         CARRY4 (Prop_carry4_CI_O[1])
+                                                      0.213     4.522 r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[12]_i_1/O[1]
+                         net (fo=1, routed)           0.000     4.522    bd_0_i/hls_inst/inst/add_ln106_60_fu_4964_p2[10]
+    SLICE_X36Y91         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[10]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock ap_clk rise edge)     4.000     4.000 r  
+                                                      0.000     4.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.638     4.638    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X36Y91         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[10]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+    SLICE_X36Y91         FDRE (Setup_fdre_C_D)        0.051     4.654    bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[10]
+  -------------------------------------------------------------------
+                         required time                          4.654    
+                         arrival time                          -4.522    
+  -------------------------------------------------------------------
+                         slack                                  0.132    
+
+Slack (MET) :             0.135ns  (required time - arrival time)
+  Source:                 bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[13]/D
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             ap_clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (ap_clk rise@4.000ns - ap_clk rise@0.000ns)
+  Data Path Delay:        3.847ns  (logic 0.843ns (21.912%)  route 3.004ns (78.088%))
+  Logic Levels:           4  (CARRY4=3 LUT1=1)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock ap_clk rise edge)     0.000     0.000 r  
+                                                      0.000     0.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.672     0.672    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X13Y98         FDRE                                         r  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X13Y98         FDRE (Prop_fdre_C_Q)         0.269     0.941 f  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/Q
+                         net (fo=135, routed)         3.004     3.945    bd_0_i/hls_inst/inst/phi_mul_reg_3242[6]
+    SLICE_X27Y93         LUT1 (Prop_lut1_I0_O)        0.053     3.998 r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967[8]_i_2/O
+                         net (fo=1, routed)           0.000     3.998    bd_0_i/hls_inst/inst/add_ln106_95_reg_10967[8]_i_2_n_1
+    SLICE_X27Y93         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.324     4.322 r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[8]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.322    bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[8]_i_1_n_1
+    SLICE_X27Y94         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.058     4.380 r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[12]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.380    bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[12]_i_1_n_1
+    SLICE_X27Y95         CARRY4 (Prop_carry4_CI_O[0])
+                                                      0.139     4.519 r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[13]_i_1/O[0]
+                         net (fo=1, routed)           0.000     4.519    bd_0_i/hls_inst/inst/add_ln106_95_fu_5809_p2[13]
+    SLICE_X27Y95         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[13]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock ap_clk rise edge)     4.000     4.000 r  
+                                                      0.000     4.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.638     4.638    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X27Y95         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[13]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+    SLICE_X27Y95         FDRE (Setup_fdre_C_D)        0.051     4.654    bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[13]
+  -------------------------------------------------------------------
+                         required time                          4.654    
+                         arrival time                          -4.519    
+  -------------------------------------------------------------------
+                         slack                                  0.135    
+
+Slack (MET) :             0.135ns  (required time - arrival time)
+  Source:                 bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            bd_0_i/hls_inst/inst/add_ln106_78_reg_10442_reg[13]/D
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             ap_clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (ap_clk rise@4.000ns - ap_clk rise@0.000ns)
+  Data Path Delay:        3.847ns  (logic 0.828ns (21.522%)  route 3.019ns (78.478%))
+  Logic Levels:           4  (CARRY4=3 LUT1=1)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock ap_clk rise edge)     0.000     0.000 r  
+                                                      0.000     0.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.672     0.672    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X13Y98         FDRE                                         r  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X13Y98         FDRE (Prop_fdre_C_Q)         0.269     0.941 f  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/Q
+                         net (fo=135, routed)         3.019     3.960    bd_0_i/hls_inst/inst/phi_mul_reg_3242[6]
+    SLICE_X39Y84         LUT1 (Prop_lut1_I0_O)        0.053     4.013 r  bd_0_i/hls_inst/inst/add_ln106_78_reg_10442[7]_i_2/O
+                         net (fo=1, routed)           0.000     4.013    bd_0_i/hls_inst/inst/add_ln106_78_reg_10442[7]_i_2_n_1
+    SLICE_X39Y84         CARRY4 (Prop_carry4_S[2]_CO[3])
+                                                      0.235     4.248 r  bd_0_i/hls_inst/inst/add_ln106_78_reg_10442_reg[7]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.248    bd_0_i/hls_inst/inst/add_ln106_78_reg_10442_reg[7]_i_1_n_1
+    SLICE_X39Y85         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.058     4.306 r  bd_0_i/hls_inst/inst/add_ln106_78_reg_10442_reg[11]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.306    bd_0_i/hls_inst/inst/add_ln106_78_reg_10442_reg[11]_i_1_n_1
+    SLICE_X39Y86         CARRY4 (Prop_carry4_CI_O[1])
+                                                      0.213     4.519 r  bd_0_i/hls_inst/inst/add_ln106_78_reg_10442_reg[13]_i_1/O[1]
+                         net (fo=1, routed)           0.000     4.519    bd_0_i/hls_inst/inst/add_ln106_78_fu_5415_p2[13]
+    SLICE_X39Y86         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_78_reg_10442_reg[13]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock ap_clk rise edge)     4.000     4.000 r  
+                                                      0.000     4.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.638     4.638    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X39Y86         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_78_reg_10442_reg[13]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+    SLICE_X39Y86         FDRE (Setup_fdre_C_D)        0.051     4.654    bd_0_i/hls_inst/inst/add_ln106_78_reg_10442_reg[13]
+  -------------------------------------------------------------------
+                         required time                          4.654    
+                         arrival time                          -4.519    
+  -------------------------------------------------------------------
+                         slack                                  0.135    
+
+Slack (MET) :             0.141ns  (required time - arrival time)
+  Source:                 bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[13]/D
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             ap_clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (ap_clk rise@4.000ns - ap_clk rise@0.000ns)
+  Data Path Delay:        3.841ns  (logic 0.843ns (21.949%)  route 2.998ns (78.051%))
+  Logic Levels:           4  (CARRY4=3 LUT1=1)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock ap_clk rise edge)     0.000     0.000 r  
+                                                      0.000     0.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.672     0.672    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X13Y98         FDRE                                         r  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X13Y98         FDRE (Prop_fdre_C_Q)         0.269     0.941 f  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/Q
+                         net (fo=135, routed)         2.998     3.939    bd_0_i/hls_inst/inst/phi_mul_reg_3242[6]
+    SLICE_X33Y85         LUT1 (Prop_lut1_I0_O)        0.053     3.992 r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992[8]_i_2/O
+                         net (fo=1, routed)           0.000     3.992    bd_0_i/hls_inst/inst/add_ln106_64_reg_9992[8]_i_2_n_1
+    SLICE_X33Y85         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.324     4.316 r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[8]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.316    bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[8]_i_1_n_1
+    SLICE_X33Y86         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.058     4.374 r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[12]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.374    bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[12]_i_1_n_1
+    SLICE_X33Y87         CARRY4 (Prop_carry4_CI_O[0])
+                                                      0.139     4.513 r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[13]_i_1/O[0]
+                         net (fo=1, routed)           0.000     4.513    bd_0_i/hls_inst/inst/add_ln106_64_fu_5061_p2[13]
+    SLICE_X33Y87         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[13]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock ap_clk rise edge)     4.000     4.000 r  
+                                                      0.000     4.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.638     4.638    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X33Y87         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[13]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+    SLICE_X33Y87         FDRE (Setup_fdre_C_D)        0.051     4.654    bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[13]
+  -------------------------------------------------------------------
+                         required time                          4.654    
+                         arrival time                          -4.513    
+  -------------------------------------------------------------------
+                         slack                                  0.141    
+
+Slack (MET) :             0.148ns  (required time - arrival time)
+  Source:                 bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[13]/D
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             ap_clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (ap_clk rise@4.000ns - ap_clk rise@0.000ns)
+  Data Path Delay:        3.834ns  (logic 0.843ns (21.985%)  route 2.991ns (78.015%))
+  Logic Levels:           4  (CARRY4=3 LUT1=1)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock ap_clk rise edge)     0.000     0.000 r  
+                                                      0.000     0.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.672     0.672    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X13Y98         FDRE                                         r  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X13Y98         FDRE (Prop_fdre_C_Q)         0.269     0.941 f  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/Q
+                         net (fo=135, routed)         2.991     3.932    bd_0_i/hls_inst/inst/phi_mul_reg_3242[6]
+    SLICE_X36Y90         LUT1 (Prop_lut1_I0_O)        0.053     3.985 r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862[8]_i_2/O
+                         net (fo=1, routed)           0.000     3.985    bd_0_i/hls_inst/inst/add_ln106_60_reg_9862[8]_i_2_n_1
+    SLICE_X36Y90         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.324     4.309 r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[8]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.309    bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[8]_i_1_n_1
+    SLICE_X36Y91         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.058     4.367 r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[12]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.367    bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[12]_i_1_n_1
+    SLICE_X36Y92         CARRY4 (Prop_carry4_CI_O[0])
+                                                      0.139     4.506 r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[13]_i_1/O[0]
+                         net (fo=1, routed)           0.000     4.506    bd_0_i/hls_inst/inst/add_ln106_60_fu_4964_p2[13]
+    SLICE_X36Y92         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[13]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock ap_clk rise edge)     4.000     4.000 r  
+                                                      0.000     4.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.638     4.638    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X36Y92         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[13]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+    SLICE_X36Y92         FDRE (Setup_fdre_C_D)        0.051     4.654    bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[13]
+  -------------------------------------------------------------------
+                         required time                          4.654    
+                         arrival time                          -4.506    
+  -------------------------------------------------------------------
+                         slack                                  0.148    
+
+Slack (MET) :             0.153ns  (required time - arrival time)
+  Source:                 bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[12]/D
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             ap_clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (ap_clk rise@4.000ns - ap_clk rise@0.000ns)
+  Data Path Delay:        3.829ns  (logic 0.825ns (21.545%)  route 3.004ns (78.455%))
+  Logic Levels:           3  (CARRY4=2 LUT1=1)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock ap_clk rise edge)     0.000     0.000 r  
+                                                      0.000     0.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.672     0.672    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X13Y98         FDRE                                         r  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X13Y98         FDRE (Prop_fdre_C_Q)         0.269     0.941 f  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/Q
+                         net (fo=135, routed)         3.004     3.945    bd_0_i/hls_inst/inst/phi_mul_reg_3242[6]
+    SLICE_X27Y93         LUT1 (Prop_lut1_I0_O)        0.053     3.998 r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967[8]_i_2/O
+                         net (fo=1, routed)           0.000     3.998    bd_0_i/hls_inst/inst/add_ln106_95_reg_10967[8]_i_2_n_1
+    SLICE_X27Y93         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.324     4.322 r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[8]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.322    bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[8]_i_1_n_1
+    SLICE_X27Y94         CARRY4 (Prop_carry4_CI_O[3])
+                                                      0.179     4.501 r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[12]_i_1/O[3]
+                         net (fo=1, routed)           0.000     4.501    bd_0_i/hls_inst/inst/add_ln106_95_fu_5809_p2[12]
+    SLICE_X27Y94         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[12]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock ap_clk rise edge)     4.000     4.000 r  
+                                                      0.000     4.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.638     4.638    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X27Y94         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[12]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+    SLICE_X27Y94         FDRE (Setup_fdre_C_D)        0.051     4.654    bd_0_i/hls_inst/inst/add_ln106_95_reg_10967_reg[12]
+  -------------------------------------------------------------------
+                         required time                          4.654    
+                         arrival time                          -4.501    
+  -------------------------------------------------------------------
+                         slack                                  0.153    
+
+Slack (MET) :             0.159ns  (required time - arrival time)
+  Source:                 bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[12]/D
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             ap_clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (ap_clk rise@4.000ns - ap_clk rise@0.000ns)
+  Data Path Delay:        3.823ns  (logic 0.825ns (21.581%)  route 2.998ns (78.419%))
+  Logic Levels:           3  (CARRY4=2 LUT1=1)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock ap_clk rise edge)     0.000     0.000 r  
+                                                      0.000     0.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.672     0.672    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X13Y98         FDRE                                         r  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X13Y98         FDRE (Prop_fdre_C_Q)         0.269     0.941 f  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/Q
+                         net (fo=135, routed)         2.998     3.939    bd_0_i/hls_inst/inst/phi_mul_reg_3242[6]
+    SLICE_X33Y85         LUT1 (Prop_lut1_I0_O)        0.053     3.992 r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992[8]_i_2/O
+                         net (fo=1, routed)           0.000     3.992    bd_0_i/hls_inst/inst/add_ln106_64_reg_9992[8]_i_2_n_1
+    SLICE_X33Y85         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.324     4.316 r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[8]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.316    bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[8]_i_1_n_1
+    SLICE_X33Y86         CARRY4 (Prop_carry4_CI_O[3])
+                                                      0.179     4.495 r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[12]_i_1/O[3]
+                         net (fo=1, routed)           0.000     4.495    bd_0_i/hls_inst/inst/add_ln106_64_fu_5061_p2[12]
+    SLICE_X33Y86         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[12]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock ap_clk rise edge)     4.000     4.000 r  
+                                                      0.000     4.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.638     4.638    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X33Y86         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[12]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+    SLICE_X33Y86         FDRE (Setup_fdre_C_D)        0.051     4.654    bd_0_i/hls_inst/inst/add_ln106_64_reg_9992_reg[12]
+  -------------------------------------------------------------------
+                         required time                          4.654    
+                         arrival time                          -4.495    
+  -------------------------------------------------------------------
+                         slack                                  0.159    
+
+Slack (MET) :             0.166ns  (required time - arrival time)
+  Source:                 bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[12]/D
+                            (rising edge-triggered cell FDRE clocked by ap_clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             ap_clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (ap_clk rise@4.000ns - ap_clk rise@0.000ns)
+  Data Path Delay:        3.816ns  (logic 0.825ns (21.617%)  route 2.991ns (78.383%))
+  Logic Levels:           3  (CARRY4=2 LUT1=1)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock ap_clk rise edge)     0.000     0.000 r  
+                                                      0.000     0.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.672     0.672    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X13Y98         FDRE                                         r  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X13Y98         FDRE (Prop_fdre_C_Q)         0.269     0.941 f  bd_0_i/hls_inst/inst/phi_mul_reg_3242_reg[6]/Q
+                         net (fo=135, routed)         2.991     3.932    bd_0_i/hls_inst/inst/phi_mul_reg_3242[6]
+    SLICE_X36Y90         LUT1 (Prop_lut1_I0_O)        0.053     3.985 r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862[8]_i_2/O
+                         net (fo=1, routed)           0.000     3.985    bd_0_i/hls_inst/inst/add_ln106_60_reg_9862[8]_i_2_n_1
+    SLICE_X36Y90         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.324     4.309 r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[8]_i_1/CO[3]
+                         net (fo=1, routed)           0.000     4.309    bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[8]_i_1_n_1
+    SLICE_X36Y91         CARRY4 (Prop_carry4_CI_O[3])
+                                                      0.179     4.488 r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[12]_i_1/O[3]
+                         net (fo=1, routed)           0.000     4.488    bd_0_i/hls_inst/inst/add_ln106_60_fu_4964_p2[12]
+    SLICE_X36Y91         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[12]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock ap_clk rise edge)     4.000     4.000 r  
+                                                      0.000     4.000 r  ap_clk (IN)
+                         net (fo=3029, unset)         0.638     4.638    bd_0_i/hls_inst/inst/ap_clk
+    SLICE_X36Y91         FDRE                                         r  bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[12]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+    SLICE_X36Y91         FDRE (Setup_fdre_C_D)        0.051     4.654    bd_0_i/hls_inst/inst/add_ln106_60_reg_9862_reg[12]
+  -------------------------------------------------------------------
+                         required time                          4.654    
+                         arrival time                          -4.488    
+  -------------------------------------------------------------------
+                         slack                                  0.166    
+
+
+
+

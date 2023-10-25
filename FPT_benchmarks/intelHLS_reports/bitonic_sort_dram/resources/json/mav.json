@@ -1,0 +1,567 @@
+{
+  "nodes":
+  [
+    {
+      "type":"kernel"
+      , "id":2
+      , "name":"MainKernel"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":3
+          , "name":"MainKernel.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":4
+          , "name":"MainKernel.B1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+              , "II":"n/a"
+              , "Subloops":"Yes"
+              , "Pipelined":"No"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Entry to loop. "
+              , "Loops To":"7"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":5
+          , "name":"MainKernel.B2"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Exit which branches back to loop. "
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":6
+          , "name":"MainKernel.B3"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"6"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Entry to loop. "
+              , "Loops To":"5"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":7
+          , "name":"MainKernel.B4"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"1"
+              , "II":"n/a"
+              , "Subloops":"Yes"
+              , "Pipelined":"No"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Exit which branches back to loop. "
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":8
+          , "name":"MainKernel.B5"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":10
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                    , "line":33
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Loads from":"_arg_A"
+                  , "Start Cycle":"3"
+                  , "Latency":"238"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":11
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                    , "line":34
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"3"
+                  , "Latency":"238"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":12
+              , "name":"Store"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                    , "line":39
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Stores to":"_arg_A"
+                  , "Start Cycle":"243"
+                  , "Latency":"74"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":13
+              , "name":"Store"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                    , "line":40
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"317"
+                  , "Latency":"74"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":14
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                    , "line":29
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"15"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":15
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"391"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"391"
+              , "II":"389"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Loop is pipelined with II of 389. See Loops Analysis for more information."
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":9
+          , "name":"MainKernel.B6"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":16
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"bitonic_sort_dram_fpga_hw.prj/ZTS10MainKernel_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":17
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                    , "line":23
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":18
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                    , "line":23
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":19
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                    , "line":23
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":20
+              , "name":"arg_kN"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                    , "line":23
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"32 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":21
+              , "name":"arg_A"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                    , "line":23
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"memtype"
+      , "id":1
+      , "name":"Global Memory"
+      , "children":
+      [
+        {
+          "type":"memsys"
+          , "id":22
+          , "name":"DDR"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Number of banks":"2"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":17
+      , "to":3
+    }
+    , {
+      "from":9
+      , "to":18
+    }
+    , {
+      "from":3
+      , "to":19
+      , "reverse":2
+    }
+    , {
+      "from":20
+      , "to":3
+    }
+    , {
+      "from":21
+      , "to":14
+    }
+    , {
+      "from":7
+      , "to":4
+    }
+    , {
+      "from":3
+      , "to":4
+    }
+    , {
+      "from":15
+      , "to":5
+    }
+    , {
+      "from":5
+      , "to":6
+    }
+    , {
+      "from":4
+      , "to":6
+    }
+    , {
+      "from":5
+      , "to":7
+    }
+    , {
+      "from":15
+      , "to":14
+    }
+    , {
+      "from":6
+      , "to":14
+    }
+    , {
+      "from":13
+      , "to":15
+    }
+    , {
+      "from":10
+      , "to":15
+    }
+    , {
+      "from":11
+      , "to":15
+    }
+    , {
+      "from":12
+      , "to":15
+    }
+    , {
+      "from":7
+      , "to":9
+    }
+    , {
+      "from":14
+      , "to":10
+    }
+    , {
+      "from":14
+      , "to":11
+    }
+    , {
+      "from":11
+      , "to":12
+    }
+    , {
+      "from":10
+      , "to":12
+    }
+    , {
+      "from":10
+      , "to":13
+    }
+    , {
+      "from":11
+      , "to":13
+    }
+    , {
+      "from":12
+      , "to":13
+    }
+    , {
+      "from":22
+      , "to":10
+    }
+    , {
+      "from":22
+      , "to":11
+    }
+    , {
+      "from":12
+      , "to":22
+    }
+    , {
+      "from":13
+      , "to":22
+    }
+  ]
+}

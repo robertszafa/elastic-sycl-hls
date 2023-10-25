@@ -1,0 +1,22 @@
+INFO: [SIM 2] *************** CSIM start ***************
+INFO: [SIM 4] CSIM will launch GCC as the compiler.
+   Compiling(apcc) ../../../../loop_imperfect_test.c in release mode
+INFO: [HLS 200-10] Running '/home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/apcc'
+INFO: [HLS 200-10] For user 'dynamatic' on host 'dynamatic-VirtualBox' (Linux_x86_64 version 5.3.0-51-generic) on Fri Apr 28 15:59:46 CEST 2023
+INFO: [HLS 200-10] On os Ubuntu 18.04.3 LTS
+INFO: [HLS 200-10] In directory '/home/dynamatic/loop_imperfect/proj_loop_imperfect/solution1/csim/build'
+../../../../loop_imperfect_test.c:109:24: error: too few arguments to function call, expected 3, have 2
+    loop_imperfect(A, B);
+    ~~~~~~~~~~~~~~     ^
+../../../../loop_imperfect.h:104:1: note: 'loop_imperfect' declared here
+void loop_imperfect(din_t A[N], dout_t B[N], din_t W[N]);
+^
+1 error generated.
+ERROR: [APCC 202-10] clang compile failed: child process exited abnormally
+ERROR: [APCC 202-1] ProcessSources failed
+INFO: [APCC 202-3] Tmp directory is /tmp/apcc_db_dynamatic/196281682690386485445
+ERROR: [APCC 202-1] APCC failed.
+csim.mk:77: recipe for target 'obj/loop_imperfect_test.o' failed
+make: *** [obj/loop_imperfect_test.o] Error 1
+ERR: [SIM 100] 'csim_design' failed: compilation error(s).
+INFO: [SIM 3] *************** CSIM finish ***************

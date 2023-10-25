@@ -1,0 +1,78 @@
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Delay Type: max.
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 1 -nworst 1 -delay_type max -sort_by slack.
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Sat Jun 24 07:02:37 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_timing
+| Design       : vecTrans
+| Device       : 7k160t-fbg484
+| Speed File   : -1  PRODUCTION 1.12 2017-02-17
+------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (VIOLATED) :        -6.274ns  (required time - arrival time)
+  Source:                 c_LSQ_A/loadQ/conflictPReg_30_27_reg/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            c_LSQ_A/loadQ/dataQ_30_reg[5]/D
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (clk rise@4.000ns - clk rise@0.000ns)
+  Data Path Delay:        9.758ns  (logic 0.867ns (8.885%)  route 8.891ns (91.115%))
+  Logic Levels:           7  (LUT3=1 LUT4=2 LUT5=1 LUT6=2 MUXF7=1)
+  Clock Path Skew:        -0.552ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    1.281ns = ( 5.281 - 4.000 ) 
+    Source Clock Delay      (SCD):    1.843ns
+    Clock Pessimism Removal (CPR):    0.010ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=9274, unset)         1.843     1.843    c_LSQ_A/loadQ/clk
+    SLICE_X21Y38         FDRE                                         r  c_LSQ_A/loadQ/conflictPReg_30_27_reg/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X21Y38         FDRE (Prop_fdre_C_Q)         0.269     2.112 f  c_LSQ_A/loadQ/conflictPReg_30_27_reg/Q
+                         net (fo=6, routed)           0.582     2.694    c_LSQ_A/loadQ/conflictPReg_30_27
+    SLICE_X23Y40         LUT4 (Prop_lut4_I2_O)        0.053     2.747 f  c_LSQ_A/loadQ/dataQ_30[31]_i_69/O
+                         net (fo=2, routed)           0.406     3.153    c_LSQ_A/loadQ/dataQ_30[31]_i_69_n_0
+    SLICE_X21Y46         LUT6 (Prop_lut6_I4_O)        0.053     3.206 r  c_LSQ_A/loadQ/dataQ_30[31]_i_42/O
+                         net (fo=4, routed)           0.422     3.628    c_LSQ_A/loadQ/dataQ_30[31]_i_42_n_0
+    SLICE_X22Y46         LUT4 (Prop_lut4_I0_O)        0.053     3.681 r  c_LSQ_A/loadQ/dataQ_30[31]_i_14__0/O
+                         net (fo=8, routed)           1.116     4.797    c_LSQ_A/loadQ/dataQ_30[31]_i_14__0_n_0
+    SLICE_X21Y67         LUT5 (Prop_lut5_I3_O)        0.053     4.850 r  c_LSQ_A/loadQ/dataQ_30[31]_i_16/O
+                         net (fo=146, routed)         4.593     9.443    c_LSQ_A/loadQ/dataQ_30[31]_i_33_n_0
+    SLICE_X78Y157        MUXF7 (Prop_muxf7_S_O)       0.183     9.626 r  c_LSQ_A/loadQ/dataQ_30_reg[5]_i_5/O
+                         net (fo=1, routed)           0.616    10.242    c_LSQ_A/loadQ/dataQ_30_reg[5]_i_5_n_0
+    SLICE_X74Y151        LUT6 (Prop_lut6_I3_O)        0.150    10.392 r  c_LSQ_A/loadQ/dataQ_30[5]_i_2/O
+                         net (fo=1, routed)           1.156    11.548    c_LSQ_A/loadQ/dataQ_30[5]_i_2_n_0
+    SLICE_X50Y137        LUT3 (Prop_lut3_I0_O)        0.053    11.601 r  c_LSQ_A/loadQ/dataQ_30[5]_i_1/O
+                         net (fo=1, routed)           0.000    11.601    c_LSQ_A/loadQ/dataQ_30[5]_i_1_n_0
+    SLICE_X50Y137        FDRE                                         r  c_LSQ_A/loadQ/dataQ_30_reg[5]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        4.000     4.000 r  
+                                                      0.000     4.000 r  clk (IN)
+                         net (fo=9274, unset)         1.281     5.281    c_LSQ_A/loadQ/clk
+    SLICE_X50Y137        FDRE                                         r  c_LSQ_A/loadQ/dataQ_30_reg[5]/C
+                         clock pessimism              0.010     5.291    
+                         clock uncertainty           -0.035     5.256    
+    SLICE_X50Y137        FDRE (Setup_fdre_C_D)        0.071     5.327    c_LSQ_A/loadQ/dataQ_30_reg[5]
+  -------------------------------------------------------------------
+                         required time                          5.327    
+                         arrival time                         -11.601    
+  -------------------------------------------------------------------
+                         slack                                 -6.274    
+
+
+
+
+report_timing: Time (s): cpu = 00:00:17 ; elapsed = 00:00:36 . Memory (MB): peak = 3559.770 ; gain = 0.000 ; free physical = 4526 ; free virtual = 8647

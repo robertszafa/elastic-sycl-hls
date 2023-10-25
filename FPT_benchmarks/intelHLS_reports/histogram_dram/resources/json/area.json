@@ -1,0 +1,678 @@
+{
+  "columns":
+  ["", "ALUTs", "FFs", "RAMs", "DSPs", "MLABs", "Details"]
+  , "debug_enabled":"true"
+  , "type":"module"
+  , "total_percent":
+  [43.4035, 22.5623, 22.1874, 22.3738, 8.10277]
+  , "total":
+  [191952, 379138, 607, 123, 41]
+  , "name":"Kernel System"
+  , "max_resources":
+  [854400, 1708800, 2713, 1518, 42720]
+  , "children":
+  [
+    {
+      "name":"Static Partition"
+      , "type":"partition"
+      , "children":
+      [
+        {
+          "name":"Board interface"
+          , "type":"resource"
+          , "data":
+          [179950, 358572, 492, 123, 0]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Platform interface logic."
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"Global interconnect"
+      , "type":"resource"
+      , "data":
+      [8779, 12545, 78, 0, 0]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"Global interconnect for 2 global loads and 1 global store. Reduce number of global loads and stores to simplify global interconnect."
+        }
+        , {
+          "type":"brief"
+          , "text":"For 2 global loads and 1 global store."
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Global Memory Interconnect"
+              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/hnj1476724450050.html"
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"System description ROM"
+      , "type":"resource"
+      , "data":
+      [0, 67, 2, 0, 0]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"This read-only memory contains information for the host about the system and about each kernel in the system, including kernel names, arguments, and attributes. The system description ROM ensures that the binary image on the FPGA is compatible with the host program."
+        }
+        , {
+          "type":"brief"
+          , "text":"Contains information for the host."
+        }
+      ]
+    }
+    , {
+      "name":"MainKernel"
+      , "compute_units":1
+      , "type":"function"
+      , "total_percent":
+      [0.910453, 0.473198, 0.465473, 1.29008, 0]
+      , "total_kernel_resources":
+      [3223, 7954, 35, 0, 41]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"Number of compute units: 1"
+        }
+        , {
+          "type":"brief"
+          , "text":"1 compute unit."
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"Function overhead"
+          , "type":"resource"
+          , "data":
+          [1338, 2411, 0, 0, 10]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Kernel dispatch logic."
+            }
+            , {
+              "type":"brief"
+              , "text":"Kernel dispatch logic."
+            }
+          ]
+        }
+        , {
+          "name":"Private Variable: \n - 'i' (histogram_dram.cpp:26)"
+          , "type":"resource"
+          , "data":
+          [85, 416, 0, 0, 0]
+          , "debug":
+          [
+            [
+              {
+                "filename":"histogram_dram.cpp"
+                , "line":26
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Type: Register"
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 32 bits and depth 4"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":" Depth was increased by a factor of 280 due to a loop initiation interval of 280."
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 33 bits and depth 4"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":" Depth was increased by a factor of 280 due to a loop initiation interval of 280."
+                }
+              ]
+            }
+            , {
+              "type":"brief"
+              , "text":"Register,\n1 reg, 32 width by 4 depth,\n1 reg, 33 width by 4 depth"
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B0"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"State"
+              , "type":"resource"
+              , "data":
+              [0, 34, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Live values and control logic"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for live values and control logic. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce size of local variables"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce scope of local variables, localizing them as much as possible"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce number of nested loops"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > histogram_dram.cpp:26"
+                  , "type":"resource"
+                  , "data":
+                  [0, 34, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/histogram_dram.cpp"
+                        , "line":26
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [8, 2, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [8, 2, 0, 0, 0]
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > histogram_dram.cpp:26"
+                  , "type":"resource"
+                  , "data":
+                  [102, 2, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/histogram_dram.cpp"
+                        , "line":26
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [70, 2, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [32, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B1"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"State"
+              , "type":"resource"
+              , "data":
+              [152, 166, 6, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Live values and control logic"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for live values and control logic. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce size of local variables"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce scope of local variables, localizing them as much as possible"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce number of nested loops"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [152, 166, 6, 0, 0]
+                }
+              ]
+            }
+            , {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [186, 179, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > histogram_dram.cpp:26"
+                  , "type":"resource"
+                  , "data":
+                  [165, 165, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/histogram_dram.cpp"
+                        , "line":26
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > histogram_dram.cpp:29"
+                  , "type":"resource"
+                  , "data":
+                  [21, 14, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/histogram_dram.cpp"
+                        , "line":29
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > histogram_dram.cpp:26"
+                  , "type":"resource"
+                  , "data":
+                  [80.6667, 30, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/histogram_dram.cpp"
+                        , "line":26
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [2, 1, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":4
+                      , "data":
+                      [1.66667, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"2-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [2, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"33-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [11, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"33-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [33, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"FFwd Destination"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [18, 18, 0, 0, 0]
+                    }
+                    , {
+                      "name":"Iteration Initiation"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [13, 11, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > histogram_dram.cpp:27"
+                  , "type":"resource"
+                  , "data":
+                  [360.333, 440, 13, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/histogram_dram.cpp"
+                        , "line":27
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [0.333333, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"Load"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [360, 440, 13, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load uses a Prefetching LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Prefetching LSU"
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > histogram_dram.cpp:28"
+                  , "type":"resource"
+                  , "data":
+                  [504, 2050, 15, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/histogram_dram.cpp"
+                        , "line":28
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Load"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [504, 2050, 15, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load uses a Burst-coalesced LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Burst-coalesced LSU"
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > histogram_dram.cpp:29"
+                  , "type":"resource"
+                  , "data":
+                  [402, 2216, 1, 0, 31]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/histogram_dram.cpp"
+                        , "line":29
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Store"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [402, 2216, 1, 0, 31]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Store uses a Burst-coalesced LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Burst-coalesced LSU"
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B2"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [5, 8, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1170"
+                  , "type":"resource"
+                  , "data":
+                  [5, 8, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1170
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

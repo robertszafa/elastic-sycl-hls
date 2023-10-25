@@ -86,6 +86,13 @@ def parse_report(report_fname):
 
         if "mainKernelName" not in report:
             exit("Analysis report is empty.")
+        
+        if os.environ.get('LSQ_SIZE') is not None:
+            new_size = int(os.environ["LSQ_SIZE"])
+            print(f"LSQ allocationQueueSize overiden by env varirable LSQ_SIZE to {new_size}")
+            for _, lsq_info in enumerate(report['lsqArray']):
+                lsq_info['allocationQueueSize'] = new_size
+
         return report
     except Exception as e:
         exit("Error parsing analysis report " + report_fname)

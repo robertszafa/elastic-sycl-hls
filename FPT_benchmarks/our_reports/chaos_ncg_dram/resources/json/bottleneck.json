@@ -1,0 +1,367 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"Feedback"
+      , "id":2997
+      , "src":"305"
+      , "dst":"2420"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":">.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Loop: ":"_ZTS8LSQ_DRAMIN4sycl3_V13ext5intel4pipeIZ16chaos_ncg_kernelRNS1_5queueEiiiiiiRKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                  , "line":"485"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"RD(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                  , "line":"32"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                  , "line":"32"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"And(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                  , "line":"561"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                  , "line":"561"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                  , "line":"552"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                  , "line":"561"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                  , "line":"566"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                  , "line":"566"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Xor(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                  , "line":"561"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Feedback"
+          , "id":305
+          , "start":"3.00"
+          , "parent":"_ZTS8LSQ_DRAMIN4sycl3_V13ext5intel4pipeIZ16chaos_ncg_kernelRNS1_5queueEiiiiiiRKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "type":"inst"
+        }
+        , {
+          "name":"And"
+          , "id":306
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                , "line":561
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":307
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                , "line":561
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":308
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                , "line":561
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Xor"
+          , "id":309
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                , "line":561
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"RD"
+          , "id":310
+          , "debug":
+          [
+            [
+              {
+                "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                , "line":32
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":312
+          , "debug":
+          [
+            [
+              {
+                "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                , "line":32
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":322
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":323
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                , "line":566
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":867
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                , "line":552
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":868
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                , "line":566
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":2420
+          , "end":"3.00"
+          , "parent":"_ZTS8LSQ_DRAMIN4sycl3_V13ext5intel4pipeIZ16chaos_ncg_kernelRNS1_5queueEiiiiiiRKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_dram_elastic_pass_workdir/chaos_ncg_dram.ast.cpp"
+                , "line":566
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":305
+          , "to":306
+        }
+        , {
+          "from":306
+          , "to":307
+        }
+        , {
+          "from":307
+          , "to":308
+        }
+        , {
+          "from":308
+          , "to":309
+        }
+        , {
+          "from":309
+          , "to":310
+        }
+        , {
+          "from":307
+          , "to":312
+        }
+        , {
+          "from":310
+          , "to":312
+        }
+        , {
+          "from":312
+          , "to":322
+        }
+        , {
+          "from":322
+          , "to":323
+        }
+        , {
+          "from":323
+          , "to":867
+        }
+        , {
+          "from":867
+          , "to":868
+        }
+        , {
+          "from":310
+          , "to":868
+        }
+        , {
+          "from":868
+          , "to":2420
+        }
+        , {
+          "from":305
+          , "to":2420
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

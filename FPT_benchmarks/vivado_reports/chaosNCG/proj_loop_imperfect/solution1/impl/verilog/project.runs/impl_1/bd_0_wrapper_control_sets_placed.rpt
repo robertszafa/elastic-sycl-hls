@@ -1,0 +1,105 @@
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Fri Jun 23 13:50:46 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_control_sets -verbose -file bd_0_wrapper_control_sets_placed.rpt
+| Design       : bd_0_wrapper
+| Device       : xc7k160t
+-----------------------------------------------------------------------------------------
+
+Control Set Information
+
+Table of Contents
+-----------------
+1. Summary
+2. Histogram
+3. Flip-Flop Distribution
+4. Detailed Control Set Information
+
+1. Summary
+----------
+
++----------------------------------------------------------+-------+
+|                          Status                          | Count |
++----------------------------------------------------------+-------+
+| Total control sets                                       |    27 |
+|    Minimum number of control sets                        |    27 |
+|    Addition due to synthesis replication                 |     0 |
+|    Addition due to physical synthesis replication        |     0 |
+| Unused register locations in slices containing registers |    70 |
++----------------------------------------------------------+-------+
+* Control sets can be merged at opt_design using control_set_merge or merge_equivalent_drivers
+** Run report_qor_suggestions for automated merging and remapping suggestions
+
+
+2. Histogram
+------------
+
++--------------------+-------+
+|       Fanout       | Count |
++--------------------+-------+
+| Total control sets |    27 |
+| >= 0 to < 4        |     0 |
+| >= 4 to < 6        |     7 |
+| >= 6 to < 8        |     1 |
+| >= 8 to < 10       |     0 |
+| >= 10 to < 12      |     2 |
+| >= 12 to < 14      |     2 |
+| >= 14 to < 16      |     3 |
+| >= 16              |    12 |
++--------------------+-------+
+* Control sets can be remapped at either synth_design or opt_design
+
+
+3. Flip-Flop Distribution
+-------------------------
+
++--------------+-----------------------+------------------------+-----------------+--------------+
+| Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
++--------------+-----------------------+------------------------+-----------------+--------------+
+| No           | No                    | No                     |             196 |           50 |
+| No           | No                    | Yes                    |               0 |            0 |
+| No           | Yes                   | No                     |             118 |           29 |
+| Yes          | No                    | No                     |             443 |          116 |
+| Yes          | No                    | Yes                    |               0 |            0 |
+| Yes          | Yes                   | No                     |              69 |           17 |
++--------------+-----------------------+------------------------+-----------------+--------------+
+
+
+4. Detailed Control Set Information
+-----------------------------------
+
++--------------+---------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------+------------------+----------------+
+| Clock Signal |                                                       Enable Signal                                                       |                  Set/Reset Signal                  | Slice Load Count | Bel Load Count |
++--------------+---------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------+------------------+----------------+
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state81                                                                                    | bd_0_i/hls_inst/inst/shl_ln108_reg_393[31]_i_1_n_1 |                1 |              4 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state81                                                                                    | bd_0_i/hls_inst/inst/shl_ln108_reg_393[30]_i_1_n_1 |                1 |              4 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state81                                                                                    | bd_0_i/hls_inst/inst/shl_ln108_reg_393[29]_i_1_n_1 |                1 |              4 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state81                                                                                    | bd_0_i/hls_inst/inst/shl_ln108_reg_393[28]_i_1_n_1 |                1 |              4 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state81                                                                                    | bd_0_i/hls_inst/inst/shl_ln108_reg_393[27]_i_1_n_1 |                1 |              4 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state81                                                                                    | bd_0_i/hls_inst/inst/shl_ln108_reg_393[26]_i_1_n_1 |                1 |              4 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state81                                                                                    | bd_0_i/hls_inst/inst/shl_ln108_reg_393[25]_i_1_n_1 |                1 |              4 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state43                                                                                    |                                                    |                2 |              7 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_NS_fsm[2]                                                                                         |                                                    |                2 |             11 |
+|  ap_clk      | bd_0_i/hls_inst/inst/buffer_r_we1                                                                                         | bd_0_i/hls_inst/inst/i_0_reg_111                   |                2 |             11 |
+|  ap_clk      | bd_0_i/hls_inst/inst/reg_123[11]_i_1_n_1                                                                                  |                                                    |                2 |             12 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state4                                                                                     |                                                    |                4 |             12 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state81                                                                                    |                                                    |                6 |             15 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state43                                                                                    | bd_0_i/hls_inst/inst/tmp_reg_367[25]_i_1_n_1       |                4 |             15 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state43                                                                                    | bd_0_i/hls_inst/inst/shl_ln105_reg_357[5]_i_1_n_1  |                4 |             15 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state80                                                                                    |                                                    |                8 |             32 |
+|  ap_clk      | bd_0_i/hls_inst/inst/grp_fu_163_ap_start                                                                                  |                                                    |               11 |             32 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state42                                                                                    |                                                    |                9 |             32 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state82                                                                                    |                                                    |                8 |             32 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_srbkb_U1/loop_imperfect_srbkb_div_U/loop_imperfect_srbkb_div_u_0/r_stage_reg[32]_0[0] |                                                    |                8 |             32 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_srbkb_U2/loop_imperfect_srbkb_div_U/loop_imperfect_srbkb_div_u_0/r_stage_reg[32]_0[0] |                                                    |                8 |             32 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_srbkb_U2/loop_imperfect_srbkb_div_U/start0_reg_n_1                                    |                                                    |                9 |             33 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_srbkb_U1/loop_imperfect_srbkb_div_U/start0                                            |                                                    |               11 |             33 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state6                                                                                     |                                                    |               15 |             64 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_CS_fsm_state44                                                                                    |                                                    |               13 |             64 |
+|  ap_clk      |                                                                                                                           | ap_rst                                             |               29 |            118 |
+|  ap_clk      |                                                                                                                           |                                                    |               50 |            198 |
++--------------+---------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------+------------------+----------------+
+
+

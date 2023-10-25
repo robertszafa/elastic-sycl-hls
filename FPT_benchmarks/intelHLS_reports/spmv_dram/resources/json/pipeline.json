@@ -1,0 +1,466 @@
+{
+  "29":
+  {
+    "nodes":
+    [
+      {
+        "name":"Exit"
+        , "id":69
+        , "subtype":"exit"
+        , "start":"2.00"
+        , "end":"5.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Max Fanout":"2"
+            , "Start Cycle":"2"
+            , "Latency":"3"
+            , "Exit FIFO Depth":"32"
+            , "Exit FIFO Width":"64"
+            , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Entry"
+        , "id":70
+        , "subtype":"entry"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Cluster Entry"
+            , "Max Fanout":"0"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":71
+        , "subtype":"ffwdDest"
+        , "start":"1.00"
+        , "end":"1.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "ffwdLinkID":
+        [
+          "27"
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":72
+        , "subtype":"select"
+        , "start":"1.00"
+        , "end":"1.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"33-bit Select"
+            , "Max Fanout":"2"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_dram.cpp"
+              , "line":34
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":73
+        , "subtype":"ffwdDest"
+        , "start":"1.00"
+        , "end":"1.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "ffwdLinkID":
+        [
+          "24"
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":74
+        , "subtype":"default"
+        , "start":"1.00"
+        , "end":"1.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit And"
+            , "Max Fanout":"3"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":75
+        , "subtype":"default"
+        , "start":"2.00"
+        , "end":"2.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":76
+        , "subtype":"ffwdDest"
+        , "start":"2.00"
+        , "end":"2.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "ffwdLinkID":
+        [
+          "25"
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_dram.cpp"
+              , "line":32
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Global variable"
+        , "id":77
+        , "subtype":"pop"
+        , "start":"2.00"
+        , "end":"2.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Global variable"
+            , "Max Fanout":"2"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_dram.cpp"
+              , "line":34
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":78
+        , "subtype":"default"
+        , "start":"2.00"
+        , "end":"2.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_dram.cpp"
+              , "line":32
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":70
+        , "to":72
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"16"
+          }
+        ]
+      }
+      , {
+        "from":70
+        , "to":77
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"16"
+          }
+        ]
+      }
+      , {
+        "from":70
+        , "to":69
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"16"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":72
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+      , {
+        "from":72
+        , "to":74
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+      , {
+        "from":72
+        , "to":72
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+      , {
+        "from":73
+        , "to":74
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":74
+        , "to":77
+        , "reverse":1
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Global variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"32"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+      }
+      , {
+        "from":74
+        , "to":75
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":74
+        , "to":72
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":74
+        , "to":69
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":75
+        , "to":69
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":76
+        , "to":78
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":77
+        , "to":78
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":77
+        , "to":69
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":78
+        , "to":77
+        , "reverse":1
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Global variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"32"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+      }
+    ]
+  }
+}

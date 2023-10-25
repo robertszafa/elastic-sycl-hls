@@ -1,0 +1,464 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"Global variable"
+      , "id":139
+      , "src":"22"
+      , "dst":"33"
+      , "concurrency":"1"
+      , "type":"Occupancy limiter"
+      , "brief":"Memory dependency"
+      , "loop":"MainKernel.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Variable on critical loop carried feedback path: ":"Global variable"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Memory dependency"
+          , "Concurrency value: ":"1"
+          , "Loop feedback path that lowered occupancy: ":
+          [
+            {
+              "type":"text"
+              , "text":"Basic block: MainKernel.B4(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                  , "line":"28"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Loop: MainKernel.B2(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                  , "line":"29"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Loop: MainKernel.B5(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                  , "line":"30"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Global variable"
+          , "id":22
+          , "start":"8.00"
+          , "parent":"_ZTS10MainKernel.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"MainKernel.B2"
+          , "id":4
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":29
+              }
+            ]
+          ]
+          , "type":"loop"
+        }
+        , {
+          "name":"MainKernel.B5"
+          , "id":7
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":30
+              }
+            ]
+          ]
+          , "type":"loop"
+        }
+        , {
+          "name":"MainKernel.B4"
+          , "id":6
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":28
+              }
+            ]
+          ]
+          , "type":"bb"
+        }
+        , {
+          "name":"Feedback"
+          , "id":33
+          , "end":"1.00"
+          , "parent":"_ZTS10MainKernel.B3"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":4
+          , "to":7
+        }
+        , {
+          "from":7
+          , "to":7
+        }
+        , {
+          "from":7
+          , "to":6
+        }
+        , {
+          "from":22
+          , "to":4
+        }
+        , {
+          "from":6
+          , "to":33
+        }
+        , {
+          "from":22
+          , "to":33
+          , "reverse":1
+        }
+      ]
+    }
+    , {
+      "name":"Global variable"
+      , "id":140
+      , "src":"62"
+      , "dst":"79"
+      , "type":"fMAX/II"
+      , "brief":"Memory dependency"
+      , "loop":"MainKernel.B5"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Variable on critical loop carried feedback path: ":"Global variable"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Memory dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                  , "line":"30"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"And(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                  , "line":"30"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"LD(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                  , "line":"30"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"ST(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Xor(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Global variable"
+          , "id":62
+          , "start":"312.00"
+          , "parent":"_ZTS10MainKernel.B5"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":71
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":30
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":73
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":30
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":72
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":30
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"And"
+          , "id":75
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Xor"
+          , "id":76
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":77
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"ST"
+          , "id":78
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":79
+          , "end":"626.00"
+          , "parent":"_ZTS10MainKernel.B5"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":62
+          , "to":71
+        }
+        , {
+          "from":71
+          , "to":72
+        }
+        , {
+          "from":73
+          , "to":75
+        }
+        , {
+          "from":75
+          , "to":76
+        }
+        , {
+          "from":76
+          , "to":77
+        }
+        , {
+          "from":72
+          , "to":78
+        }
+        , {
+          "from":77
+          , "to":78
+        }
+        , {
+          "from":78
+          , "to":79
+        }
+        , {
+          "from":62
+          , "to":79
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

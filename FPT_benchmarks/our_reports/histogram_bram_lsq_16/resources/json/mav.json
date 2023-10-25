@@ -1,0 +1,1477 @@
+{
+  "nodes":
+  [
+    {
+      "type":"kernel"
+      , "id":2
+      , "name":"MainKernel_AGU_0"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":3
+          , "name":"MainKernel_AGU_0.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":4
+          , "name":"MainKernel_AGU_0.B1"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":6
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":729
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Prefetching"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"5"
+                  , "Latency":"2"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":7
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"64 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"8"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":9
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"8"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":11
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":728
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"12"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":12
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"8"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"8"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":5
+          , "name":"MainKernel_AGU_0.B2"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":13
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"histogram_bram_elastic_lsq_16_fpga_hw.prj/ZTS16MainKernel_AGU_0_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":14
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":720
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":15
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":720
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":16
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":720
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":17
+              , "name":"arg_N"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":720
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"32 bits"
+                  , "Kernel":"ZTS16MainKernel_AGU_0"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":18
+              , "name":"arg_idx"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":720
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS16MainKernel_AGU_0"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"kernel"
+      , "id":20
+      , "name":">"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":21
+          , "name":">.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":22
+          , "name":">.B1"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":24
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"1"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"1"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":26
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":119
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Pipelined never-stall"
+                  , "Stall-free":"Yes"
+                  , "Loads from":"Unknown name (address space 66)"
+                  , "Start Cycle":"1"
+                  , "Latency":"1"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":27
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"2"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":29
+              , "name":"Store"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":165
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Pipelined never-stall"
+                  , "Stall-free":"Yes"
+                  , "Stores to":"Unknown name (address space 66)"
+                  , "Start Cycle":"2"
+                  , "Latency":"1"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":30
+              , "name":"Non-Blocking Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":49
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"2"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":32
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"2"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":33
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"64 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"2"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":34
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":110
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"35"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":35
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"6"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"6"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":23
+          , "name":">.B2"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":36
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"histogram_bram_elastic_lsq_16_fpga_hw.prj/ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":37
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":62
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":38
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":62
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":39
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":62
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+        , {
+          "type":"memtype"
+          , "id":40
+          , "name":"On-chip Memory"
+          , "children":
+          [
+            {
+              "type":"memsys"
+              , "id":41
+              , "name":"Unknown name (address space 66)"
+              , "debug":
+              [
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Requested size":"4000 bytes"
+                  , "Implemented size":"4096 bytes"
+                  , "Number of banks":"1"
+                  , "Bank width":"32 bits"
+                  , "Bank depth":"1024 words"
+                  , "Number of replicates":"1"
+                  , "Number of private copies":"1"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Local Memory"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"kernel"
+      , "id":45
+      , "name":"MainKernel"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":46
+          , "name":"MainKernel.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":47
+          , "name":"MainKernel.B1"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":49
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"5"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":50
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"5"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":52
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":754
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"53"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":53
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"5"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"5"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":48
+          , "name":"MainKernel.B2"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":51
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"1"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"0"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":54
+              , "name":"Begin"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":55
+              , "name":"End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":56
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"histogram_bram_elastic_lsq_16_fpga_hw.prj/ZTS10MainKernel_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":57
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":745
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":58
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":745
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":59
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":745
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":60
+              , "name":"arg_N"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                    , "line":745
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"32 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"memtype"
+      , "id":1
+      , "name":"Global Memory"
+      , "children":
+      [
+        {
+          "type":"memsys"
+          , "id":19
+          , "name":"DDR"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Number of banks":"2"
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":10
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<histogram_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+            , "line":720
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"96 bits"
+          , "Depth":"16"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":31
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<histogram_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+            , "line":62
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"32 bits"
+          , "Depth":"16"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":8
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<histogram_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+            , "line":720
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"64 bits"
+          , "Depth":"16"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":28
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<histogram_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+            , "line":62
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"96 bits"
+          , "Depth":"16"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":25
+      , "name":"sycl::_V1::ext::intel::pipe<histogram_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+            , "line":62
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"8 bits"
+          , "Depth":"1"
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":7
+      , "to":8
+    }
+    , {
+      "from":9
+      , "to":10
+    }
+    , {
+      "from":14
+      , "to":3
+    }
+    , {
+      "from":5
+      , "to":15
+    }
+    , {
+      "from":3
+      , "to":16
+      , "reverse":2
+    }
+    , {
+      "from":17
+      , "to":3
+    }
+    , {
+      "from":18
+      , "to":11
+    }
+    , {
+      "from":12
+      , "to":11
+    }
+    , {
+      "from":3
+      , "to":11
+    }
+    , {
+      "from":6
+      , "to":12
+    }
+    , {
+      "from":7
+      , "to":12
+    }
+    , {
+      "from":9
+      , "to":12
+    }
+    , {
+      "from":12
+      , "to":5
+    }
+    , {
+      "from":11
+      , "to":6
+    }
+    , {
+      "from":6
+      , "to":7
+    }
+    , {
+      "from":6
+      , "to":9
+    }
+    , {
+      "from":19
+      , "to":6
+    }
+    , {
+      "from":25
+      , "to":24
+    }
+    , {
+      "from":28
+      , "to":27
+    }
+    , {
+      "from":30
+      , "to":31
+    }
+    , {
+      "from":10
+      , "to":32
+    }
+    , {
+      "from":8
+      , "to":33
+    }
+    , {
+      "from":37
+      , "to":21
+    }
+    , {
+      "from":23
+      , "to":38
+    }
+    , {
+      "from":21
+      , "to":39
+      , "reverse":2
+    }
+    , {
+      "from":41
+      , "to":26
+    }
+    , {
+      "from":29
+      , "to":41
+    }
+    , {
+      "from":35
+      , "to":34
+    }
+    , {
+      "from":21
+      , "to":34
+    }
+    , {
+      "from":24
+      , "to":35
+    }
+    , {
+      "from":29
+      , "to":35
+    }
+    , {
+      "from":30
+      , "to":35
+    }
+    , {
+      "from":32
+      , "to":35
+    }
+    , {
+      "from":33
+      , "to":35
+    }
+    , {
+      "from":35
+      , "to":23
+    }
+    , {
+      "from":34
+      , "to":24
+    }
+    , {
+      "from":34
+      , "to":26
+    }
+    , {
+      "from":34
+      , "to":27
+    }
+    , {
+      "from":27
+      , "to":29
+    }
+    , {
+      "from":26
+      , "to":29
+    }
+    , {
+      "from":26
+      , "to":30
+    }
+    , {
+      "from":27
+      , "to":30
+    }
+    , {
+      "from":34
+      , "to":32
+    }
+    , {
+      "from":26
+      , "to":33
+    }
+    , {
+      "from":27
+      , "to":33
+    }
+    , {
+      "from":31
+      , "to":49
+    }
+    , {
+      "from":50
+      , "to":28
+    }
+    , {
+      "from":51
+      , "to":25
+    }
+    , {
+      "from":57
+      , "to":46
+    }
+    , {
+      "from":55
+      , "to":58
+    }
+    , {
+      "from":46
+      , "to":59
+      , "reverse":2
+    }
+    , {
+      "from":60
+      , "to":46
+    }
+    , {
+      "from":53
+      , "to":52
+    }
+    , {
+      "from":46
+      , "to":52
+    }
+    , {
+      "from":49
+      , "to":53
+    }
+    , {
+      "from":50
+      , "to":53
+    }
+    , {
+      "from":53
+      , "to":54
+    }
+    , {
+      "from":51
+      , "to":55
+    }
+    , {
+      "from":52
+      , "to":49
+    }
+    , {
+      "from":49
+      , "to":50
+    }
+    , {
+      "from":54
+      , "to":51
+    }
+  ]
+}

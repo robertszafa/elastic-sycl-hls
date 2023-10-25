@@ -1,0 +1,543 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"Global variable"
+      , "id":66
+      , "src":"24"
+      , "dst":"38"
+      , "type":"fMAX/II"
+      , "brief":"Memory dependency"
+      , "loop":"MainKernel.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Variable on critical loop carried feedback path: ":"Global variable"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Memory dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"*(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"*(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"*(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"*(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"*(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"*(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"*(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"33"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"32"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"34"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"LD(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"29"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"ST(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":"30"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Global variable"
+          , "id":24
+          , "start":"311.00"
+          , "parent":"_ZTS10MainKernel.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":30
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":33
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":29
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"*"
+          , "id":46
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":47
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"*"
+          , "id":48
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":49
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"*"
+          , "id":50
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":51
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"*"
+          , "id":52
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":53
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"*"
+          , "id":54
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":55
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"*"
+          , "id":56
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":57
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":32
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"*"
+          , "id":58
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":33
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":59
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":34
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"ST"
+          , "id":37
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":30
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":38
+          , "end":"623.00"
+          , "parent":"_ZTS10MainKernel.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                , "line":30
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":24
+          , "to":33
+        }
+        , {
+          "from":46
+          , "to":47
+        }
+        , {
+          "from":47
+          , "to":48
+        }
+        , {
+          "from":48
+          , "to":49
+        }
+        , {
+          "from":49
+          , "to":50
+        }
+        , {
+          "from":50
+          , "to":51
+        }
+        , {
+          "from":51
+          , "to":52
+        }
+        , {
+          "from":52
+          , "to":53
+        }
+        , {
+          "from":53
+          , "to":54
+        }
+        , {
+          "from":54
+          , "to":55
+        }
+        , {
+          "from":55
+          , "to":56
+        }
+        , {
+          "from":56
+          , "to":57
+        }
+        , {
+          "from":57
+          , "to":58
+        }
+        , {
+          "from":58
+          , "to":59
+        }
+        , {
+          "from":37
+          , "to":38
+        }
+        , {
+          "from":24
+          , "to":38
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,287 @@
+{
+  "nodes":
+  [
+    {
+      "name":"DDR"
+      , "id":2138
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Interleaving":"Yes"
+          , "Interleave Size":"1024 bytes"
+          , "Channels":"2 channels"
+          , "Maximum bandwidth the BSP can deliver":"34133.00 MB/s<br><small><i> Note: Realistic maximum bandwidth is about 90% of the above due to loss from interconnect and memory controller.</i></small>"
+          , "Channel DDR Width (bits)":"512, 512"
+        }
+      ]
+      , "type":"memsys"
+      , "children":
+      [
+        {
+          "name":"channel 0"
+          , "id":2140
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Data Width":"512"
+              , "Address Width":"32"
+              , "Latency":"500"
+              , "ReadWrite Mode":"Read/Write"
+              , "Maximum Burst":"16"
+              , "Wait Request":"0"
+              , "Start Address":"0x0"
+            }
+          ]
+          , "type":"bb"
+        }
+        , {
+          "name":"channel 1"
+          , "id":2141
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Data Width":"512"
+              , "Address Width":"32"
+              , "Latency":"500"
+              , "ReadWrite Mode":"Read/Write"
+              , "Maximum Burst":"16"
+              , "Wait Request":"0"
+              , "Start Address":"0x100000000"
+            }
+          ]
+          , "type":"bb"
+        }
+      ]
+    }
+    , {
+      "name":"Memory Controller"
+      , "id":2139
+      , "parent":"2138"
+      , "bw":"34133.00"
+      , "num_channels":"2"
+      , "interleave":"1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Maximum bandwidth the BSP can deliver":"34133.00 MB/s<br><small><i> Note: Realistic maximum bandwidth is about 90% of the above due to loss from interconnect and memory controller.</i></small>"
+        }
+      ]
+      , "type":"bb"
+    }
+    , {
+      "name":"Global Memory Interconnect"
+      , "id":2142
+      , "parent":"2138"
+      , "type":"bb"
+      , "children":
+      [
+        {
+          "name":"SHARE"
+          , "id":2143
+          , "type":"arb"
+        }
+        , {
+          "name":"Read Interconnect"
+          , "id":2144
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Name":"DDR"
+              , "Interconnect Style":"tree"
+              , "Reads":"3"
+            }
+          ]
+          , "type":"bb"
+        }
+        , {
+          "name":"Read Interconnect Router"
+          , "id":2145
+          , "details":
+          [
+            {
+              "type":"table"
+              , "User specified num-reorder flag":"Unset"
+            }
+          ]
+          , "type":"memsys"
+          , "children":
+          [
+            {
+              "name":"Bus 0"
+              , "id":2150
+              , "type":"memsys"
+            }
+            , {
+              "name":"Bus 1"
+              , "id":2151
+              , "type":"memsys"
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"Global Memory Loads"
+      , "id":2146
+      , "parent":"2138"
+      , "type":"bb"
+      , "children":
+      [
+        {
+          "name":"LD"
+          , "id":2147
+          , "kwidth":"32"
+          , "mwidth":"512"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Start Cycle":"6"
+              , "Latency":"190 cycles"
+              , "Width":"32 bits"
+              , "DDR Width":"512 bits"
+              , "Uses Caching":"No"
+              , "LSU Style":"BURST-COALESCED"
+              , "Kernel":"MainKernel_AGU_0"
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                , "line":729
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":2148
+          , "kwidth":"32"
+          , "mwidth":"512"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Start Cycle":"6"
+              , "Latency":"190 cycles"
+              , "Width":"32 bits"
+              , "DDR Width":"512 bits"
+              , "Uses Caching":"No"
+              , "LSU Style":"BURST-COALESCED"
+              , "Kernel":"MainKernel_AGU_0"
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                , "line":729
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":2149
+          , "kwidth":"64"
+          , "mwidth":"512"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Start Cycle":"6"
+              , "Latency":"190 cycles"
+              , "Width":"64 bits"
+              , "DDR Width":"512 bits"
+              , "Uses Caching":"No"
+              , "LSU Style":"BURST-COALESCED"
+              , "Kernel":"MainKernel_AGU_0"
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
+                , "line":735
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":2140
+      , "to":2139
+    }
+    , {
+      "from":2139
+      , "to":2140
+    }
+    , {
+      "from":2141
+      , "to":2139
+    }
+    , {
+      "from":2139
+      , "to":2141
+    }
+    , {
+      "from":2144
+      , "to":2143
+    }
+    , {
+      "from":2143
+      , "to":2139
+    }
+    , {
+      "from":2147
+      , "to":2144
+    }
+    , {
+      "from":2148
+      , "to":2144
+    }
+    , {
+      "from":2149
+      , "to":2144
+    }
+    , {
+      "from":2139
+      , "to":2150
+    }
+    , {
+      "from":2139
+      , "to":2151
+    }
+    , {
+      "from":2150
+      , "to":2147
+      , "reverse":1
+    }
+    , {
+      "from":2151
+      , "to":2148
+      , "reverse":1
+    }
+    , {
+      "from":2150
+      , "to":2149
+      , "reverse":1
+    }
+  ]
+}

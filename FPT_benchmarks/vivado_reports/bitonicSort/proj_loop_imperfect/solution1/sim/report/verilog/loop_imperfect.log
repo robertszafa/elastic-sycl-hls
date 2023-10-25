@@ -1,0 +1,39 @@
+INFO: [COSIM-47] Using XSIM for RTL simulation.
+INFO: [COSIM-14] Instrumenting C test bench ...
+   Build using "/home/dynamatic/opt/xilinx/Vivado/2019.2/tps/lnx64/gcc-6.2.0/bin/g++"
+   Compiling apatb_loop_imperfect.cpp
+   Compiling (apcc) loop_imperfect.c_pre.c.tb.c
+INFO: [HLS 200-10] Running '/home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/apcc'
+INFO: [HLS 200-10] For user 'dynamatic' on host 'dynamatic-VirtualBox' (Linux_x86_64 version 5.4.0-150-generic) on Mon Oct 23 19:05:25 CEST 2023
+INFO: [HLS 200-10] On os Ubuntu 18.04.3 LTS
+INFO: [HLS 200-10] In directory '/home/dynamatic/bitonicSort/proj_loop_imperfect/solution1/sim/wrapc'
+clang: warning: argument unused during compilation: '-fno-builtin-isinf'
+clang: warning: argument unused during compilation: '-fno-builtin-isnan'
+INFO: [APCC 202-3] Tmp directory is /tmp/apcc_db_dynamatic/119511698080725082139
+INFO: [APCC 202-1] APCC is done.
+   Compiling (apcc) loop_imperfect_test.c_pre.c.tb.c
+INFO: [HLS 200-10] Running '/home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/apcc'
+INFO: [HLS 200-10] For user 'dynamatic' on host 'dynamatic-VirtualBox' (Linux_x86_64 version 5.4.0-150-generic) on Mon Oct 23 19:05:29 CEST 2023
+INFO: [HLS 200-10] On os Ubuntu 18.04.3 LTS
+INFO: [HLS 200-10] In directory '/home/dynamatic/bitonicSort/proj_loop_imperfect/solution1/sim/wrapc'
+clang: warning: argument unused during compilation: '-fno-builtin-isinf'
+clang: warning: argument unused during compilation: '-fno-builtin-isnan'
+In file included from /home/dynamatic/bitonicSort/loop_imperfect_test.c:1:
+/home/dynamatic/bitonicSort/loop_imperfect_test.c:109:23: error: too many arguments to function call, expected 1, have 2
+    loop_imperfect(A, B);
+    ~~~~~~~~~~~~~~    ^
+/home/dynamatic/bitonicSort/loop_imperfect.h:104:1: note: 'loop_imperfect' declared here
+void loop_imperfect(dout_t dist[64]);
+^
+1 error generated.
+ERROR: [APCC 202-10] clang compile failed: child process exited abnormally
+ERROR: [APCC 202-1] ProcessSources failed
+INFO: [APCC 202-3] Tmp directory is /tmp/apcc_db_dynamatic/120201698080729896962
+ERROR: [APCC 202-1] APCC failed.
+cosim.tv.mk:66: recipe for target 'obj/loop_imperfect_test.c_pre.c.tb.o' failed
+ERROR: [COSIM-317] C++ compile error.
+ERROR: [COSIM-321] EXE file generate failed.
+ERROR: [COSIM-321] EXE file generate failed.
+ERROR: [COSIM-331] Aborting co-simulation: C simulation failed, compilation errors.
+ERROR: [COSIM-5] *** C/RTL co-simulation file generation failed. ***
+ERROR: [COSIM-4] *** C/RTL co-simulation finished: FAIL ***

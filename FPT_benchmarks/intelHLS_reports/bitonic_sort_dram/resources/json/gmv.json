@@ -1,0 +1,344 @@
+{
+  "nodes":
+  [
+    {
+      "name":"DDR"
+      , "id":123
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Interleaving":"Yes"
+          , "Interleave Size":"1024 bytes"
+          , "Channels":"2 channels"
+          , "Maximum bandwidth the BSP can deliver":"34133.00 MB/s<br><small><i> Note: Realistic maximum bandwidth is about 90% of the above due to loss from interconnect and memory controller.</i></small>"
+          , "Channel DDR Width (bits)":"512, 512"
+        }
+      ]
+      , "type":"memsys"
+      , "children":
+      [
+        {
+          "name":"channel 0"
+          , "id":125
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Data Width":"512"
+              , "Address Width":"32"
+              , "Latency":"500"
+              , "ReadWrite Mode":"Read/Write"
+              , "Maximum Burst":"16"
+              , "Wait Request":"0"
+              , "Start Address":"0x0"
+            }
+          ]
+          , "type":"bb"
+        }
+        , {
+          "name":"channel 1"
+          , "id":126
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Data Width":"512"
+              , "Address Width":"32"
+              , "Latency":"500"
+              , "ReadWrite Mode":"Read/Write"
+              , "Maximum Burst":"16"
+              , "Wait Request":"0"
+              , "Start Address":"0x100000000"
+            }
+          ]
+          , "type":"bb"
+        }
+      ]
+    }
+    , {
+      "name":"Memory Controller"
+      , "id":124
+      , "parent":"123"
+      , "bw":"34133.00"
+      , "num_channels":"2"
+      , "interleave":"1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Maximum bandwidth the BSP can deliver":"34133.00 MB/s<br><small><i> Note: Realistic maximum bandwidth is about 90% of the above due to loss from interconnect and memory controller.</i></small>"
+        }
+      ]
+      , "type":"bb"
+    }
+    , {
+      "name":"Global Memory Interconnect"
+      , "id":127
+      , "parent":"123"
+      , "type":"bb"
+      , "children":
+      [
+        {
+          "name":"SHARE"
+          , "id":128
+          , "type":"arb"
+        }
+        , {
+          "name":"Write Interconnect"
+          , "id":131
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Name":"DDR"
+              , "Interconnect Style":"ring"
+              , "Writes":"2"
+              , "User specified force-single-store-ring flag":"False"
+              , "Store Rings":"2"
+            }
+          ]
+          , "type":"bb"
+        }
+        , {
+          "name":"Read Interconnect"
+          , "id":129
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Name":"DDR"
+              , "Interconnect Style":"ring"
+              , "Reads":"2"
+            }
+          ]
+          , "type":"bb"
+        }
+        , {
+          "name":"Read Interconnect Router"
+          , "id":130
+          , "details":
+          [
+            {
+              "type":"table"
+              , "User specified num-reorder flag":"Unset"
+            }
+          ]
+          , "type":"memsys"
+          , "children":
+          [
+            {
+              "name":"Bus 0"
+              , "id":138
+              , "type":"memsys"
+            }
+            , {
+              "name":"Bus 1"
+              , "id":139
+              , "type":"memsys"
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"Global Memory Loads"
+      , "id":132
+      , "parent":"123"
+      , "type":"bb"
+      , "children":
+      [
+        {
+          "name":"LD"
+          , "id":133
+          , "kwidth":"32"
+          , "mwidth":"512"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Start Cycle":"3"
+              , "Latency":"238 cycles"
+              , "Width":"32 bits"
+              , "DDR Width":"512 bits"
+              , "Uses Caching":"No"
+              , "LSU Style":"BURST-COALESCED"
+              , "Kernel":"MainKernel"
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                , "line":33
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":134
+          , "kwidth":"32"
+          , "mwidth":"512"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Start Cycle":"3"
+              , "Latency":"238 cycles"
+              , "Width":"32 bits"
+              , "DDR Width":"512 bits"
+              , "Uses Caching":"No"
+              , "LSU Style":"BURST-COALESCED"
+              , "Kernel":"MainKernel"
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                , "line":34
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+    }
+    , {
+      "name":"Global Memory Stores"
+      , "id":135
+      , "parent":"123"
+      , "type":"bb"
+      , "children":
+      [
+        {
+          "name":"ST"
+          , "id":136
+          , "kwidth":"32"
+          , "mwidth":"512"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Start Cycle":"243"
+              , "Latency":"74 cycles"
+              , "Width":"32 bits"
+              , "DDR Width":"512 bits"
+              , "Uses Write Ack":"Yes"
+              , "LSU Style":"BURST-COALESCED"
+              , "Kernel":"MainKernel"
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                , "line":39
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"ST"
+          , "id":137
+          , "kwidth":"32"
+          , "mwidth":"512"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Start Cycle":"317"
+              , "Latency":"74 cycles"
+              , "Width":"32 bits"
+              , "DDR Width":"512 bits"
+              , "Uses Write Ack":"Yes"
+              , "LSU Style":"BURST-COALESCED"
+              , "Kernel":"MainKernel"
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                , "line":40
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":125
+      , "to":124
+    }
+    , {
+      "from":124
+      , "to":125
+    }
+    , {
+      "from":126
+      , "to":124
+    }
+    , {
+      "from":124
+      , "to":126
+    }
+    , {
+      "from":129
+      , "to":128
+    }
+    , {
+      "from":131
+      , "to":128
+    }
+    , {
+      "from":128
+      , "to":124
+    }
+    , {
+      "from":133
+      , "to":129
+    }
+    , {
+      "from":134
+      , "to":129
+    }
+    , {
+      "from":136
+      , "to":131
+    }
+    , {
+      "from":137
+      , "to":131
+    }
+    , {
+      "from":124
+      , "to":138
+    }
+    , {
+      "from":124
+      , "to":139
+    }
+    , {
+      "from":138
+      , "to":133
+      , "reverse":1
+    }
+    , {
+      "from":139
+      , "to":134
+      , "reverse":1
+    }
+  ]
+}

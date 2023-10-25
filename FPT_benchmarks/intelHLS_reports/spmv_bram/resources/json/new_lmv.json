@@ -1,0 +1,385 @@
+{
+  "nodes":
+  [
+    {
+      "name":"MainKernel"
+      , "id":66
+      , "type":"kernel"
+      , "children":
+      [
+        {
+          "name":"On-chip Memory"
+          , "id":67
+          , "type":"memtype"
+          , "children":
+          [
+            {
+              "name":"matrix"
+              , "id":68
+              , "brief":"Implemented size:2048 bytes = (512 words per bank) x (4 bytes per word) | Memory Usage:1 RAM | Number of banks:1 | Bank width (word size):4 bytes | Bank depth:512 words | Number of replicates:1 | Number of private copies:1 | RAM Mode:Simple dual-port | Pump configuration:Double-pumped"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Declared at":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"%L"
+                      , "links":
+                      [
+                        {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_bram.cpp"
+                          , "line":"32"
+                        }
+                      ]
+                    }
+                  ]
+                  , "Requested size":"1600 bytes"
+                  , "Implemented size":"2048 bytes = (512 words per bank) x (4 bytes per word)"
+                  , "Memory Usage":"1 RAM"
+                  , "Number of banks":"1"
+                  , "Bank width (word size)":"4 bytes"
+                  , "Bank depth":"512 words"
+                  , "Number of replicates":"1"
+                  , "Number of private copies":"1"
+                  , "RAM Mode":"Simple dual-port"
+                  , "Pump configuration":"Double-pumped"
+                  , "Additional information":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"In each private copy:</br>  Variable 'matrix' occupies memory words [0-399] and has 1 array element per memory word.</br>  Memory words [400-511] are unused padding."
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Running memory at 2x clock to support more concurrent ports"
+                    }
+                  ]
+                  , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Local Memory"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_bram.cpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "type":"memsys"
+              , "children":
+              [
+                {
+                  "name":"Bank 0"
+                  , "id":72
+                  , "brief":"Memory Usage:1 RAM | Bank width:4 bytes | Bank depth:512 words | Implemented bank size:2048 bytes = (512 words) x (4 bytes per word)"
+                  , "details":
+                  [
+                    {
+                      "type":"table"
+                      , "Memory Usage":"1 RAM"
+                      , "Bank width":"4 bytes"
+                      , "Bank depth":"512 words"
+                      , "Implemented bank size":"2048 bytes = (512 words) x (4 bytes per word)"
+                      , "Number of active ports":"3"
+                      , "Number of read ports":"2"
+                      , "Number of write ports":"1"
+                      , "Number of un-used ports":"1"
+                      , "Additional information":"In each private copy:</br>  Variable 'matrix' occupies memory words [0-399] and has 1 array element per memory word.</br>  Memory words [400-511] are unused padding."
+                      , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                    }
+                  ]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_bram.cpp"
+                        , "line":32
+                      }
+                    ]
+                  ]
+                  , "type":"bank"
+                  , "children":
+                  [
+                    {
+                      "name":"Replicate 0"
+                      , "id":73
+                      , "padding":"112"
+                      , "depth":"512"
+                      , "brief":"Implemented size:2048 bytes = (512 words) x (4 bytes per word) | Memory Usage:1 RAM"
+                      , "details":
+                      [
+                        {
+                          "type":"table"
+                          , "Implemented size":"2048 bytes = (512 words) x (4 bytes per word)"
+                          , "Memory Usage":"1 RAM"
+                          , "Number of physical ports":"4"
+                          , "Number of read ports":"2"
+                          , "Number of write ports":"1"
+                          , "Number of un-used ports":"1"
+                          , "Additional information":"In each private copy:</br>  Variable 'matrix' occupies memory words [0-399] and has 1 array element per memory word.</br>  Memory words [400-511] are unused padding."
+                          , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                        }
+                      ]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_bram.cpp"
+                            , "line":32
+                          }
+                        ]
+                      ]
+                      , "type":"replicate"
+                      , "children":
+                      [
+                        {
+                          "name":"R"
+                          , "id":74
+                          , "type":"port"
+                        }
+                        , {
+                          "name":"R"
+                          , "id":75
+                          , "type":"port"
+                        }
+                        , {
+                          "name":"W"
+                          , "id":76
+                          , "type":"port"
+                        }
+                      ]
+                      , "copies":
+                      {
+                        "num":1
+                        , "details":
+                        [
+                          {
+                            "type":"table"
+                            , "Width":"4 bytes"
+                            , "Depth per copy (including padding)":"512 words"
+                            , "Number of private copies":"1"
+                            , "Additional information":"In each private copy:</br>  Variable 'matrix' occupies memory words [0-399] and has 1 array element per memory word.</br>  Memory words [400-511] are unused padding."
+                            , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"Load"
+          , "id":69
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:matrix | Start cycle:236 | Latency:4"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"matrix"
+              , "Start cycle":"236"
+              , "Latency":"4"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_bram.cpp"
+                      , "line":"42"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_bram.cpp"
+                , "line":42
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Load"
+          , "id":70
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:matrix | Start cycle:239 | Latency:4"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"matrix"
+              , "Start cycle":"239"
+              , "Latency":"4"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_bram.cpp"
+                      , "line":"42"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_bram.cpp"
+                , "line":42
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Store"
+          , "id":71
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Stores to:matrix | Start cycle:244 | Latency:1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Stores to":"matrix"
+              , "Start cycle":"244"
+              , "Latency":"1"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_bram.cpp"
+                      , "line":"42"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/spmv_bram.cpp"
+                , "line":42
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":74
+      , "to":69
+    }
+    , {
+      "from":75
+      , "to":70
+    }
+    , {
+      "from":71
+      , "to":76
+    }
+  ]
+}

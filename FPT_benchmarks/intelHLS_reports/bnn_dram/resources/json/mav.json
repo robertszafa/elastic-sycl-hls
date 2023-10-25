@@ -1,0 +1,1005 @@
+{
+  "nodes":
+  [
+    {
+      "type":"kernel"
+      , "id":2
+      , "name":"MainKernel"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":3
+          , "name":"MainKernel.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":4
+          , "name":"MainKernel.B1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"1"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":5
+          , "name":"MainKernel.B2"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"8"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Entry to loop. "
+              , "Loops To":"6"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":6
+          , "name":"MainKernel.B3"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Exit which branches back to loop. "
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":7
+          , "name":"MainKernel.B4"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":10
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":37
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Prefetching"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"476"
+                  , "Latency":"2"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":11
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":37
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Prefetching"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"476"
+                  , "Latency":"2"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":12
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":38
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Prefetching"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"476"
+                  , "Latency":"2"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":13
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":38
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Loads from":"_arg_data"
+                  , "Start Cycle":"479"
+                  , "Latency":"319"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":14
+              , "name":"Store"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":38
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Stores to":"_arg_data"
+                  , "Start Cycle":"799"
+                  , "Latency":"154"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":19
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":35
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"20"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":20
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"953"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"953"
+              , "II":"475"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Loop is pipelined with II of 475. See Loops Analysis for more information."
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":8
+          , "name":"MainKernel.B5"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":15
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":44
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"477"
+                  , "Latency":"319"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":16
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":45
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"477"
+                  , "Latency":"319"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":17
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":45
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Loads from":"_arg_data"
+                  , "Start Cycle":"797"
+                  , "Latency":"319"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":18
+              , "name":"Store"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":50
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Stores to":"_arg_data"
+                  , "Start Cycle":"1118"
+                  , "Latency":"154"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":21
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":42
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"22"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":22
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"1272"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"1272"
+              , "II":"476"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Loop is pipelined with II of 476. See Loops Analysis for more information."
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":9
+          , "name":"MainKernel.B6"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":23
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"bnn_dram_fpga_hw.prj/ZTS10MainKernel_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":24
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":31
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":25
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":31
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":26
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":31
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":27
+              , "name":"arg_N"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":31
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"32 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":28
+              , "name":"arg_in"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":31
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":29
+              , "name":"arg_w"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":31
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":30
+              , "name":"arg_data"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":31
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":31
+              , "name":"arg_addr_in"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":31
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":32
+              , "name":"arg_mean"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":31
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":33
+              , "name":"arg_addr_out"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                    , "line":31
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"memtype"
+      , "id":1
+      , "name":"Global Memory"
+      , "children":
+      [
+        {
+          "type":"memsys"
+          , "id":34
+          , "name":"DDR"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Number of banks":"2"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":24
+      , "to":3
+    }
+    , {
+      "from":9
+      , "to":25
+    }
+    , {
+      "from":3
+      , "to":26
+      , "reverse":2
+    }
+    , {
+      "from":27
+      , "to":3
+    }
+    , {
+      "from":28
+      , "to":19
+    }
+    , {
+      "from":29
+      , "to":19
+    }
+    , {
+      "from":30
+      , "to":21
+    }
+    , {
+      "from":31
+      , "to":19
+    }
+    , {
+      "from":32
+      , "to":21
+    }
+    , {
+      "from":33
+      , "to":21
+    }
+    , {
+      "from":6
+      , "to":4
+    }
+    , {
+      "from":6
+      , "to":5
+    }
+    , {
+      "from":3
+      , "to":5
+    }
+    , {
+      "from":20
+      , "to":6
+    }
+    , {
+      "from":20
+      , "to":19
+    }
+    , {
+      "from":5
+      , "to":19
+    }
+    , {
+      "from":14
+      , "to":20
+    }
+    , {
+      "from":10
+      , "to":20
+    }
+    , {
+      "from":11
+      , "to":20
+    }
+    , {
+      "from":12
+      , "to":20
+    }
+    , {
+      "from":13
+      , "to":20
+    }
+    , {
+      "from":22
+      , "to":21
+    }
+    , {
+      "from":4
+      , "to":21
+    }
+    , {
+      "from":18
+      , "to":22
+    }
+    , {
+      "from":15
+      , "to":22
+    }
+    , {
+      "from":16
+      , "to":22
+    }
+    , {
+      "from":17
+      , "to":22
+    }
+    , {
+      "from":22
+      , "to":9
+    }
+    , {
+      "from":19
+      , "to":10
+    }
+    , {
+      "from":19
+      , "to":11
+    }
+    , {
+      "from":19
+      , "to":12
+    }
+    , {
+      "from":12
+      , "to":13
+    }
+    , {
+      "from":12
+      , "to":14
+    }
+    , {
+      "from":13
+      , "to":14
+    }
+    , {
+      "from":10
+      , "to":14
+    }
+    , {
+      "from":11
+      , "to":14
+    }
+    , {
+      "from":21
+      , "to":15
+    }
+    , {
+      "from":21
+      , "to":16
+    }
+    , {
+      "from":16
+      , "to":17
+    }
+    , {
+      "from":16
+      , "to":18
+    }
+    , {
+      "from":17
+      , "to":18
+    }
+    , {
+      "from":15
+      , "to":18
+    }
+    , {
+      "from":34
+      , "to":10
+    }
+    , {
+      "from":34
+      , "to":11
+    }
+    , {
+      "from":34
+      , "to":12
+    }
+    , {
+      "from":34
+      , "to":13
+    }
+    , {
+      "from":14
+      , "to":34
+    }
+    , {
+      "from":34
+      , "to":15
+    }
+    , {
+      "from":34
+      , "to":16
+    }
+    , {
+      "from":34
+      , "to":17
+    }
+    , {
+      "from":18
+      , "to":34
+    }
+  ]
+}

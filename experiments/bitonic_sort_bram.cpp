@@ -19,7 +19,7 @@ class MainKernel;
 // Must be a power of 2
 constexpr int kN = 64;
 
-#define TEST 1
+#define TEST 0
 
 double sort_kernel(queue &q, std::vector<int> &h_A) {
   const int N = h_A.size();

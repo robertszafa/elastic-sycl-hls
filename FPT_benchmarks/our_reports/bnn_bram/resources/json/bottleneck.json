@@ -1,0 +1,240 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"Feedback"
+      , "id":760
+      , "src":"197"
+      , "dst":"614"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":">.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Loop: ":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ10bnn_kernelRNS1_5queueERKSt6vectorIiSaIiEESB_RS9_iE27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                  , "line":"110"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"<<(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                  , "line":"49"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":">>(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                  , "line":"49"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                  , "line":"50"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                  , "line":"110"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"LD(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                  , "line":"119"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Feedback"
+          , "id":197
+          , "start":"1.00"
+          , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ10bnn_kernelRNS1_5queueERKSt6vectorIiSaIiEESB_RS9_iE27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":206
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                , "line":119
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":203
+          , "debug":
+          [
+            [
+              {
+                "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"<<"
+          , "id":208
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                , "line":49
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":">>"
+          , "id":209
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                , "line":49
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":211
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                , "line":50
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":572
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                , "line":110
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":614
+          , "end":"2.00"
+          , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ10bnn_kernelRNS1_5queueERKSt6vectorIiSaIiEESB_RS9_iE27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_bram_elastic_pass_workdir/bnn_bram.ast.cpp"
+                , "line":312
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":206
+          , "to":208
+        }
+        , {
+          "from":208
+          , "to":209
+        }
+        , {
+          "from":209
+          , "to":211
+        }
+        , {
+          "from":572
+          , "to":614
+        }
+        , {
+          "from":197
+          , "to":614
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

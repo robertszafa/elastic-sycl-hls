@@ -1,0 +1,89 @@
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Delay Type: max.
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 1 -nworst 1 -delay_type max -sort_by slack.
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Fri Jun 23 18:20:35 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_timing
+| Design       : vecTrans
+| Device       : 7k160t-fbg484
+| Speed File   : -1  PRODUCTION 1.12 2017-02-17
+------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (VIOLATED) :        -3.931ns  (required time - arrival time)
+  Source:                 c_LSQ_A/loadQ/head_reg[2]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            c_LSQ_A/loadQ/head_reg[0]/CE
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (clk rise@4.000ns - clk rise@0.000ns)
+  Data Path Delay:        7.563ns  (logic 0.945ns (12.495%)  route 6.618ns (87.505%))
+  Logic Levels:           12  (LUT3=3 LUT5=3 LUT6=6)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=9252, unset)         0.672     0.672    c_LSQ_A/loadQ/clk
+                         FDRE                                         r  c_LSQ_A/loadQ/head_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.209     0.881 r  c_LSQ_A/loadQ/head_reg[2]/Q
+                         net (fo=248, unplaced)       0.665     1.546    c_LSQ_A/loadQ/head_reg[4]_0[2]
+                         LUT5 (Prop_lut5_I0_O)        0.153     1.699 r  c_LSQ_A/loadQ/loadCompleted_4_i_2/O
+                         net (fo=13, unplaced)        0.390     2.089    c_LSQ_A/loadQ/loadCompleted_4_i_2_n_0
+                         LUT3 (Prop_lut3_I0_O)        0.053     2.142 r  c_LSQ_A/loadQ/Tail[3]_i_23/O
+                         net (fo=3, unplaced)         0.683     2.825    c_LSQ_A/loadQ/Tail[3]_i_23_n_0
+                         LUT6 (Prop_lut6_I0_O)        0.053     2.878 f  c_LSQ_A/loadQ/Tail[3]_i_9/O
+                         net (fo=5, unplaced)         0.549     3.427    c_LSQ_A/loadQ/Tail[3]_i_9_n_0
+                         LUT3 (Prop_lut3_I0_O)        0.053     3.480 f  c_LSQ_A/loadQ/Tail[3]_i_4/O
+                         net (fo=93, unplaced)        0.438     3.918    c_LSQ_A/loadQ/dataKnown_15_reg_0
+                         LUT3 (Prop_lut3_I2_O)        0.053     3.971 r  c_LSQ_A/loadQ/Empty_i_3__3/O
+                         net (fo=2, unplaced)         0.351     4.322    Buffer_5/oehb1/gen_assignements[0].first_assignment.regs_reg[0]_0
+                         LUT5 (Prop_lut5_I3_O)        0.053     4.375 f  Buffer_5/oehb1/gen_assignements[0].first_assignment.regs[0]_i_2__2/O
+                         net (fo=2, unplaced)         0.532     4.907    Buffer_5/oehb1/validArray_reg[0]_2
+                         LUT5 (Prop_lut5_I1_O)        0.053     4.960 f  Buffer_5/oehb1/validArray[0]_i_2/O
+                         net (fo=9, unplaced)         0.381     5.341    fork_6/generateBlocks[0].regblock/head[4]_i_38
+                         LUT6 (Prop_lut6_I1_O)        0.053     5.394 f  fork_6/generateBlocks[0].regblock/loadCompleted_15_i_4/O
+                         net (fo=10, unplaced)        0.707     6.101    fork_6/generateBlocks[0].regblock/reg_value_reg_0
+                         LUT6 (Prop_lut6_I0_O)        0.053     6.154 f  fork_6/generateBlocks[0].regblock/loadCompleted_15_i_3/O
+                         net (fo=45, unplaced)        0.420     6.574    c_LSQ_A/loadQ/loadCompleted_28_reg_0
+                         LUT6 (Prop_lut6_I5_O)        0.053     6.627 r  c_LSQ_A/loadQ/head[4]_i_13/O
+                         net (fo=1, unplaced)         0.664     7.291    c_LSQ_A/loadQ/head[4]_i_13_n_0
+                         LUT6 (Prop_lut6_I0_O)        0.053     7.344 r  c_LSQ_A/loadQ/head[4]_i_4/O
+                         net (fo=1, unplaced)         0.461     7.805    c_LSQ_A/loadQ/head[4]_i_4_n_0
+                         LUT6 (Prop_lut6_I1_O)        0.053     7.858 r  c_LSQ_A/loadQ/head[4]_i_1__0/O
+                         net (fo=6, unplaced)         0.377     8.235    c_LSQ_A/loadQ/_T_425894
+                         FDRE                                         r  c_LSQ_A/loadQ/head_reg[0]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        4.000     4.000 r  
+                                                      0.000     4.000 r  clk (IN)
+                         net (fo=9252, unset)         0.638     4.638    c_LSQ_A/loadQ/clk
+                         FDRE                                         r  c_LSQ_A/loadQ/head_reg[0]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+                         FDRE (Setup_fdre_C_CE)      -0.299     4.304    c_LSQ_A/loadQ/head_reg[0]
+  -------------------------------------------------------------------
+                         required time                          4.304    
+                         arrival time                          -8.235    
+  -------------------------------------------------------------------
+                         slack                                 -3.931    
+
+
+
+
+report_timing: Time (s): cpu = 00:00:12 ; elapsed = 00:00:27 . Memory (MB): peak = 3434.684 ; gain = 0.000 ; free physical = 6275 ; free virtual = 9438

@@ -1,0 +1,2346 @@
+{
+  "2":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":5
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"3"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_num_edges"
+        , "id":6
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_num_edges'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":7
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_num_edges"
+        , "id":8
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_num_edges'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":9
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_num_edges"
+        , "id":10
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_num_edges'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":11
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":12
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"-1 (0xFFFFFFFF)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":13
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"33-bit Integer Add"
+            , "Constant Operand":"-1 (0x1FFFFFFFF)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Src"
+        , "id":14
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"ffwdSource"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Source"
+            , "FFwd Dests In":"MainKernel.B1, MainKernel.B1, MainKernel.B1, MainKernel.B2"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Src"
+        , "id":15
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"ffwdSource"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Source"
+            , "FFwd Dest In":"MainKernel.B1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":6
+        , "to":7
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":7
+        , "to":14
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":8
+        , "to":9
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":9
+        , "to":11
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":10
+        , "to":11
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":11
+        , "to":12
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":12
+        , "to":13
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":13
+        , "to":15
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+    ]
+  }
+  , "3":
+  {
+    "nodes":
+    [
+      {
+        "name":"Loop Orch"
+        , "id":16
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Xor"
+        , "id":17
+        , "start":"250.00"
+        , "end":"250.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Xor"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"3"
+            , "Start Cycle":"250"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":18
+        , "start":"249.00"
+        , "end":"250.00"
+        , "subtype":"ffwdDest"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"249"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Capacity FIFO"
+        , "id":64
+        , "subtype":"capacity fifo"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "FIFO Depth":"251"
+            , "FIFO Width":"0"
+          }
+        ]
+      }
+      , {
+        "name":"Select"
+        , "id":19
+        , "start":"250.00"
+        , "end":"250.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"33-bit Select"
+            , "Max Fanout":"2"
+            , "Start Cycle":"250"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":46
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":20
+        , "start":"249.00"
+        , "end":"250.00"
+        , "subtype":"ffwdDest"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"249"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Xor"
+        , "id":21
+        , "start":"250.00"
+        , "end":"250.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Xor"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"250"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":34
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Global variable"
+        , "id":22
+        , "start":"249.00"
+        , "end":"250.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Global variable"
+            , "Max Fanout":"2"
+            , "Start Cycle":"249"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":46
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"<<"
+        , "id":23
+        , "start":"250.00"
+        , "end":"250.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Left Shift"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"250"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":32
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_edges"
+        , "id":24
+        , "start":"250.00"
+        , "end":"250.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_edges'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"250"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Ptr. Comp."
+        , "id":25
+        , "start":"250.00"
+        , "end":"250.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pointer Computation"
+            , "Max Fanout":"5"
+            , "Start Cycle":"250"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Or"
+        , "id":26
+        , "start":"250.00"
+        , "end":"250.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Or"
+            , "Max Fanout":"2"
+            , "Start Cycle":"250"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":34
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"LD"
+        , "id":27
+        , "start":"250.00"
+        , "end":"253.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Load"
+            , "Width":"64 bits"
+            , "LSU Style":"Prefetching"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"2"
+            , "Start Cycle":"250"
+            , "Latency":"3"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":34
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Capacity FIFO"
+        , "id":65
+        , "subtype":"capacity fifo"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "FIFO Depth":"1"
+            , "FIFO Width":"64"
+          }
+        ]
+      }
+      , {
+        "name":"arg_vertices"
+        , "id":28
+        , "start":"253.00"
+        , "end":"253.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_vertices'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"253"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Ptr. Comp."
+        , "id":29
+        , "start":"253.00"
+        , "end":"253.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pointer Computation"
+            , "Max Fanout":"5"
+            , "Start Cycle":"253"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Global variable"
+        , "id":30
+        , "start":"252.00"
+        , "end":"253.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Global variable"
+            , "Max Fanout":"2"
+            , "Start Cycle":"252"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":41
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"LD"
+        , "id":31
+        , "start":"253.00"
+        , "end":"445.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Load"
+            , "Width":"32 bits"
+            , "LSU Style":"Burst-coalesced"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"253"
+            , "Latency":"192"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_vertices"
+        , "id":32
+        , "start":"253.00"
+        , "end":"253.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_vertices'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"253"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Ptr. Comp."
+        , "id":33
+        , "start":"253.00"
+        , "end":"253.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pointer Computation"
+            , "Max Fanout":"5"
+            , "Start Cycle":"253"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"LD"
+        , "id":34
+        , "start":"253.00"
+        , "end":"445.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Load"
+            , "Width":"32 bits"
+            , "LSU Style":"Burst-coalesced"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"253"
+            , "Latency":"192"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":38
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":35
+        , "start":"445.00"
+        , "end":"445.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"445"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":39
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":36
+        , "start":"445.00"
+        , "end":"445.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"445"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":37
+        , "start":"445.00"
+        , "end":"445.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Select"
+            , "Max Fanout":"2"
+            , "Start Cycle":"445"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":39
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":38
+        , "start":"249.00"
+        , "end":"250.00"
+        , "subtype":"ffwdDest"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"249"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":39
+        , "start":"445.00"
+        , "end":"445.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit And"
+            , "Max Fanout":"1"
+            , "Start Cycle":"445"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Xor"
+        , "id":40
+        , "start":"445.00"
+        , "end":"445.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Xor"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"445"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Or"
+        , "id":41
+        , "start":"445.00"
+        , "end":"445.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Or"
+            , "Max Fanout":"2"
+            , "Start Cycle":"445"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"ST"
+        , "id":42
+        , "start":"445.00"
+        , "end":"473.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Store"
+            , "Width":"32 bits"
+            , "LSU Style":"Burst-coalesced"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"445"
+            , "Latency":"28"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"ST"
+        , "id":43
+        , "start":"473.00"
+        , "end":"501.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Store"
+            , "Width":"32 bits"
+            , "LSU Style":"Burst-coalesced"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"473"
+            , "Latency":"28"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":41
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Feedback"
+        , "id":44
+        , "start":"501.00"
+        , "end":"502.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Global variable"
+            , "Feedback FIFO Depth":"2"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"501"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":41
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"'out_scalar'"
+        , "id":45
+        , "start":"444.00"
+        , "end":"445.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"'out_scalar'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"444"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":29
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":46
+        , "start":"445.00"
+        , "end":"445.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Max Fanout":"1"
+            , "Start Cycle":"445"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":43
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Feedback"
+        , "id":47
+        , "start":"445.00"
+        , "end":"446.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"'out_scalar'"
+            , "Feedback FIFO Depth":"2"
+            , "Feedback FIFO Width":"32"
+            , "Max Fanout":"1"
+            , "Start Cycle":"445"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":43
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":48
+        , "start":"250.00"
+        , "end":"250.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"250"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":46
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Feedback"
+        , "id":49
+        , "start":"250.00"
+        , "end":"251.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Global variable"
+            , "Feedback FIFO Depth":"2"
+            , "Feedback FIFO Width":"32"
+            , "Max Fanout":"1"
+            , "Start Cycle":"250"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":46
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":50
+        , "start":"249.00"
+        , "end":"250.00"
+        , "subtype":"ffwdDest"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"249"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Capacity FIFO"
+        , "id":66
+        , "subtype":"capacity fifo"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "FIFO Depth":"251"
+            , "FIFO Width":"0"
+          }
+        ]
+      }
+      , {
+        "name":"And"
+        , "id":51
+        , "start":"250.00"
+        , "end":"250.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit And"
+            , "Max Fanout":"2"
+            , "Start Cycle":"250"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Src"
+        , "id":52
+        , "start":"445.00"
+        , "end":"445.00"
+        , "subtype":"ffwdSource"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Source"
+            , "FFwd Dest In":"MainKernel.B2"
+            , "Max Fanout":"1"
+            , "Start Cycle":"445"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":43
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Capacity FIFO"
+        , "id":67
+        , "subtype":"capacity fifo"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "FIFO Depth":"56"
+            , "FIFO Width":"0"
+          }
+        ]
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":16
+        , "to":30
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":16
+        , "to":45
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":16
+        , "to":22
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":16
+        , "to":19
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":16
+        , "to":44
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":16
+        , "to":47
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":16
+        , "to":49
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":16
+        , "to":17
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":17
+        , "to":52
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":17
+        , "to":41
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":17
+        , "to":26
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":17
+        , "to":16
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":18
+        , "to":19
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+      , {
+        "from":18
+        , "to":67
+      }
+      , {
+        "from":19
+        , "to":51
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+      , {
+        "from":19
+        , "to":19
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+      , {
+        "from":20
+        , "to":21
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":21
+        , "to":26
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":22
+        , "to":48
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":22
+        , "to":23
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":23
+        , "to":25
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":24
+        , "to":25
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":25
+        , "to":27
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":26
+        , "to":34
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":26
+        , "to":31
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":26
+        , "to":27
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":27
+        , "to":43
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":27
+        , "to":42
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":27
+        , "to":29
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":27
+        , "to":33
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":27
+        , "to":67
+      }
+      , {
+        "from":67
+        , "to":27
+      }
+      , {
+        "from":28
+        , "to":29
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":29
+        , "to":42
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":29
+        , "to":31
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":67
+        , "to":29
+      }
+      , {
+        "from":30
+        , "to":34
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":30
+        , "to":31
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":31
+        , "to":35
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":32
+        , "to":33
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":33
+        , "to":43
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":33
+        , "to":34
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":67
+        , "to":33
+      }
+      , {
+        "from":34
+        , "to":36
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":35
+        , "to":37
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":36
+        , "to":37
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":37
+        , "to":39
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":37
+        , "to":46
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":38
+        , "to":39
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":39
+        , "to":40
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":40
+        , "to":41
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":41
+        , "to":43
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":41
+        , "to":42
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":42
+        , "to":43
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":43
+        , "to":44
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":44
+        , "to":30
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":45
+        , "to":46
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":46
+        , "to":47
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":46
+        , "to":52
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":47
+        , "to":45
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":48
+        , "to":49
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":49
+        , "to":22
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":50
+        , "to":51
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":50
+        , "to":67
+      }
+      , {
+        "from":51
+        , "to":44
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":47
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":49
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":19
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":16
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":52
+        , "to":67
+      }
+    ]
+  }
+  , "4":
+  {
+    "nodes":
+    [
+      {
+        "name":"FFwd Dest"
+        , "id":53
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"ffwdDest"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":31
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":54
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"ffwdDest"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":43
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":55
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":29
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_out"
+        , "id":56
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_out'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"ST"
+        , "id":57
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Store"
+            , "Width":"32 bits"
+            , "LSU Style":"Burst-coalesced"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+              , "line":49
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Feedback"
+        , "id":58
+        , "start":"2.00"
+        , "end":"3.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":53
+        , "to":55
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":54
+        , "to":55
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":55
+        , "to":57
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":56
+        , "to":57
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":57
+        , "to":58
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+    ]
+  }
+}

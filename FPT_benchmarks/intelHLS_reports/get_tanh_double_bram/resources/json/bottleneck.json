@@ -1,0 +1,294 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"A"
+      , "id":74
+      , "src":"57"
+      , "dst":"66"
+      , "type":"fMAX/II"
+      , "brief":"Memory dependency"
+      , "loop":"MainKernel.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Variable on critical loop carried feedback path: ":"A"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                  , "line":"33"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Memory dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"*(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                  , "line":"43"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"*(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                  , "line":"43"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"*(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                  , "line":"43"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                  , "line":"43"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                  , "line":"43"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"LD(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                  , "line":"41"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"ST(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                  , "line":"45"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"A"
+          , "id":57
+          , "start":"20.00"
+          , "parent":"_ZTS10MainKernel.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                , "line":45
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":58
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                , "line":41
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":60
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                , "line":43
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"*"
+          , "id":59
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                , "line":43
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"*"
+          , "id":61
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                , "line":43
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":62
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                , "line":43
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"*"
+          , "id":63
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                , "line":43
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"ST"
+          , "id":65
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                , "line":45
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":66
+          , "end":"33.00"
+          , "parent":"_ZTS10MainKernel.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_double_bram.cpp"
+                , "line":45
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":57
+          , "to":58
+        }
+        , {
+          "from":58
+          , "to":59
+        }
+        , {
+          "from":59
+          , "to":61
+        }
+        , {
+          "from":60
+          , "to":61
+        }
+        , {
+          "from":61
+          , "to":62
+        }
+        , {
+          "from":58
+          , "to":63
+        }
+        , {
+          "from":62
+          , "to":63
+        }
+        , {
+          "from":63
+          , "to":65
+        }
+        , {
+          "from":65
+          , "to":66
+        }
+        , {
+          "from":57
+          , "to":66
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

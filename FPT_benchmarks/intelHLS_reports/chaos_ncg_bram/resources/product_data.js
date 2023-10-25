@@ -1,0 +1,1 @@
+var infoJSON={"compileInfo":{"nodes":[{"family":"Arria 10, 10AX115S2F45I2SGES, intel_a10gx_pac:pac_a10","id":1,"name":"chaos_ncg_bram","product":"SYCL","quartus":"19.2.0 Build 57 Pro","time":"Fri Jun 23 07:05:49 2023","version":"2023.0.0 Build a521207e43c664f6c25af7d4ce6b389f7a86dbda"}]}};

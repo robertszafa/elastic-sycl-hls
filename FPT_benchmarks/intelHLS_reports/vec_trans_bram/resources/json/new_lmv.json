@@ -1,0 +1,305 @@
+{
+  "nodes":
+  [
+    {
+      "name":"MainKernel"
+      , "id":77
+      , "type":"kernel"
+      , "children":
+      [
+        {
+          "name":"On-chip Memory"
+          , "id":78
+          , "type":"memtype"
+          , "children":
+          [
+            {
+              "name":"A"
+              , "id":79
+              , "brief":"Implemented size:4096 bytes = (1024 words per bank) x (4 bytes per word) | Memory Usage:2 RAMs | Number of banks:1 | Bank width (word size):4 bytes | Bank depth:1024 words | Number of replicates:1 | Number of private copies:1 | RAM Mode:Simple dual-port | Pump configuration:Single-pumped"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Declared at":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"%L"
+                      , "links":
+                      [
+                        {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                          , "line":"30"
+                        }
+                      ]
+                    }
+                  ]
+                  , "Requested size":"4000 bytes"
+                  , "Implemented size":"4096 bytes = (1024 words per bank) x (4 bytes per word)"
+                  , "Memory Usage":"2 RAMs"
+                  , "Number of banks":"1"
+                  , "Bank width (word size)":"4 bytes"
+                  , "Bank depth":"1024 words"
+                  , "Number of replicates":"1"
+                  , "Number of private copies":"1"
+                  , "RAM Mode":"Simple dual-port"
+                  , "Pump configuration":"Single-pumped"
+                  , "Additional information":"In each private copy:</br>  Variable 'A' occupies memory words [0-999] and has 1 array element per memory word.</br>  Memory words [1000-1023] are unused padding."
+                  , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Local Memory"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                    , "line":30
+                  }
+                ]
+              ]
+              , "type":"memsys"
+              , "children":
+              [
+                {
+                  "name":"Bank 0"
+                  , "id":82
+                  , "brief":"Memory Usage:2 RAMs | Bank width:4 bytes | Bank depth:1024 words | Implemented bank size:4096 bytes = (1024 words) x (4 bytes per word)"
+                  , "details":
+                  [
+                    {
+                      "type":"table"
+                      , "Memory Usage":"2 RAMs"
+                      , "Bank width":"4 bytes"
+                      , "Bank depth":"1024 words"
+                      , "Implemented bank size":"4096 bytes = (1024 words) x (4 bytes per word)"
+                      , "Number of active ports":"2"
+                      , "Number of read ports":"1"
+                      , "Number of write ports":"1"
+                      , "Additional information":"In each private copy:</br>  Variable 'A' occupies memory words [0-999] and has 1 array element per memory word.</br>  Memory words [1000-1023] are unused padding."
+                      , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                    }
+                  ]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                        , "line":30
+                      }
+                    ]
+                  ]
+                  , "type":"bank"
+                  , "children":
+                  [
+                    {
+                      "name":"Replicate 0"
+                      , "id":83
+                      , "padding":"24"
+                      , "depth":"1024"
+                      , "brief":"Implemented size:4096 bytes = (1024 words) x (4 bytes per word) | Memory Usage:2 RAMs"
+                      , "details":
+                      [
+                        {
+                          "type":"table"
+                          , "Implemented size":"4096 bytes = (1024 words) x (4 bytes per word)"
+                          , "Memory Usage":"2 RAMs"
+                          , "Number of physical ports":"2"
+                          , "Number of read ports":"1"
+                          , "Number of write ports":"1"
+                          , "Additional information":"In each private copy:</br>  Variable 'A' occupies memory words [0-999] and has 1 array element per memory word.</br>  Memory words [1000-1023] are unused padding."
+                          , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                        }
+                      ]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                            , "line":30
+                          }
+                        ]
+                      ]
+                      , "type":"replicate"
+                      , "children":
+                      [
+                        {
+                          "name":"R"
+                          , "id":84
+                          , "type":"port"
+                        }
+                        , {
+                          "name":"W"
+                          , "id":85
+                          , "type":"port"
+                        }
+                      ]
+                      , "copies":
+                      {
+                        "num":1
+                        , "details":
+                        [
+                          {
+                            "type":"table"
+                            , "Width":"4 bytes"
+                            , "Depth per copy (including padding)":"1024 words"
+                            , "Number of private copies":"1"
+                            , "Additional information":"In each private copy:</br>  Variable 'A' occupies memory words [0-999] and has 1 array element per memory word.</br>  Memory words [1000-1023] are unused padding."
+                            , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"Load"
+          , "id":80
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:A | Start cycle:37 | Latency:1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"A"
+              , "Start cycle":"37"
+              , "Latency":"1"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                      , "line":"38"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                , "line":38
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Store"
+          , "id":81
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Stores to:A | Start cycle:66 | Latency:1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Stores to":"A"
+              , "Start cycle":"66"
+              , "Latency":"1"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                      , "line":"39"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+                , "line":39
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":84
+      , "to":80
+    }
+    , {
+      "from":81
+      , "to":85
+    }
+  ]
+}

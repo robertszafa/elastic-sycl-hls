@@ -1,0 +1,102 @@
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Delay Type: max.
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 1 -nworst 1 -delay_type max -sort_by slack.
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Tue Oct 24 11:03:26 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_timing
+| Design       : bitonic_sort
+| Device       : 7k160t-fbg484
+| Speed File   : -1  PRODUCTION 1.12 2017-02-17
+------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (VIOLATED) :        -6.285ns  (required time - arrival time)
+  Source:                 c_LSQ_A/loadQ/head_reg[0]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            Buffer_6/tehb1/data_reg_reg[25]/CE
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (clk rise@4.000ns - clk rise@0.000ns)
+  Data Path Delay:        9.907ns  (logic 1.710ns (17.261%)  route 8.197ns (82.739%))
+  Logic Levels:           19  (CARRY4=1 LUT3=1 LUT4=4 LUT5=5 LUT6=7 MUXF7=1)
+  Clock Path Skew:        -0.099ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    1.283ns = ( 5.283 - 4.000 ) 
+    Source Clock Delay      (SCD):    1.392ns
+    Clock Pessimism Removal (CPR):    0.010ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=4497, unset)         1.392     1.392    c_LSQ_A/loadQ/clk
+    SLICE_X71Y113        FDRE                                         r  c_LSQ_A/loadQ/head_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X71Y113        FDRE (Prop_fdre_C_Q)         0.269     1.661 f  c_LSQ_A/loadQ/head_reg[0]/Q
+                         net (fo=159, routed)         0.584     2.245    c_LSQ_A/loadQ/Q[0]
+    SLICE_X68Y112        LUT4 (Prop_lut4_I0_O)        0.053     2.298 f  c_LSQ_A/loadQ/loadCompleted_10_i_2/O
+                         net (fo=11, routed)          0.614     2.912    c_LSQ_A/loadQ/loadCompleted_10_i_2_n_0
+    SLICE_X69Y110        LUT6 (Prop_lut6_I1_O)        0.053     2.965 f  c_LSQ_A/loadQ/reg_value_i_9__2/O
+                         net (fo=1, routed)           0.411     3.375    c_LSQ_A/loadQ/reg_value_i_9__2_n_0
+    SLICE_X69Y112        LUT6 (Prop_lut6_I0_O)        0.053     3.428 f  c_LSQ_A/loadQ/reg_value_i_8__2/O
+                         net (fo=4, routed)           0.554     3.982    c_LSQ_A/loadQ/reg_value_i_8__2_n_0
+    SLICE_X75Y114        LUT5 (Prop_lut5_I2_O)        0.053     4.035 r  c_LSQ_A/loadQ/dataQ_1[31]_i_17/O
+                         net (fo=128, routed)         0.828     4.863    c_LSQ_A/loadQ/_T_102016[1]
+    SLICE_X77Y118        LUT6 (Prop_lut6_I2_O)        0.053     4.916 r  c_LSQ_A/loadQ/dataQ_1[24]_i_6/O
+                         net (fo=1, routed)           0.000     4.916    c_LSQ_A/loadQ/dataQ_1[24]_i_6_n_0
+    SLICE_X77Y118        MUXF7 (Prop_muxf7_I0_O)      0.127     5.043 r  c_LSQ_A/loadQ/dataQ_1_reg[24]_i_3__0/O
+                         net (fo=1, routed)           0.661     5.703    c_LSQ_A/loadQ/dataQ_1_reg[24]_i_3__0_n_0
+    SLICE_X76Y116        LUT6 (Prop_lut6_I0_O)        0.153     5.856 r  c_LSQ_A/loadQ/dataQ_1[24]_i_2/O
+                         net (fo=12, routed)          0.720     6.577    icmp_21/loadQ_io_loadPorts_0_bits[24]
+    SLICE_X71Y115        LUT4 (Prop_lut4_I1_O)        0.053     6.630 r  icmp_21/dataOutArray[0]__1_i_25/O
+                         net (fo=1, routed)           0.000     6.630    icmp_21/dataOutArray[0]__1_i_25_n_0
+    SLICE_X71Y115        CARRY4 (Prop_carry4_S[0]_CO[3])
+                                                      0.313     6.943 f  icmp_21/dataOutArray[0]__1_i_5/CO[3]
+                         net (fo=3, routed)           0.583     7.526    c_LSQ_A/loadQ/data_reg_reg[0][0]
+    SLICE_X67Y115        LUT3 (Prop_lut3_I1_O)        0.053     7.579 f  c_LSQ_A/loadQ/dataOutArray[0]__1_i_1/O
+                         net (fo=2, routed)           0.353     7.932    phi_n0/tehb1/select_0_dataOutArray_0[0]
+    SLICE_X66Y117        LUT6 (Prop_lut6_I1_O)        0.053     7.985 r  phi_n0/tehb1/dataOutArray[0]__2/O
+                         net (fo=6, routed)           0.167     8.152    Buffer_7/fifo/phi_n0_dataOutArray_0
+    SLICE_X66Y117        LUT5 (Prop_lut5_I2_O)        0.053     8.205 f  Buffer_7/fifo/full_reg_i_6__1/O
+                         net (fo=5, routed)           0.383     8.588    Buffer_22/fifo/branchC_0_pValidArray_0
+    SLICE_X65Y116        LUT6 (Prop_lut6_I1_O)        0.053     8.641 f  Buffer_22/fifo/reg_value_i_2__50/O
+                         net (fo=11, routed)          0.577     9.218    Buffer_22/fifo/Buffer_22_nReadyArray_0
+    SLICE_X51Y116        LUT5 (Prop_lut5_I0_O)        0.053     9.271 r  Buffer_22/fifo/i___1_i_6/O
+                         net (fo=1, routed)           0.240     9.512    forkC_21/generateBlocks[1].regblock/reg_value_i_5__6_2
+    SLICE_X51Y114        LUT5 (Prop_lut5_I4_O)        0.053     9.565 r  forkC_21/generateBlocks[1].regblock/i___1_i_1/O
+                         net (fo=6, routed)           0.163     9.728    forkC_21/generateBlocks[1].regblock/forkStop
+    SLICE_X51Y114        LUT4 (Prop_lut4_I0_O)        0.053     9.781 f  forkC_21/generateBlocks[1].regblock/i___0_i_1/O
+                         net (fo=3, routed)           0.215     9.996    forkC_21/generateBlocks[2].regblock/reg_value_reg_6
+    SLICE_X51Y114        LUT5 (Prop_lut5_I2_O)        0.053    10.049 r  forkC_21/generateBlocks[2].regblock/join_write_temp//i___0/O
+                         net (fo=3, routed)           0.471    10.520    fork_4/generateBlocks[0].regblock/full_reg_reg_0
+    SLICE_X51Y112        LUT6 (Prop_lut6_I2_O)        0.053    10.573 f  fork_4/generateBlocks[0].regblock/full_reg_i_3__12/O
+                         net (fo=4, routed)           0.258    10.831    Buffer_6/oehb1/fork_4_readyArray_0
+    SLICE_X51Y111        LUT4 (Prop_lut4_I0_O)        0.053    10.884 r  Buffer_6/oehb1/data_reg[31]_i_1__11/O
+                         net (fo=32, routed)          0.415    11.299    Buffer_6/tehb1/data_reg_reg[0]_0[0]
+    SLICE_X51Y110        FDCE                                         r  Buffer_6/tehb1/data_reg_reg[25]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        4.000     4.000 r  
+                                                      0.000     4.000 r  clk (IN)
+                         net (fo=4497, unset)         1.283     5.283    Buffer_6/tehb1/clk
+    SLICE_X51Y110        FDCE                                         r  Buffer_6/tehb1/data_reg_reg[25]/C
+                         clock pessimism              0.010     5.293    
+                         clock uncertainty           -0.035     5.258    
+    SLICE_X51Y110        FDCE (Setup_fdce_C_CE)      -0.244     5.014    Buffer_6/tehb1/data_reg_reg[25]
+  -------------------------------------------------------------------
+                         required time                          5.014    
+                         arrival time                         -11.299    
+  -------------------------------------------------------------------
+                         slack                                 -6.285    
+
+
+
+

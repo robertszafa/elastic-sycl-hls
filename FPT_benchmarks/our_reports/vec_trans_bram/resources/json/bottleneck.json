@@ -1,0 +1,260 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"Feedback"
+      , "id":885
+      , "src":"81"
+      , "dst":"770"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":">.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Loop: ":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16vec_trans_kernelRNS1_5queueERSt6vectorIiSaIiEERKS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                  , "line":"110"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"<<(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                  , "line":"49"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                  , "line":"110"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"LD(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                  , "line":"119"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                  , "line":"50"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                  , "line":"50"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Feedback"
+          , "id":81
+          , "start":"1.00"
+          , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16vec_trans_kernelRNS1_5queueERSt6vectorIiSaIiEERKS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":90
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                , "line":119
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":87
+          , "debug":
+          [
+            [
+              {
+                "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"<<"
+          , "id":92
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                , "line":49
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":96
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":97
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                , "line":50
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":101
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                , "line":50
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":711
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                , "line":110
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":770
+          , "end":"2.00"
+          , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16vec_trans_kernelRNS1_5queueERSt6vectorIiSaIiEERKS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/vec_trans_bram_elastic_pass_workdir/vec_trans_bram.ast.cpp"
+                , "line":312
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":90
+          , "to":92
+        }
+        , {
+          "from":92
+          , "to":96
+        }
+        , {
+          "from":96
+          , "to":97
+        }
+        , {
+          "from":97
+          , "to":101
+        }
+        , {
+          "from":711
+          , "to":770
+        }
+        , {
+          "from":81
+          , "to":770
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

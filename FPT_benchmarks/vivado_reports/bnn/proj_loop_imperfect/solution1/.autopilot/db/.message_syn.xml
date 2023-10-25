@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Messages>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1312" tag="" content="Analyzing design file &apos;loop_imperfect.c&apos; ..."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Linking Time (s): cpu = 00:00:04 ; elapsed = 00:00:22 . Memory (MB): peak = 959.105 ; gain = 526.004 ; free physical = 4762 ; free virtual = 10159"/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Checking Pragmas Time (s): cpu = 00:00:04 ; elapsed = 00:00:22 . Memory (MB): peak = 959.105 ; gain = 526.004 ; free physical = 4762 ; free virtual = 10159"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1467" tag="" content="Starting code transformations ..."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Standard Transforms Time (s): cpu = 00:00:05 ; elapsed = 00:00:23 . Memory (MB): peak = 959.105 ; gain = 526.004 ; free physical = 4764 ; free virtual = 10160"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1472" tag="" content="Checking synthesizability ..."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Checking Synthesizability Time (s): cpu = 00:00:05 ; elapsed = 00:00:23 . Memory (MB): peak = 959.105 ; gain = 526.004 ; free physical = 4764 ; free virtual = 10160"/>
+	<Message severity="INFO" prefix="[XFORM 203-502]" key="XFORM_AUTO_UNROLL_STATUS_246" tag="" content="Unrolling all sub-loops inside loop &apos;Loop-1&apos; (loop_imperfect.c:102) in function &apos;loop_imperfect&apos; for pipelining."/>
+	<Message severity="WARNING" prefix="[XFORM 203-505]" key="XFORM_UNROLL_DEAD_PIPELINE_247" tag="" content="Ignored pipeline directive for loop &apos;Loop-1.1&apos; (loop_imperfect.c:104) because its parent loop or function is pipelined."/>
+	<Message severity="INFO" prefix="[HLS 200-489]" key="HLS 200-489" tag="" content="Unrolling loop &apos;Loop-1.1&apos; (loop_imperfect.c:104) in function &apos;loop_imperfect&apos; completely with a factor of 100."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Pre-synthesis Time (s): cpu = 00:00:05 ; elapsed = 00:00:25 . Memory (MB): peak = 959.105 ; gain = 526.004 ; free physical = 4740 ; free virtual = 10136"/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Architecture Synthesis Time (s): cpu = 00:00:06 ; elapsed = 00:00:27 . Memory (MB): peak = 959.105 ; gain = 526.004 ; free physical = 4736 ; free virtual = 10132"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1317" tag="" content="Starting hardware synthesis ..."/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1385" tag="" content="Synthesizing &apos;loop_imperfect&apos; ..."/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1477" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="INFO" prefix="[HLS 200-42]" key="HLS_42_1438" tag="" content="-- Implementing module &apos;loop_imperfect&apos;"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1478" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="INFO" prefix="[SCHED 204-11]" key="SCHED_SCHED_STATUS_597" tag="" content="Starting scheduling ..."/>
+	<Message severity="INFO" prefix="[SCHED 204-61]" key="SCHED_PIPELINING_STATUS_41" tag="" content="Pipelining loop &apos;Loop 1&apos;."/>
+	<Message severity="WARNING" prefix="[SCHED 204-68]" key="SCHED_CARRIED_CONSTRAINT_NOT_MET_32" tag="LOOP,SDX_LOOP,SCHEDULE" content="The II Violation in module &apos;loop_imperfect&apos; (Loop: Loop 1): Unable to enforce a carried dependence constraint (II = 1, distance = 1, offset = 1)
+   between &apos;store&apos; operation (&apos;data_addr_write_ln108&apos;, loop_imperfect.c:108) of variable &apos;add_ln108&apos;, loop_imperfect.c:108 on array &apos;data&apos; and &apos;load&apos; operation (&apos;data_load&apos;, loop_imperfect.c:108) on array &apos;data&apos;."/>
+	<Message severity="WARNING" prefix="[SCHED 204-68]" key="SCHED_CARRIED_CONSTRAINT_NOT_MET_32" tag="LOOP,SDX_LOOP,SCHEDULE" content="The II Violation in module &apos;loop_imperfect&apos; (Loop: Loop 1): Unable to enforce a carried dependence constraint (II = 2, distance = 1, offset = 1)
+   between &apos;store&apos; operation (&apos;data_addr_1_write_ln108&apos;, loop_imperfect.c:108) of variable &apos;add_ln108_1&apos;, loop_imperfect.c:108 on array &apos;data&apos; and &apos;load&apos; operation (&apos;data_load&apos;, loop_imperfect.c:108) on array &apos;data&apos;."/>
+	<Message severity="WARNING" prefix="[SCHED 204-68]" key="SCHED_CARRIED_CONSTRAINT_NOT_MET_32" tag="LOOP,SDX_LOOP,SCHEDULE" content="The II Violation in module &apos;loop_imperfect&apos; (Loop: Loop 1): Unable to enforce a carried dependence constraint (II = 3, distance = 1, offset = 1)
+   between &apos;store&apos; operation (&apos;data_addr_1_write_ln108&apos;, loop_imperfect.c:108) of variable &apos;add_ln108_1&apos;, loop_imperfect.c:108 on array &apos;data&apos; and &apos;load&apos; operation (&apos;data_load&apos;, loop_imperfect.c:108) on array &apos;data&apos;."/>
+	<Message severity="WARNING" prefix="[SCHED 204-68]" key="SCHED_CARRIED_CONSTRAINT_NOT_MET_32" tag="LOOP,SDX_LOOP,SCHEDULE" content="The II Violation in module &apos;loop_imperfect&apos; (Loop: Loop 1): Unable to enforce a carried dependence constraint (II = 4, distance = 1, offset = 1)
+   between &apos;store&apos; operation (&apos;data_addr_2_write_ln108&apos;, loop_imperfect.c:108) of variable &apos;add_ln108_2&apos;, loop_imperfect.c:108 on array &apos;data&apos; and &apos;load&apos; operation (&apos;data_load&apos;, loop_imperfect.c:108) on array &apos;data&apos;."/>
+	<Message severity="WARNING" prefix="[SCHED 204-68]" key="SCHED_CARRIED_CONSTRAINT_NOT_MET_32" tag="LOOP,SDX_LOOP,SCHEDULE" content="The II Violation in module &apos;loop_imperfect&apos; (Loop: Loop 1): Unable to enforce a carried dependence constraint (II = 130, distance = 1, offset = 1)
+   between &apos;store&apos; operation (&apos;data_addr_65_write_ln108&apos;, loop_imperfect.c:108) of variable &apos;add_ln108_65&apos;, loop_imperfect.c:108 on array &apos;data&apos; and &apos;load&apos; operation (&apos;data_load&apos;, loop_imperfect.c:108) on array &apos;data&apos;."/>
+	<Message severity="WARNING" prefix="[SCHED 204-68]" key="SCHED_CARRIED_CONSTRAINT_NOT_MET_32" tag="LOOP,SDX_LOOP,SCHEDULE" content="The II Violation in module &apos;loop_imperfect&apos; (Loop: Loop 1): Unable to enforce a carried dependence constraint (II = 193, distance = 1, offset = 1)
+   between &apos;store&apos; operation (&apos;data_addr_96_write_ln108&apos;, loop_imperfect.c:108) of variable &apos;add_ln108_96&apos;, loop_imperfect.c:108 on array &apos;data&apos; and &apos;load&apos; operation (&apos;data_load&apos;, loop_imperfect.c:108) on array &apos;data&apos;."/>
+	<Message severity="WARNING" prefix="[SCHED 204-68]" key="SCHED_CARRIED_CONSTRAINT_NOT_MET_32" tag="LOOP,SDX_LOOP,SCHEDULE" content="The II Violation in module &apos;loop_imperfect&apos; (Loop: Loop 1): Unable to enforce a carried dependence constraint (II = 197, distance = 1, offset = 1)
+   between &apos;store&apos; operation (&apos;data_addr_98_write_ln108&apos;, loop_imperfect.c:108) of variable &apos;add_ln108_98&apos;, loop_imperfect.c:108 on array &apos;data&apos; and &apos;load&apos; operation (&apos;data_load&apos;, loop_imperfect.c:108) on array &apos;data&apos;."/>
+	<Message severity="WARNING" prefix="[SCHED 204-68]" key="SCHED_CARRIED_CONSTRAINT_NOT_MET_32" tag="LOOP,SDX_LOOP,SCHEDULE" content="The II Violation in module &apos;loop_imperfect&apos; (Loop: Loop 1): Unable to enforce a carried dependence constraint (II = 199, distance = 1, offset = 1)
+   between &apos;store&apos; operation (&apos;data_addr_99_write_ln108&apos;, loop_imperfect.c:108) of variable &apos;add_ln108_99&apos;, loop_imperfect.c:108 on array &apos;data&apos; and &apos;load&apos; operation (&apos;data_load&apos;, loop_imperfect.c:108) on array &apos;data&apos;."/>
+	<Message severity="INFO" prefix="[SCHED 204-61]" key="SCHED_PIPELINING_STATUS_44" tag="" content="Pipelining result : Target II = 1, Final II = 200, Depth = 201."/>
+	<Message severity="INFO" prefix="[SCHED 204-61]" key="SCHED_PIPELINING_STATUS_41" tag="" content="Pipelining loop &apos;Loop 2&apos;."/>
+	<Message severity="WARNING" prefix="[SCHED 204-68]" key="SCHED_CARRIED_CONSTRAINT_NOT_MET_32" tag="LOOP,SDX_LOOP,SCHEDULE" content="The II Violation in module &apos;loop_imperfect&apos; (Loop: Loop 2): Unable to enforce a carried dependence constraint (II = 1, distance = 1, offset = 1)
+   between &apos;store&apos; operation (&apos;data_addr_100_write_ln122&apos;, loop_imperfect.c:122) of variable &apos;z&apos;, loop_imperfect.c:118 on array &apos;data&apos; and &apos;load&apos; operation (&apos;temp&apos;, loop_imperfect.c:116) on array &apos;data&apos;."/>
+	<Message severity="INFO" prefix="[SCHED 204-61]" key="SCHED_PIPELINING_STATUS_44" tag="" content="Pipelining result : Target II = 1, Final II = 2, Depth = 4."/>
+	<Message severity="WARNING" prefix="[SCHED 204-21]" key="SCHED_DELAY_EXCEEDED_76" tag="SDX_KERNEL,SCHEDULE" content="Estimated clock period (7.744ns) exceeds the target (target clock period: 4ns, clock uncertainty: 0.5ns, effective delay budget: 3.5ns)."/>
+	<Message severity="WARNING" prefix="[SCHED 204-21]" key="SCHED_DELAY_EXCEEDED_74" tag="SDX_KERNEL,SCHEDULE" content="The critical path in module &apos;loop_imperfect&apos; consists of the following:
+	&apos;load&apos; operation (&apos;temp&apos;, loop_imperfect.c:116) on array &apos;data&apos; [1746]  (2.66 ns)
+	&apos;sub&apos; operation (&apos;z&apos;, loop_imperfect.c:119) [1748]  (1.78 ns)
+	&apos;select&apos; operation (&apos;z&apos;, loop_imperfect.c:118) [1750]  (0.631 ns)
+	&apos;store&apos; operation (&apos;data_addr_100_write_ln122&apos;, loop_imperfect.c:122) of variable &apos;z&apos;, loop_imperfect.c:118 on array &apos;data&apos; [1751]  (2.66 ns)"/>
+	<Message severity="INFO" prefix="[SCHED 204-11]" key="SCHED_SCHED_STATUS_596" tag="" content="Finished scheduling."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_966" tag="" content=" Elapsed time: 44.7 seconds; current allocated memory: 131.186 MB."/>
+	<Message severity="INFO" prefix="[BIND 205-100]" key="BIND_100_926" tag="" content="Starting micro-architecture generation ..."/>
+	<Message severity="INFO" prefix="[BIND 205-101]" key="BIND_101_698" tag="" content="Performing variable lifetime analysis."/>
+	<Message severity="INFO" prefix="[BIND 205-101]" key="BIND_101_697" tag="" content="Exploring resource sharing."/>
+	<Message severity="INFO" prefix="[BIND 205-101]" key="BIND_101_693" tag="" content="Binding ..."/>
+	<Message severity="INFO" prefix="[BIND 205-100]" key="BIND_100_925" tag="" content="Finished micro-architecture generation."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_966" tag="" content=" Elapsed time: 2.86 seconds; current allocated memory: 137.699 MB."/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1483" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1484" tag="" content="-- Generating RTL for module &apos;loop_imperfect&apos;"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1485" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="INFO" prefix="[RTGEN 206-500]" key="PREPROC_IO_COMP_CONFLICT_1950" tag="" content="Setting interface mode on port &apos;loop_imperfect/data&apos; to &apos;ap_memory&apos;."/>
+	<Message severity="INFO" prefix="[RTGEN 206-500]" key="PREPROC_IO_COMP_CONFLICT_1950" tag="" content="Setting interface mode on port &apos;loop_imperfect/addr_in&apos; to &apos;ap_memory&apos;."/>
+	<Message severity="INFO" prefix="[RTGEN 206-500]" key="PREPROC_IO_COMP_CONFLICT_1950" tag="" content="Setting interface mode on port &apos;loop_imperfect/addr_out&apos; to &apos;ap_memory&apos;."/>
+	<Message severity="INFO" prefix="[RTGEN 206-500]" key="PREPROC_IO_COMP_CONFLICT_1950" tag="" content="Setting interface mode on port &apos;loop_imperfect/a&apos; to &apos;ap_memory&apos;."/>
+	<Message severity="INFO" prefix="[RTGEN 206-500]" key="PREPROC_IO_COMP_CONFLICT_1950" tag="" content="Setting interface mode on function &apos;loop_imperfect&apos; to &apos;ap_ctrl_hs&apos;."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_738" tag="" content="Port &apos;loop_imperfect/a_address0&apos; has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_739" tag="" content="Setting dangling out port &apos;loop_imperfect/a_address0&apos; to 0."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_738" tag="" content="Port &apos;loop_imperfect/a_ce0&apos; has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_739" tag="" content="Setting dangling out port &apos;loop_imperfect/a_ce0&apos; to 0."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_738" tag="" content="Port &apos;loop_imperfect/a_we0&apos; has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_739" tag="" content="Setting dangling out port &apos;loop_imperfect/a_we0&apos; to 0."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_738" tag="" content="Port &apos;loop_imperfect/a_d0&apos; has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_739" tag="" content="Setting dangling out port &apos;loop_imperfect/a_d0&apos; to 0."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_738" tag="" content="Port &apos;loop_imperfect/a_q0&apos; has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_738" tag="" content="Port &apos;loop_imperfect/a_address1&apos; has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_739" tag="" content="Setting dangling out port &apos;loop_imperfect/a_address1&apos; to 0."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_738" tag="" content="Port &apos;loop_imperfect/a_ce1&apos; has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_739" tag="" content="Setting dangling out port &apos;loop_imperfect/a_ce1&apos; to 0."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_738" tag="" content="Port &apos;loop_imperfect/a_we1&apos; has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_739" tag="" content="Setting dangling out port &apos;loop_imperfect/a_we1&apos; to 0."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_738" tag="" content="Port &apos;loop_imperfect/a_d1&apos; has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_739" tag="" content="Setting dangling out port &apos;loop_imperfect/a_d1&apos; to 0."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_738" tag="" content="Port &apos;loop_imperfect/a_q1&apos; has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to."/>
+	<Message severity="INFO" prefix="[RTGEN 206-100]" key="RTGEN_100_856" tag="" content="Finished creating RTL model for &apos;loop_imperfect&apos;."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_966" tag="" content=" Elapsed time: 3.75 seconds; current allocated memory: 150.481 MB."/>
+	<Message severity="INFO" prefix="[HLS 200-790]" key="HLS 200-790" tag="LOOP,SDX_LOOP" content="**** Loop Constraint Status: All loop constraints were NOT satisfied."/>
+	<Message severity="INFO" prefix="[HLS 200-789]" key="HLS 200-789" tag="THROUGHPUT,SDX_KERNEL" content="**** Estimated Fmax: 129.13 MHz"/>
+	<Message severity="WARNING" prefix="[RTMG 210-274]" key="RTMG_274_1758" tag="" content="Memory &apos;loop_imperfect_w&apos; is read-only, switch it to a ROM."/>
+	<Message severity="INFO" prefix="[RTMG 210-279]" key="RTMG_279_1793" tag="" content="Implementing memory &apos;loop_imperfect_w_rom&apos; using block ROMs."/>
+	<Message severity="WARNING" prefix="[RTMG 210-274]" key="RTMG_274_1758" tag="" content="Memory &apos;loop_imperfect_mean&apos; is read-only, switch it to a ROM."/>
+	<Message severity="INFO" prefix="[RTMG 210-279]" key="RTMG_279_1793" tag="" content="Implementing memory &apos;loop_imperfect_mean_rom&apos; using block ROMs."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished generating all RTL models Time (s): cpu = 00:00:12 ; elapsed = 00:00:59 . Memory (MB): peak = 1051.574 ; gain = 618.473 ; free physical = 4617 ; free virtual = 10041"/>
+	<Message severity="INFO" prefix="[VHDL 208-304]" key="VHDL_304_1066" tag="" content="Generating VHDL RTL for loop_imperfect."/>
+	<Message severity="INFO" prefix="[VLOG 209-307]" key="VLOG_307_1067" tag="" content="Generating Verilog RTL for loop_imperfect."/>
+</Messages>

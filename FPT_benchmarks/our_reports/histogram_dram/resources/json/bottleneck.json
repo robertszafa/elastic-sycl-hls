@@ -1,0 +1,508 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"Feedback"
+      , "id":549
+      , "src":"249"
+      , "dst":"470"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":">.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Loop: ":"_ZTS8LSQ_DRAMIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"485"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"And(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"596"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"596"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"633"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"662"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"639"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"639"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"639"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"641"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"596"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"633"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"641"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"667"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Xor(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                  , "line":"641"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Feedback"
+          , "id":249
+          , "start":"3.00"
+          , "parent":"_ZTS8LSQ_DRAMIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":667
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"And"
+          , "id":250
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":596
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":251
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":596
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":266
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":596
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":267
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":286
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":633
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":287
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":633
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":309
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":639
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":311
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":639
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":312
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":639
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":313
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":641
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":390
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":662
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Xor"
+          , "id":447
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":641
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":448
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":641
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":449
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":667
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":453
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":470
+          , "end":"4.00"
+          , "parent":"_ZTS8LSQ_DRAMIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_dram_elastic_pass_workdir/histogram_dram.ast.cpp"
+                , "line":667
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":249
+          , "to":250
+        }
+        , {
+          "from":250
+          , "to":251
+        }
+        , {
+          "from":251
+          , "to":266
+        }
+        , {
+          "from":266
+          , "to":267
+        }
+        , {
+          "from":286
+          , "to":287
+        }
+        , {
+          "from":287
+          , "to":309
+        }
+        , {
+          "from":309
+          , "to":311
+        }
+        , {
+          "from":311
+          , "to":312
+        }
+        , {
+          "from":312
+          , "to":313
+        }
+        , {
+          "from":267
+          , "to":390
+        }
+        , {
+          "from":313
+          , "to":447
+        }
+        , {
+          "from":390
+          , "to":448
+        }
+        , {
+          "from":447
+          , "to":448
+        }
+        , {
+          "from":249
+          , "to":449
+        }
+        , {
+          "from":448
+          , "to":449
+        }
+        , {
+          "from":390
+          , "to":453
+        }
+        , {
+          "from":449
+          , "to":470
+        }
+        , {
+          "from":249
+          , "to":470
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

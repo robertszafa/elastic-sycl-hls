@@ -1,0 +1,106 @@
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Sun Jun 25 13:39:46 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_control_sets -verbose -file bd_0_wrapper_control_sets_placed.rpt
+| Design       : bd_0_wrapper
+| Device       : xc7k160t
+-----------------------------------------------------------------------------------------
+
+Control Set Information
+
+Table of Contents
+-----------------
+1. Summary
+2. Histogram
+3. Flip-Flop Distribution
+4. Detailed Control Set Information
+
+1. Summary
+----------
+
++----------------------------------------------------------+-------+
+|                          Status                          | Count |
++----------------------------------------------------------+-------+
+| Total control sets                                       |    28 |
+|    Minimum number of control sets                        |    28 |
+|    Addition due to synthesis replication                 |     0 |
+|    Addition due to physical synthesis replication        |     0 |
+| Unused register locations in slices containing registers |    94 |
++----------------------------------------------------------+-------+
+* Control sets can be merged at opt_design using control_set_merge or merge_equivalent_drivers
+** Run report_qor_suggestions for automated merging and remapping suggestions
+
+
+2. Histogram
+------------
+
++--------------------+-------+
+|       Fanout       | Count |
++--------------------+-------+
+| Total control sets |    28 |
+| >= 0 to < 4        |     0 |
+| >= 4 to < 6        |     0 |
+| >= 6 to < 8        |     0 |
+| >= 8 to < 10       |     1 |
+| >= 10 to < 12      |     0 |
+| >= 12 to < 14      |     0 |
+| >= 14 to < 16      |     5 |
+| >= 16              |    22 |
++--------------------+-------+
+* Control sets can be remapped at either synth_design or opt_design
+
+
+3. Flip-Flop Distribution
+-------------------------
+
++--------------+-----------------------+------------------------+-----------------+--------------+
+| Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
++--------------+-----------------------+------------------------+-----------------+--------------+
+| No           | No                    | No                     |             683 |          186 |
+| No           | No                    | Yes                    |               0 |            0 |
+| No           | Yes                   | No                     |             122 |           35 |
+| Yes          | No                    | No                     |             751 |          231 |
+| Yes          | No                    | Yes                    |               0 |            0 |
+| Yes          | Yes                   | No                     |              14 |            4 |
++--------------+-----------------------+------------------------+-----------------+--------------+
+
+
+4. Detailed Control Set Information
+-----------------------------------
+
++--------------+--------------------------------------------------------------------------------------------------+----------------------------------+------------------+----------------+
+| Clock Signal |                                           Enable Signal                                          |         Set/Reset Signal         | Slice Load Count | Bel Load Count |
++--------------+--------------------------------------------------------------------------------------------------+----------------------------------+------------------+----------------+
+|  ap_clk      | bd_0_i/hls_inst/inst/reg_961                                                                     |                                  |                3 |              9 |
+|  ap_clk      | bd_0_i/hls_inst/inst/k_reg_24400                                                                 |                                  |                6 |             14 |
+|  ap_clk      | bd_0_i/hls_inst/inst/k_0_reg_945[4]_i_2_n_0                                                      | bd_0_i/hls_inst/inst/k_0_reg_945 |                4 |             14 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_mubkb_U2/loop_imperfect_mubkb_MulnS_0_U/E[0]                 |                                  |                4 |             15 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln102_reg_1752_reg0                                                     |                                  |                6 |             15 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_mubkb_U1/loop_imperfect_mubkb_MulnS_0_U/reg_9570             |                                  |                4 |             15 |
+|  ap_clk      | bd_0_i/hls_inst/inst/matrix_addr_39_reg_2339[8]_i_1_n_0                                          |                                  |                3 |             18 |
+|  ap_clk      | bd_0_i/hls_inst/inst/matrix_addr_35_reg_2287[8]_i_1_n_0                                          |                                  |                5 |             18 |
+|  ap_clk      | bd_0_i/hls_inst/inst/matrix_addr_11_reg_1920[8]_i_1_n_0                                          |                                  |                6 |             25 |
+|  ap_clk      | bd_0_i/hls_inst/inst/matrix_addr_15_reg_1982[8]_i_1_n_0                                          |                                  |                7 |             25 |
+|  ap_clk      | bd_0_i/hls_inst/inst/matrix_addr_19_reg_2044[8]_i_1_n_0                                          |                                  |                5 |             25 |
+|  ap_clk      | bd_0_i/hls_inst/inst/matrix_addr_23_reg_2101[8]_i_1_n_0                                          |                                  |                8 |             25 |
+|  ap_clk      | bd_0_i/hls_inst/inst/matrix_addr_27_reg_2163[8]_i_1_n_0                                          |                                  |                9 |             25 |
+|  ap_clk      | bd_0_i/hls_inst/inst/matrix_addr_31_reg_2225[8]_i_1_n_0                                          |                                  |                7 |             25 |
+|  ap_clk      | bd_0_i/hls_inst/inst/matrix_addr_7_reg_1858[8]_i_1_n_0                                           |                                  |                7 |             25 |
+|  ap_clk      | bd_0_i/hls_inst/inst/reg_971[31]_i_1_n_0                                                         |                                  |                9 |             32 |
+|  ap_clk      | bd_0_i/hls_inst/inst/zext_ln102_1_reg_1794[8]_i_1_n_0                                            |                                  |               11 |             32 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_mubkb_U12/loop_imperfect_mubkb_MulnS_0_U/E[0]                |                                  |               11 |             33 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_mubkb_U13/loop_imperfect_mubkb_MulnS_0_U/a_load_12_reg_21420 |                                  |               13 |             39 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_mubkb_U19/loop_imperfect_mubkb_MulnS_0_U/a_load_18_reg_23130 |                                  |               20 |             48 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_mubkb_U17/loop_imperfect_mubkb_MulnS_0_U/a_load_16_reg_22610 |                                  |               15 |             48 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_mubkb_U15/loop_imperfect_mubkb_MulnS_0_U/reg_971212_out      |                                  |               14 |             48 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_mubkb_U9/loop_imperfect_mubkb_MulnS_0_U/a_load_8_reg_20180   |                                  |               13 |             48 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_mubkb_U3/loop_imperfect_mubkb_MulnS_0_U/reg_9711             |                                  |               15 |             48 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_mubkb_U5/loop_imperfect_mubkb_MulnS_0_U/a_load_4_reg_18940   |                                  |               15 |             48 |
+|  ap_clk      | bd_0_i/hls_inst/inst/loop_imperfect_mubkb_U7/loop_imperfect_mubkb_MulnS_0_U/a_load_6_reg_19560   |                                  |               15 |             48 |
+|  ap_clk      |                                                                                                  | ap_rst                           |               35 |            122 |
+|  ap_clk      |                                                                                                  |                                  |              186 |            683 |
++--------------+--------------------------------------------------------------------------------------------------+----------------------------------+------------------+----------------+
+
+

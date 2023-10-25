@@ -1,0 +1,323 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0xDD7C2E4344B099AE",
+      "device": "xc7k160tfbg484-1",
+      "name": "bd_0",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2019.2",
+      "validated": "true"
+    },
+    "design_tree": {
+      "hls_inst": ""
+    },
+    "interface_ports": {
+      "ap_ctrl": {
+        "mode": "Slave",
+        "vlnv": "xilinx.com:interface:acc_handshake_rtl:1.0"
+      }
+    },
+    "ports": {
+      "ap_clk": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "ASSOCIATED_RESET": {
+            "value": "ap_rst",
+            "value_src": "default"
+          },
+          "CLK_DOMAIN": {
+            "value": "bd_0_ap_clk_0",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "250000000.0"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.000",
+            "value_src": "default"
+          }
+        }
+      },
+      "ap_rst": {
+        "type": "rst",
+        "direction": "I",
+        "parameters": {
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "POLARITY": {
+            "value": "ACTIVE_HIGH"
+          }
+        }
+      },
+      "edges_address0": {
+        "type": "data",
+        "direction": "O",
+        "left": "10",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "edges_address1": {
+        "type": "data",
+        "direction": "O",
+        "left": "10",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "edges_ce0": {
+        "direction": "O"
+      },
+      "edges_ce1": {
+        "direction": "O"
+      },
+      "edges_q0": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "edges_q1": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "vertices_address0": {
+        "type": "data",
+        "direction": "O",
+        "left": "10",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "vertices_address1": {
+        "type": "data",
+        "direction": "O",
+        "left": "10",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "vertices_ce0": {
+        "direction": "O"
+      },
+      "vertices_ce1": {
+        "direction": "O"
+      },
+      "vertices_d0": {
+        "type": "data",
+        "direction": "O",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "vertices_d1": {
+        "type": "data",
+        "direction": "O",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "vertices_q0": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "vertices_q1": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "vertices_we0": {
+        "direction": "O"
+      },
+      "vertices_we1": {
+        "direction": "O"
+      }
+    },
+    "components": {
+      "hls_inst": {
+        "vlnv": "xilinx.com:hls:loop_imperfect:0.1",
+        "xci_name": "bd_0_hls_inst_0"
+      }
+    },
+    "interface_nets": {
+      "ap_ctrl_0_1": {
+        "interface_ports": [
+          "ap_ctrl",
+          "hls_inst/ap_ctrl"
+        ]
+      }
+    },
+    "nets": {
+      "ap_clk_0_1": {
+        "ports": [
+          "ap_clk",
+          "hls_inst/ap_clk"
+        ]
+      },
+      "ap_rst_0_1": {
+        "ports": [
+          "ap_rst",
+          "hls_inst/ap_rst"
+        ]
+      },
+      "hls_inst_edges_address0": {
+        "ports": [
+          "hls_inst/edges_address0",
+          "edges_address0"
+        ]
+      },
+      "hls_inst_edges_address1": {
+        "ports": [
+          "hls_inst/edges_address1",
+          "edges_address1"
+        ]
+      },
+      "hls_inst_edges_ce0": {
+        "ports": [
+          "hls_inst/edges_ce0",
+          "edges_ce0"
+        ]
+      },
+      "hls_inst_edges_ce1": {
+        "ports": [
+          "hls_inst/edges_ce1",
+          "edges_ce1"
+        ]
+      },
+      "edges_q0_0_1": {
+        "ports": [
+          "edges_q0",
+          "hls_inst/edges_q0"
+        ]
+      },
+      "edges_q1_0_1": {
+        "ports": [
+          "edges_q1",
+          "hls_inst/edges_q1"
+        ]
+      },
+      "hls_inst_vertices_address0": {
+        "ports": [
+          "hls_inst/vertices_address0",
+          "vertices_address0"
+        ]
+      },
+      "hls_inst_vertices_address1": {
+        "ports": [
+          "hls_inst/vertices_address1",
+          "vertices_address1"
+        ]
+      },
+      "hls_inst_vertices_ce0": {
+        "ports": [
+          "hls_inst/vertices_ce0",
+          "vertices_ce0"
+        ]
+      },
+      "hls_inst_vertices_ce1": {
+        "ports": [
+          "hls_inst/vertices_ce1",
+          "vertices_ce1"
+        ]
+      },
+      "hls_inst_vertices_d0": {
+        "ports": [
+          "hls_inst/vertices_d0",
+          "vertices_d0"
+        ]
+      },
+      "hls_inst_vertices_d1": {
+        "ports": [
+          "hls_inst/vertices_d1",
+          "vertices_d1"
+        ]
+      },
+      "vertices_q0_0_1": {
+        "ports": [
+          "vertices_q0",
+          "hls_inst/vertices_q0"
+        ]
+      },
+      "vertices_q1_0_1": {
+        "ports": [
+          "vertices_q1",
+          "hls_inst/vertices_q1"
+        ]
+      },
+      "hls_inst_vertices_we0": {
+        "ports": [
+          "hls_inst/vertices_we0",
+          "vertices_we0"
+        ]
+      },
+      "hls_inst_vertices_we1": {
+        "ports": [
+          "hls_inst/vertices_we1",
+          "vertices_we1"
+        ]
+      }
+    }
+  }
+}

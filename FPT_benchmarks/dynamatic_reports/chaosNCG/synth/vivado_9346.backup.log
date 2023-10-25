@@ -1,0 +1,2545 @@
+#-----------------------------------------------------------
+# Vivado v2019.2 (64-bit)
+# SW Build 2708876 on Wed Nov  6 21:39:14 MST 2019
+# IP Build 2700528 on Thu Nov  7 00:09:20 MST 2019
+# Start of session at: Mon Jun 26 11:18:04 2023
+# Process ID: 9346
+# Current directory: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/synth
+# Command line: vivado -mode batch -source synthesize_4.tcl
+# Log file: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/synth/vivado.log
+# Journal file: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/synth/vivado.jou
+#-----------------------------------------------------------
+source synthesize_4.tcl
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/delay_buffer.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/arithmetic_units.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/elastic_components.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/MemCont.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/multipliers.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/mul_wrapper.vhd
+# read_verilog  ../sim/VHDL_SRC/LSQ_A.v
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/chaosNCG_optimized.vhd
+# read_xdc period_4.xdc
+# synth_design -top chaosNCG -part xc7k160tfbg484-1 -no_iobuf -mode out_of_context 
+Command: synth_design -top chaosNCG -part xc7k160tfbg484-1 -no_iobuf -mode out_of_context
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7k160t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7k160t'
+INFO: [Device 21-403] Loading part xc7k160tfbg484-1
+INFO: Launching helper process for spawning children vivado processes
+INFO: Helper process launched with PID 9390 
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:05 . Memory (MB): peak = 1978.250 ; gain = 201.684 ; free physical = 5282 ; free virtual = 9443
+---------------------------------------------------------------------------------
+INFO: [Synth 8-638] synthesizing module 'chaosNCG' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:52]
+INFO: [Synth 8-638] synthesizing module 'start_node' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1034]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticBuffer' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:303]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'TEHB' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:167]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'TEHB' (1#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:167]
+INFO: [Synth 8-638] synthesizing module 'OEHB' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:242]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'OEHB' (2#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:242]
+INFO: [Synth 8-256] done synthesizing module 'elasticBuffer' (3#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:303]
+INFO: [Synth 8-256] done synthesizing module 'start_node' (4#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1034]
+INFO: [Synth 8-638] synthesizing module 'Const' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1564]
+	Parameter SIZE bound to: 1 - type: integer 
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'Const' (5#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1564]
+INFO: [Synth 8-638] synthesizing module 'start_node__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1034]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticBuffer__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:303]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'TEHB__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:167]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'TEHB__parameterized0' (5#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:167]
+INFO: [Synth 8-638] synthesizing module 'OEHB__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:242]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'OEHB__parameterized0' (5#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:242]
+INFO: [Synth 8-256] done synthesizing module 'elasticBuffer__parameterized0' (5#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:303]
+INFO: [Synth 8-256] done synthesizing module 'start_node__parameterized0' (5#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1034]
+INFO: [Synth 8-638] synthesizing module '\fork ' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 3 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 3 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN' (6#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-638] synthesizing module 'eagerFork_RegisterBLock' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:623]
+INFO: [Synth 8-256] done synthesizing module 'eagerFork_RegisterBLock' (7#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:623]
+INFO: [Synth 8-256] done synthesizing module '\fork ' (8#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'mux' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1810]
+	Parameter INPUTS bound to: 3 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter COND_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'mux' (9#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1810]
+INFO: [Synth 8-638] synthesizing module 'add_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:67]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module '\join ' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:113]
+	Parameter SIZE bound to: 2 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'andN' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:24]
+	Parameter n bound to: 2 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'andN' (10#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:24]
+INFO: [Synth 8-256] done synthesizing module '\join ' (11#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:113]
+INFO: [Synth 8-256] done synthesizing module 'add_op' (12#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:67]
+INFO: [Synth 8-638] synthesizing module 'mc_load_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:583]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 2 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'mc_load_op' (13#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:583]
+INFO: [Synth 8-638] synthesizing module 'lsq_load_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1987]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 2 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'lsq_load_op' (14#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1987]
+INFO: [Synth 8-638] synthesizing module 'xor_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:234]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'xor_op' (15#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:234]
+INFO: [Synth 8-638] synthesizing module 'and_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:154]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'and_op' (16#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:154]
+INFO: [Synth 8-638] synthesizing module 'shl_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:342]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'shl_op' (17#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:342]
+INFO: [Synth 8-638] synthesizing module 'srem_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:2482]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter ID bound to: 1 - type: integer 
+	Parameter NUM_STAGE bound to: 36 - type: integer 
+	Parameter din0_WIDTH bound to: 32 - type: integer 
+	Parameter din1_WIDTH bound to: 32 - type: integer 
+	Parameter dout_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-637] synthesizing blackbox instance 'array_RAM_srem_32ns_32ns_32_36_1_U1' of component 'array_RAM_srem_32ns_32ns_32_36_1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:2504]
+INFO: [Synth 8-638] synthesizing module 'delay_buffer' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/delay_buffer.vhd:16]
+	Parameter SIZE bound to: 35 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'delay_buffer' (18#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/delay_buffer.vhd:16]
+INFO: [Synth 8-256] done synthesizing module 'srem_op' (19#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:2482]
+INFO: [Synth 8-638] synthesizing module 'sub_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:107]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'sub_op' (20#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:107]
+INFO: [Synth 8-638] synthesizing module 'ashr_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:381]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'ashr_op' (21#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:381]
+INFO: [Synth 8-638] synthesizing module 'or_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:194]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'or_op' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:194]
+INFO: [Synth 8-638] synthesizing module 'lsq_store_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:2033]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 2 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'lsq_store_op' (23#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:2033]
+INFO: [Synth 8-638] synthesizing module 'icmp_ult_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:827]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'icmp_ult_op' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:827]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized0' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized0' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'mux__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1810]
+	Parameter INPUTS bound to: 3 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+	Parameter COND_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'mux__parameterized0' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1810]
+INFO: [Synth 8-638] synthesizing module 'branch' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:584]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter SIZE bound to: 2 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'join__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:113]
+	Parameter SIZE bound to: 2 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'join__parameterized0' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:113]
+INFO: [Synth 8-638] synthesizing module 'branchSimple' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:553]
+INFO: [Synth 8-256] done synthesizing module 'branchSimple' (25#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:553]
+INFO: [Synth 8-256] done synthesizing module 'branch' (26#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:584]
+INFO: [Synth 8-638] synthesizing module 'merge' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:783]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'merge' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:783]
+INFO: [Synth 8-638] synthesizing module 'branch__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:584]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter SIZE bound to: 2 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'branch__parameterized0' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:584]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 5 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 5 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized1' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized1' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 3 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized2' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized3' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 2 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 2 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized2' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized3' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized4' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 6 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized3' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 6 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized3' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized4' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized5' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 13 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized4' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 13 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized4' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized5' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'elasticBuffer__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:303]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'elasticBuffer__parameterized1' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:303]
+INFO: [Synth 8-638] synthesizing module 'transpFIFO' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1422]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 8 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticFifoInner' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1167]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 8 - type: integer 
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1196]
+WARNING: [Synth 8-6014] Unused sequential element fifo_valid_reg was removed.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1199]
+INFO: [Synth 8-256] done synthesizing module 'elasticFifoInner' (28#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1167]
+INFO: [Synth 8-256] done synthesizing module 'transpFIFO' (29#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1422]
+INFO: [Synth 8-638] synthesizing module 'elasticBuffer__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:303]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'elasticBuffer__parameterized2' (29#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:303]
+INFO: [Synth 8-638] synthesizing module 'transpFIFO__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1422]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 7 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticFifoInner__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1167]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 7 - type: integer 
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1196]
+WARNING: [Synth 8-6014] Unused sequential element fifo_valid_reg was removed.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1199]
+INFO: [Synth 8-256] done synthesizing module 'elasticFifoInner__parameterized0' (29#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1167]
+INFO: [Synth 8-256] done synthesizing module 'transpFIFO__parameterized0' (29#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1422]
+INFO: [Synth 8-638] synthesizing module 'transpFIFO__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1422]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+	Parameter FIFO_DEPTH bound to: 7 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticFifoInner__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1167]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+	Parameter FIFO_DEPTH bound to: 7 - type: integer 
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1196]
+WARNING: [Synth 8-6014] Unused sequential element fifo_valid_reg was removed.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1199]
+INFO: [Synth 8-256] done synthesizing module 'elasticFifoInner__parameterized1' (29#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1167]
+INFO: [Synth 8-256] done synthesizing module 'transpFIFO__parameterized1' (29#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1422]
+INFO: [Synth 8-638] synthesizing module 'transpFIFO__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1422]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+	Parameter FIFO_DEPTH bound to: 8 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticFifoInner__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1167]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+	Parameter FIFO_DEPTH bound to: 8 - type: integer 
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1196]
+WARNING: [Synth 8-6014] Unused sequential element fifo_valid_reg was removed.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1199]
+INFO: [Synth 8-256] done synthesizing module 'elasticFifoInner__parameterized2' (29#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1167]
+INFO: [Synth 8-256] done synthesizing module 'transpFIFO__parameterized2' (29#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1422]
+INFO: [Synth 8-638] synthesizing module 'ret_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:24]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'ret_op' (30#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:24]
+INFO: [Synth 8-3491] module 'LSQ_A' declared at '/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:48393' bound to instance 'c_LSQ_A' of component 'LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:3484]
+INFO: [Synth 8-6157] synthesizing module 'LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:48393]
+INFO: [Synth 8-6157] synthesizing module 'STORE_QUEUE_LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:1]
+INFO: [Synth 8-6155] done synthesizing module 'STORE_QUEUE_LSQ_A' (31#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:1]
+INFO: [Synth 8-6157] synthesizing module 'LOAD_QUEUE_LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:13462]
+INFO: [Synth 8-6155] done synthesizing module 'LOAD_QUEUE_LSQ_A' (32#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:13462]
+INFO: [Synth 8-6157] synthesizing module 'GROUP_ALLOCATOR_LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:48008]
+INFO: [Synth 8-6155] done synthesizing module 'GROUP_ALLOCATOR_LSQ_A' (33#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:48008]
+INFO: [Synth 8-6157] synthesizing module 'LOAD_PORT_LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:48202]
+INFO: [Synth 8-6155] done synthesizing module 'LOAD_PORT_LSQ_A' (34#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:48202]
+INFO: [Synth 8-6157] synthesizing module 'STORE_DATA_PORT_LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:48302]
+INFO: [Synth 8-6155] done synthesizing module 'STORE_DATA_PORT_LSQ_A' (35#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:48302]
+INFO: [Synth 8-6155] done synthesizing module 'LSQ_A' (36#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:48393]
+INFO: [Synth 8-638] synthesizing module 'MemCont' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:753]
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter BB_COUNT bound to: 1 - type: integer 
+	Parameter LOAD_COUNT bound to: 4 - type: integer 
+	Parameter STORE_COUNT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'read_memory_arbiter' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:202]
+	Parameter ARBITER_SIZE bound to: 4 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'read_priority' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:17]
+	Parameter ARBITER_SIZE bound to: 4 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_priority' (37#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:17]
+INFO: [Synth 8-638] synthesizing module 'read_address_mux' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:52]
+	Parameter ARBITER_SIZE bound to: 4 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_address_mux' (38#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:52]
+INFO: [Synth 8-638] synthesizing module 'read_address_ready' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:86]
+	Parameter ARBITER_SIZE bound to: 4 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_address_ready' (39#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:86]
+INFO: [Synth 8-638] synthesizing module 'read_data_signals' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:116]
+	Parameter ARBITER_SIZE bound to: 4 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_data_signals' (40#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:116]
+INFO: [Synth 8-256] done synthesizing module 'read_memory_arbiter' (41#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:202]
+INFO: [Synth 8-638] synthesizing module 'write_memory_arbiter' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:464]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'write_priority' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:287]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_priority' (42#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:287]
+INFO: [Synth 8-638] synthesizing module 'write_address_mux' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:326]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_address_mux' (43#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:326]
+INFO: [Synth 8-638] synthesizing module 'write_address_ready' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:362]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_address_ready' (44#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:362]
+INFO: [Synth 8-638] synthesizing module 'write_data_signals' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:396]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_data_signals' (45#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:396]
+INFO: [Synth 8-256] done synthesizing module 'write_memory_arbiter' (46#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:464]
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:814]
+INFO: [Synth 8-256] done synthesizing module 'MemCont' (47#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/MemCont.vhd:753]
+INFO: [Synth 8-638] synthesizing module 'sink' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1105]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 0 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'sink' (48#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1105]
+INFO: [Synth 8-638] synthesizing module 'sink__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1105]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 0 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'sink__parameterized0' (48#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:1105]
+INFO: [Synth 8-638] synthesizing module 'end_node' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:481]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter MEM_INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+WARNING: [Synth 8-3848] Net eReadyArray in module/entity end_node does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:477]
+INFO: [Synth 8-256] done synthesizing module 'end_node' (49#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/elastic_components.vhd:481]
+WARNING: [Synth 8-3848] Net I_ready_out in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:23]
+WARNING: [Synth 8-3848] Net Y_ready_out in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:26]
+WARNING: [Synth 8-3848] Net X_ready_out in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:29]
+WARNING: [Synth 8-3848] Net A_we1 in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:37]
+WARNING: [Synth 8-3848] Net A_dout1 in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:38]
+WARNING: [Synth 8-3848] Net M_we1 in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:47]
+WARNING: [Synth 8-3848] Net M_dout1 in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:48]
+WARNING: [Synth 8-3848] Net start_0_dataInArray_0 in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:92]
+WARNING: [Synth 8-3848] Net MC_M_pValidArray_5 in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:1225]
+WARNING: [Synth 8-3848] Net MC_M_dataInArray_5 in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:1218]
+WARNING: [Synth 8-3848] Net MC_M_pValidArray_6 in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:1226]
+WARNING: [Synth 8-3848] Net MC_M_dataInArray_6 in module/entity chaosNCG does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:1219]
+INFO: [Synth 8-256] done synthesizing module 'chaosNCG' (50#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/chaosNCG_optimized.vhd:52]
+WARNING: [Synth 8-3331] design end_node has unconnected port eReadyArray[1]
+WARNING: [Synth 8-3331] design end_node has unconnected port eReadyArray[0]
+WARNING: [Synth 8-3331] design end_node has unconnected port clk
+WARNING: [Synth 8-3331] design end_node has unconnected port rst
+WARNING: [Synth 8-3331] design sink__parameterized0 has unconnected port clk
+WARNING: [Synth 8-3331] design sink__parameterized0 has unconnected port rst
+WARNING: [Synth 8-3331] design sink__parameterized0 has unconnected port dataInArray[0][0]
+WARNING: [Synth 8-3331] design sink__parameterized0 has unconnected port pValidArray[0]
+WARNING: [Synth 8-3331] design sink has unconnected port clk
+WARNING: [Synth 8-3331] design sink has unconnected port rst
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][31]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][30]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][29]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][28]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][27]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][26]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][25]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][24]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][23]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][22]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][21]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][20]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][19]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][18]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][17]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][16]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][15]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][14]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][13]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][12]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][11]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][10]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][9]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][8]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][7]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][6]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][5]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][4]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][3]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][2]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][1]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][0]
+WARNING: [Synth 8-3331] design sink has unconnected port pValidArray[0]
+WARNING: [Synth 8-3331] design MemCont has unconnected port io_Empty_Ready
+WARNING: [Synth 8-3331] design MemCont has unconnected port io_wrDataPorts_valid[0]
+WARNING: [Synth 8-3331] design branch__parameterized0 has unconnected port clk
+WARNING: [Synth 8-3331] design branch__parameterized0 has unconnected port rst
+WARNING: [Synth 8-3331] design branch has unconnected port clk
+WARNING: [Synth 8-3331] design branch has unconnected port rst
+WARNING: [Synth 8-3331] design icmp_ult_op has unconnected port clk
+WARNING: [Synth 8-3331] design icmp_ult_op has unconnected port rst
+WARNING: [Synth 8-3331] design Const has unconnected port clk
+WARNING: [Synth 8-3331] design Const has unconnected port rst
+WARNING: [Synth 8-3331] design add_op has unconnected port clk
+WARNING: [Synth 8-3331] design add_op has unconnected port rst
+WARNING: [Synth 8-3331] design lsq_store_op has unconnected port rst
+WARNING: [Synth 8-3331] design lsq_store_op has unconnected port clk
+WARNING: [Synth 8-3331] design or_op has unconnected port clk
+WARNING: [Synth 8-3331] design or_op has unconnected port rst
+WARNING: [Synth 8-3331] design ashr_op has unconnected port clk
+WARNING: [Synth 8-3331] design ashr_op has unconnected port rst
+WARNING: [Synth 8-3331] design ashr_op has unconnected port dataInArray[1][31]
+WARNING: [Synth 8-3331] design sub_op has unconnected port clk
+WARNING: [Synth 8-3331] design sub_op has unconnected port rst
+WARNING: [Synth 8-3331] design shl_op has unconnected port clk
+WARNING: [Synth 8-3331] design shl_op has unconnected port rst
+WARNING: [Synth 8-3331] design shl_op has unconnected port dataInArray[1][31]
+WARNING: [Synth 8-3331] design and_op has unconnected port clk
+WARNING: [Synth 8-3331] design and_op has unconnected port rst
+WARNING: [Synth 8-3331] design xor_op has unconnected port clk
+WARNING: [Synth 8-3331] design xor_op has unconnected port rst
+WARNING: [Synth 8-3331] design lsq_load_op has unconnected port rst
+WARNING: [Synth 8-3331] design lsq_load_op has unconnected port clk
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port I_ready_out
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port Y_ready_out
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port X_ready_out
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_we1
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[31]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[30]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[29]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[28]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[27]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[26]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[25]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[24]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[23]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[22]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[21]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[20]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[19]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[18]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[17]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[16]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[15]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[14]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[13]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[12]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[11]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[10]
+WARNING: [Synth 8-3331] design chaosNCG has unconnected port A_dout1[9]
+INFO: [Common 17-14] Message 'Synth 8-3331' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:08 ; elapsed = 00:00:14 . Memory (MB): peak = 2306.984 ; gain = 530.418 ; free physical = 5060 ; free virtual = 9227
+---------------------------------------------------------------------------------
+
+Report Check Netlist: 
++------+------------------+-------+---------+-------+------------------+
+|      |Item              |Errors |Warnings |Status |Description       |
++------+------------------+-------+---------+-------+------------------+
+|1     |multi_driven_nets |      0|        0|Passed |Multi driven nets |
++------+------------------+-------+---------+-------+------------------+
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:10 ; elapsed = 00:00:17 . Memory (MB): peak = 2306.984 ; gain = 530.418 ; free physical = 5099 ; free virtual = 9265
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:10 ; elapsed = 00:00:17 . Memory (MB): peak = 2306.984 ; gain = 530.418 ; free physical = 5099 ; free virtual = 9265
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:00.26 ; elapsed = 00:00:00.27 . Memory (MB): peak = 2306.984 ; gain = 0.000 ; free physical = 5046 ; free virtual = 9212
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/synth/period_4.xdc]
+Finished Parsing XDC File [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/synth/period_4.xdc]
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2406.801 ; gain = 0.000 ; free physical = 4873 ; free virtual = 9039
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:00.17 ; elapsed = 00:00:00.21 . Memory (MB): peak = 2406.801 ; gain = 0.000 ; free physical = 4872 ; free virtual = 9039
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:18 ; elapsed = 00:00:27 . Memory (MB): peak = 2406.801 ; gain = 630.234 ; free physical = 5031 ; free virtual = 9198
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5580] Multithreading enabled for synth_design using a maximum of 4 processes.
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7k160tfbg484-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:18 ; elapsed = 00:00:27 . Memory (MB): peak = 2414.805 ; gain = 638.238 ; free physical = 5031 ; free virtual = 9197
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:18 ; elapsed = 00:00:27 . Memory (MB): peak = 2418.723 ; gain = 642.156 ; free physical = 5030 ; free virtual = 9197
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5544] ROM "p_60_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_58_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_56_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_54_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_52_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_50_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_48_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_46_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_44_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_42_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_40_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_38_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_36_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_34_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_32_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_62_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_60_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_58_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_56_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_54_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_52_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_50_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_48_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_46_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_44_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_42_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_40_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_38_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_36_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_34_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_32_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_62_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_141_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_139_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_137_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_135_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_133_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_131_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_129_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_127_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_125_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_123_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_121_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_119_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_117_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_115_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_113_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_143_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_141_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_139_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_137_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_135_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_133_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_131_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_129_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_127_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_125_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_123_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_121_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_119_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_117_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_115_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_113_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_143_in" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:48292]
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/LSQ_A.v:48383]
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:27 ; elapsed = 00:01:24 . Memory (MB): peak = 2418.723 ; gain = 642.156 ; free physical = 3354 ; free virtual = 7529
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++------+----------------------+------------+----------+
+|      |RTL Partition         |Replication |Instances |
++------+----------------------+------------+----------+
+|1     |LOAD_QUEUE_LSQ_A__GB0 |           1|     29598|
+|2     |LOAD_QUEUE_LSQ_A__GB1 |           1|     39450|
+|3     |LOAD_QUEUE_LSQ_A__GB2 |           1|     26771|
+|4     |LSQ_A__GC0            |           1|     19784|
+|5     |chaosNCG__GC0         |           1|      7505|
++------+----------------------+------------+----------+
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 6     
+	   3 Input     32 Bit       Adders := 3     
+	   2 Input      5 Bit       Adders := 68    
+	   3 Input      5 Bit       Adders := 2     
+	   2 Input      4 Bit       Adders := 17    
+	   3 Input      4 Bit       Adders := 2     
+	   2 Input      3 Bit       Adders := 20    
++---XORs : 
+	   2 Input     32 Bit         XORs := 3     
++---Registers : 
+	               32 Bit    Registers := 116   
+	                5 Bit    Registers := 6     
+	                4 Bit    Registers := 40    
+	                1 Bit    Registers := 977   
++---RAMs : 
+	              256 Bit         RAMs := 4     
+	              224 Bit         RAMs := 2     
+	                8 Bit         RAMs := 1     
+	                7 Bit         RAMs := 3     
++---Muxes : 
+	   2 Input    512 Bit        Muxes := 16    
+	   2 Input     32 Bit        Muxes := 116   
+	   2 Input     16 Bit        Muxes := 672   
+	  17 Input     16 Bit        Muxes := 144   
+	   2 Input      5 Bit        Muxes := 2     
+	  15 Input      4 Bit        Muxes := 3     
+	   2 Input      2 Bit        Muxes := 6     
+	   2 Input      1 Bit        Muxes := 614   
+	  15 Input      1 Bit        Muxes := 32    
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Hierarchical Component Statistics 
+---------------------------------------------------------------------------------
+Hierarchical RTL Component report 
+Module LOAD_QUEUE_LSQ_A 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 31    
+	   2 Input      4 Bit       Adders := 2     
++---Registers : 
+	               32 Bit    Registers := 48    
+	                4 Bit    Registers := 19    
+	                1 Bit    Registers := 688   
++---Muxes : 
+	   2 Input    512 Bit        Muxes := 16    
+	   2 Input     32 Bit        Muxes := 35    
+	   2 Input     16 Bit        Muxes := 608   
+	  17 Input     16 Bit        Muxes := 80    
+	  15 Input      4 Bit        Muxes := 3     
+	   2 Input      1 Bit        Muxes := 400   
+	  15 Input      1 Bit        Muxes := 16    
+Module STORE_QUEUE_LSQ_A 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 31    
+	   2 Input      4 Bit       Adders := 2     
++---Registers : 
+	               32 Bit    Registers := 32    
+	                4 Bit    Registers := 19    
+	                1 Bit    Registers := 96    
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 32    
+	  17 Input     16 Bit        Muxes := 64    
+	   2 Input     16 Bit        Muxes := 64    
+	   2 Input      1 Bit        Muxes := 127   
+	  15 Input      1 Bit        Muxes := 16    
+Module GROUP_ALLOCATOR_LSQ_A 
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input      5 Bit       Adders := 2     
+	   2 Input      4 Bit       Adders := 3     
+	   3 Input      4 Bit       Adders := 2     
++---Muxes : 
+	   2 Input      5 Bit        Muxes := 2     
+Module LOAD_PORT_LSQ_A__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 1     
++---Registers : 
+	                5 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module LOAD_PORT_LSQ_A 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 1     
++---Registers : 
+	                5 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module STORE_DATA_PORT_LSQ_A__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 1     
++---Registers : 
+	                5 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module STORE_DATA_PORT_LSQ_A__2 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 1     
++---Registers : 
+	                5 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module STORE_DATA_PORT_LSQ_A__3 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 1     
++---Registers : 
+	                5 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module STORE_DATA_PORT_LSQ_A 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 1     
++---Registers : 
+	                5 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__20 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB__6 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module start_node__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module TEHB__21 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB__7 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module start_node__2 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module TEHB 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module start_node 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module TEHB__parameterized0 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module OEHB__parameterized0 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module start_node__parameterized0 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module orN 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__31 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__32 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module TEHB__11 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module mux__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__16 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module add_op__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 1     
+Module andN__17 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module add_op__2 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 1     
+Module TEHB__15 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__14 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module andN__18 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module add_op__3 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 1     
+Module andN__19 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module add_op__4 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 1     
+Module TEHB__17 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__16 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module andN__28 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module xor_op__1 
+Detailed RTL Component Info : 
++---XORs : 
+	   2 Input     32 Bit         XORs := 1     
+Module andN__27 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__26 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__25 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module delay_buffer__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 35    
+Module andN__24 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module sub_op__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input     32 Bit       Adders := 1     
+Module andN__23 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__21 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__29 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module xor_op__2 
+Detailed RTL Component Info : 
++---XORs : 
+	   2 Input     32 Bit         XORs := 1     
+Module andN 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module xor_op 
+Detailed RTL Component Info : 
++---XORs : 
+	   2 Input     32 Bit         XORs := 1     
+Module andN__15 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__14 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__13 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module delay_buffer 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 35    
+Module andN__12 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module sub_op 
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input     32 Bit       Adders := 1     
+Module andN__11 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__22 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__20 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module add_op__5 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 1     
+Module TEHB__19 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__18 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module andN__10 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__5 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__6 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module andN__9 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module add_op 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 1     
+Module andN__8 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__30 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module TEHB__12 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module mux__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__13 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module mux__3 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__4 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module mux 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__parameterized0__2 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module mux__parameterized0 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 3     
+Module andN__5 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__3 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module merge 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__6 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__7 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__4 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module orN__parameterized1__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__41 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__40 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__39 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__38 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__37 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__44 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__43 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__42 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized2__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__34 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__33 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__3 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__47 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__46 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__45 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized2__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__36 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__35 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized3 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__24 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__25 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__26 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__27 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__28 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__29 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__4 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__50 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__49 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__48 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__5 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__53 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__52 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__51 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__21 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__22 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__23 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__8 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__9 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__10 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__11 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__12 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__13 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__14 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__15 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__16 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__17 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__18 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__19 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__20 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__3 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__4 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__5 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__6 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__7 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__2 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module TEHB__7 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB__2 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module TEHB__8 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB__3 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module elasticFifoInner__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      4 Bit       Adders := 2     
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	                1 Bit    Registers := 2     
++---RAMs : 
+	              256 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module elasticFifoInner__2 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      4 Bit       Adders := 2     
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	                1 Bit    Registers := 2     
++---RAMs : 
+	              256 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__9 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB__4 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module TEHB__10 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB__5 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module TEHB__2 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB__1 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module TEHB__parameterized0__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module OEHB__parameterized0__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module elasticFifoInner__3 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      4 Bit       Adders := 2     
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	                1 Bit    Registers := 2     
++---RAMs : 
+	              256 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__3 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module elasticFifoInner__parameterized0__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	                1 Bit    Registers := 2     
++---RAMs : 
+	              224 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__parameterized0__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module elasticFifoInner__parameterized1__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	                1 Bit    Registers := 2     
++---RAMs : 
+	                7 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__parameterized1__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module elasticFifoInner__parameterized1__2 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	                1 Bit    Registers := 2     
++---RAMs : 
+	                7 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__parameterized1__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module elasticFifoInner__parameterized1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	                1 Bit    Registers := 2     
++---RAMs : 
+	                7 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__parameterized1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module elasticFifoInner__parameterized2 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      4 Bit       Adders := 2     
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	                1 Bit    Registers := 2     
++---RAMs : 
+	                8 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__parameterized2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module elasticFifoInner 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      4 Bit       Adders := 2     
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	                1 Bit    Registers := 2     
++---RAMs : 
+	              256 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module elasticFifoInner__parameterized0 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	                1 Bit    Registers := 2     
++---RAMs : 
+	              224 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__parameterized0 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__1 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module read_data_signals 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 4     
+	                4 Bit    Registers := 2     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 8     
+	   2 Input      1 Bit        Muxes := 4     
+Module write_address_mux 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module write_data_signals 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module MemCont 
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input     32 Bit       Adders := 1     
++---Registers : 
+	               32 Bit    Registers := 2     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module andN__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__3 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+---------------------------------------------------------------------------------
+Finished RTL Hierarchical Component Statistics
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 600 (col length:100)
+BRAMs: 650 (col length: RAMB18 100 RAMB36 50)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+Warning: Parallel synthesis criteria is not met 
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (c_LSQ_Ai_4/storeQ/\tail_reg[0] )
+INFO: [Synth 8-3886] merging instance 'i_0/phi_n18/tehb1/data_reg_reg[4]' (FDCE) to 'i_0/phi_n18/tehb1/data_reg_reg[1]'
+INFO: [Synth 8-3886] merging instance 'i_0/phi_n18/tehb1/data_reg_reg[5]' (FDCE) to 'i_0/phi_n18/tehb1/data_reg_reg[1]'
+INFO: [Synth 8-3886] merging instance 'i_0/phi_n18/tehb1/data_reg_reg[2]' (FDCE) to 'i_0/phi_n18/tehb1/data_reg_reg[1]'
+INFO: [Synth 8-3886] merging instance 'i_0/phi_n18/tehb1/data_reg_reg[3]' (FDCE) to 'i_0/phi_n18/tehb1/data_reg_reg[1]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter_reg[4] )
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[4]' (FDE) to 'i_0/MC_M/counter1_reg[3]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[3]' (FDE) to 'i_0/MC_M/counter1_reg[2]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[2]' (FDE) to 'i_0/MC_M/counter1_reg[1]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter1_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter_reg[7] )
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[7]' (FDE) to 'i_0/MC_M/counter1_reg[6]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[1]' (FDE) to 'i_0/MC_M/counter1_reg[6]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[6]' (FDE) to 'i_0/MC_M/counter1_reg[5]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter1_reg[5] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter_reg[10] )
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[10]' (FDE) to 'i_0/MC_M/counter1_reg[9]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[5]' (FDE) to 'i_0/MC_M/counter1_reg[9]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[9]' (FDE) to 'i_0/MC_M/counter1_reg[8]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter1_reg[8] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter_reg[13] )
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[13]' (FDE) to 'i_0/MC_M/counter1_reg[12]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[8]' (FDE) to 'i_0/MC_M/counter1_reg[12]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[12]' (FDE) to 'i_0/MC_M/counter1_reg[11]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter1_reg[11] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter_reg[16] )
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[16]' (FDE) to 'i_0/MC_M/counter1_reg[15]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[11]' (FDE) to 'i_0/MC_M/counter1_reg[15]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[15]' (FDE) to 'i_0/MC_M/counter1_reg[14]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter1_reg[14] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter_reg[19] )
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[19]' (FDE) to 'i_0/MC_M/counter1_reg[18]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[14]' (FDE) to 'i_0/MC_M/counter1_reg[18]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[18]' (FDE) to 'i_0/MC_M/counter1_reg[17]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter1_reg[17] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter_reg[22] )
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[22]' (FDE) to 'i_0/MC_M/counter1_reg[21]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[17]' (FDE) to 'i_0/MC_M/counter1_reg[21]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[21]' (FDE) to 'i_0/MC_M/counter1_reg[20]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter1_reg[20] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter_reg[25] )
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[25]' (FDE) to 'i_0/MC_M/counter1_reg[24]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[20]' (FDE) to 'i_0/MC_M/counter1_reg[24]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[24]' (FDE) to 'i_0/MC_M/counter1_reg[23]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter1_reg[23] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter_reg[28] )
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[28]' (FDE) to 'i_0/MC_M/counter1_reg[27]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[23]' (FDE) to 'i_0/MC_M/counter1_reg[27]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[27]' (FDE) to 'i_0/MC_M/counter1_reg[26]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter1_reg[26] )
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[30]' (FDE) to 'i_0/MC_M/counter1_reg[31]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[26]' (FDE) to 'i_0/MC_M/counter1_reg[31]'
+INFO: [Synth 8-3886] merging instance 'i_0/MC_M/counter1_reg[31]' (FDE) to 'i_0/MC_M/counter1_reg[29]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter1_reg[29] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (i_0/MC_M/\counter_reg[0] )
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_13_reg[0]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_12_reg[0]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_9_reg[0]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_8_reg[0]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_5_reg[0]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_4_reg[0]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_1_reg[0]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_0_reg[0]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_13_reg[1]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_12_reg[1]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_9_reg[1]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_8_reg[1]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_5_reg[1]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_4_reg[1]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_1_reg[1]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_0_reg[1]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_13_reg[2]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_12_reg[2]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_9_reg[2]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_8_reg[2]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_5_reg[2]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_4_reg[2]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_1_reg[2]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_0_reg[2]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_13_reg[3]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_12_reg[3]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_9_reg[3]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_8_reg[3]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_5_reg[3]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_4_reg[3]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_1_reg[3]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_0_reg[3]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_15_reg[0]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_14_reg[0]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_11_reg[0]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_10_reg[0]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_7_reg[0]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_6_reg[0]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_3_reg[0]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_2_reg[0]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_15_reg[1]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_14_reg[1]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_11_reg[1]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_10_reg[1]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_7_reg[1]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_6_reg[1]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_3_reg[1]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_2_reg[1]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_15_reg[2]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_14_reg[2]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_11_reg[2]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_10_reg[2]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_7_reg[2]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_6_reg[2]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_3_reg[2]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_2_reg[2]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_15_reg[3]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_14_reg[3]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_11_reg[3]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_10_reg[3]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_7_reg[3]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_6_reg[3]'
+INFO: [Synth 8-3886] merging instance 'c_LSQ_Ai_4/storeQ/offsetQ_3_reg[3]' (FDRE) to 'c_LSQ_Ai_4/storeQ/offsetQ_2_reg[3]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (loadQi_2/\tail_reg[0] )
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_0_reg[0]' (FDRE) to 'loadQi_2/offsetQ_1_reg[0]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_0_reg[1]' (FDRE) to 'loadQi_2/offsetQ_1_reg[1]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_0_reg[2]' (FDRE) to 'loadQi_2/offsetQ_1_reg[2]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_0_reg[3]' (FDRE) to 'loadQi_2/offsetQ_1_reg[3]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_15_reg[0]' (FDRE) to 'loadQi_2/offsetQ_14_reg[0]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_15_reg[1]' (FDRE) to 'loadQi_2/offsetQ_14_reg[1]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_15_reg[2]' (FDRE) to 'loadQi_2/offsetQ_14_reg[2]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_15_reg[3]' (FDRE) to 'loadQi_2/offsetQ_14_reg[3]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_11_reg[0]' (FDRE) to 'loadQi_2/offsetQ_10_reg[0]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_11_reg[1]' (FDRE) to 'loadQi_2/offsetQ_10_reg[1]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_11_reg[2]' (FDRE) to 'loadQi_2/offsetQ_10_reg[2]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_11_reg[3]' (FDRE) to 'loadQi_2/offsetQ_10_reg[3]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_9_reg[0]' (FDRE) to 'loadQi_2/offsetQ_8_reg[0]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_9_reg[1]' (FDRE) to 'loadQi_2/offsetQ_8_reg[1]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_9_reg[2]' (FDRE) to 'loadQi_2/offsetQ_8_reg[2]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_9_reg[3]' (FDRE) to 'loadQi_2/offsetQ_8_reg[3]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_7_reg[0]' (FDRE) to 'loadQi_2/offsetQ_6_reg[0]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_7_reg[1]' (FDRE) to 'loadQi_2/offsetQ_6_reg[1]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_7_reg[2]' (FDRE) to 'loadQi_2/offsetQ_6_reg[2]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_7_reg[3]' (FDRE) to 'loadQi_2/offsetQ_6_reg[3]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_5_reg[0]' (FDRE) to 'loadQi_2/offsetQ_4_reg[0]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_5_reg[1]' (FDRE) to 'loadQi_2/offsetQ_4_reg[1]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_5_reg[2]' (FDRE) to 'loadQi_2/offsetQ_4_reg[2]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_5_reg[3]' (FDRE) to 'loadQi_2/offsetQ_4_reg[3]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_3_reg[0]' (FDRE) to 'loadQi_2/offsetQ_2_reg[0]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_3_reg[1]' (FDRE) to 'loadQi_2/offsetQ_2_reg[1]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_3_reg[2]' (FDRE) to 'loadQi_2/offsetQ_2_reg[2]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_3_reg[3]' (FDRE) to 'loadQi_2/offsetQ_2_reg[3]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_12_reg[0]' (FDRE) to 'loadQi_2/offsetQ_13_reg[0]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_12_reg[1]' (FDRE) to 'loadQi_2/offsetQ_13_reg[1]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_12_reg[2]' (FDRE) to 'loadQi_2/offsetQ_13_reg[2]'
+INFO: [Synth 8-3886] merging instance 'loadQi_2/offsetQ_12_reg[3]' (FDRE) to 'loadQi_2/offsetQ_13_reg[3]'
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:01:32 ; elapsed = 00:03:19 . Memory (MB): peak = 2536.809 ; gain = 760.242 ; free physical = 2038 ; free virtual = 6245
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Distributed RAM: Preliminary Mapping	Report (see note below)
++--------------+-----------------+-----------+----------------------+-------------+
+|Module Name   | RTL Object      | Inference | Size (Depth x Width) | Primitives  | 
++--------------+-----------------+-----------+----------------------+-------------+
+|i_0/Buffer_3  | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
+|i_0/Buffer_4  | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
+|i_0/Buffer_9  | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
+|i_0/Buffer_10 | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
+|i_0/Buffer_15 | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
+|i_0/Buffer_16 | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
++--------------+-----------------+-----------+----------------------+-------------+
+
+Note: The table above is a preliminary report that shows the Distributed RAMs at the current stage of the synthesis flow. Some Distributed RAMs may be reimplemented as non Distributed RAM primitives later in the synthesis flow. Multiple instantiated RAMs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++------+----------------------+------------+----------+
+|      |RTL Partition         |Replication |Instances |
++------+----------------------+------------+----------+
+|1     |LOAD_QUEUE_LSQ_A__GB0 |           1|     19573|
+|2     |LOAD_QUEUE_LSQ_A__GB1 |           1|     20718|
+|3     |LOAD_QUEUE_LSQ_A__GB2 |           1|     28030|
+|4     |LSQ_A__GC0            |           1|      6118|
+|5     |chaosNCG__GC0         |           1|      7077|
++------+----------------------+------------+----------+
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:01:37 ; elapsed = 00:03:26 . Memory (MB): peak = 2536.809 ; gain = 760.242 ; free physical = 1882 ; free virtual = 6089
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+info: optimization accepted worst group hill climbing move (-5713.0/oG. 1302.0ps)
+info: optimization accepted worst group hill climbing move (-5970.0/ToG.UNL 257.0ps)
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:03:09 ; elapsed = 00:05:26 . Memory (MB): peak = 2835.465 ; gain = 1058.898 ; free physical = 1860 ; free virtual = 6069
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Distributed RAM: Final Mapping	Report
++--------------+-----------------+-----------+----------------------+-------------+
+|Module Name   | RTL Object      | Inference | Size (Depth x Width) | Primitives  | 
++--------------+-----------------+-----------+----------------------+-------------+
+|i_0/Buffer_3  | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
+|i_0/Buffer_4  | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
+|i_0/Buffer_9  | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
+|i_0/Buffer_10 | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
+|i_0/Buffer_15 | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
+|i_0/Buffer_16 | fifo/Memory_reg | Implied   | 8 x 32               | RAM32M x 6	 | 
++--------------+-----------------+-----------+----------------------+-------------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++------+--------------+------------+----------+
+|      |RTL Partition |Replication |Instances |
++------+--------------+------------+----------+
+|1     |chaosNCG_GT0  |           1|     45170|
+|2     |chaosNCG_GT1  |           1|     36065|
++------+--------------+------------+----------+
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:03:19 ; elapsed = 00:05:40 . Memory (MB): peak = 2835.465 ; gain = 1058.898 ; free physical = 1879 ; free virtual = 6086
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++-+--------------+------------+----------+
+| |RTL Partition |Replication |Instances |
++-+--------------+------------+----------+
++-+--------------+------------+----------+
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:03:30 ; elapsed = 00:05:54 . Memory (MB): peak = 2835.465 ; gain = 1058.898 ; free physical = 1915 ; free virtual = 6122
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:03:30 ; elapsed = 00:05:54 . Memory (MB): peak = 2835.465 ; gain = 1058.898 ; free physical = 1915 ; free virtual = 6122
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++-+--------------+------------+----------+
+| |RTL Partition |Replication |Instances |
++-+--------------+------------+----------+
++-+--------------+------------+----------+
+
+Report Check Netlist: 
++------+------------------+-------+---------+-------+------------------+
+|      |Item              |Errors |Warnings |Status |Description       |
++------+------------------+-------+---------+-------+------------------+
+|1     |multi_driven_nets |      0|        0|Passed |Multi driven nets |
++------+------------------+-------+---------+-------+------------------+
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:03:32 ; elapsed = 00:05:56 . Memory (MB): peak = 2835.465 ; gain = 1058.898 ; free physical = 1909 ; free virtual = 6115
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:03:32 ; elapsed = 00:05:57 . Memory (MB): peak = 2835.465 ; gain = 1058.898 ; free physical = 1909 ; free virtual = 6115
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:03:33 ; elapsed = 00:05:57 . Memory (MB): peak = 2835.465 ; gain = 1058.898 ; free physical = 1909 ; free virtual = 6115
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:03:33 ; elapsed = 00:05:58 . Memory (MB): peak = 2835.465 ; gain = 1058.898 ; free physical = 1909 ; free virtual = 6115
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++------+---------------------------------+----------+
+|      |BlackBox name                    |Instances |
++------+---------------------------------+----------+
+|1     |array_RAM_srem_32ns_32ns_32_36_1 |         2|
++------+---------------------------------+----------+
+
+Report Cell Usage: 
++------+-------------------------------------------+------+
+|      |Cell                                       |Count |
++------+-------------------------------------------+------+
+|1     |array_RAM_srem_32ns_32ns_32_36_1_bbox_0    |     1|
+|2     |array_RAM_srem_32ns_32ns_32_36_1_bbox_0__1 |     1|
+|3     |CARRY4                                     |   916|
+|4     |LUT1                                       |   112|
+|5     |LUT2                                       |   585|
+|6     |LUT3                                       |  1743|
+|7     |LUT4                                       |  5188|
+|8     |LUT5                                       |  4874|
+|9     |LUT6                                       |  8868|
+|10    |MUXF7                                      |  1037|
+|11    |MUXF8                                      |    68|
+|12    |RAM32M                                     |     8|
+|13    |FDCE                                       |   976|
+|14    |FDPE                                       |    53|
+|15    |FDRE                                       |  3723|
+|16    |FDSE                                       |    10|
++------+-------------------------------------------+------+
+
+Report Instance Areas: 
++------+----------------------------------+-------------------------------------+------+
+|      |Instance                          |Module                               |Cells |
++------+----------------------------------+-------------------------------------+------+
+|1     |top                               |                                     | 28225|
+|2     |  add_3                           |add_op_12                            |     9|
+|3     |  add_8                           |add_op_16                            |    39|
+|4     |  and_27                          |and_op                               |     4|
+|5     |  Buffer_1                        |elasticBuffer__parameterized1        |   164|
+|6     |    oehb1                         |OEHB_129                             |   100|
+|7     |    tehb1                         |TEHB_130                             |    64|
+|8     |  Buffer_10                       |transpFIFO__parameterized0           |    23|
+|9     |    fifo                          |elasticFifoInner__parameterized0_128 |    23|
+|10    |  Buffer_11                       |transpFIFO__parameterized1           |    19|
+|11    |    fifo                          |elasticFifoInner__parameterized1_127 |    19|
+|12    |  Buffer_12                       |transpFIFO__parameterized1_0         |    19|
+|13    |    fifo                          |elasticFifoInner__parameterized1_126 |    19|
+|14    |  Buffer_13                       |transpFIFO__parameterized1_1         |    19|
+|15    |    fifo                          |elasticFifoInner__parameterized1     |    19|
+|16    |  Buffer_14                       |transpFIFO__parameterized2           |    19|
+|17    |    fifo                          |elasticFifoInner__parameterized2     |    19|
+|18    |  Buffer_15                       |transpFIFO                           |    31|
+|19    |    fifo                          |elasticFifoInner_125                 |    31|
+|20    |  Buffer_16                       |transpFIFO__parameterized0_2         |    31|
+|21    |    fifo                          |elasticFifoInner__parameterized0     |    31|
+|22    |  Buffer_2                        |elasticBuffer__parameterized1_3      |   228|
+|23    |    oehb1                         |OEHB_123                             |    35|
+|24    |    tehb1                         |TEHB_124                             |    65|
+|25    |  Buffer_3                        |transpFIFO_4                         |    22|
+|26    |    fifo                          |elasticFifoInner_122                 |    22|
+|27    |  Buffer_4                        |transpFIFO_5                         |    94|
+|28    |    fifo                          |elasticFifoInner_121                 |    94|
+|29    |  Buffer_5                        |elasticBuffer__parameterized1_6      |   136|
+|30    |    oehb1                         |OEHB_119                             |    71|
+|31    |    tehb1                         |TEHB_120                             |    65|
+|32    |  Buffer_6                        |elasticBuffer__parameterized1_7      |   175|
+|33    |    oehb1                         |OEHB_117                             |   110|
+|34    |    tehb1                         |TEHB_118                             |    65|
+|35    |  Buffer_7                        |elasticBuffer__parameterized1_8      |   363|
+|36    |    oehb1                         |OEHB_115                             |   298|
+|37    |    tehb1                         |TEHB_116                             |    65|
+|38    |  Buffer_8                        |elasticBuffer__parameterized2        |     9|
+|39    |    oehb1                         |OEHB__parameterized0_113             |     6|
+|40    |    tehb1                         |TEHB__parameterized0_114             |     3|
+|41    |  Buffer_9                        |transpFIFO_9                         |    23|
+|42    |    fifo                          |elasticFifoInner                     |    23|
+|43    |  I                               |start_node                           |   107|
+|44    |    startBuff                     |elasticBuffer_110                    |   103|
+|45    |      oehb1                       |OEHB_111                             |    36|
+|46    |      tehb1                       |TEHB_112                             |    67|
+|47    |  MC_M                            |MemCont                              |   269|
+|48    |    read_arbiter                  |read_memory_arbiter                  |   269|
+|49    |      data                        |read_data_signals                    |   269|
+|50    |  X                               |start_node_10                        |   107|
+|51    |    startBuff                     |elasticBuffer_107                    |   103|
+|52    |      oehb1                       |OEHB_108                             |    34|
+|53    |      tehb1                       |TEHB_109                             |    69|
+|54    |  Y                               |start_node_11                        |   107|
+|55    |    startBuff                     |elasticBuffer                        |   103|
+|56    |      oehb1                       |OEHB                                 |    34|
+|57    |      tehb1                       |TEHB_106                             |    69|
+|58    |  add_2                           |add_op                               |     8|
+|59    |  add_33                          |add_op_13                            |    40|
+|60    |  add_45                          |add_op_14                            |    26|
+|61    |  add_7                           |add_op_15                            |     8|
+|62    |  ashr_23                         |ashr_op                              |   101|
+|63    |  ashr_31                         |ashr_op_17                           |    71|
+|64    |  c_LSQ_A                         |LSQ_A                                | 23977|
+|65    |    LOAD_PORT_LSQ_A               |LOAD_PORT_LSQ_A                      |    16|
+|66    |    LOAD_PORT_LSQ_A_1             |LOAD_PORT_LSQ_A_102                  |    16|
+|67    |    STORE_ADDR_PORT_LSQ_A         |STORE_DATA_PORT_LSQ_A                |    16|
+|68    |    STORE_ADDR_PORT_LSQ_A_1       |STORE_DATA_PORT_LSQ_A_103            |    16|
+|69    |    STORE_DATA_PORT_LSQ_A         |STORE_DATA_PORT_LSQ_A_104            |    16|
+|70    |    STORE_DATA_PORT_LSQ_A_1       |STORE_DATA_PORT_LSQ_A_105            |    15|
+|71    |    loadQ                         |LOAD_QUEUE_LSQ_A                     | 12846|
+|72    |    storeQ                        |STORE_QUEUE_LSQ_A                    | 11036|
+|73    |  forkC_10                        |fork__parameterized5                 |    83|
+|74    |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_89           |    11|
+|75    |    \generateBlocks[10].regblock  |eagerFork_RegisterBLock_90           |    25|
+|76    |    \generateBlocks[11].regblock  |eagerFork_RegisterBLock_91           |     6|
+|77    |    \generateBlocks[12].regblock  |eagerFork_RegisterBLock_92           |     2|
+|78    |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_93           |     4|
+|79    |    \generateBlocks[2].regblock   |eagerFork_RegisterBLock_94           |     7|
+|80    |    \generateBlocks[3].regblock   |eagerFork_RegisterBLock_95           |     4|
+|81    |    \generateBlocks[4].regblock   |eagerFork_RegisterBLock_96           |     7|
+|82    |    \generateBlocks[5].regblock   |eagerFork_RegisterBLock_97           |     3|
+|83    |    \generateBlocks[6].regblock   |eagerFork_RegisterBLock_98           |     3|
+|84    |    \generateBlocks[7].regblock   |eagerFork_RegisterBLock_99           |     3|
+|85    |    \generateBlocks[8].regblock   |eagerFork_RegisterBLock_100          |     4|
+|86    |    \generateBlocks[9].regblock   |eagerFork_RegisterBLock_101          |     4|
+|87    |  forkC_6                         |\fork                                |    12|
+|88    |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_86           |     4|
+|89    |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_87           |     6|
+|90    |    \generateBlocks[2].regblock   |eagerFork_RegisterBLock_88           |     2|
+|91    |  fork_0                          |fork__parameterized1                 |    17|
+|92    |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_81           |     4|
+|93    |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_82           |     7|
+|94    |    \generateBlocks[2].regblock   |eagerFork_RegisterBLock_83           |     2|
+|95    |    \generateBlocks[3].regblock   |eagerFork_RegisterBLock_84           |     1|
+|96    |    \generateBlocks[4].regblock   |eagerFork_RegisterBLock_85           |     3|
+|97    |  fork_1                          |fork__parameterized2                 |     9|
+|98    |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_78           |     5|
+|99    |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_79           |     2|
+|100   |    \generateBlocks[2].regblock   |eagerFork_RegisterBLock_80           |     2|
+|101   |  fork_11                         |fork__parameterized1_18              |    17|
+|102   |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_73           |     5|
+|103   |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_74           |     3|
+|104   |    \generateBlocks[2].regblock   |eagerFork_RegisterBLock_75           |     3|
+|105   |    \generateBlocks[3].regblock   |eagerFork_RegisterBLock_76           |     3|
+|106   |    \generateBlocks[4].regblock   |eagerFork_RegisterBLock_77           |     3|
+|107   |  fork_12                         |fork__parameterized3                 |     5|
+|108   |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_71           |     1|
+|109   |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_72           |     4|
+|110   |  fork_2                          |fork__parameterized3_19              |     4|
+|111   |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_69           |     1|
+|112   |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_70           |     3|
+|113   |  fork_3                          |fork__parameterized2_20              |    13|
+|114   |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_66           |     8|
+|115   |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_67           |     2|
+|116   |    \generateBlocks[2].regblock   |eagerFork_RegisterBLock_68           |     3|
+|117   |  fork_4                          |fork__parameterized3_21              |     5|
+|118   |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_64           |     3|
+|119   |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_65           |     2|
+|120   |  fork_5                          |fork__parameterized4                 |    15|
+|121   |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_58           |     5|
+|122   |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_59           |     3|
+|123   |    \generateBlocks[2].regblock   |eagerFork_RegisterBLock_60           |     2|
+|124   |    \generateBlocks[3].regblock   |eagerFork_RegisterBLock_61           |     2|
+|125   |    \generateBlocks[4].regblock   |eagerFork_RegisterBLock_62           |     2|
+|126   |    \generateBlocks[5].regblock   |eagerFork_RegisterBLock_63           |     1|
+|127   |  fork_7                          |fork__parameterized2_22              |    11|
+|128   |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_55           |     4|
+|129   |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_56           |     3|
+|130   |    \generateBlocks[2].regblock   |eagerFork_RegisterBLock_57           |     4|
+|131   |  fork_8                          |fork__parameterized2_23              |     9|
+|132   |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock_52           |     2|
+|133   |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_53           |     5|
+|134   |    \generateBlocks[2].regblock   |eagerFork_RegisterBLock_54           |     2|
+|135   |  fork_9                          |fork__parameterized2_24              |    11|
+|136   |    \generateBlocks[0].regblock   |eagerFork_RegisterBLock              |     3|
+|137   |    \generateBlocks[1].regblock   |eagerFork_RegisterBLock_50           |     5|
+|138   |    \generateBlocks[2].regblock   |eagerFork_RegisterBLock_51           |     3|
+|139   |  icmp_46                         |icmp_ult_op                          |    10|
+|140   |  load_11                         |mc_load_op                           |   356|
+|141   |    Buffer_1                      |TEHB_48                              |    65|
+|142   |    Buffer_2                      |TEHB_49                              |   291|
+|143   |  load_36                         |mc_load_op_25                        |   359|
+|144   |    Buffer_1                      |TEHB_46                              |    68|
+|145   |    Buffer_2                      |TEHB_47                              |   291|
+|146   |  load_42                         |mc_load_op_26                        |   105|
+|147   |    Buffer_1                      |TEHB_44                              |    70|
+|148   |    Buffer_2                      |TEHB_45                              |    35|
+|149   |  load_6                          |mc_load_op_27                        |   102|
+|150   |    Buffer_1                      |TEHB_42                              |    65|
+|151   |    Buffer_2                      |TEHB_43                              |    37|
+|152   |  or_24                           |or_op                                |     2|
+|153   |  phiC_6                          |mux__parameterized0                  |     4|
+|154   |    tehb1                         |TEHB__parameterized0_41              |     4|
+|155   |  phi_1                           |mux                                  |    68|
+|156   |    tehb1                         |TEHB_40                              |    68|
+|157   |  phi_n0                          |mux_28                               |    65|
+|158   |    tehb1                         |TEHB_39                              |    65|
+|159   |  phi_n18                         |merge                                |    45|
+|160   |    tehb1                         |TEHB_38                              |    45|
+|161   |  phi_n2                          |mux_29                               |    65|
+|162   |    tehb1                         |TEHB_37                              |    65|
+|163   |  phi_n4                          |mux_30                               |    65|
+|164   |    tehb1                         |TEHB_36                              |    65|
+|165   |  ret_0                           |ret_op                               |    63|
+|166   |    tehb                          |TEHB                                 |    63|
+|167   |  shl_20                          |shl_op                               |    83|
+|168   |  shl_28                          |shl_op_31                            |    96|
+|169   |  srem_21                         |srem_op                              |   105|
+|170   |    buff                          |delay_buffer_35                      |    35|
+|171   |  srem_29                         |srem_op_32                           |    68|
+|172   |    buff                          |delay_buffer                         |    35|
+|173   |    join_write_temp               |\join                                |     1|
+|174   |  start_0                         |start_node__parameterized0           |    12|
+|175   |    startBuff                     |elasticBuffer__parameterized0        |     8|
+|176   |      oehb1                       |OEHB__parameterized0                 |     4|
+|177   |      tehb1                       |TEHB__parameterized0                 |     4|
+|178   |  xor_18                          |xor_op                               |    32|
+|179   |  xor_25                          |xor_op_33                            |    29|
+|180   |  xor_26                          |xor_op_34                            |    32|
++------+----------------------------------+-------------------------------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:03:33 ; elapsed = 00:05:58 . Memory (MB): peak = 2835.465 ; gain = 1058.898 ; free physical = 1909 ; free virtual = 6115
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 137 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:03:31 ; elapsed = 00:05:54 . Memory (MB): peak = 2839.375 ; gain = 962.992 ; free physical = 5022 ; free virtual = 9229
+Synthesis Optimization Complete : Time (s): cpu = 00:03:35 ; elapsed = 00:05:59 . Memory (MB): peak = 2839.375 ; gain = 1062.809 ; free physical = 5022 ; free virtual = 9229
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00.27 ; elapsed = 00:00:00.28 . Memory (MB): peak = 2839.375 ; gain = 0.000 ; free physical = 5009 ; free virtual = 9216
+INFO: [Netlist 29-17] Analyzing 2029 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Parsing XDC File [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/synth/period_4.xdc]
+INFO: [Vivado 12-4761] HD.CLK_SRC property is set on port clk. The net connecting to the port drives either clock PIN or hierarchical black box. Use the create_clock constraint to create a clock on this port prior to setting HD.CLK_SRC.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/synth/period_4.xdc:2]
+Finished Parsing XDC File [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/synth/period_4.xdc]
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+CRITICAL WARNING: [Project 1-560] Could not resolve non-primitive black box cell 'array_RAM_srem_32ns_32ns_32_36_1' instantiated as 'srem_21/array_RAM_srem_32ns_32ns_32_36_1_U1'. 2 instances of this cell are unresolved black boxes. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/arithmetic_units.vhd:2504]
+Netlist sorting complete. Time (s): cpu = 00:00:00.01 ; elapsed = 00:00:00 . Memory (MB): peak = 2839.375 ; gain = 0.000 ; free physical = 4968 ; free virtual = 9175
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 8 instances were transformed.
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 8 instances
+
+INFO: [Common 17-83] Releasing license: Synthesis
+357 Infos, 122 Warnings, 1 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:03:42 ; elapsed = 00:06:14 . Memory (MB): peak = 2839.375 ; gain = 1338.531 ; free physical = 5125 ; free virtual = 9331
+# report_utilization > utilization_post_syn.rpt
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Mon Jun 26 11:24:24 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_utilization
+| Design       : chaosNCG
+| Device       : 7k160tfbg484-1
+| Design State : Synthesized
+------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Slice Logic
+1.1 Summary of Registers by Type
+2. Memory
+3. DSP
+4. IO and GT Specific
+5. Clocking
+6. Specific Feature
+7. Primitives
+8. Black Boxes
+9. Instantiated Netlists
+
+1. Slice Logic
+--------------
+
++----------------------------+-------+-------+-----------+-------+
+|          Site Type         |  Used | Fixed | Available | Util% |
++----------------------------+-------+-------+-----------+-------+
+| Slice LUTs*                | 19663 |     0 |    101400 | 19.39 |
+|   LUT as Logic             | 19631 |     0 |    101400 | 19.36 |
+|   LUT as Memory            |    32 |     0 |     35000 |  0.09 |
+|     LUT as Distributed RAM |    32 |     0 |           |       |
+|     LUT as Shift Register  |     0 |     0 |           |       |
+| Slice Registers            |  4762 |     0 |    202800 |  2.35 |
+|   Register as Flip Flop    |  4762 |     0 |    202800 |  2.35 |
+|   Register as Latch        |     0 |     0 |    202800 |  0.00 |
+| F7 Muxes                   |  1037 |     0 |     50700 |  2.05 |
+| F8 Muxes                   |    68 |     0 |     25350 |  0.27 |
++----------------------------+-------+-------+-----------+-------+
+* Warning! The Final LUT count, after physical optimizations and full implementation, is typically lower. Run opt_design after synthesis, if not already completed, for a more realistic count.
+
+
+1.1 Summary of Registers by Type
+--------------------------------
+
++-------+--------------+-------------+--------------+
+| Total | Clock Enable | Synchronous | Asynchronous |
++-------+--------------+-------------+--------------+
+| 0     |            _ |           - |            - |
+| 0     |            _ |           - |          Set |
+| 0     |            _ |           - |        Reset |
+| 0     |            _ |         Set |            - |
+| 0     |            _ |       Reset |            - |
+| 0     |          Yes |           - |            - |
+| 53    |          Yes |           - |          Set |
+| 976   |          Yes |           - |        Reset |
+| 10    |          Yes |         Set |            - |
+| 3723  |          Yes |       Reset |            - |
++-------+--------------+-------------+--------------+
+
+
+2. Memory
+---------
+
++----------------+------+-------+-----------+-------+
+|    Site Type   | Used | Fixed | Available | Util% |
++----------------+------+-------+-----------+-------+
+| Block RAM Tile |    0 |     0 |       325 |  0.00 |
+|   RAMB36/FIFO* |    0 |     0 |       325 |  0.00 |
+|   RAMB18       |    0 |     0 |       650 |  0.00 |
++----------------+------+-------+-----------+-------+
+* Note: Each Block RAM Tile only has one FIFO logic available and therefore can accommodate only one FIFO36E1 or one FIFO18E1. However, if a FIFO18E1 occupies a Block RAM Tile, that tile can still accommodate a RAMB18E1
+
+
+3. DSP
+------
+
++-----------+------+-------+-----------+-------+
+| Site Type | Used | Fixed | Available | Util% |
++-----------+------+-------+-----------+-------+
+| DSPs      |    0 |     0 |       600 |  0.00 |
++-----------+------+-------+-----------+-------+
+
+
+4. IO and GT Specific
+---------------------
+
++-----------------------------+------+-------+-----------+-------+
+|          Site Type          | Used | Fixed | Available | Util% |
++-----------------------------+------+-------+-----------+-------+
+| Bonded IOB                  |    0 |     0 |       285 |  0.00 |
+| Bonded IPADs                |    0 |     0 |        14 |  0.00 |
+| Bonded OPADs                |    0 |     0 |         8 |  0.00 |
+| PHY_CONTROL                 |    0 |     0 |         8 |  0.00 |
+| PHASER_REF                  |    0 |     0 |         8 |  0.00 |
+| OUT_FIFO                    |    0 |     0 |        32 |  0.00 |
+| IN_FIFO                     |    0 |     0 |        32 |  0.00 |
+| IDELAYCTRL                  |    0 |     0 |         8 |  0.00 |
+| IBUFDS                      |    0 |     0 |       275 |  0.00 |
+| GTXE2_COMMON                |    0 |     0 |         1 |  0.00 |
+| GTXE2_CHANNEL               |    0 |     0 |         4 |  0.00 |
+| PHASER_OUT/PHASER_OUT_PHY   |    0 |     0 |        32 |  0.00 |
+| PHASER_IN/PHASER_IN_PHY     |    0 |     0 |        32 |  0.00 |
+| IDELAYE2/IDELAYE2_FINEDELAY |    0 |     0 |       400 |  0.00 |
+| ODELAYE2/ODELAYE2_FINEDELAY |    0 |     0 |       150 |  0.00 |
+| IBUFDS_GTE2                 |    0 |     0 |         2 |  0.00 |
+| ILOGIC                      |    0 |     0 |       285 |  0.00 |
+| OLOGIC                      |    0 |     0 |       285 |  0.00 |
++-----------------------------+------+-------+-----------+-------+
+
+
+5. Clocking
+-----------
+
++------------+------+-------+-----------+-------+
+|  Site Type | Used | Fixed | Available | Util% |
++------------+------+-------+-----------+-------+
+| BUFGCTRL   |    0 |     0 |        32 |  0.00 |
+| BUFIO      |    0 |     0 |        32 |  0.00 |
+| MMCME2_ADV |    0 |     0 |         8 |  0.00 |
+| PLLE2_ADV  |    0 |     0 |         8 |  0.00 |
+| BUFMRCE    |    0 |     0 |        16 |  0.00 |
+| BUFHCE     |    0 |     0 |       120 |  0.00 |
+| BUFR       |    0 |     0 |        32 |  0.00 |
++------------+------+-------+-----------+-------+
+
+
+6. Specific Feature
+-------------------
+
++-------------+------+-------+-----------+-------+
+|  Site Type  | Used | Fixed | Available | Util% |
++-------------+------+-------+-----------+-------+
+| BSCANE2     |    0 |     0 |         4 |  0.00 |
+| CAPTUREE2   |    0 |     0 |         1 |  0.00 |
+| DNA_PORT    |    0 |     0 |         1 |  0.00 |
+| EFUSE_USR   |    0 |     0 |         1 |  0.00 |
+| FRAME_ECCE2 |    0 |     0 |         1 |  0.00 |
+| ICAPE2      |    0 |     0 |         2 |  0.00 |
+| PCIE_2_1    |    0 |     0 |         1 |  0.00 |
+| STARTUPE2   |    0 |     0 |         1 |  0.00 |
+| XADC        |    0 |     0 |         1 |  0.00 |
++-------------+------+-------+-----------+-------+
+
+
+7. Primitives
+-------------
+
++----------+------+---------------------+
+| Ref Name | Used | Functional Category |
++----------+------+---------------------+
+| LUT6     | 8868 |                 LUT |
+| LUT4     | 5188 |                 LUT |
+| LUT5     | 4874 |                 LUT |
+| FDRE     | 3723 |        Flop & Latch |
+| LUT3     | 1743 |                 LUT |
+| MUXF7    | 1037 |               MuxFx |
+| FDCE     |  976 |        Flop & Latch |
+| CARRY4   |  916 |          CarryLogic |
+| LUT2     |  585 |                 LUT |
+| LUT1     |  112 |                 LUT |
+| MUXF8    |   68 |               MuxFx |
+| FDPE     |   53 |        Flop & Latch |
+| RAMD32   |   48 |  Distributed Memory |
+| RAMS32   |   16 |  Distributed Memory |
+| FDSE     |   10 |        Flop & Latch |
++----------+------+---------------------+
+
+
+8. Black Boxes
+--------------
+
++----------------------------------+------+
+|             Ref Name             | Used |
++----------------------------------+------+
+| array_RAM_srem_32ns_32ns_32_36_1 |    2 |
++----------------------------------+------+
+
+
+9. Instantiated Netlists
+------------------------
+
++----------+------+
+| Ref Name | Used |
++----------+------+
+
+
+# report_timing > timing_post_syn.rpt
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Delay Type: max.
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 1 -nworst 1 -delay_type max -sort_by slack.
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Mon Jun 26 11:24:35 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_timing
+| Design       : chaosNCG
+| Device       : 7k160t-fbg484
+| Speed File   : -1  PRODUCTION 1.12 2017-02-17
+------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (VIOLATED) :        -3.249ns  (required time - arrival time)
+  Source:                 Buffer_1/oehb1/data_reg_reg[5]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            Buffer_8/oehb1/validArray_reg[0]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (clk rise@4.000ns - clk rise@0.000ns)
+  Data Path Delay:        7.171ns  (logic 2.215ns (30.888%)  route 4.956ns (69.112%))
+  Logic Levels:           21  (CARRY4=9 LUT2=1 LUT3=1 LUT4=1 LUT5=1 LUT6=8)
+  Clock Path Skew:        -0.034ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    0.638ns = ( 4.638 - 4.000 ) 
+    Source Clock Delay      (SCD):    0.672ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=4827, unset)         0.672     0.672    Buffer_1/oehb1/clk
+                         FDCE                                         r  Buffer_1/oehb1/data_reg_reg[5]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_fdce_C_Q)         0.209     0.881 r  Buffer_1/oehb1/data_reg_reg[5]/Q
+                         net (fo=10, unplaced)        0.624     1.505    add_45/Q[4]
+                         CARRY4 (Prop_carry4_S[3]_CO[3])
+                                                      0.369     1.874 r  add_45/end_out[5]_INST_0_i_1/CO[3]
+                         net (fo=1, unplaced)         0.008     1.882    add_45/end_out[5]_INST_0_i_1_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.060     1.942 r  add_45/end_out[9]_INST_0_i_1/CO[3]
+                         net (fo=1, unplaced)         0.000     1.942    add_45/end_out[9]_INST_0_i_1_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.060     2.002 r  add_45/end_out[13]_INST_0_i_1/CO[3]
+                         net (fo=1, unplaced)         0.000     2.002    add_45/end_out[13]_INST_0_i_1_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.060     2.062 r  add_45/end_out[17]_INST_0_i_1/CO[3]
+                         net (fo=1, unplaced)         0.000     2.062    add_45/end_out[17]_INST_0_i_1_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.060     2.122 r  add_45/end_out[21]_INST_0_i_1/CO[3]
+                         net (fo=1, unplaced)         0.000     2.122    add_45/end_out[21]_INST_0_i_1_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.060     2.182 r  add_45/end_out[25]_INST_0_i_1/CO[3]
+                         net (fo=1, unplaced)         0.000     2.182    add_45/end_out[25]_INST_0_i_1_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.060     2.242 r  add_45/end_out[29]_INST_0_i_1/CO[3]
+                         net (fo=1, unplaced)         0.000     2.242    add_45/end_out[29]_INST_0_i_1_n_0
+                         CARRY4 (Prop_carry4_CI_O[0])
+                                                      0.142     2.384 f  add_45/end_out[31]_INST_0_i_1/O[0]
+                         net (fo=6, unplaced)         0.382     2.766    add_45/add_45_dataOutArray_0[29]
+                         LUT2 (Prop_lut2_I0_O)        0.153     2.919 r  add_45/Memory_reg_0_7_0_5_i_4/O
+                         net (fo=1, unplaced)         0.000     2.919    icmp_46/S[1]
+                         CARRY4 (Prop_carry4_S[1]_CO[1])
+                                                      0.299     3.218 f  icmp_46/Memory_reg_0_7_0_5_i_2/CO[1]
+                         net (fo=21, unplaced)        0.301     3.519    phi_n18/tehb1/dataOutArray[0][0]
+                         LUT6 (Prop_lut6_I3_O)        0.153     3.672 r  phi_n18/tehb1/Memory_reg_0_7_0_5_i_3/O
+                         net (fo=34, unplaced)        0.413     4.085    Buffer_15/fifo/phi_n18_dataOutArray_0[0]
+                         LUT3 (Prop_lut3_I0_O)        0.053     4.138 r  Buffer_15/fifo/data_reg[31]_i_3__4/O
+                         net (fo=3, unplaced)         0.358     4.496    Buffer_15/fifo/phi_n2_dataInArray_0
+                         LUT6 (Prop_lut6_I2_O)        0.053     4.549 f  Buffer_15/fifo/reg_value_i_2__33/O
+                         net (fo=5, unplaced)         0.368     4.917    Buffer_6/oehb1/reg_value_reg
+                         LUT4 (Prop_lut4_I2_O)        0.053     4.970 f  Buffer_6/oehb1/reg_value_i_9__0/O
+                         net (fo=2, unplaced)         0.351     5.321    fork_5/generateBlocks[2].regblock/fork_5_nReadyArray_3
+                         LUT6 (Prop_lut6_I4_O)        0.053     5.374 r  fork_5/generateBlocks[2].regblock/reg_value_i_6__1/O
+                         net (fo=1, unplaced)         0.340     5.714    fork_5/generateBlocks[4].regblock/reg_value_reg_1
+                         LUT6 (Prop_lut6_I3_O)        0.053     5.767 r  fork_5/generateBlocks[4].regblock/reg_value_i_2__0/O
+                         net (fo=3, unplaced)         0.358     6.125    forkC_10/generateBlocks[10].regblock/forkStop
+                         LUT6 (Prop_lut6_I5_O)        0.053     6.178 f  forkC_10/generateBlocks[10].regblock/reg_value_i_2__35/O
+                         net (fo=3, unplaced)         0.358     6.536    forkC_10/generateBlocks[10].regblock/icmp_46_readyArray_1
+                         LUT6 (Prop_lut6_I5_O)        0.053     6.589 r  forkC_10/generateBlocks[10].regblock/reg_value_i_3__7/O
+                         net (fo=11, unplaced)        0.386     6.975    forkC_10/generateBlocks[10].regblock/reg_value_reg_8
+                         LUT6 (Prop_lut6_I0_O)        0.053     7.028 r  forkC_10/generateBlocks[10].regblock/reg_value_i_2__19/O
+                         net (fo=3, unplaced)         0.358     7.386    forkC_10/generateBlocks[0].regblock/full_reg_reg_6
+                         LUT6 (Prop_lut6_I5_O)        0.053     7.439 f  forkC_10/generateBlocks[0].regblock/full_reg_i_2__18/O
+                         net (fo=2, unplaced)         0.351     7.790    Buffer_8/tehb1/forkC_10_readyArray_0
+                         LUT5 (Prop_lut5_I4_O)        0.053     7.843 r  Buffer_8/tehb1/validArray[0]_i_1__1/O
+                         net (fo=1, unplaced)         0.000     7.843    Buffer_8/oehb1/validArray0
+                         FDCE                                         r  Buffer_8/oehb1/validArray_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        4.000     4.000 r  
+                                                      0.000     4.000 r  clk (IN)
+                         net (fo=4827, unset)         0.638     4.638    Buffer_8/oehb1/clk
+                         FDCE                                         r  Buffer_8/oehb1/validArray_reg[0]/C
+                         clock pessimism              0.000     4.638    
+                         clock uncertainty           -0.035     4.603    
+                         FDCE (Setup_fdce_C_D)       -0.009     4.594    Buffer_8/oehb1/validArray_reg[0]
+  -------------------------------------------------------------------
+                         required time                          4.594    
+                         arrival time                          -7.843    
+  -------------------------------------------------------------------
+                         slack                                 -3.249    
+
+
+
+
+report_timing: Time (s): cpu = 00:00:07 ; elapsed = 00:00:10 . Memory (MB): peak = 2839.375 ; gain = 0.000 ; free physical = 4715 ; free virtual = 8927
+# opt_design
+Command: opt_design
+Attempting to get a license for feature 'Implementation' and/or device 'xc7k160t'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7k160t'
+Running DRC as a precondition to command opt_design
+
+Starting DRC Task
+ERROR: [DRC INBB-3] Black Box Instances: Cell 'srem_21/array_RAM_srem_32ns_32ns_32_36_1_U1' of type 'array_RAM_srem_32ns_32ns_32_36_1' has undefined contents and is considered a black box.  The contents of this cell must be defined for opt_design to complete successfully.
+ERROR: [DRC INBB-3] Black Box Instances: Cell 'srem_29/array_RAM_srem_32ns_32ns_32_36_1_U1' of type 'array_RAM_srem_32ns_32ns_32_36_1' has undefined contents and is considered a black box.  The contents of this cell must be defined for opt_design to complete successfully.
+INFO: [Project 1-461] DRC finished with 2 Errors
+INFO: [Project 1-462] Please refer to the DRC report (report_drc) for more information.
+ERROR: [Vivado_Tcl 4-78] Error(s) found during DRC. Opt_design not run.
+
+Time (s): cpu = 00:00:00.18 ; elapsed = 00:00:00.50 . Memory (MB): peak = 2843.469 ; gain = 4.094 ; free physical = 4702 ; free virtual = 8909
+INFO: [Common 17-83] Releasing license: Implementation
+4 Infos, 0 Warnings, 0 Critical Warnings and 3 Errors encountered.
+opt_design failed
+ERROR: [Common 17-39] 'opt_design' failed due to earlier errors.
+
+    while executing
+"opt_design"
+    (file "synthesize_4.tcl" line 39)
+INFO: [Common 17-206] Exiting Vivado at Mon Jun 26 11:24:35 2023...

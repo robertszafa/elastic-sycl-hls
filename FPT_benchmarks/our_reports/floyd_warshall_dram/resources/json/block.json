@@ -1,0 +1,6806 @@
+{
+  "11":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":49
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"3"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_N"
+        , "id":50
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_N'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":51
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":723
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_N"
+        , "id":52
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_N'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":53
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":721
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_N"
+        , "id":54
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_N'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":55
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":721
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":56
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"-1 (0xFFFFFFFF)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":721
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":57
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"33-bit Integer Add"
+            , "Constant Operand":"-1 (0x1FFFFFFFF)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":721
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Src"
+        , "id":58
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"ffwdSource"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Source"
+            , "FFwd Dests In":"MainKernel_AGU_0.B1, MainKernel_AGU_0.B2, MainKernel_AGU_0.B5, MainKernel_AGU_0.B5"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":723
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Src"
+        , "id":59
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"ffwdSource"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Source"
+            , "FFwd Dests In":"MainKernel_AGU_0.B1, MainKernel_AGU_0.B2, MainKernel_AGU_0.B5"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":721
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":50
+        , "to":51
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":58
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":52
+        , "to":53
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":53
+        , "to":55
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":54
+        , "to":55
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":55
+        , "to":56
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":56
+        , "to":57
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":57
+        , "to":59
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+    ]
+  }
+  , "12":
+  {
+    "nodes":
+    [
+      {
+        "name":"Cluster 0"
+        , "id":61
+        , "start":"1.00"
+        , "end":"9.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Cluster Name":"i_sfc_s_c0_in_for_cond16_i_preheader_preheader_zts16mainkernel_agu_0s_c0_enter4_zts16mainkernel_agu_0_116_1gr"
+            , "Cluster Type":"Stall-Free"
+            , "Cluster Start Cycle":"1"
+            , "Cluster Latency":"8"
+          }
+        ]
+        , "type":"cluster"
+        , "children":
+        [
+          {
+            "name":"Logic"
+            , "id":1475
+            , "subtype":"entry"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Logic Start Cycle":"1"
+                , "Cluster Logic Latency":"5"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Exit"
+            , "id":1476
+            , "subtype":"exit"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Max Fanout":"2"
+                , "Start Cycle":"6"
+                , "Latency":"3"
+                , "Exit FIFO Depth":"32"
+                , "Exit FIFO Width":"120"
+                , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":60
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":721
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":1475
+        , "to":1476
+      }
+      , {
+        "from":60
+        , "to":1475
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+    ]
+  }
+  , "13":
+  {
+    "nodes":
+    [
+      {
+        "name":"Cluster 1"
+        , "id":67
+        , "start":"1.00"
+        , "end":"8.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Cluster Name":"i_sfc_s_c0_in_for_body20_i_preheader_zts16mainkernel_agu_0s_c0_enter775_zts16mainkernel_agu_0_281_1gr"
+            , "Cluster Type":"Stall-Free"
+            , "Cluster Start Cycle":"1"
+            , "Cluster Latency":"7"
+          }
+        ]
+        , "type":"cluster"
+        , "children":
+        [
+          {
+            "name":"Logic"
+            , "id":1477
+            , "subtype":"entry"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Logic Start Cycle":"1"
+                , "Cluster Logic Latency":"4"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Exit"
+            , "id":1478
+            , "subtype":"exit"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Max Fanout":"2"
+                , "Start Cycle":"5"
+                , "Latency":"3"
+                , "Exit FIFO Depth":"32"
+                , "Exit FIFO Width":"328"
+                , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":62
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":722
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":1477
+        , "to":1478
+      }
+      , {
+        "from":62
+        , "to":1477
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":62
+        , "to":1477
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":62
+        , "to":1477
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":62
+        , "to":1477
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":62
+        , "to":1477
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+    ]
+  }
+  , "14":
+  {
+    "nodes":
+    [
+      {
+        "name":"Input"
+        , "id":68
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input"
+            , "Preceding Blocks":"MainKernel_AGU_0.B4"
+            , "Max Fanout":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "15":
+  {
+    "nodes":
+    [
+      {
+        "name":"Input"
+        , "id":69
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input"
+            , "Preceding Blocks":"MainKernel_AGU_0.B5"
+            , "Max Fanout":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "16":
+  {
+    "nodes":
+    [
+      {
+        "name":"Cluster 2"
+        , "id":83
+        , "start":"1.00"
+        , "end":"6.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Cluster Name":"i_sfc_s_c0_in_for_body20_i_zts16mainkernel_agu_0s_c0_enter956_zts16mainkernel_agu_0_589_1gr"
+            , "Cluster Type":"Stall-Free"
+            , "Cluster Start Cycle":"1"
+            , "Cluster Latency":"5"
+          }
+        ]
+        , "type":"cluster"
+        , "children":
+        [
+          {
+            "name":"Logic"
+            , "id":1479
+            , "subtype":"entry"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Logic Start Cycle":"1"
+                , "Cluster Logic Latency":"2"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Exit"
+            , "id":1480
+            , "subtype":"exit"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Max Fanout":"2"
+                , "Start Cycle":"3"
+                , "Latency":"3"
+                , "Exit FIFO Depth":"32"
+                , "Exit FIFO Width":"664"
+                , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":71
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":723
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":84
+        , "start":"6.00"
+        , "end":"6.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"128 bits"
+            , "Depth":"16"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"6"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":85
+        , "start":"6.00"
+        , "end":"6.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"128 bits"
+            , "Depth":"16"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"6"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":86
+        , "start":"6.00"
+        , "end":"6.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"128 bits"
+            , "Depth":"16"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"6"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":87
+        , "start":"6.00"
+        , "end":"6.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"128 bits"
+            , "Depth":"16"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"5"
+            , "Start Cycle":"6"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":1479
+        , "to":1480
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":1479
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":1480
+        , "to":84
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"664"
+          }
+        ]
+      }
+      , {
+        "from":1480
+        , "to":85
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"664"
+          }
+        ]
+      }
+      , {
+        "from":1480
+        , "to":86
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"664"
+          }
+        ]
+      }
+      , {
+        "from":1480
+        , "to":87
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"664"
+          }
+        ]
+      }
+    ]
+  }
+  , "17":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":88
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "18":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":89
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":408
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "19":
+  {
+    "nodes":
+    [
+      {
+        "name":"RD"
+        , "id":90
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":91
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":92
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":93
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"128 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"ST"
+        , "id":94
+        , "start":"1.00"
+        , "end":"8.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Store"
+            , "Width":"32 bits"
+            , "LSU Style":"Pipelined"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"7"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/fpga_lsu.hpp"
+              , "line":74
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":90
+        , "to":91
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":91
+        , "to":92
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":92
+        , "to":94
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":92
+        , "to":93
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":93
+        , "to":94
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"128"
+          }
+        ]
+      }
+    ]
+  }
+  , "20":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":95
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "21":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":96
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":422
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "22":
+  {
+    "nodes":
+    [
+      {
+        "name":"RD"
+        , "id":97
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":98
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":99
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":100
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"64 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"LD"
+        , "id":101
+        , "start":"1.00"
+        , "end":"9.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Load"
+            , "Width":"32 bits"
+            , "LSU Style":"Pipelined"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"8"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/fpga_lsu.hpp"
+              , "line":56
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":102
+        , "start":"9.00"
+        , "end":"9.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"9"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":97
+        , "to":98
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":98
+        , "to":99
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":99
+        , "to":101
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":99
+        , "to":100
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":99
+        , "to":102
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":101
+        , "to":102
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+    ]
+  }
+  , "23":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":103
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "24":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":104
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":435
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "25":
+  {
+    "nodes":
+    [
+      {
+        "name":"RD"
+        , "id":105
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":106
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":107
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":108
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":109
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":110
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit Integer Compare"
+            , "Max Fanout":"3"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Xor"
+        , "id":111
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Xor"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":112
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":113
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":114
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":115
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":116
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":117
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"16"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":105
+        , "to":106
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":106
+        , "to":107
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":107
+        , "to":117
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":107
+        , "to":114
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":107
+        , "to":112
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":107
+        , "to":108
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":108
+        , "to":109
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":109
+        , "to":110
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":110
+        , "to":114
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":110
+        , "to":111
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":110
+        , "to":116
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":111
+        , "to":112
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":112
+        , "to":113
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":113
+        , "to":116
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":114
+        , "to":115
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":115
+        , "to":116
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":116
+        , "to":117
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+    ]
+  }
+  , "26":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":118
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "27":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":119
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":422
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "28":
+  {
+    "nodes":
+    [
+      {
+        "name":"RD"
+        , "id":120
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":121
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":122
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":123
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"64 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"LD"
+        , "id":124
+        , "start":"1.00"
+        , "end":"9.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Load"
+            , "Width":"32 bits"
+            , "LSU Style":"Pipelined"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"8"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/fpga_lsu.hpp"
+              , "line":56
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":125
+        , "start":"9.00"
+        , "end":"9.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"9"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":120
+        , "to":121
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":121
+        , "to":122
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":122
+        , "to":124
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":122
+        , "to":123
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":122
+        , "to":125
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":124
+        , "to":125
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+    ]
+  }
+  , "29":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":126
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "30":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":127
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":435
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "31":
+  {
+    "nodes":
+    [
+      {
+        "name":"RD"
+        , "id":128
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":129
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":130
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":131
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":132
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":133
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit Integer Compare"
+            , "Max Fanout":"3"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Xor"
+        , "id":134
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Xor"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":135
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":136
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":137
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":138
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":139
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":140
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"16"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":128
+        , "to":129
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":129
+        , "to":130
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":130
+        , "to":140
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":130
+        , "to":137
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":130
+        , "to":135
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":130
+        , "to":131
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":131
+        , "to":132
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":132
+        , "to":133
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":133
+        , "to":137
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":133
+        , "to":134
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":133
+        , "to":139
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":134
+        , "to":135
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":135
+        , "to":136
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":136
+        , "to":139
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":137
+        , "to":138
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":138
+        , "to":139
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":139
+        , "to":140
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+    ]
+  }
+  , "32":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":141
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "33":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":142
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":422
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "34":
+  {
+    "nodes":
+    [
+      {
+        "name":"RD"
+        , "id":143
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":144
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":145
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":146
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"64 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"LD"
+        , "id":147
+        , "start":"1.00"
+        , "end":"9.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Load"
+            , "Width":"32 bits"
+            , "LSU Style":"Pipelined"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"8"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/fpga_lsu.hpp"
+              , "line":56
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":148
+        , "start":"9.00"
+        , "end":"9.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"9"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":143
+        , "to":144
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":144
+        , "to":145
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":145
+        , "to":147
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":145
+        , "to":146
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":145
+        , "to":148
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":147
+        , "to":148
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+    ]
+  }
+  , "35":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":149
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "36":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":150
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":435
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "37":
+  {
+    "nodes":
+    [
+      {
+        "name":"RD"
+        , "id":151
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":152
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":153
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":154
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":155
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":156
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit Integer Compare"
+            , "Max Fanout":"3"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Xor"
+        , "id":157
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Xor"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":158
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":159
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":160
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":161
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":162
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":163
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"16"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":151
+        , "to":152
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":152
+        , "to":153
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":153
+        , "to":163
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":153
+        , "to":160
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":153
+        , "to":158
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":153
+        , "to":154
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":154
+        , "to":155
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":155
+        , "to":156
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":156
+        , "to":160
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":156
+        , "to":157
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":156
+        , "to":162
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":157
+        , "to":158
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":158
+        , "to":159
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":159
+        , "to":162
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":160
+        , "to":161
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":161
+        , "to":162
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":162
+        , "to":163
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+    ]
+  }
+  , "38":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":164
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "39":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":165
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":485
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "40":
+  {
+    "nodes":
+    [
+      {
+        "name":"Cluster 3"
+        , "id":167
+        , "start":"1.00"
+        , "end":"7.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Cluster Name":"i_sfc_s_c0_in_while_body_i_zts8lsq_dramin4sycl3_v13ext5intel4pipeiz21floyd_warshall_kernelrns1_5queueerst6vectoriisaiieesa_e27ps_c0_enter1_zts8lsq_dramin4sycl3_v13ext5intel4pipeiz21floyd_warshall_kernelrns1_5queueerst6vectoriisaiieesa_e27p_7521_1gr"
+            , "Cluster Type":"Stall-Free"
+            , "Cluster Start Cycle":"1"
+            , "Cluster Latency":"6"
+          }
+        ]
+        , "type":"cluster"
+        , "children":
+        [
+          {
+            "name":"Logic"
+            , "id":1481
+            , "subtype":"entry"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Logic Start Cycle":"1"
+                , "Cluster Logic Latency":"3"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Exit"
+            , "id":1482
+            , "subtype":"exit"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Max Fanout":"2"
+                , "Start Cycle":"4"
+                , "Latency":"3"
+                , "Exit FIFO Depth":"32"
+                , "Exit FIFO Width":"544"
+                , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"Loop Input"
+        , "id":166
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Input"
+            , "Preceding Blocks":">.B0, >.B1"
+            , "Max Fanout":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":485
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":168
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":169
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"128 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"18"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":170
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":171
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":172
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":173
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"64 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":174
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":175
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":176
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":177
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":178
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"64 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":179
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":180
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":181
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":182
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":183
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"64 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":184
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":1481
+        , "to":1482
+      }
+      , {
+        "from":166
+        , "to":1481
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":168
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":169
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":170
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":171
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":172
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":173
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":174
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":175
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":176
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":177
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":178
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":179
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":180
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":181
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":182
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":183
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+      , {
+        "from":1482
+        , "to":184
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"544"
+          }
+        ]
+      }
+    ]
+  }
+  , "41":
+  {
+    "nodes":
+    [
+      {
+        "name":"WR"
+        , "id":185
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"7"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":186
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"7"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":187
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"7"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":188
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"7"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":189
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"7"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":190
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"7"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":191
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"7"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Or"
+        , "id":192
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Or"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Or"
+        , "id":193
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Or"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Or"
+        , "id":194
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Or"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Or"
+        , "id":195
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Or"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Or"
+        , "id":196
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Or"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Or"
+        , "id":197
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Or"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Feedback"
+        , "id":198
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":185
+        , "to":195
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":186
+        , "to":194
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":187
+        , "to":194
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":188
+        , "to":193
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":189
+        , "to":193
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":190
+        , "to":192
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":191
+        , "to":192
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":192
+        , "to":195
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":193
+        , "to":196
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":194
+        , "to":196
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":195
+        , "to":197
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":196
+        , "to":197
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":197
+        , "to":198
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+    ]
+  }
+  , "42":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":199
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"3"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_N"
+        , "id":200
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_N'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":201
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":745
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_N"
+        , "id":202
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_N'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":203
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":743
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_N"
+        , "id":204
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_N'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":205
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":743
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":206
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"-1 (0xFFFFFFFF)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":743
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":207
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"33-bit Integer Add"
+            , "Constant Operand":"-1 (0x1FFFFFFFF)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":743
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Src"
+        , "id":208
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"ffwdSource"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Source"
+            , "FFwd Dests In":"MainKernel.B1, MainKernel.B2, MainKernel.B5, MainKernel.B5"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":745
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Src"
+        , "id":209
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"ffwdSource"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Source"
+            , "FFwd Dests In":"MainKernel.B1, MainKernel.B2, MainKernel.B5"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":743
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":200
+        , "to":201
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":201
+        , "to":208
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":202
+        , "to":203
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":203
+        , "to":205
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":204
+        , "to":205
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":205
+        , "to":206
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":206
+        , "to":207
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":207
+        , "to":209
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+    ]
+  }
+  , "43":
+  {
+    "nodes":
+    [
+      {
+        "name":"Cluster 4"
+        , "id":211
+        , "start":"1.00"
+        , "end":"4.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Cluster Name":"i_sfc_s_c0_in_for_cond14_i_preheader_preheader_zts10mainkernels_c0_enter4_zts10mainkernel_13889_1gr"
+            , "Cluster Type":"Stall-Free"
+            , "Cluster Start Cycle":"1"
+            , "Cluster Latency":"3"
+          }
+        ]
+        , "type":"cluster"
+        , "children":
+        [
+          {
+            "name":"Logic"
+            , "id":1483
+            , "subtype":"entry"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Logic Start Cycle":"1"
+                , "Cluster Logic Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Exit"
+            , "id":1484
+            , "subtype":"exit"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Max Fanout":"2"
+                , "Start Cycle":"1"
+                , "Latency":"3"
+                , "Exit FIFO Depth":"32"
+                , "Exit FIFO Width":"24"
+                , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":210
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":743
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":1483
+        , "to":1484
+      }
+      , {
+        "from":210
+        , "to":1483
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+    ]
+  }
+  , "44":
+  {
+    "nodes":
+    [
+      {
+        "name":"Cluster 5"
+        , "id":214
+        , "start":"1.00"
+        , "end":"5.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Cluster Name":"i_sfc_s_c0_in_for_body18_i_preheader_zts10mainkernels_c0_enter535_zts10mainkernel_14003_1gr"
+            , "Cluster Type":"Stall-Free"
+            , "Cluster Start Cycle":"1"
+            , "Cluster Latency":"4"
+          }
+        ]
+        , "type":"cluster"
+        , "children":
+        [
+          {
+            "name":"Logic"
+            , "id":1485
+            , "subtype":"entry"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Logic Start Cycle":"1"
+                , "Cluster Logic Latency":"1"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Exit"
+            , "id":1486
+            , "subtype":"exit"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Max Fanout":"2"
+                , "Start Cycle":"2"
+                , "Latency":"3"
+                , "Exit FIFO Depth":"32"
+                , "Exit FIFO Width":"40"
+                , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":212
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":744
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":1485
+        , "to":1486
+      }
+      , {
+        "from":212
+        , "to":1485
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":212
+        , "to":1485
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+    ]
+  }
+  , "45":
+  {
+    "nodes":
+    [
+      {
+        "name":"Input"
+        , "id":215
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input"
+            , "Preceding Blocks":"MainKernel.B4"
+            , "Max Fanout":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "46":
+  {
+    "nodes":
+    [
+      {
+        "name":"Input"
+        , "id":216
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input"
+            , "Preceding Blocks":"MainKernel.B5"
+            , "Max Fanout":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "47":
+  {
+    "nodes":
+    [
+      {
+        "name":"Cluster 6"
+        , "id":222
+        , "start":"1.00"
+        , "end":"5.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Cluster Name":"i_sfc_s_c0_in_for_body18_i_zts10mainkernels_c0_enter626_zts10mainkernel_14218_1gr"
+            , "Cluster Type":"Stall-Free"
+            , "Cluster Start Cycle":"1"
+            , "Cluster Latency":"4"
+          }
+        ]
+        , "type":"cluster"
+        , "children":
+        [
+          {
+            "name":"Logic"
+            , "id":1487
+            , "subtype":"entry"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Logic Start Cycle":"1"
+                , "Cluster Logic Latency":"1"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Exit"
+            , "id":1488
+            , "subtype":"exit"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Max Fanout":"2"
+                , "Start Cycle":"2"
+                , "Latency":"3"
+                , "Exit FIFO Depth":"32"
+                , "Exit FIFO Width":"56"
+                , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":218
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":745
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":223
+        , "start":"6.00"
+        , "end":"6.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"16"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"6"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":224
+        , "start":"5.00"
+        , "end":"5.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"16"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"5"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":225
+        , "start":"5.00"
+        , "end":"5.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"16"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"5"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":226
+        , "start":"5.00"
+        , "end":"5.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Max Fanout":"1"
+            , "Start Cycle":"5"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":746
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":227
+        , "start":"6.00"
+        , "end":"6.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"3"
+            , "Start Cycle":"6"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_dram_elastic_pass_workdir/floyd_warshall_dram.ast.cpp"
+              , "line":746
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":228
+        , "start":"6.00"
+        , "end":"6.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"6"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":229
+        , "start":"6.00"
+        , "end":"6.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"96 bits"
+            , "Depth":"16"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"2"
+            , "Start Cycle":"6"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":1487
+        , "to":1488
+      }
+      , {
+        "from":218
+        , "to":1487
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":218
+        , "to":1487
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":218
+        , "to":1487
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":218
+        , "to":1487
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":223
+        , "to":227
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":1488
+        , "to":223
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"56"
+          }
+        ]
+      }
+      , {
+        "from":224
+        , "to":226
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":1488
+        , "to":224
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"56"
+          }
+        ]
+      }
+      , {
+        "from":225
+        , "to":226
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":1488
+        , "to":225
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"56"
+          }
+        ]
+      }
+      , {
+        "from":226
+        , "to":227
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":226
+        , "to":228
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":227
+        , "to":228
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":228
+        , "to":229
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"96"
+          }
+        ]
+      }
+      , {
+        "from":1488
+        , "to":229
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"56"
+          }
+        ]
+      }
+    ]
+  }
+  , "48":
+  {
+    "nodes":
+    [
+      {
+        "name":"WR"
+        , "id":230
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"1"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<floyd_warshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Feedback"
+        , "id":231
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":230
+        , "to":231
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+    ]
+  }
+}

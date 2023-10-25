@@ -1,0 +1,98 @@
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Delay Type: max.
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 1 -nworst 1 -delay_type max -sort_by slack.
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Fri Jun 23 14:56:20 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_timing
+| Design       : matching
+| Device       : 7k160t-fbg484
+| Speed File   : -1  PRODUCTION 1.12 2017-02-17
+------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (VIOLATED) :        -5.048ns  (required time - arrival time)
+  Source:                 c_LSQ_vertices/loadQ/head_reg[3]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            c_LSQ_vertices/loadQ/head_reg[0]/CE
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (clk rise@4.000ns - clk rise@0.000ns)
+  Data Path Delay:        8.774ns  (logic 1.466ns (16.709%)  route 7.308ns (83.291%))
+  Logic Levels:           16  (CARRY4=2 LUT2=1 LUT4=1 LUT5=2 LUT6=10)
+  Clock Path Skew:        -0.020ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    1.469ns = ( 5.469 - 4.000 ) 
+    Source Clock Delay      (SCD):    1.580ns
+    Clock Pessimism Removal (CPR):    0.091ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=3223, unset)         1.580     1.580    c_LSQ_vertices/loadQ/clk
+    SLICE_X63Y81         FDRE                                         r  c_LSQ_vertices/loadQ/head_reg[3]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X63Y81         FDRE (Prop_fdre_C_Q)         0.269     1.849 r  c_LSQ_vertices/loadQ/head_reg[3]/Q
+                         net (fo=139, routed)         0.538     2.387    c_LSQ_vertices/loadQ/head_reg[3]_2[3]
+    SLICE_X63Y82         LUT2 (Prop_lut2_I0_O)        0.053     2.440 r  c_LSQ_vertices/loadQ/dataOutArray[0]0_carry__0_i_94/O
+                         net (fo=3, routed)           0.574     3.014    c_LSQ_vertices/loadQ/dataOutArray[0]0_carry__0_i_94_n_0
+    SLICE_X62Y86         LUT6 (Prop_lut6_I4_O)        0.053     3.067 f  c_LSQ_vertices/loadQ/head[3]_i_37/O
+                         net (fo=2, routed)           0.723     3.790    c_LSQ_vertices/loadQ/head[3]_i_37_n_0
+    SLICE_X67Y80         LUT5 (Prop_lut5_I3_O)        0.053     3.843 r  c_LSQ_vertices/loadQ/dataOutArray[0]0_carry__1_i_21/O
+                         net (fo=70, routed)          0.770     4.613    c_LSQ_vertices/loadQ/dataOutArray[0]0_carry__1_i_21_n_0
+    SLICE_X68Y77         LUT6 (Prop_lut6_I4_O)        0.053     4.666 f  c_LSQ_vertices/loadQ/dataOutArray[0]0_carry__0_i_77/O
+                         net (fo=1, routed)           0.468     5.134    c_LSQ_vertices/loadQ/dataOutArray[0]0_carry__0_i_77_n_0
+    SLICE_X68Y79         LUT6 (Prop_lut6_I0_O)        0.053     5.187 f  c_LSQ_vertices/loadQ/dataOutArray[0]0_carry__0_i_29/O
+                         net (fo=1, routed)           0.361     5.548    c_LSQ_vertices/loadQ/dataOutArray[0]0_carry__0_i_29_n_0
+    SLICE_X68Y81         LUT6 (Prop_lut6_I2_O)        0.053     5.601 f  c_LSQ_vertices/loadQ/dataOutArray[0]0_carry__0_i_8/O
+                         net (fo=1, routed)           0.574     6.176    c_LSQ_vertices/loadQ/dataOutArray[0]0_carry__0_i_8_n_0
+    SLICE_X66Y81         LUT6 (Prop_lut6_I5_O)        0.053     6.229 r  c_LSQ_vertices/loadQ/dataOutArray[0]0_carry__0_i_1/O
+                         net (fo=1, routed)           0.000     6.229    icmp_18/dataOutArray[0]0_carry__1_0[3]
+    SLICE_X66Y81         CARRY4 (Prop_carry4_S[3]_CO[3])
+                                                      0.216     6.445 r  icmp_18/dataOutArray[0]0_carry__0/CO[3]
+                         net (fo=1, routed)           0.000     6.445    icmp_18/dataOutArray[0]0_carry__0_n_0
+    SLICE_X66Y82         CARRY4 (Prop_carry4_CI_CO[2])
+                                                      0.132     6.577 f  icmp_18/dataOutArray[0]0_carry__1/CO[2]
+                         net (fo=25, routed)          0.287     6.864    c_LSQ_vertices/STORE_ADDR_PORT_LSQ_vertices/CO[0]
+    SLICE_X67Y82         LUT6 (Prop_lut6_I5_O)        0.160     7.024 f  c_LSQ_vertices/STORE_ADDR_PORT_LSQ_vertices/Head[1]_i_2/O
+                         net (fo=5, routed)           0.409     7.433    fork_2/generateBlocks[1].regblock/reg_value_reg_4
+    SLICE_X66Y75         LUT6 (Prop_lut6_I5_O)        0.053     7.486 f  fork_2/generateBlocks[1].regblock/reg_value_i_2__15/O
+                         net (fo=2, routed)           0.223     7.709    fork_2/generateBlocks[1].regblock/reg_value_i_2__15_n_0
+    SLICE_X66Y75         LUT4 (Prop_lut4_I0_O)        0.053     7.762 f  fork_2/generateBlocks[1].regblock/reg_value_i_4__2/O
+                         net (fo=5, routed)           0.455     8.217    c_LSQ_vertices/loadQ/reg_value_reg_17
+    SLICE_X64Y76         LUT5 (Prop_lut5_I3_O)        0.053     8.270 f  c_LSQ_vertices/loadQ/loadCompleted_15_i_7/O
+                         net (fo=21, routed)          0.462     8.732    c_LSQ_vertices/loadQ/loadCompleted_15_i_7_n_0
+    SLICE_X62Y78         LUT6 (Prop_lut6_I2_O)        0.053     8.785 f  c_LSQ_vertices/loadQ/head[3]_i_21/O
+                         net (fo=1, routed)           0.468     9.252    c_LSQ_vertices/loadQ/head[3]_i_21_n_0
+    SLICE_X62Y78         LUT6 (Prop_lut6_I0_O)        0.053     9.305 r  c_LSQ_vertices/loadQ/head[3]_i_6/O
+                         net (fo=1, routed)           0.503     9.808    c_LSQ_vertices/loadQ/head[3]_i_6_n_0
+    SLICE_X62Y79         LUT6 (Prop_lut6_I3_O)        0.053     9.861 r  c_LSQ_vertices/loadQ/head[3]_i_1__0/O
+                         net (fo=4, routed)           0.493    10.354    c_LSQ_vertices/loadQ/_T_102172
+    SLICE_X64Y80         FDRE                                         r  c_LSQ_vertices/loadQ/head_reg[0]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        4.000     4.000 r  
+                                                      0.000     4.000 r  clk (IN)
+                         net (fo=3223, unset)         1.469     5.469    c_LSQ_vertices/loadQ/clk
+    SLICE_X64Y80         FDRE                                         r  c_LSQ_vertices/loadQ/head_reg[0]/C
+                         clock pessimism              0.091     5.560    
+                         clock uncertainty           -0.035     5.525    
+    SLICE_X64Y80         FDRE (Setup_fdre_C_CE)      -0.219     5.306    c_LSQ_vertices/loadQ/head_reg[0]
+  -------------------------------------------------------------------
+                         required time                          5.306    
+                         arrival time                         -10.354    
+  -------------------------------------------------------------------
+                         slack                                 -5.048    
+
+
+
+
+report_timing: Time (s): cpu = 00:00:02 ; elapsed = 00:00:06 . Memory (MB): peak = 3018.742 ; gain = 0.000 ; free physical = 2746 ; free virtual = 7966

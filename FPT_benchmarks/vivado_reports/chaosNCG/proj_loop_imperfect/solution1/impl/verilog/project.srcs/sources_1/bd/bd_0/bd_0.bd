@@ -1,0 +1,323 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x6D218D9884B5F61A",
+      "device": "xc7k160tfbg484-1",
+      "name": "bd_0",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2019.2",
+      "validated": "true"
+    },
+    "design_tree": {
+      "hls_inst": ""
+    },
+    "interface_ports": {
+      "ap_ctrl": {
+        "mode": "Slave",
+        "vlnv": "xilinx.com:interface:acc_handshake_rtl:1.0"
+      }
+    },
+    "ports": {
+      "M_address0": {
+        "type": "data",
+        "direction": "O",
+        "left": "11",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "M_address1": {
+        "type": "data",
+        "direction": "O",
+        "left": "11",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "M_ce0": {
+        "direction": "O"
+      },
+      "M_ce1": {
+        "direction": "O"
+      },
+      "M_q0": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "M_q1": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "ap_clk": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "ASSOCIATED_RESET": {
+            "value": "ap_rst",
+            "value_src": "default"
+          },
+          "CLK_DOMAIN": {
+            "value": "bd_0_ap_clk_0",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "250000000.0"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.000",
+            "value_src": "default"
+          }
+        }
+      },
+      "ap_rst": {
+        "type": "rst",
+        "direction": "I",
+        "parameters": {
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "POLARITY": {
+            "value": "ACTIVE_HIGH"
+          }
+        }
+      },
+      "buffer_r_address0": {
+        "type": "data",
+        "direction": "O",
+        "left": "11",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "buffer_r_address1": {
+        "type": "data",
+        "direction": "O",
+        "left": "11",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "buffer_r_ce0": {
+        "direction": "O"
+      },
+      "buffer_r_ce1": {
+        "direction": "O"
+      },
+      "buffer_r_d0": {
+        "type": "data",
+        "direction": "O",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "buffer_r_d1": {
+        "type": "data",
+        "direction": "O",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "buffer_r_q0": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "buffer_r_q1": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "buffer_r_we0": {
+        "direction": "O"
+      },
+      "buffer_r_we1": {
+        "direction": "O"
+      }
+    },
+    "components": {
+      "hls_inst": {
+        "vlnv": "xilinx.com:hls:loop_imperfect:0.1",
+        "xci_name": "bd_0_hls_inst_0"
+      }
+    },
+    "interface_nets": {
+      "ap_ctrl_0_1": {
+        "interface_ports": [
+          "ap_ctrl",
+          "hls_inst/ap_ctrl"
+        ]
+      }
+    },
+    "nets": {
+      "hls_inst_M_address0": {
+        "ports": [
+          "hls_inst/M_address0",
+          "M_address0"
+        ]
+      },
+      "hls_inst_M_address1": {
+        "ports": [
+          "hls_inst/M_address1",
+          "M_address1"
+        ]
+      },
+      "hls_inst_M_ce0": {
+        "ports": [
+          "hls_inst/M_ce0",
+          "M_ce0"
+        ]
+      },
+      "hls_inst_M_ce1": {
+        "ports": [
+          "hls_inst/M_ce1",
+          "M_ce1"
+        ]
+      },
+      "M_q0_0_1": {
+        "ports": [
+          "M_q0",
+          "hls_inst/M_q0"
+        ]
+      },
+      "M_q1_0_1": {
+        "ports": [
+          "M_q1",
+          "hls_inst/M_q1"
+        ]
+      },
+      "ap_clk_0_1": {
+        "ports": [
+          "ap_clk",
+          "hls_inst/ap_clk"
+        ]
+      },
+      "ap_rst_0_1": {
+        "ports": [
+          "ap_rst",
+          "hls_inst/ap_rst"
+        ]
+      },
+      "hls_inst_buffer_r_address0": {
+        "ports": [
+          "hls_inst/buffer_r_address0",
+          "buffer_r_address0"
+        ]
+      },
+      "hls_inst_buffer_r_address1": {
+        "ports": [
+          "hls_inst/buffer_r_address1",
+          "buffer_r_address1"
+        ]
+      },
+      "hls_inst_buffer_r_ce0": {
+        "ports": [
+          "hls_inst/buffer_r_ce0",
+          "buffer_r_ce0"
+        ]
+      },
+      "hls_inst_buffer_r_ce1": {
+        "ports": [
+          "hls_inst/buffer_r_ce1",
+          "buffer_r_ce1"
+        ]
+      },
+      "hls_inst_buffer_r_d0": {
+        "ports": [
+          "hls_inst/buffer_r_d0",
+          "buffer_r_d0"
+        ]
+      },
+      "hls_inst_buffer_r_d1": {
+        "ports": [
+          "hls_inst/buffer_r_d1",
+          "buffer_r_d1"
+        ]
+      },
+      "buffer_r_q0_0_1": {
+        "ports": [
+          "buffer_r_q0",
+          "hls_inst/buffer_r_q0"
+        ]
+      },
+      "buffer_r_q1_0_1": {
+        "ports": [
+          "buffer_r_q1",
+          "hls_inst/buffer_r_q1"
+        ]
+      },
+      "hls_inst_buffer_r_we0": {
+        "ports": [
+          "hls_inst/buffer_r_we0",
+          "buffer_r_we0"
+        ]
+      },
+      "hls_inst_buffer_r_we1": {
+        "ports": [
+          "hls_inst/buffer_r_we1",
+          "buffer_r_we1"
+        ]
+      }
+    }
+  }
+}

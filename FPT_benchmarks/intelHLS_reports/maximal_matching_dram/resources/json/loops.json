@@ -1,0 +1,363 @@
+{
+  "columns":
+  ["", "Pipelined", "II", "Speculated iterations", "Details"]
+  , "children":
+  [
+    {
+      "name":"Kernel: MainKernel"
+      , "data":
+      ["", "", ""]
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+            , "line":27
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"brief"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"fMAX bottleneck block: None"
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Kernels"
+              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/ipp1476408832230.html"
+            }
+          ]
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"MainKernel.B1"
+          , "data":
+          ["Yes", "~249", "1"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":"Memory dependency"
+            }
+            , {
+              "type":"text"
+              , "text":"Compiler failed to schedule this loop with smaller II due to memory dependency:"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"From: Load Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"37"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"To: Store Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"41"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compiler failed to schedule this loop with smaller II due to memory dependency:"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"From: Load Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"38"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"To: Store Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"41"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Most critical loop feedback path during scheduling:"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"192.00 clock cycles Load Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"37"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"28.00 clock cycles Store Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"41"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"28.00 clock cycles Store Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"40"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"1.00 clock cycle 1-bit Select Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"39"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"0.29 clock cycles 1-bit Or Operation (%L > %L, %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"31"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"40"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"0.29 clock cycles 1-bit And Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"40"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"II is an approximation due to the following stallable instructions:"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"Load Operation (%L > %L, %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"34"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"35"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"Load Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"37"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"Load Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"38"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"Store Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"40"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"Store Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_dram.cpp"
+                      , "line":"41"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Maximum concurrent iterations: Capacity of loop"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"Use the %L viewer to estimate capacity"
+                  , "links":
+                  [
+                    {
+                      "view":"Fmax II Report"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"See %L for more information"
+              , "links":
+              [
+                {
+                  "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                  , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/wfa1476380079940.html"
+                }
+              ]
+            }
+          ]
+          , "children":
+          [
+          ]
+        }
+      ]
+    }
+  ]
+}

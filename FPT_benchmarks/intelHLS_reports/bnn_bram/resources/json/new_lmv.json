@@ -1,0 +1,1057 @@
+{
+  "nodes":
+  [
+    {
+      "name":"MainKernel"
+      , "id":165
+      , "type":"kernel"
+      , "children":
+      [
+        {
+          "name":"On-chip Memory"
+          , "id":166
+          , "type":"memtype"
+          , "children":
+          [
+            {
+              "name":"data"
+              , "id":167
+              , "brief":"Implemented size:64 kilobytes = (16384 words per bank) x (4 bytes per word) | Memory Usage:32 RAMs | Number of banks:1 | Bank width (word size):4 bytes | Bank depth:16384 words | Number of replicates:1 | Number of private copies:1 | RAM Mode:Simple dual-port | Pump configuration:Single-pumped"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Declared at":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"%L"
+                      , "links":
+                      [
+                        {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"29"
+                        }
+                      ]
+                    }
+                  ]
+                  , "Requested size":"40000 bytes"
+                  , "Implemented size":"64 kilobytes = (16384 words per bank) x (4 bytes per word)"
+                  , "Memory Usage":"32 RAMs"
+                  , "Number of banks":"1"
+                  , "Bank width (word size)":"4 bytes"
+                  , "Bank depth":"16384 words"
+                  , "Number of replicates":"1"
+                  , "Number of private copies":"1"
+                  , "RAM Mode":"Simple dual-port"
+                  , "Pump configuration":"Single-pumped"
+                  , "Additional information":"In each private copy:</br>  Variable 'data' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                  , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Local Memory"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                    , "line":29
+                  }
+                ]
+              ]
+              , "type":"memsys"
+              , "children":
+              [
+                {
+                  "name":"Bank 0"
+                  , "id":172
+                  , "brief":"Memory Usage:32 RAMs | Bank width:4 bytes | Bank depth:16384 words | Implemented bank size:64 kilobytes = (16384 words) x (4 bytes per word)"
+                  , "details":
+                  [
+                    {
+                      "type":"table"
+                      , "Memory Usage":"32 RAMs"
+                      , "Bank width":"4 bytes"
+                      , "Bank depth":"16384 words"
+                      , "Implemented bank size":"64 kilobytes = (16384 words) x (4 bytes per word)"
+                      , "Number of active ports":"2"
+                      , "Number of read ports":"1"
+                      , "Number of write ports":"1"
+                      , "Additional information":"In each private copy:</br>  Variable 'data' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                      , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                    }
+                  ]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                        , "line":29
+                      }
+                    ]
+                  ]
+                  , "type":"bank"
+                  , "children":
+                  [
+                    {
+                      "name":"Replicate 0"
+                      , "id":173
+                      , "padding":"6384"
+                      , "depth":"16384"
+                      , "brief":"Implemented size:64 kilobytes = (16384 words) x (4 bytes per word) | Memory Usage:32 RAMs"
+                      , "details":
+                      [
+                        {
+                          "type":"table"
+                          , "Implemented size":"64 kilobytes = (16384 words) x (4 bytes per word)"
+                          , "Memory Usage":"32 RAMs"
+                          , "Number of physical ports":"2"
+                          , "Number of read ports":"1"
+                          , "Number of write ports":"1"
+                          , "Additional information":"In each private copy:</br>  Variable 'data' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                          , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                        }
+                      ]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                            , "line":29
+                          }
+                        ]
+                      ]
+                      , "type":"replicate"
+                      , "children":
+                      [
+                        {
+                          "name":"R"
+                          , "id":174
+                          , "type":"port"
+                        }
+                        , {
+                          "name":"W"
+                          , "id":176
+                          , "type":"port"
+                        }
+                      ]
+                      , "copies":
+                      {
+                        "num":1
+                        , "details":
+                        [
+                          {
+                            "type":"table"
+                            , "Width":"4 bytes"
+                            , "Depth per copy (including padding)":"16384 words"
+                            , "Number of private copies":"1"
+                            , "Additional information":"In each private copy:</br>  Variable 'data' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                            , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"w"
+              , "id":178
+              , "brief":"Implemented size:64 kilobytes = (16384 words per bank) x (4 bytes per word) | Memory Usage:32 RAMs | Number of banks:1 | Bank width (word size):4 bytes | Bank depth:16384 words | Number of replicates:1 | Number of private copies:1 | RAM Mode:Simple dual-port | Pump configuration:Single-pumped"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Declared at":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"%L"
+                      , "links":
+                      [
+                        {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"31"
+                        }
+                      ]
+                    }
+                  ]
+                  , "Requested size":"40000 bytes"
+                  , "Implemented size":"64 kilobytes = (16384 words per bank) x (4 bytes per word)"
+                  , "Memory Usage":"32 RAMs"
+                  , "Number of banks":"1"
+                  , "Bank width (word size)":"4 bytes"
+                  , "Bank depth":"16384 words"
+                  , "Number of replicates":"1"
+                  , "Number of private copies":"1"
+                  , "RAM Mode":"Simple dual-port"
+                  , "Pump configuration":"Single-pumped"
+                  , "Additional information":"In each private copy:</br>  Variable 'w' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                  , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Local Memory"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                    , "line":31
+                  }
+                ]
+              ]
+              , "type":"romsys"
+              , "children":
+              [
+                {
+                  "name":"Bank 0"
+                  , "id":180
+                  , "brief":"Memory Usage:32 RAMs | Bank width:4 bytes | Bank depth:16384 words | Implemented bank size:64 kilobytes = (16384 words) x (4 bytes per word)"
+                  , "details":
+                  [
+                    {
+                      "type":"table"
+                      , "Memory Usage":"32 RAMs"
+                      , "Bank width":"4 bytes"
+                      , "Bank depth":"16384 words"
+                      , "Implemented bank size":"64 kilobytes = (16384 words) x (4 bytes per word)"
+                      , "Number of active ports":"1"
+                      , "Number of read ports":"1"
+                      , "Number of un-used ports":"1"
+                      , "Additional information":"In each private copy:</br>  Variable 'w' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                      , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                    }
+                  ]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                        , "line":31
+                      }
+                    ]
+                  ]
+                  , "type":"bank"
+                  , "children":
+                  [
+                    {
+                      "name":"Replicate 0"
+                      , "id":181
+                      , "padding":"6384"
+                      , "depth":"16384"
+                      , "brief":"Implemented size:64 kilobytes = (16384 words) x (4 bytes per word) | Memory Usage:32 RAMs"
+                      , "details":
+                      [
+                        {
+                          "type":"table"
+                          , "Implemented size":"64 kilobytes = (16384 words) x (4 bytes per word)"
+                          , "Memory Usage":"32 RAMs"
+                          , "Number of physical ports":"2"
+                          , "Number of read ports":"1"
+                          , "Number of un-used ports":"1"
+                          , "Additional information":"In each private copy:</br>  Variable 'w' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                          , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                        }
+                      ]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                            , "line":31
+                          }
+                        ]
+                      ]
+                      , "type":"replicate"
+                      , "children":
+                      [
+                        {
+                          "name":"R"
+                          , "id":182
+                          , "type":"port"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"in"
+              , "id":183
+              , "brief":"Implemented size:64 kilobytes = (16384 words per bank) x (4 bytes per word) | Memory Usage:32 RAMs | Number of banks:1 | Bank width (word size):4 bytes | Bank depth:16384 words | Number of replicates:1 | Number of private copies:1 | RAM Mode:Simple dual-port | Pump configuration:Single-pumped"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Declared at":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"%L"
+                      , "links":
+                      [
+                        {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"32"
+                        }
+                      ]
+                    }
+                  ]
+                  , "Requested size":"40000 bytes"
+                  , "Implemented size":"64 kilobytes = (16384 words per bank) x (4 bytes per word)"
+                  , "Memory Usage":"32 RAMs"
+                  , "Number of banks":"1"
+                  , "Bank width (word size)":"4 bytes"
+                  , "Bank depth":"16384 words"
+                  , "Number of replicates":"1"
+                  , "Number of private copies":"1"
+                  , "RAM Mode":"Simple dual-port"
+                  , "Pump configuration":"Single-pumped"
+                  , "Additional information":"In each private copy:</br>  Variable 'in' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                  , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Local Memory"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "type":"romsys"
+              , "children":
+              [
+                {
+                  "name":"Bank 0"
+                  , "id":185
+                  , "brief":"Memory Usage:32 RAMs | Bank width:4 bytes | Bank depth:16384 words | Implemented bank size:64 kilobytes = (16384 words) x (4 bytes per word)"
+                  , "details":
+                  [
+                    {
+                      "type":"table"
+                      , "Memory Usage":"32 RAMs"
+                      , "Bank width":"4 bytes"
+                      , "Bank depth":"16384 words"
+                      , "Implemented bank size":"64 kilobytes = (16384 words) x (4 bytes per word)"
+                      , "Number of active ports":"1"
+                      , "Number of read ports":"1"
+                      , "Number of un-used ports":"1"
+                      , "Additional information":"In each private copy:</br>  Variable 'in' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                      , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                    }
+                  ]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                        , "line":32
+                      }
+                    ]
+                  ]
+                  , "type":"bank"
+                  , "children":
+                  [
+                    {
+                      "name":"Replicate 0"
+                      , "id":186
+                      , "padding":"6384"
+                      , "depth":"16384"
+                      , "brief":"Implemented size:64 kilobytes = (16384 words) x (4 bytes per word) | Memory Usage:32 RAMs"
+                      , "details":
+                      [
+                        {
+                          "type":"table"
+                          , "Implemented size":"64 kilobytes = (16384 words) x (4 bytes per word)"
+                          , "Memory Usage":"32 RAMs"
+                          , "Number of physical ports":"2"
+                          , "Number of read ports":"1"
+                          , "Number of un-used ports":"1"
+                          , "Additional information":"In each private copy:</br>  Variable 'in' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                          , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                        }
+                      ]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                            , "line":32
+                          }
+                        ]
+                      ]
+                      , "type":"replicate"
+                      , "children":
+                      [
+                        {
+                          "name":"R"
+                          , "id":187
+                          , "type":"port"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"mean"
+              , "id":188
+              , "brief":"Implemented size:64 kilobytes = (16384 words per bank) x (4 bytes per word) | Memory Usage:32 RAMs | Number of banks:1 | Bank width (word size):4 bytes | Bank depth:16384 words | Number of replicates:1 | Number of private copies:1 | RAM Mode:Simple dual-port | Pump configuration:Single-pumped"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Declared at":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"%L"
+                      , "links":
+                      [
+                        {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"33"
+                        }
+                      ]
+                    }
+                  ]
+                  , "Requested size":"40000 bytes"
+                  , "Implemented size":"64 kilobytes = (16384 words per bank) x (4 bytes per word)"
+                  , "Memory Usage":"32 RAMs"
+                  , "Number of banks":"1"
+                  , "Bank width (word size)":"4 bytes"
+                  , "Bank depth":"16384 words"
+                  , "Number of replicates":"1"
+                  , "Number of private copies":"1"
+                  , "RAM Mode":"Simple dual-port"
+                  , "Pump configuration":"Single-pumped"
+                  , "Additional information":"In each private copy:</br>  Variable 'mean' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                  , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Local Memory"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                    , "line":33
+                  }
+                ]
+              ]
+              , "type":"romsys"
+              , "children":
+              [
+                {
+                  "name":"Bank 0"
+                  , "id":190
+                  , "brief":"Memory Usage:32 RAMs | Bank width:4 bytes | Bank depth:16384 words | Implemented bank size:64 kilobytes = (16384 words) x (4 bytes per word)"
+                  , "details":
+                  [
+                    {
+                      "type":"table"
+                      , "Memory Usage":"32 RAMs"
+                      , "Bank width":"4 bytes"
+                      , "Bank depth":"16384 words"
+                      , "Implemented bank size":"64 kilobytes = (16384 words) x (4 bytes per word)"
+                      , "Number of active ports":"1"
+                      , "Number of read ports":"1"
+                      , "Number of un-used ports":"1"
+                      , "Additional information":"In each private copy:</br>  Variable 'mean' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                      , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                    }
+                  ]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                        , "line":33
+                      }
+                    ]
+                  ]
+                  , "type":"bank"
+                  , "children":
+                  [
+                    {
+                      "name":"Replicate 0"
+                      , "id":191
+                      , "padding":"6384"
+                      , "depth":"16384"
+                      , "brief":"Implemented size:64 kilobytes = (16384 words) x (4 bytes per word) | Memory Usage:32 RAMs"
+                      , "details":
+                      [
+                        {
+                          "type":"table"
+                          , "Implemented size":"64 kilobytes = (16384 words) x (4 bytes per word)"
+                          , "Memory Usage":"32 RAMs"
+                          , "Number of physical ports":"2"
+                          , "Number of read ports":"1"
+                          , "Number of un-used ports":"1"
+                          , "Additional information":"In each private copy:</br>  Variable 'mean' occupies memory words [0-9999] and has 1 array element per memory word.</br>  Memory words [10000-16383] are unused padding."
+                          , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>15</sub></td><td>b<sub>14</sub></td><td>b<sub>13</sub></td><td>b<sub>12</sub></td><td>b<sub>11</sub></td><td>b<sub>10</sub></td><td>b<sub>9</sub></td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                        }
+                      ]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                            , "line":33
+                          }
+                        ]
+                      ]
+                      , "type":"replicate"
+                      , "children":
+                      [
+                        {
+                          "name":"R"
+                          , "id":192
+                          , "type":"port"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"Load"
+          , "id":168
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:data | Start cycle:13 | Latency:1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"data"
+              , "Start cycle":"13"
+              , "Latency":"1"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                      , "line":"46"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                , "line":46
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Load"
+          , "id":169
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:data | Start cycle:221 | Latency:1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"data"
+              , "Start cycle":"221"
+              , "Latency":"1"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                      , "line":"53"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                , "line":53
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Store"
+          , "id":170
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Stores to:data | Start cycle:14 | Latency:1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Stores to":"data"
+              , "Start cycle":"14"
+              , "Latency":"1"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                      , "line":"46"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                , "line":46
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Store"
+          , "id":171
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Stores to:data | Start cycle:222 | Latency:1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Stores to":"data"
+              , "Start cycle":"222"
+              , "Latency":"1"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                      , "line":"58"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                , "line":58
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"SHARE"
+          , "id":175
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Additional Information":"Mutually exclusive accesses, no stalls"
+            }
+          ]
+          , "type":"arb"
+        }
+        , {
+          "name":"SHARE"
+          , "id":177
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Additional Information":"Mutually exclusive accesses, no stalls"
+            }
+          ]
+          , "type":"arb"
+        }
+        , {
+          "name":"Load"
+          , "id":179
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:w | Start cycle:2 | Latency:3"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"w"
+              , "Start cycle":"2"
+              , "Latency":"3"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                      , "line":"45"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                , "line":45
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Load"
+          , "id":184
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:in | Start cycle:2 | Latency:3"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"in"
+              , "Start cycle":"2"
+              , "Latency":"3"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                      , "line":"45"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                , "line":45
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Load"
+          , "id":189
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:mean | Start cycle:6 | Latency:3"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"mean"
+              , "Start cycle":"6"
+              , "Latency":"3"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                      , "line":"52"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":174
+      , "to":175
+    }
+    , {
+      "from":175
+      , "to":168
+    }
+    , {
+      "from":175
+      , "to":169
+    }
+    , {
+      "from":177
+      , "to":176
+    }
+    , {
+      "from":170
+      , "to":177
+    }
+    , {
+      "from":171
+      , "to":177
+    }
+    , {
+      "from":182
+      , "to":179
+    }
+    , {
+      "from":187
+      , "to":184
+    }
+    , {
+      "from":192
+      , "to":189
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+
+
+*******************************************************
+	Starting a new LSQ!!!!
+
+
+
+============================================
+
+The control dependencies before modifications are:  
+ProducerBB: BB7  has the following modified control dependencies:     2,5,6,
+
+ConsumerBB: BB5  has the following modified control dependencies:     2,
+
+
+
+*****************************************
+
+
+	New (Producer,Consumer) pair:
+ProducerBB: BB7  has the following modified control dependencies:     5,6,
+
+ConsumerBB: BB5  has the following modified control dependencies:     Has no modified control dependencies!!
+
+
+*******************************************
+
+Found 1 paths
+Printing path number 0 details
+5 -> 4 -> 3 -> 2 -> 1 -> 
+
+*******************************************
+
+Found 1 paths
+Printing path number 0 details
+7 -> 6 -> 5 -> 4 -> 3 -> 2 -> 1 -> 
+The outcome of negating the product number 0is: 	 not C5 +  not C6 +  & 
+
+
+
+###########################################################
+
+
+
+	Let's check what came out!!
+
+
+Need to insert a MUX with:  a complicated condition!!
+
+	Right before calling applyShannon, the size of f_gen is: 2
+
+	Inside applyShannon
+
+********* Inside get_binary_string_minterms *******************
+	Printing the minterms_only_in_binary with dontcare bits:
+x0
+0x
+
+	Printing the f_supp after converting it to string
+x0 + 0x + 
+
+
+**********************************************
+
+
+Printing the funct_vec of the expression initially
+not C6 &  + not C5 &  + 
+
+
+
+Inside hasMultipleVariables!
+
+The list of var_index of these variables is: 
+5, 
+4, 
+The size of present_variables is: 2
+Leaving hasMultipleVariables!
+
+
+The initial expression has multiple variables! 
+
+The least var index of the initial expression is: 4
+
+Printing the in0 details of the resulting MUX
+1 &  + 
+
+
+Printing the in1 details of the resulting MUX
+not C6 &  + 
+
+
+Check if you need to apply co-factor again on in0
+
+
+Inside hasMultipleVariables!
+
+The list of var_index of these variables is: 
+-1, 
+The size of present_variables is: 0
+Leaving hasMultipleVariables!
+
+Not many variables in in0 to do Shannon's!
+
+Check if you need to apply co-factor again on in1
+
+
+Inside hasMultipleVariables!
+
+The list of var_index of these variables is: 
+5, 
+The size of present_variables is: 1
+Leaving hasMultipleVariables!
+
+Not many variables in in1 to do Shannon's!
+
+F_SUPP is a big condition!!
+
+************ About to print the details of a MUX ***********
+	The MUX has non-MUX inputs!!!
+	The SEL of the MUX is: 5
+
+	The size of in0 of the MUX is: 1 and the expressions are 
+
+1 &  + 
+
+	The size of in1 of the MUX is: 1 and the expressions are 
+
+not C6 &  + 
+
+
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+	Will insert a MUX in BB7 and the consumer Bx is 5
+
+
+
+============================================
+
+The control dependencies before modifications are:  
+ProducerBB: BB5  has the following modified control dependencies:     2,
+
+ConsumerBB: BB7  has the following modified control dependencies:     2,5,6,
+
+
+
+*****************************************
+
+
+	New (Producer,Consumer) pair:
+ProducerBB: BB5  has the following modified control dependencies:     Has no modified control dependencies!!
+
+ConsumerBB: BB7  has the following modified control dependencies:     5,6,
+
+
+*******************************************
+
+Found 1 paths
+Printing path number 0 details
+7 -> 6 -> 5 -> 4 -> 3 -> 2 -> 1 -> 
+
+*******************************************
+
+Found 1 paths
+Printing path number 0 details
+5 -> 4 -> 3 -> 2 -> 1 -> 
+
+
+###########################################################
+
+
+
+	Let's check what came out!!
+
+
+No need to insert a GENERATE!!

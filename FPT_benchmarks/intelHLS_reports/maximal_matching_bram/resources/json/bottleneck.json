@@ -1,0 +1,323 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"vertices"
+      , "id":80
+      , "src":"56"
+      , "dst":"69"
+      , "type":"fMAX/II"
+      , "brief":"Memory dependency"
+      , "loop":"MainKernel.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Variable on critical loop carried feedback path: ":"vertices"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                  , "line":"32"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Memory dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"And(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                  , "line":"52"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                  , "line":"51"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"LD(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                  , "line":"48"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Or(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                  , "line":"52"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"ST(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                  , "line":"52"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"ST(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                  , "line":"53"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                  , "line":"51"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Xor(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                  , "line":"52"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"vertices"
+          , "id":56
+          , "start":"14.00"
+          , "parent":"_ZTS10MainKernel.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                , "line":53
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":57
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                , "line":48
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":60
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                , "line":51
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":62
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                , "line":51
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"And"
+          , "id":64
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Xor"
+          , "id":65
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":66
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"ST"
+          , "id":67
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"ST"
+          , "id":68
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                , "line":53
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":69
+          , "end":"21.00"
+          , "parent":"_ZTS10MainKernel.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                , "line":53
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":56
+          , "to":57
+        }
+        , {
+          "from":57
+          , "to":60
+        }
+        , {
+          "from":60
+          , "to":62
+        }
+        , {
+          "from":62
+          , "to":64
+        }
+        , {
+          "from":64
+          , "to":65
+        }
+        , {
+          "from":65
+          , "to":66
+        }
+        , {
+          "from":66
+          , "to":67
+        }
+        , {
+          "from":66
+          , "to":68
+        }
+        , {
+          "from":67
+          , "to":68
+        }
+        , {
+          "from":68
+          , "to":69
+        }
+        , {
+          "from":56
+          , "to":69
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

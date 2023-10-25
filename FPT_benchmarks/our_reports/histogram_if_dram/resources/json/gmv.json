@@ -1,0 +1,311 @@
+{
+  "nodes":
+  [
+    {
+      "name":"DDR"
+      , "id":701
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Interleaving":"Yes"
+          , "Interleave Size":"1024 bytes"
+          , "Channels":"2 channels"
+          , "Maximum bandwidth the BSP can deliver":"34133.00 MB/s<br><small><i> Note: Realistic maximum bandwidth is about 90% of the above due to loss from interconnect and memory controller.</i></small>"
+          , "Channel DDR Width (bits)":"512, 512"
+        }
+      ]
+      , "type":"memsys"
+      , "children":
+      [
+        {
+          "name":"channel 0"
+          , "id":703
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Data Width":"512"
+              , "Address Width":"32"
+              , "Latency":"500"
+              , "ReadWrite Mode":"Read/Write"
+              , "Maximum Burst":"16"
+              , "Wait Request":"0"
+              , "Start Address":"0x0"
+            }
+          ]
+          , "type":"bb"
+        }
+        , {
+          "name":"channel 1"
+          , "id":704
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Data Width":"512"
+              , "Address Width":"32"
+              , "Latency":"500"
+              , "ReadWrite Mode":"Read/Write"
+              , "Maximum Burst":"16"
+              , "Wait Request":"0"
+              , "Start Address":"0x100000000"
+            }
+          ]
+          , "type":"bb"
+        }
+      ]
+    }
+    , {
+      "name":"Memory Controller"
+      , "id":702
+      , "parent":"701"
+      , "bw":"34133.00"
+      , "num_channels":"2"
+      , "interleave":"1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Maximum bandwidth the BSP can deliver":"34133.00 MB/s<br><small><i> Note: Realistic maximum bandwidth is about 90% of the above due to loss from interconnect and memory controller.</i></small>"
+        }
+      ]
+      , "type":"bb"
+    }
+    , {
+      "name":"Global Memory Interconnect"
+      , "id":705
+      , "parent":"701"
+      , "type":"bb"
+      , "children":
+      [
+        {
+          "name":"SHARE"
+          , "id":706
+          , "type":"arb"
+        }
+        , {
+          "name":"Write Interconnect"
+          , "id":709
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Name":"DDR"
+              , "Interconnect Style":"tree"
+              , "Writes":"1"
+              , "User specified force-single-store-ring flag":"False"
+              , "Store Rings":"2"
+            }
+          ]
+          , "type":"bb"
+        }
+        , {
+          "name":"Read Interconnect"
+          , "id":707
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Name":"DDR"
+              , "Interconnect Style":"tree"
+              , "Reads":"2"
+            }
+          ]
+          , "type":"bb"
+        }
+        , {
+          "name":"Read Interconnect Router"
+          , "id":708
+          , "details":
+          [
+            {
+              "type":"table"
+              , "User specified num-reorder flag":"Unset"
+            }
+          ]
+          , "type":"memsys"
+          , "children":
+          [
+            {
+              "name":"Bus 0"
+              , "id":715
+              , "type":"memsys"
+            }
+            , {
+              "name":"Bus 1"
+              , "id":716
+              , "type":"memsys"
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"Global Memory Loads"
+      , "id":710
+      , "parent":"701"
+      , "type":"bb"
+      , "children":
+      [
+        {
+          "name":"LD"
+          , "id":711
+          , "kwidth":"32"
+          , "mwidth":"512"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Start Cycle":"5"
+              , "Latency":"2 cycles"
+              , "Width":"32 bits"
+              , "DDR Width":"512 bits"
+              , "Uses Caching":"No"
+              , "LSU Style":"PREFETCHING"
+              , "Kernel":"MainKernel_AGU_0"
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_if_dram_elastic_pass_workdir/histogram_if_dram.ast.cpp"
+                , "line":722
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":714
+          , "kwidth":"32"
+          , "mwidth":"512"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Start Cycle":"1"
+              , "Latency":"7 cycles"
+              , "Width":"32 bits"
+              , "DDR Width":"512 bits"
+              , "Uses Caching":"No"
+              , "LSU Style":"PIPELINED"
+              , "Kernel":"0>"
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/fpga_lsu.hpp"
+                , "line":56
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+    }
+    , {
+      "name":"Global Memory Stores"
+      , "id":712
+      , "parent":"701"
+      , "type":"bb"
+      , "children":
+      [
+        {
+          "name":"ST"
+          , "id":713
+          , "kwidth":"32"
+          , "mwidth":"512"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Start Cycle":"1"
+              , "Latency":"7 cycles"
+              , "Width":"32 bits"
+              , "DDR Width":"512 bits"
+              , "Uses Write Ack":"No"
+              , "LSU Style":"PIPELINED"
+              , "Kernel":">"
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/fpga_lsu.hpp"
+                , "line":74
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":703
+      , "to":702
+    }
+    , {
+      "from":702
+      , "to":703
+    }
+    , {
+      "from":704
+      , "to":702
+    }
+    , {
+      "from":702
+      , "to":704
+    }
+    , {
+      "from":707
+      , "to":706
+    }
+    , {
+      "from":709
+      , "to":706
+    }
+    , {
+      "from":706
+      , "to":702
+    }
+    , {
+      "from":711
+      , "to":707
+    }
+    , {
+      "from":713
+      , "to":709
+    }
+    , {
+      "from":714
+      , "to":707
+    }
+    , {
+      "from":702
+      , "to":715
+    }
+    , {
+      "from":702
+      , "to":716
+    }
+    , {
+      "from":715
+      , "to":711
+      , "reverse":1
+    }
+    , {
+      "from":716
+      , "to":714
+      , "reverse":1
+    }
+  ]
+}

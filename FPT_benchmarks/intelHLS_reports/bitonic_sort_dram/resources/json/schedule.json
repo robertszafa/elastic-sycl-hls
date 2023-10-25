@@ -1,0 +1,2623 @@
+{
+  "1":
+  {
+    "nodes":
+    [
+      {
+        "name":"MainKernel.B0"
+        , "id":2
+        , "start":"0"
+        , "end":"2"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"arg_kN"
+            , "id":15
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_kN'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_kN"
+            , "id":13
+            , "start":"1"
+            , "end":"1"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_kN'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":14
+            , "start":"1"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":16
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Select"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":17
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"-1 (0xFFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":18
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Integer Add"
+                , "Constant Operand":"-1 (0x1FFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":21
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dest In":"MainKernel.B5"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "56"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_kN"
+            , "id":10
+            , "start":"1"
+            , "end":"1"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_kN'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":11
+            , "start":"1"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"2"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":12
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Xor"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":20
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dest In":"MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "24"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":19
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dest In":"MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "32"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Feedback"
+            , "id":9
+            , "start":"1"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Unknown variable"
+                , "Max Fanout":"4"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B1"
+        , "id":3
+        , "start":"2"
+        , "end":"4"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"FFwd Dest"
+            , "id":32
+            , "start":"3"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "19"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_kN"
+            , "id":30
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_kN'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_kN"
+            , "id":26
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_kN'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":27
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":24
+            , "start":"3"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "20"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":23
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"And"
+            , "id":25
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit And"
+                , "Max Fanout":"2"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"And"
+            , "id":28
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit And"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":36
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dests In":"MainKernel.B5, MainKernel.B5, MainKernel.B5"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "89"
+              , "65"
+              , "98"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":35
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dest In":"MainKernel.B3"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "112"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"<<"
+            , "id":29
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Left Shift"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"2"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":31
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":33
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":37
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dest In":"MainKernel.B4"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "48"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":34
+            , "start":"4"
+            , "end":"4"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dests In":"MainKernel.B5, MainKernel.B3"
+                , "Max Fanout":"5"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "76"
+              , "107"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B3"
+        , "id":5
+        , "start":"4"
+        , "end":"10"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"Cluster 0"
+            , "id":45
+            , "start":"5"
+            , "end":"9"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Name":"i_sfc_s_c0_in_for_cond6_i_preheader_zts10mainkernels_c0_enter6_zts10mainkernel_279_1gr"
+                , "Cluster Type":"Stall-Free"
+                , "Cluster Start Cycle":"1"
+                , "Cluster Latency":"4"
+              }
+            ]
+            , "type":"cluster"
+            , "children":
+            [
+              {
+                "name":"Global variable"
+                , "id":116
+                , "start":"6"
+                , "end":"6"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"Feedback Read"
+                    , "Variable":"Global variable"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"2"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                      , "line":27
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Global variable"
+                , "id":108
+                , "start":"5"
+                , "end":"5"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"Feedback Read"
+                    , "Variable":"Global variable"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"1"
+                    , "Latency":"0"
+                  }
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"FFwd Dest"
+                , "id":107
+                , "start":"5"
+                , "end":"5"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"FFwd Destination"
+                    , "FFwd Src In":"MainKernel.B1"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"1"
+                    , "Latency":"0"
+                  }
+                ]
+                , "ffwdLinkID":
+                [
+                  "34"
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                      , "line":27
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":109
+                , "start":"5"
+                , "end":"5"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"1"
+                    , "Latency":"0"
+                  }
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":110
+                , "start":"5"
+                , "end":"5"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"1 (0x1)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"1"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                      , "line":28
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":111
+                , "start":"5"
+                , "end":"5"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"1"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                      , "line":28
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"FFwd Dest"
+                , "id":112
+                , "start":"5"
+                , "end":"5"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"FFwd Destination"
+                    , "FFwd Src In":"MainKernel.B1"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"1"
+                    , "Latency":"0"
+                  }
+                ]
+                , "ffwdLinkID":
+                [
+                  "35"
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                      , "line":27
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"And"
+                , "id":113
+                , "start":"5"
+                , "end":"5"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"1-bit And"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"1"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                      , "line":27
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Exit"
+                , "id":105
+                , "start":"6"
+                , "end":"9"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"2"
+                    , "Latency":"3"
+                    , "Exit FIFO Depth":"32"
+                    , "Exit FIFO Width":"128"
+                    , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+                  }
+                ]
+                , "type":"inst"
+              }
+            ]
+          }
+          , {
+            "name":"Global variable"
+            , "id":46
+            , "start":"9"
+            , "end":"10"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"5"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":40
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B5"
+        , "id":7
+        , "start":"10"
+        , "end":"402"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"FFwd Dest"
+            , "id":98
+            , "start":"399"
+            , "end":"400"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"389"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "36"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":89
+            , "start":"252"
+            , "end":"253"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"242"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "36"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":76
+            , "start":"251"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"241"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "34"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_A"
+            , "id":73
+            , "start":"13"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_A'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":65
+            , "start":"12"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "36"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_A"
+            , "id":63
+            , "start":"13"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_A'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":56
+            , "start":"399"
+            , "end":"400"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"389"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "21"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":57
+            , "start":"400"
+            , "end":"400"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Select"
+                , "Max Fanout":"2"
+                , "Start Cycle":"390"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"And"
+            , "id":99
+            , "start":"400"
+            , "end":"400"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit And"
+                , "Max Fanout":"2"
+                , "Start Cycle":"390"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":58
+            , "start":"12"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"4"
+                , "Start Cycle":"2"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":64
+            , "start":"13"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"4"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"And"
+            , "id":77
+            , "start":"252"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit And"
+                , "Max Fanout":"2"
+                , "Start Cycle":"242"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":36
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":78
+            , "start":"252"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"242"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":36
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":81
+            , "start":"252"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"242"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":36
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":84
+            , "start":"252"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Xor"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"242"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":36
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":96
+            , "start":"400"
+            , "end":"400"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"390"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":68
+            , "start":"12"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"2"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":40
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":100
+            , "start":"399"
+            , "end":"400"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"1"
+                , "Start Cycle":"389"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":59
+            , "start":"11"
+            , "end":"12"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":61
+            , "start":"13"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Xor"
+                , "Max Fanout":"2"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":30
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":74
+            , "start":"13"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"4"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":62
+            , "start":"13"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"2"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":32
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"And"
+            , "id":66
+            , "start":"13"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit And"
+                , "Max Fanout":"1"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":67
+            , "start":"13"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Xor"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":71
+            , "start":"13"
+            , "end":"13"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"2"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":75
+            , "start":"13"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"3"
+                , "Start Cycle":"3"
+                , "Latency":"239"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":34
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":85
+            , "start":"252"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Xor"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"242"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":32
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":86
+            , "start":"252"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"1"
+                , "Start Cycle":"242"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":32
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":102
+            , "start":"400"
+            , "end":"401"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"390"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":69
+            , "start":"11"
+            , "end":"12"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":39
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":72
+            , "start":"13"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"3"
+                , "Start Cycle":"3"
+                , "Latency":"239"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":79
+            , "start":"252"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"242"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":80
+            , "start":"252"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Select"
+                , "Max Fanout":"2"
+                , "Start Cycle":"242"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":36
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"And"
+            , "id":83
+            , "start":"252"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit And"
+                , "Max Fanout":"1"
+                , "Start Cycle":"242"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":32
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":87
+            , "start":"252"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"1"
+                , "Start Cycle":"242"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":32
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":82
+            , "start":"252"
+            , "end":"252"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"242"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":36
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":88
+            , "start":"252"
+            , "end":"253"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Select"
+                , "Max Fanout":"1"
+                , "Start Cycle":"242"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":36
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"And"
+            , "id":90
+            , "start":"253"
+            , "end":"253"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit And"
+                , "Max Fanout":"1"
+                , "Start Cycle":"243"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":39
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":91
+            , "start":"253"
+            , "end":"253"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Xor"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"243"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":39
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":92
+            , "start":"253"
+            , "end":"253"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"2"
+                , "Start Cycle":"243"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":39
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"ST"
+            , "id":93
+            , "start":"253"
+            , "end":"327"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Store"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"243"
+                , "Latency":"74"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":39
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"ST"
+            , "id":94
+            , "start":"327"
+            , "end":"401"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Store"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"2"
+                , "Start Cycle":"317"
+                , "Latency":"74"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":40
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B2"
+        , "id":4
+        , "start":"402"
+        , "end":"403"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+      }
+      , {
+        "name":"MainKernel.B4"
+        , "id":6
+        , "start":"403"
+        , "end":"404"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"FFwd Dest"
+            , "id":48
+            , "start":"403"
+            , "end":"404"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B1"
+                , "Max Fanout":"2"
+                , "Start Cycle":"0"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "37"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_dram.cpp"
+                  , "line":27
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B6"
+        , "id":8
+        , "start":"404"
+        , "end":"405"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":2
+        , "to":3
+      }
+      , {
+        "from":15
+        , "to":16
+      }
+      , {
+        "from":13
+        , "to":14
+      }
+      , {
+        "from":14
+        , "to":16
+      }
+      , {
+        "from":16
+        , "to":17
+      }
+      , {
+        "from":17
+        , "to":18
+      }
+      , {
+        "from":18
+        , "to":21
+      }
+      , {
+        "from":10
+        , "to":11
+      }
+      , {
+        "from":11
+        , "to":19
+      }
+      , {
+        "from":11
+        , "to":12
+      }
+      , {
+        "from":12
+        , "to":20
+      }
+      , {
+        "from":3
+        , "to":5
+      }
+      , {
+        "from":32
+        , "to":33
+      }
+      , {
+        "from":30
+        , "to":31
+      }
+      , {
+        "from":26
+        , "to":27
+      }
+      , {
+        "from":27
+        , "to":28
+      }
+      , {
+        "from":24
+        , "to":25
+      }
+      , {
+        "from":23
+        , "to":25
+      }
+      , {
+        "from":25
+        , "to":35
+      }
+      , {
+        "from":25
+        , "to":28
+      }
+      , {
+        "from":28
+        , "to":36
+      }
+      , {
+        "from":29
+        , "to":31
+      }
+      , {
+        "from":31
+        , "to":33
+      }
+      , {
+        "from":33
+        , "to":37
+      }
+      , {
+        "from":5
+        , "to":7
+      }
+      , {
+        "from":45
+        , "to":46
+      }
+      , {
+        "from":116
+        , "to":105
+      }
+      , {
+        "from":108
+        , "to":109
+      }
+      , {
+        "from":107
+        , "to":109
+      }
+      , {
+        "from":109
+        , "to":111
+      }
+      , {
+        "from":109
+        , "to":110
+      }
+      , {
+        "from":110
+        , "to":105
+      }
+      , {
+        "from":111
+        , "to":113
+      }
+      , {
+        "from":112
+        , "to":113
+      }
+      , {
+        "from":113
+        , "to":105
+      }
+      , {
+        "from":7
+        , "to":4
+      }
+      , {
+        "from":98
+        , "to":99
+      }
+      , {
+        "from":89
+        , "to":90
+      }
+      , {
+        "from":76
+        , "to":77
+      }
+      , {
+        "from":73
+        , "to":74
+      }
+      , {
+        "from":65
+        , "to":66
+      }
+      , {
+        "from":63
+        , "to":64
+      }
+      , {
+        "from":56
+        , "to":57
+      }
+      , {
+        "from":57
+        , "to":99
+      }
+      , {
+        "from":58
+        , "to":96
+      }
+      , {
+        "from":58
+        , "to":62
+      }
+      , {
+        "from":58
+        , "to":61
+      }
+      , {
+        "from":58
+        , "to":77
+      }
+      , {
+        "from":58
+        , "to":64
+      }
+      , {
+        "from":64
+        , "to":93
+      }
+      , {
+        "from":64
+        , "to":72
+      }
+      , {
+        "from":77
+        , "to":81
+      }
+      , {
+        "from":77
+        , "to":78
+      }
+      , {
+        "from":78
+        , "to":80
+      }
+      , {
+        "from":81
+        , "to":84
+      }
+      , {
+        "from":84
+        , "to":86
+      }
+      , {
+        "from":68
+        , "to":75
+      }
+      , {
+        "from":68
+        , "to":72
+      }
+      , {
+        "from":59
+        , "to":61
+      }
+      , {
+        "from":61
+        , "to":62
+      }
+      , {
+        "from":61
+        , "to":74
+      }
+      , {
+        "from":74
+        , "to":94
+      }
+      , {
+        "from":74
+        , "to":75
+      }
+      , {
+        "from":62
+        , "to":85
+      }
+      , {
+        "from":62
+        , "to":83
+      }
+      , {
+        "from":62
+        , "to":66
+      }
+      , {
+        "from":66
+        , "to":67
+      }
+      , {
+        "from":67
+        , "to":71
+      }
+      , {
+        "from":71
+        , "to":75
+      }
+      , {
+        "from":71
+        , "to":72
+      }
+      , {
+        "from":75
+        , "to":93
+      }
+      , {
+        "from":75
+        , "to":82
+      }
+      , {
+        "from":75
+        , "to":79
+      }
+      , {
+        "from":85
+        , "to":86
+      }
+      , {
+        "from":86
+        , "to":87
+      }
+      , {
+        "from":69
+        , "to":72
+      }
+      , {
+        "from":72
+        , "to":94
+      }
+      , {
+        "from":72
+        , "to":82
+      }
+      , {
+        "from":72
+        , "to":79
+      }
+      , {
+        "from":79
+        , "to":80
+      }
+      , {
+        "from":80
+        , "to":87
+      }
+      , {
+        "from":80
+        , "to":83
+      }
+      , {
+        "from":83
+        , "to":88
+      }
+      , {
+        "from":87
+        , "to":88
+      }
+      , {
+        "from":82
+        , "to":88
+      }
+      , {
+        "from":88
+        , "to":90
+      }
+      , {
+        "from":90
+        , "to":91
+      }
+      , {
+        "from":91
+        , "to":92
+      }
+      , {
+        "from":92
+        , "to":94
+      }
+      , {
+        "from":92
+        , "to":93
+      }
+      , {
+        "from":93
+        , "to":94
+      }
+      , {
+        "from":4
+        , "to":5
+      }
+      , {
+        "from":4
+        , "to":6
+      }
+      , {
+        "from":6
+        , "to":3
+      }
+      , {
+        "from":6
+        , "to":8
+      }
+    ]
+  }
+}

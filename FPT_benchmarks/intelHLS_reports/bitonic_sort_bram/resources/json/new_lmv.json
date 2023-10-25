@@ -1,0 +1,609 @@
+{
+  "nodes":
+  [
+    {
+      "name":"MainKernel"
+      , "id":206
+      , "type":"kernel"
+      , "children":
+      [
+        {
+          "name":"On-chip Memory"
+          , "id":207
+          , "type":"memtype"
+          , "children":
+          [
+            {
+              "name":"A"
+              , "id":208
+              , "brief":"Implemented size:256 bytes = (64 words per bank) x (4 bytes per word) | Memory Usage:1 RAM | Number of banks:1 | Bank width (word size):4 bytes | Bank depth:64 words | Number of replicates:1 | Number of private copies:1 | RAM Mode:Simple dual-port | Pump configuration:Double-pumped"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Declared at":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"%L"
+                      , "links":
+                      [
+                        {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                          , "line":"29"
+                        }
+                      ]
+                    }
+                  ]
+                  , "Requested size":"256 bytes"
+                  , "Implemented size":"256 bytes = (64 words per bank) x (4 bytes per word)"
+                  , "Memory Usage":"1 RAM"
+                  , "Number of banks":"1"
+                  , "Bank width (word size)":"4 bytes"
+                  , "Bank depth":"64 words"
+                  , "Number of replicates":"1"
+                  , "Number of private copies":"1"
+                  , "RAM Mode":"Simple dual-port"
+                  , "Pump configuration":"Double-pumped"
+                  , "Additional information":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"In each private copy:</br>  Variable 'A' occupies memory words [0-63] and has 1 array element per memory word."
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Running memory at 2x clock to support more concurrent ports"
+                    }
+                  ]
+                  , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Local Memory"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                    , "line":29
+                  }
+                ]
+              ]
+              , "type":"memsys"
+              , "children":
+              [
+                {
+                  "name":"Bank 0"
+                  , "id":215
+                  , "brief":"Memory Usage:1 RAM | Bank width:4 bytes | Bank depth:64 words | Implemented bank size:256 bytes = (64 words) x (4 bytes per word)"
+                  , "details":
+                  [
+                    {
+                      "type":"table"
+                      , "Memory Usage":"1 RAM"
+                      , "Bank width":"4 bytes"
+                      , "Bank depth":"64 words"
+                      , "Implemented bank size":"256 bytes = (64 words) x (4 bytes per word)"
+                      , "Number of active ports":"4"
+                      , "Number of read ports":"2"
+                      , "Number of write ports":"2"
+                      , "Additional information":"In each private copy:</br>  Variable 'A' occupies memory words [0-63] and has 1 array element per memory word."
+                      , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                    }
+                  ]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                        , "line":29
+                      }
+                    ]
+                  ]
+                  , "type":"bank"
+                  , "children":
+                  [
+                    {
+                      "name":"Replicate 0"
+                      , "id":216
+                      , "padding":"0"
+                      , "depth":"64"
+                      , "brief":"Implemented size:256 bytes = (64 words) x (4 bytes per word) | Memory Usage:1 RAM"
+                      , "details":
+                      [
+                        {
+                          "type":"table"
+                          , "Implemented size":"256 bytes = (64 words) x (4 bytes per word)"
+                          , "Memory Usage":"1 RAM"
+                          , "Number of physical ports":"4"
+                          , "Number of read ports":"2"
+                          , "Number of write ports":"2"
+                          , "Additional information":"In each private copy:</br>  Variable 'A' occupies memory words [0-63] and has 1 array element per memory word."
+                          , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                        }
+                      ]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                            , "line":29
+                          }
+                        ]
+                      ]
+                      , "type":"replicate"
+                      , "children":
+                      [
+                        {
+                          "name":"R"
+                          , "id":217
+                          , "type":"port"
+                        }
+                        , {
+                          "name":"R"
+                          , "id":219
+                          , "type":"port"
+                        }
+                        , {
+                          "name":"W"
+                          , "id":220
+                          , "type":"port"
+                        }
+                        , {
+                          "name":"W"
+                          , "id":222
+                          , "type":"port"
+                        }
+                      ]
+                      , "copies":
+                      {
+                        "num":1
+                        , "details":
+                        [
+                          {
+                            "type":"table"
+                            , "Width":"4 bytes"
+                            , "Depth per copy (including padding)":"64 words"
+                            , "Number of private copies":"1"
+                            , "Additional information":"In each private copy:</br>  Variable 'A' occupies memory words [0-63] and has 1 array element per memory word."
+                            , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"Load"
+          , "id":209
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:A | Start cycle:2 | Latency:4"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"A"
+              , "Start cycle":"2"
+              , "Latency":"4"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                      , "line":"45"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":45
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Load"
+          , "id":210
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:A | Start cycle:2 | Latency:4"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"A"
+              , "Start cycle":"2"
+              , "Latency":"4"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                      , "line":"46"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":46
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Load"
+          , "id":211
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:A | Start cycle:2 | Latency:4"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"A"
+              , "Start cycle":"2"
+              , "Latency":"4"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                      , "line":"62"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":62
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Store"
+          , "id":212
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Stores to:A | Start cycle:8 | Latency:1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Stores to":"A"
+              , "Start cycle":"8"
+              , "Latency":"1"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                      , "line":"33"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":33
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Store"
+          , "id":213
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Stores to:A | Start cycle:7 | Latency:1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Stores to":"A"
+              , "Start cycle":"7"
+              , "Latency":"1"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                      , "line":"51"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":51
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Store"
+          , "id":214
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Stores to:A | Start cycle:8 | Latency:1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Stores to":"A"
+              , "Start cycle":"8"
+              , "Latency":"1"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                      , "line":"52"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"SHARE"
+          , "id":218
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Additional Information":"Mutually exclusive accesses, no stalls"
+            }
+          ]
+          , "type":"arb"
+        }
+        , {
+          "name":"SHARE"
+          , "id":221
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Additional Information":"Mutually exclusive accesses, no stalls"
+            }
+          ]
+          , "type":"arb"
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":217
+      , "to":218
+    }
+    , {
+      "from":218
+      , "to":209
+    }
+    , {
+      "from":218
+      , "to":211
+    }
+    , {
+      "from":219
+      , "to":210
+    }
+    , {
+      "from":221
+      , "to":220
+    }
+    , {
+      "from":212
+      , "to":221
+    }
+    , {
+      "from":213
+      , "to":221
+    }
+    , {
+      "from":214
+      , "to":222
+    }
+  ]
+}

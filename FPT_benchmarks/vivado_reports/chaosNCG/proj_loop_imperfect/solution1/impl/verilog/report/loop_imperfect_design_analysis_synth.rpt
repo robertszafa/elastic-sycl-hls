@@ -1,0 +1,85 @@
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Fri Jun 23 13:49:24 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_design_analysis -file ./report/loop_imperfect_design_analysis_synth.rpt
+| Design       : bd_0_wrapper
+| Device       : xc7k160t
+| Design State : Synthesized
+------------------------------------------------------------------------------------------------
+
+Report Design Analysis
+
+Table of Contents
+-----------------
+1. Setup Path Characteristics 1-1
+2. Logic Level Distribution
+3. Placer Final Level Congestion Reporting
+4. SLR Net Crossing Reporting
+
+1. Setup Path Characteristics 1-1
+---------------------------------
+
++---------------------------+------------------------------+
+|      Characteristics      |            Path #1           |
++---------------------------+------------------------------+
+| Requirement               |                        4.000 |
+| Path Delay                |                        2.618 |
+| Logic Delay               | 0.552(22%)                   |
+| Net Delay                 | 2.066(78%)                   |
+| Clock Skew                |                       -0.034 |
+| Slack                     |                        0.947 |
+| Clock Relationship        | Safely Timed                 |
+| Logic Levels              |                            3 |
+| Routes                    |                            0 |
+| Logical Path              | FDRE LUT3 LUT6 LUT5 FDRE     |
+| Start Point Clock         | ap_clk                       |
+| End Point Clock           | ap_clk                       |
+| DSP Block                 | None                         |
+| BRAM                      | None                         |
+| IO Crossings              |                            0 |
+| Config Crossings          |                            0 |
+| SLR Crossings             |                            0 |
+| PBlocks                   |                            0 |
+| High Fanout               |                            9 |
+| Dont Touch                |                            0 |
+| Mark Debug                |                            0 |
+| Start Point Pin Primitive | FDRE/C                       |
+| End Point Pin Primitive   | FDRE/R                       |
+| Start Point Pin           | srem_ln108_reg_383_reg[19]/C |
+| End Point Pin             | shl_ln108_reg_393_reg[11]/R  |
++---------------------------+------------------------------+
+* Bounding box calculated as % of dimensions for the target device (308, 500)
+
+
+2. Logic Level Distribution
+---------------------------
+
++-----------------+-------------+-----+-----+----+----+----+----+----+----+----+----+----+----+
+| End Point Clock | Requirement |  0  |  1  |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 |
++-----------------+-------------+-----+-----+----+----+----+----+----+----+----+----+----+----+
+| ap_clk          | 4.000ns     | 493 | 196 | 31 | 84 | 20 | 20 | 20 | 20 | 22 | 24 | 12 | 58 |
++-----------------+-------------+-----+-----+----+----+----+----+----+----+----+----+----+----+
+* Columns represent the logic levels per end point clock
+** Distribution is for top worst 1000 paths
+
+
+3. Placer Final Level Congestion Reporting
+------------------------------------------
+
++-----------+-------+------------+--------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+------------+
+| Direction | Level | Congestion | Window | Combined LUTs | Avg LUT Input | LUT | LUTRAM | Flop | MUXF | RAMB | DSP | CARRY | SRL | Cell Names |
++-----------+-------+------------+--------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+------------+
+* The design has not been placed, hence congestion data is not available. The command report_design_analysis -congestion should be run only after place_design has completed.
+
+
+4. SLR Net Crossing Reporting
+-----------------------------
+
++------------+-----------------------------+
+| Cell Names | Number of Nets crossing SLR |
++------------+-----------------------------+
+* The current part is not an SSI device
+
+

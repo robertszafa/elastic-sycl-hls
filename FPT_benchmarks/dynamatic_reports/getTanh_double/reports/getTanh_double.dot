@@ -1,0 +1,120 @@
+Digraph G {
+	splines=spline;
+//DHLS version: 0.1.1" [shape = "none" pos = "20,20!"]
+
+	subgraph cluster_0 {
+	color = "darkgreen";
+		label = "block1";
+		"cst_0" [type = "Constant", bbID= 1, in = "in1:32", out = "out1:32", value = "0x00000000"];
+		"start_0" [type = "Entry", control= "true", bbID= 1, in = "in1:0", out = "out1:0"];
+		"cst_5" [type = "Constant", bbID= 1, in = "in1:32", out = "out1:32", value = "0x00000001"];
+		"forkC_3" [type = "Fork", bbID= 1, in = "in1:0", out = "out1:0 out2:0 out3:0 "];
+
+	}
+
+	subgraph cluster_1 {
+	color = "darkgreen";
+		label = "block2";
+		"phi_1" [type = "Mux", bbID= 2, in = "in1?:1 in2:32 in3:32 ", out = "out1:32", delay=0.366];
+		"load_4" [type = "Operator", bbID= 2, op = "mc_load_op",bbID= 2, portId= 0, offset= 0, in = "in1:32 in2:32", out = "out1:32 out2:32 ", delay=0.000, latency=2, II=1];
+		"load_7" [type = "Operator", bbID= 2, op = "lsq_load_op",bbID= 2, portId= 0, offset= 0, in = "in1:32 in2:32", out = "out1:32 out2:32 ", delay=0.000, latency=5, II=1];
+		"mul_8" [type = "Operator", bbID= 2, op = "mul_op", in = "in1:32 in2:32 ", out = "out1:32 ", delay=0.000, latency=4, II=1];
+		"cst_1" [type = "Constant", bbID= 2, in = "in1:32", out = "out1:32", value = "0x00000013"];
+		"add_9" [type = "Operator", bbID= 2, op = "add_op", in = "in1:32 in2:32 ", out = "out1:32 ", delay=1.693, latency=0, II=1];
+		"mul_10" [type = "Operator", bbID= 2, op = "mul_op", in = "in1:32 in2:32 ", out = "out1:32 ", delay=0.000, latency=4, II=1];
+		"mul_11" [type = "Operator", bbID= 2, op = "mul_op", in = "in1:32 in2:32 ", out = "out1:32 ", delay=0.000, latency=4, II=1];
+		"cst_2" [type = "Constant", bbID= 2, in = "in1:32", out = "out1:32", value = "0x00000003"];
+		"add_12" [type = "Operator", bbID= 2, op = "add_op", in = "in1:32 in2:32 ", out = "out1:32 ", delay=1.693, latency=0, II=1];
+		"mul_13" [type = "Operator", bbID= 2, op = "mul_op", in = "in1:32 in2:32 ", out = "out1:32 ", delay=0.000, latency=4, II=1];
+		"store_0" [type = "Operator", bbID= 2, op = "lsq_store_op",bbID= 2, portId= 0, offset= 1, in = "in1:32 in2:32 ", out = "out1:32 out2:32", delay=0.000, latency=0, II=1];
+		"cst_3" [type = "Constant", bbID= 2, in = "in1:32", out = "out1:32", value = "0x00000001"];
+		"add_16" [type = "Operator", bbID= 2, op = "add_op", in = "in1:32 in2:32 ", out = "out1:32 ", delay=1.693, latency=0, II=1];
+		"cst_4" [type = "Constant", bbID= 2, in = "in1:32", out = "out1:32", value = "0x000003E8"];
+		"icmp_17" [type = "Operator", bbID= 2, op = "icmp_ult_op", in = "in1:32 in2:32 ", out = "out1:1 ", delay=1.530, latency=0, II=1];
+		"forkC_0" [type = "Fork", bbID= 2, in = "in1:0", out = "out1:0 "];
+		"phiC_0" [type = "Mux", bbID= 2, in = "in1?:1 in2:0 in3:0 ", out = "out1:0", delay=0.166];
+		"branch_0" [type = "Branch", bbID= 2,  in = "in1:32 in2?:1*i", out = "out1+:32 out2-:32"];
+		"phi_n5" [type = "Merge", bbID= 2, in = "in1:32 in2:32*i ", out = "out1:32", delay=0.366];
+		"branchC_2" [type = "Branch", bbID= 2,  in = "in1:0 in2?:1*i", out = "out1+:0 out2-:0"];
+		"fork_0" [type = "Fork", bbID= 2, in = "in1:32", out = "out1:32 out2:32 "];
+		"fork_1" [type = "Fork", bbID= 2, in = "in1:32", out = "out1:32 out2:32 "];
+		"fork_2" [type = "Fork", bbID= 2, in = "in1:32", out = "out1:32 out2:32 out3:32 "];
+		"forkC_4" [type = "Fork", bbID= 2, in = "in1:0", out = "out1:0 out2:0 out3:0 out4:0 out5:0 out6:0 "];
+		"fork_5" [type = "Fork", bbID= 2, in = "in1:32", out = "out1:32 out2:32 "];
+		"fork_6" [type = "Fork", bbID= 2, in = "in1:32", out = "out1:32 out2:32 "];
+		"fork_7" [type = "Fork", bbID= 2, in = "in1:32", out = "out1:32 out2:32 out3:32 out4:32 out5:32 "];
+
+	}
+
+	subgraph cluster_2 {
+	color = "darkgreen";
+		label = "block3";
+		"ret_0" [type = "Operator", bbID= 3, op = "ret_op", in = "in1:32 ", out = "out1:32 ", delay=0.000, latency=0, II=1];
+
+	}
+	"LSQ_A" [type = "LSQ", bbID= 0, in = "in1:0*c0 in2:32*l0a in3:32*s0a in4:32*s0d ", out = "out1:32*l0d out2:0*e ", memory = "A", bbcount = 1, ldcount = 1, stcount = 1, fifoDepth = 32, numLoads = "{1}", numStores = "{1}", loadOffsets = "{{0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0}}", storeOffsets = "{{1;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0}}", loadPorts = "{{0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0}}", storePorts = "{{0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0}}"];
+	"MC_addr" [type = "MC", bbID= 0, in = "in1:32*l0a ", out = "out1:32*l0d out2:0*e ", memory = "addr", bbcount = 0, ldcount = 1, stcount = 0];
+	"sink_1" [type = "Sink", bbID= 0, in = "in1:0"];
+	"end_0" [type = "Exit", bbID= 0, in = "in1:0*e in2:0*e in3:32 ", out = "out1:32"];
+
+	"load_4" -> "MC_addr" [color = "darkgreen", mem_address = "true", from = "out2", to = "in1"];
+	"MC_addr" -> "load_4" [color = "darkgreen", mem_address = "false", from = "out1", to = "in1"];
+	"load_7" -> "LSQ_A" [color = "darkgreen", mem_address = "true", from = "out2", to = "in2"];
+	"LSQ_A" -> "load_7" [color = "darkgreen", mem_address = "false", from = "out1", to = "in1"];
+	"store_0" -> "LSQ_A" [color = "darkgreen", mem_address = "true", from = "out2", to = "in3"];
+	"store_0" -> "LSQ_A" [color = "darkgreen", mem_address = "false", from = "out1", to = "in4"];
+	"LSQ_A" -> "end_0" [color = "gold3", from = "out2", to = "in1"];
+	"MC_addr" -> "end_0" [color = "gold3", from = "out2", to = "in2"];
+	"cst_0" -> "phi_1" [color = "red", from = "out1", to = "in3"];
+	"phi_1" -> "fork_0" [color = "red", from = "out1", to = "in1"];
+	"load_4" -> "fork_6" [color = "red", from = "out1", to = "in1"];
+	"load_7" -> "fork_7" [color = "red", from = "out1", to = "in1"];
+	"mul_8" -> "add_9" [color = "red", from = "out1", to = "in1"];
+	"cst_1" -> "add_9" [color = "red", from = "out1", to = "in2"];
+	"add_9" -> "mul_10" [color = "red", from = "out1", to = "in1"];
+	"mul_10" -> "mul_11" [color = "red", from = "out1", to = "in1"];
+	"mul_11" -> "add_12" [color = "red", from = "out1", to = "in1"];
+	"cst_2" -> "add_12" [color = "red", from = "out1", to = "in2"];
+	"add_12" -> "mul_13" [color = "red", from = "out1", to = "in1"];
+	"mul_13" -> "store_0" [color = "red", from = "out1", to = "in1"];
+	"cst_3" -> "add_16" [color = "red", from = "out1", to = "in2"];
+	"add_16" -> "fork_1" [color = "red", from = "out1", to = "in1"];
+	"cst_4" -> "icmp_17" [color = "red", from = "out1", to = "in2"];
+	"icmp_17" -> "fork_2" [color = "red", from = "out1", to = "in1"];
+	"ret_0" -> "end_0" [color = "red", from = "out1", to = "in3"];
+	"start_0" -> "forkC_3" [color = "gold3", from = "out1", to = "in1"];
+	"forkC_0" -> "LSQ_A" [color = "gold3", from = "out1", to = "in1"];
+	"phiC_0" -> "forkC_4" [color = "gold3", from = "out1", to = "in1"];
+	"branch_0" -> "ret_0" [color = "blue", minlen = 3, from = "out1", to = "in1"];
+	"branch_0" -> "phi_1" [color = "blue", minlen = 3, from = "out2", to = "in2"];
+	"phi_n5" -> "fork_5" [color = "red", from = "out1", to = "in1"];
+	"cst_5" -> "phi_n5" [color = "red", from = "out1", to = "in1"];
+	"branchC_2" -> "sink_1" [color = "gold3", minlen = 3, from = "out1", to = "in1"];
+	"branchC_2" -> "phiC_0" [color = "gold3", minlen = 3, from = "out2", to = "in2"];
+	"fork_0" -> "add_16" [color = "red", from = "out1", to = "in1"];
+	"fork_0" -> "load_4" [color = "red", from = "out2", to = "in2"];
+	"fork_1" -> "icmp_17" [color = "red", from = "out1", to = "in1"];
+	"fork_1" -> "branch_0" [color = "red", from = "out2", to = "in1"];
+	"fork_2" -> "branch_0" [color = "red", from = "out1", to = "in2"];
+	"fork_2" -> "phi_n5" [color = "red", from = "out2", to = "in2"];
+	"fork_2" -> "branchC_2" [color = "gold3", from = "out3", to = "in2"];
+	"forkC_3" -> "cst_0" [color = "gold3", from = "out1", to = "in1"];
+	"forkC_3" -> "phiC_0" [color = "gold3", from = "out2", to = "in3"];
+	"forkC_3" -> "cst_5" [color = "gold3", from = "out3", to = "in1"];
+	"forkC_4" -> "cst_1" [color = "gold3", from = "out1", to = "in1"];
+	"forkC_4" -> "branchC_2" [color = "gold3", from = "out2", to = "in1"];
+	"forkC_4" -> "cst_2" [color = "gold3", from = "out3", to = "in1"];
+	"forkC_4" -> "cst_3" [color = "gold3", from = "out4", to = "in1"];
+	"forkC_4" -> "cst_4" [color = "gold3", from = "out5", to = "in1"];
+	"forkC_4" -> "forkC_0" [color = "gold3", from = "out6", to = "in1"];
+	"fork_5" -> "phi_1" [color = "red", from = "out1", to = "in1"];
+	"fork_5" -> "phiC_0" [color = "gold3", from = "out2", to = "in1"];
+	"fork_6" -> "load_7" [color = "red", from = "out1", to = "in2"];
+	"fork_6" -> "store_0" [color = "red", from = "out2", to = "in2"];
+	"fork_7" -> "mul_8" [color = "red", from = "out1", to = "in1"];
+	"fork_7" -> "mul_8" [color = "red", from = "out2", to = "in2"];
+	"fork_7" -> "mul_10" [color = "red", from = "out3", to = "in2"];
+	"fork_7" -> "mul_11" [color = "red", from = "out4", to = "in2"];
+	"fork_7" -> "mul_13" [color = "red", from = "out5", to = "in2"];
+
+}

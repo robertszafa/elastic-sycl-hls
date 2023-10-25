@@ -1,0 +1,6125 @@
+{
+  "1":
+  {
+    "nodes":
+    [
+      {
+        "name":"MainKernel.B0"
+        , "id":2
+        , "start":"0"
+        , "end":"3"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"arg_bo"
+            , "id":8
+            , "start":"3"
+            , "end":"3"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_bo'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":9
+            , "start":"3"
+            , "end":"3"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":16
+            , "start":"3"
+            , "end":"3"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dests In":"MainKernel.B1, MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "20"
+              , "30"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_bo"
+            , "id":6
+            , "start":"1"
+            , "end":"1"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_bo'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"<<"
+            , "id":7
+            , "start":"1"
+            , "end":"1"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Left Shift"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"2"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":26
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":10
+            , "start":"1"
+            , "end":"1"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":11
+            , "start":"1"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Select"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":12
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"-2 (0xFFFFFFFE)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Integer Add: unsigned 32-bit + unsigned 1-bit -> 33-bit "
+            , "id":13
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Integer Add: unsigned 32-bit + unsigned 1-bit -> 33-bit "
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":">>"
+            , "id":14
+            , "start":"2"
+            , "end":"3"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Logical Right Shift"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":15
+            , "start":"3"
+            , "end":"3"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Integer Add"
+                , "Constant Operand":"-1 (0x1FFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":17
+            , "start":"3"
+            , "end":"3"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dest In":"MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"3"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "19"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Feedback"
+            , "id":5
+            , "start":"2"
+            , "end":"3"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Unknown variable"
+                , "Max Fanout":"3"
+                , "Start Cycle":"2"
+                , "Latency":"1"
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B1"
+        , "id":3
+        , "start":"3"
+        , "end":"550"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"FFwd Dest"
+            , "id":30
+            , "start":"293"
+            , "end":"294"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"290"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "16"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_buffer"
+            , "id":29
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_buffer'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"483"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_M"
+            , "id":28
+            , "start":"294"
+            , "end":"294"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_M'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"291"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_X"
+            , "id":27
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_X'"
+                , "Max Fanout":"5"
+                , "Start Cycle":"483"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_X"
+            , "id":26
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_X'"
+                , "Max Fanout":"4"
+                , "Start Cycle":"483"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_buffer"
+            , "id":25
+            , "start":"260"
+            , "end":"260"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_buffer'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"257"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_buffer"
+            , "id":24
+            , "start":"260"
+            , "end":"260"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_buffer'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"257"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_M"
+            , "id":23
+            , "start":"68"
+            , "end":"68"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_M'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"65"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_M"
+            , "id":22
+            , "start":"68"
+            , "end":"68"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_M'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"65"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_I"
+            , "id":21
+            , "start":"67"
+            , "end":"67"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_I'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"64"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":20
+            , "start":"67"
+            , "end":"68"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"64"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "16"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":33
+            , "start":"68"
+            , "end":"68"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Xor"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"65"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":19
+            , "start":"293"
+            , "end":"294"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"290"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "17"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":41
+            , "start":"68"
+            , "end":"68"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"3"
+                , "Start Cycle":"65"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":34
+            , "start":"294"
+            , "end":"294"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Select"
+                , "Max Fanout":"2"
+                , "Start Cycle":"291"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"And"
+            , "id":42
+            , "start":"294"
+            , "end":"294"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit And"
+                , "Max Fanout":"2"
+                , "Start Cycle":"291"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":31
+            , "start":"66"
+            , "end":"67"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"63"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":39
+            , "start":"294"
+            , "end":"294"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"14"
+                , "Start Cycle":"291"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":45
+            , "start":"294"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"64 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"2"
+                , "Start Cycle":"291"
+                , "Latency":"192"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":50
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"14"
+                , "Start Cycle":"483"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":35
+            , "start":"67"
+            , "end":"67"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Max Fanout":"1"
+                , "Start Cycle":"64"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":38
+            , "start":"68"
+            , "end":"68"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"2 (0x2)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"65"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":44
+            , "start":"68"
+            , "end":"68"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"14"
+                , "Start Cycle":"65"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":47
+            , "start":"68"
+            , "end":"260"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"65"
+                , "Latency":"192"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":49
+            , "start":"260"
+            , "end":"260"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"14"
+                , "Start Cycle":"257"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":37
+            , "start":"68"
+            , "end":"68"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"-2 (0xFFFFFFFE)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"65"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":43
+            , "start":"68"
+            , "end":"68"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"14"
+                , "Start Cycle":"65"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":46
+            , "start":"68"
+            , "end":"260"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"65"
+                , "Latency":"192"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":48
+            , "start":"260"
+            , "end":"260"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"14"
+                , "Start Cycle":"257"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":36
+            , "start":"294"
+            , "end":"294"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"2 (0x2)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"291"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":32
+            , "start":"259"
+            , "end":"260"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"256"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":39
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":51
+            , "start":"260"
+            , "end":"452"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"2"
+                , "Start Cycle":"257"
+                , "Latency":"192"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":30
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":52
+            , "start":"260"
+            , "end":"452"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"257"
+                , "Latency":"192"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":30
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":53
+            , "start":"452"
+            , "end":"452"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Xor"
+                , "Max Fanout":"4"
+                , "Start Cycle":"449"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":32
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":54
+            , "start":"452"
+            , "end":"452"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"449"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":55
+            , "start":"452"
+            , "end":"452"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"449"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":56
+            , "start":"452"
+            , "end":"453"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"4"
+                , "Start Cycle":"449"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":57
+            , "start":"453"
+            , "end":"453"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Constant Operand":"31 (0x1F)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"450"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":58
+            , "start":"453"
+            , "end":"453"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"450"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":59
+            , "start":"453"
+            , "end":"453"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"450"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":60
+            , "start":"453"
+            , "end":"453"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"450"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":61
+            , "start":"453"
+            , "end":"453"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"450"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":62
+            , "start":"453"
+            , "end":"453"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"450"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":63
+            , "start":"454"
+            , "end":"454"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"451"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":64
+            , "start":"454"
+            , "end":"454"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"451"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":65
+            , "start":"454"
+            , "end":"454"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"451"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":66
+            , "start":"454"
+            , "end":"454"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"451"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":67
+            , "start":"455"
+            , "end":"455"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"452"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":68
+            , "start":"455"
+            , "end":"455"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"452"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":69
+            , "start":"455"
+            , "end":"455"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"452"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":70
+            , "start":"455"
+            , "end":"455"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"452"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":71
+            , "start":"456"
+            , "end":"456"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"453"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":72
+            , "start":"456"
+            , "end":"456"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"453"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":73
+            , "start":"456"
+            , "end":"456"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"453"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":74
+            , "start":"456"
+            , "end":"456"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"453"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":75
+            , "start":"457"
+            , "end":"457"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"454"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":76
+            , "start":"457"
+            , "end":"457"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"454"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":77
+            , "start":"457"
+            , "end":"457"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"454"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":78
+            , "start":"457"
+            , "end":"457"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"454"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":79
+            , "start":"458"
+            , "end":"458"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"455"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":80
+            , "start":"458"
+            , "end":"458"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"455"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":81
+            , "start":"458"
+            , "end":"458"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"455"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":82
+            , "start":"458"
+            , "end":"458"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"455"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":83
+            , "start":"459"
+            , "end":"459"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"456"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":84
+            , "start":"459"
+            , "end":"459"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"456"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":85
+            , "start":"459"
+            , "end":"459"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"456"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":86
+            , "start":"459"
+            , "end":"459"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"456"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":87
+            , "start":"460"
+            , "end":"460"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"457"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":88
+            , "start":"460"
+            , "end":"460"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"457"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":89
+            , "start":"460"
+            , "end":"460"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"457"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":90
+            , "start":"461"
+            , "end":"461"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"458"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":91
+            , "start":"461"
+            , "end":"461"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"458"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":92
+            , "start":"461"
+            , "end":"461"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"458"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":93
+            , "start":"461"
+            , "end":"461"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"458"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":94
+            , "start":"462"
+            , "end":"462"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"459"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":95
+            , "start":"462"
+            , "end":"462"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"459"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":96
+            , "start":"462"
+            , "end":"462"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"459"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":97
+            , "start":"462"
+            , "end":"462"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"459"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":98
+            , "start":"463"
+            , "end":"463"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"460"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":99
+            , "start":"463"
+            , "end":"463"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"460"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":100
+            , "start":"463"
+            , "end":"463"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"460"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":101
+            , "start":"463"
+            , "end":"463"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"460"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":102
+            , "start":"464"
+            , "end":"464"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"461"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":103
+            , "start":"464"
+            , "end":"464"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"461"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":104
+            , "start":"464"
+            , "end":"464"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"461"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":105
+            , "start":"464"
+            , "end":"464"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"461"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":106
+            , "start":"465"
+            , "end":"465"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"462"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":107
+            , "start":"465"
+            , "end":"465"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"462"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":108
+            , "start":"465"
+            , "end":"465"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"462"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":109
+            , "start":"465"
+            , "end":"465"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"462"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":110
+            , "start":"466"
+            , "end":"466"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"463"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":111
+            , "start":"466"
+            , "end":"466"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"463"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":112
+            , "start":"466"
+            , "end":"466"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"463"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":113
+            , "start":"466"
+            , "end":"466"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"463"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":114
+            , "start":"467"
+            , "end":"467"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"464"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":115
+            , "start":"467"
+            , "end":"467"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"464"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":116
+            , "start":"467"
+            , "end":"467"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"464"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":117
+            , "start":"467"
+            , "end":"467"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"464"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":118
+            , "start":"468"
+            , "end":"468"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"465"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":119
+            , "start":"468"
+            , "end":"468"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"465"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":120
+            , "start":"468"
+            , "end":"468"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"465"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":121
+            , "start":"468"
+            , "end":"468"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"465"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":122
+            , "start":"469"
+            , "end":"469"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"466"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":123
+            , "start":"469"
+            , "end":"469"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"466"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":124
+            , "start":"469"
+            , "end":"469"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"466"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":125
+            , "start":"469"
+            , "end":"469"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"466"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":126
+            , "start":"470"
+            , "end":"470"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"467"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":127
+            , "start":"470"
+            , "end":"470"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"467"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":128
+            , "start":"470"
+            , "end":"470"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"467"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":129
+            , "start":"470"
+            , "end":"470"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"467"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":130
+            , "start":"471"
+            , "end":"471"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"468"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":131
+            , "start":"471"
+            , "end":"471"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"468"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":132
+            , "start":"471"
+            , "end":"471"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"468"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":133
+            , "start":"471"
+            , "end":"471"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"468"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":134
+            , "start":"472"
+            , "end":"472"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"469"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":135
+            , "start":"472"
+            , "end":"472"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"469"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":136
+            , "start":"472"
+            , "end":"472"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"469"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":137
+            , "start":"472"
+            , "end":"472"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"469"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":138
+            , "start":"473"
+            , "end":"473"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"470"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":139
+            , "start":"473"
+            , "end":"473"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"470"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":140
+            , "start":"473"
+            , "end":"473"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"470"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":141
+            , "start":"473"
+            , "end":"473"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"470"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":142
+            , "start":"474"
+            , "end":"474"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"471"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":143
+            , "start":"474"
+            , "end":"474"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"471"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":144
+            , "start":"474"
+            , "end":"474"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"471"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":145
+            , "start":"474"
+            , "end":"474"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"471"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":146
+            , "start":"475"
+            , "end":"475"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"472"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":147
+            , "start":"475"
+            , "end":"475"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"472"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":148
+            , "start":"475"
+            , "end":"475"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"472"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":149
+            , "start":"475"
+            , "end":"475"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"472"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":150
+            , "start":"476"
+            , "end":"476"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"473"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":151
+            , "start":"476"
+            , "end":"476"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"473"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":152
+            , "start":"476"
+            , "end":"476"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"473"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":153
+            , "start":"476"
+            , "end":"476"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"473"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":154
+            , "start":"477"
+            , "end":"477"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"474"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":155
+            , "start":"477"
+            , "end":"477"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"474"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":156
+            , "start":"477"
+            , "end":"477"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"474"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":157
+            , "start":"477"
+            , "end":"477"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"474"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":158
+            , "start":"478"
+            , "end":"478"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"475"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":159
+            , "start":"478"
+            , "end":"478"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"475"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":160
+            , "start":"478"
+            , "end":"478"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"475"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":161
+            , "start":"478"
+            , "end":"478"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"475"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":162
+            , "start":"479"
+            , "end":"479"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":163
+            , "start":"479"
+            , "end":"479"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":164
+            , "start":"479"
+            , "end":"479"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":165
+            , "start":"479"
+            , "end":"479"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":166
+            , "start":"480"
+            , "end":"480"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":167
+            , "start":"480"
+            , "end":"480"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":168
+            , "start":"480"
+            , "end":"480"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":169
+            , "start":"480"
+            , "end":"480"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":170
+            , "start":"481"
+            , "end":"481"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"478"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":171
+            , "start":"481"
+            , "end":"481"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"478"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":172
+            , "start":"481"
+            , "end":"481"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"478"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":173
+            , "start":"481"
+            , "end":"481"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"478"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":174
+            , "start":"482"
+            , "end":"482"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"479"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":175
+            , "start":"482"
+            , "end":"482"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"479"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":176
+            , "start":"482"
+            , "end":"482"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"479"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":177
+            , "start":"482"
+            , "end":"482"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"479"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":178
+            , "start":"482"
+            , "end":"482"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"479"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":179
+            , "start":"483"
+            , "end":"483"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"480"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":180
+            , "start":"483"
+            , "end":"483"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"480"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":181
+            , "start":"483"
+            , "end":"483"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"480"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":182
+            , "start":"484"
+            , "end":"484"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"1"
+                , "Start Cycle":"481"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"32-bit Signed Integer Remainder"
+            , "id":183
+            , "start":"484"
+            , "end":"485"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Signed Integer Remainder"
+                , "Max Fanout":"2"
+                , "Start Cycle":"481"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"<<"
+            , "id":184
+            , "start":"485"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Left Shift"
+                , "Max Fanout":"51"
+                , "Start Cycle":"482"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"-"
+            , "id":185
+            , "start":"485"
+            , "end":"485"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Subtract"
+                , "Max Fanout":"1"
+                , "Start Cycle":"482"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":">>"
+            , "id":186
+            , "start":"485"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Arithmetic Right Shift"
+                , "Max Fanout":"7"
+                , "Start Cycle":"482"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":187
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Or"
+                , "Max Fanout":"2"
+                , "Start Cycle":"483"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":188
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Xor"
+                , "Max Fanout":"1"
+                , "Start Cycle":"483"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":33
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"ST"
+            , "id":190
+            , "start":"486"
+            , "end":"512"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Store"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"483"
+                , "Latency":"26"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":189
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Xor"
+                , "Max Fanout":"1"
+                , "Start Cycle":"483"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Cluster 0"
+            , "id":191
+            , "start":"486"
+            , "end":"523"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Name":"i_sfc_s_c0_in_for_body_i_zts10mainkernels_c0_enter1_zts10mainkernel_139_235"
+                , "Cluster Type":"Stall-Free"
+                , "Cluster Start Cycle":"483"
+                , "Cluster Latency":"37"
+              }
+            ]
+            , "type":"cluster"
+            , "children":
+            [
+              {
+                "name":"32-bit Signed Integer Remainder"
+                , "id":199
+                , "start":"486"
+                , "end":"486"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Signed Integer Remainder"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"483"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                      , "line":36
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":331
+                , "start":"519"
+                , "end":"519"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"516"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                      , "line":36
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"arg_Y"
+                , "id":329
+                , "start":"3"
+                , "end":"519"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"Input Synchronization for 'arg_Y'"
+                    , "Max Fanout":"4"
+                    , "Start Cycle":"0"
+                    , "Latency":"516"
+                  }
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"<<"
+                , "id":330
+                , "start":"519"
+                , "end":"520"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Left Shift"
+                    , "Max Fanout":"41"
+                    , "Start Cycle":"516"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                      , "line":36
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"arg_Y"
+                , "id":332
+                , "start":"3"
+                , "end":"519"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"Input Synchronization for 'arg_Y'"
+                    , "Max Fanout":"5"
+                    , "Start Cycle":"0"
+                    , "Latency":"516"
+                  }
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":333
+                , "start":"519"
+                , "end":"520"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Max Fanout":"7"
+                    , "Start Cycle":"516"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                      , "line":36
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Or"
+                , "id":334
+                , "start":"520"
+                , "end":"520"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Or"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"517"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                      , "line":36
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":335
+                , "start":"520"
+                , "end":"520"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"517"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                      , "line":36
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"arg_buffer"
+                , "id":336
+                , "start":"3"
+                , "end":"520"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"Input Synchronization for 'arg_buffer'"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"0"
+                    , "Latency":"517"
+                  }
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Ptr. Comp."
+                , "id":337
+                , "start":"520"
+                , "end":"520"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"Pointer Computation"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"517"
+                    , "Latency":"0"
+                  }
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Exit"
+                , "id":197
+                , "start":"520"
+                , "end":"523"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"517"
+                    , "Latency":"3"
+                    , "Exit FIFO Depth":"512"
+                    , "Exit FIFO Width":"104"
+                    , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+                  }
+                ]
+                , "type":"inst"
+              }
+            ]
+          }
+          , {
+            "name":"ST"
+            , "id":192
+            , "start":"523"
+            , "end":"549"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Store"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"520"
+                , "Latency":"26"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/chaos_ncg_dram.cpp"
+                  , "line":39
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B2"
+        , "id":4
+        , "start":"550"
+        , "end":"551"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":2
+        , "to":3
+      }
+      , {
+        "from":8
+        , "to":9
+      }
+      , {
+        "from":9
+        , "to":16
+      }
+      , {
+        "from":6
+        , "to":7
+      }
+      , {
+        "from":7
+        , "to":11
+      }
+      , {
+        "from":7
+        , "to":10
+      }
+      , {
+        "from":10
+        , "to":11
+      }
+      , {
+        "from":11
+        , "to":12
+      }
+      , {
+        "from":12
+        , "to":13
+      }
+      , {
+        "from":13
+        , "to":14
+      }
+      , {
+        "from":14
+        , "to":15
+      }
+      , {
+        "from":15
+        , "to":17
+      }
+      , {
+        "from":3
+        , "to":4
+      }
+      , {
+        "from":30
+        , "to":42
+      }
+      , {
+        "from":29
+        , "to":50
+      }
+      , {
+        "from":28
+        , "to":39
+      }
+      , {
+        "from":27
+        , "to":186
+      }
+      , {
+        "from":26
+        , "to":184
+      }
+      , {
+        "from":25
+        , "to":49
+      }
+      , {
+        "from":24
+        , "to":48
+      }
+      , {
+        "from":23
+        , "to":44
+      }
+      , {
+        "from":22
+        , "to":43
+      }
+      , {
+        "from":21
+        , "to":35
+      }
+      , {
+        "from":20
+        , "to":33
+      }
+      , {
+        "from":33
+        , "to":41
+      }
+      , {
+        "from":19
+        , "to":34
+      }
+      , {
+        "from":41
+        , "to":192
+      }
+      , {
+        "from":41
+        , "to":190
+      }
+      , {
+        "from":41
+        , "to":45
+      }
+      , {
+        "from":41
+        , "to":52
+      }
+      , {
+        "from":41
+        , "to":51
+      }
+      , {
+        "from":41
+        , "to":47
+      }
+      , {
+        "from":41
+        , "to":46
+      }
+      , {
+        "from":34
+        , "to":42
+      }
+      , {
+        "from":31
+        , "to":36
+      }
+      , {
+        "from":31
+        , "to":35
+      }
+      , {
+        "from":31
+        , "to":39
+      }
+      , {
+        "from":39
+        , "to":45
+      }
+      , {
+        "from":45
+        , "to":50
+      }
+      , {
+        "from":45
+        , "to":191
+      }
+      , {
+        "from":50
+        , "to":190
+      }
+      , {
+        "from":35
+        , "to":37
+      }
+      , {
+        "from":35
+        , "to":38
+      }
+      , {
+        "from":38
+        , "to":44
+      }
+      , {
+        "from":44
+        , "to":47
+      }
+      , {
+        "from":47
+        , "to":49
+      }
+      , {
+        "from":49
+        , "to":52
+      }
+      , {
+        "from":37
+        , "to":43
+      }
+      , {
+        "from":43
+        , "to":46
+      }
+      , {
+        "from":46
+        , "to":48
+      }
+      , {
+        "from":48
+        , "to":51
+      }
+      , {
+        "from":32
+        , "to":52
+      }
+      , {
+        "from":32
+        , "to":51
+      }
+      , {
+        "from":51
+        , "to":53
+      }
+      , {
+        "from":51
+        , "to":189
+      }
+      , {
+        "from":52
+        , "to":53
+      }
+      , {
+        "from":53
+        , "to":56
+      }
+      , {
+        "from":53
+        , "to":55
+      }
+      , {
+        "from":53
+        , "to":54
+      }
+      , {
+        "from":53
+        , "to":188
+      }
+      , {
+        "from":54
+        , "to":183
+      }
+      , {
+        "from":54
+        , "to":56
+      }
+      , {
+        "from":55
+        , "to":56
+      }
+      , {
+        "from":56
+        , "to":57
+      }
+      , {
+        "from":56
+        , "to":58
+      }
+      , {
+        "from":56
+        , "to":62
+      }
+      , {
+        "from":56
+        , "to":66
+      }
+      , {
+        "from":56
+        , "to":70
+      }
+      , {
+        "from":56
+        , "to":74
+      }
+      , {
+        "from":56
+        , "to":78
+      }
+      , {
+        "from":56
+        , "to":82
+      }
+      , {
+        "from":56
+        , "to":86
+      }
+      , {
+        "from":56
+        , "to":90
+      }
+      , {
+        "from":56
+        , "to":94
+      }
+      , {
+        "from":56
+        , "to":98
+      }
+      , {
+        "from":56
+        , "to":102
+      }
+      , {
+        "from":56
+        , "to":106
+      }
+      , {
+        "from":56
+        , "to":110
+      }
+      , {
+        "from":56
+        , "to":114
+      }
+      , {
+        "from":56
+        , "to":118
+      }
+      , {
+        "from":56
+        , "to":122
+      }
+      , {
+        "from":56
+        , "to":126
+      }
+      , {
+        "from":56
+        , "to":130
+      }
+      , {
+        "from":56
+        , "to":134
+      }
+      , {
+        "from":56
+        , "to":138
+      }
+      , {
+        "from":56
+        , "to":142
+      }
+      , {
+        "from":56
+        , "to":146
+      }
+      , {
+        "from":56
+        , "to":150
+      }
+      , {
+        "from":56
+        , "to":154
+      }
+      , {
+        "from":56
+        , "to":158
+      }
+      , {
+        "from":56
+        , "to":162
+      }
+      , {
+        "from":56
+        , "to":166
+      }
+      , {
+        "from":56
+        , "to":170
+      }
+      , {
+        "from":56
+        , "to":174
+      }
+      , {
+        "from":56
+        , "to":178
+      }
+      , {
+        "from":57
+        , "to":58
+      }
+      , {
+        "from":58
+        , "to":61
+      }
+      , {
+        "from":58
+        , "to":59
+      }
+      , {
+        "from":59
+        , "to":60
+      }
+      , {
+        "from":60
+        , "to":61
+      }
+      , {
+        "from":61
+        , "to":62
+      }
+      , {
+        "from":62
+        , "to":65
+      }
+      , {
+        "from":62
+        , "to":63
+      }
+      , {
+        "from":63
+        , "to":64
+      }
+      , {
+        "from":64
+        , "to":65
+      }
+      , {
+        "from":65
+        , "to":66
+      }
+      , {
+        "from":66
+        , "to":69
+      }
+      , {
+        "from":66
+        , "to":67
+      }
+      , {
+        "from":67
+        , "to":68
+      }
+      , {
+        "from":68
+        , "to":69
+      }
+      , {
+        "from":69
+        , "to":70
+      }
+      , {
+        "from":70
+        , "to":73
+      }
+      , {
+        "from":70
+        , "to":71
+      }
+      , {
+        "from":71
+        , "to":72
+      }
+      , {
+        "from":72
+        , "to":73
+      }
+      , {
+        "from":73
+        , "to":74
+      }
+      , {
+        "from":74
+        , "to":77
+      }
+      , {
+        "from":74
+        , "to":75
+      }
+      , {
+        "from":75
+        , "to":76
+      }
+      , {
+        "from":76
+        , "to":77
+      }
+      , {
+        "from":77
+        , "to":78
+      }
+      , {
+        "from":78
+        , "to":81
+      }
+      , {
+        "from":78
+        , "to":79
+      }
+      , {
+        "from":79
+        , "to":80
+      }
+      , {
+        "from":80
+        , "to":81
+      }
+      , {
+        "from":81
+        , "to":82
+      }
+      , {
+        "from":82
+        , "to":85
+      }
+      , {
+        "from":82
+        , "to":83
+      }
+      , {
+        "from":83
+        , "to":84
+      }
+      , {
+        "from":84
+        , "to":85
+      }
+      , {
+        "from":85
+        , "to":86
+      }
+      , {
+        "from":86
+        , "to":89
+      }
+      , {
+        "from":86
+        , "to":87
+      }
+      , {
+        "from":87
+        , "to":88
+      }
+      , {
+        "from":88
+        , "to":89
+      }
+      , {
+        "from":89
+        , "to":90
+      }
+      , {
+        "from":90
+        , "to":93
+      }
+      , {
+        "from":90
+        , "to":91
+      }
+      , {
+        "from":91
+        , "to":92
+      }
+      , {
+        "from":92
+        , "to":93
+      }
+      , {
+        "from":93
+        , "to":94
+      }
+      , {
+        "from":94
+        , "to":97
+      }
+      , {
+        "from":94
+        , "to":95
+      }
+      , {
+        "from":95
+        , "to":96
+      }
+      , {
+        "from":96
+        , "to":97
+      }
+      , {
+        "from":97
+        , "to":98
+      }
+      , {
+        "from":98
+        , "to":101
+      }
+      , {
+        "from":98
+        , "to":99
+      }
+      , {
+        "from":99
+        , "to":100
+      }
+      , {
+        "from":100
+        , "to":101
+      }
+      , {
+        "from":101
+        , "to":102
+      }
+      , {
+        "from":102
+        , "to":105
+      }
+      , {
+        "from":102
+        , "to":103
+      }
+      , {
+        "from":103
+        , "to":104
+      }
+      , {
+        "from":104
+        , "to":105
+      }
+      , {
+        "from":105
+        , "to":106
+      }
+      , {
+        "from":106
+        , "to":109
+      }
+      , {
+        "from":106
+        , "to":107
+      }
+      , {
+        "from":107
+        , "to":108
+      }
+      , {
+        "from":108
+        , "to":109
+      }
+      , {
+        "from":109
+        , "to":110
+      }
+      , {
+        "from":110
+        , "to":113
+      }
+      , {
+        "from":110
+        , "to":111
+      }
+      , {
+        "from":111
+        , "to":112
+      }
+      , {
+        "from":112
+        , "to":113
+      }
+      , {
+        "from":113
+        , "to":114
+      }
+      , {
+        "from":114
+        , "to":117
+      }
+      , {
+        "from":114
+        , "to":115
+      }
+      , {
+        "from":115
+        , "to":116
+      }
+      , {
+        "from":116
+        , "to":117
+      }
+      , {
+        "from":117
+        , "to":118
+      }
+      , {
+        "from":118
+        , "to":121
+      }
+      , {
+        "from":118
+        , "to":119
+      }
+      , {
+        "from":119
+        , "to":120
+      }
+      , {
+        "from":120
+        , "to":121
+      }
+      , {
+        "from":121
+        , "to":122
+      }
+      , {
+        "from":122
+        , "to":125
+      }
+      , {
+        "from":122
+        , "to":123
+      }
+      , {
+        "from":123
+        , "to":124
+      }
+      , {
+        "from":124
+        , "to":125
+      }
+      , {
+        "from":125
+        , "to":126
+      }
+      , {
+        "from":126
+        , "to":129
+      }
+      , {
+        "from":126
+        , "to":127
+      }
+      , {
+        "from":127
+        , "to":128
+      }
+      , {
+        "from":128
+        , "to":129
+      }
+      , {
+        "from":129
+        , "to":130
+      }
+      , {
+        "from":130
+        , "to":133
+      }
+      , {
+        "from":130
+        , "to":131
+      }
+      , {
+        "from":131
+        , "to":132
+      }
+      , {
+        "from":132
+        , "to":133
+      }
+      , {
+        "from":133
+        , "to":134
+      }
+      , {
+        "from":134
+        , "to":137
+      }
+      , {
+        "from":134
+        , "to":135
+      }
+      , {
+        "from":135
+        , "to":136
+      }
+      , {
+        "from":136
+        , "to":137
+      }
+      , {
+        "from":137
+        , "to":138
+      }
+      , {
+        "from":138
+        , "to":141
+      }
+      , {
+        "from":138
+        , "to":139
+      }
+      , {
+        "from":139
+        , "to":140
+      }
+      , {
+        "from":140
+        , "to":141
+      }
+      , {
+        "from":141
+        , "to":142
+      }
+      , {
+        "from":142
+        , "to":145
+      }
+      , {
+        "from":142
+        , "to":143
+      }
+      , {
+        "from":143
+        , "to":144
+      }
+      , {
+        "from":144
+        , "to":145
+      }
+      , {
+        "from":145
+        , "to":146
+      }
+      , {
+        "from":146
+        , "to":149
+      }
+      , {
+        "from":146
+        , "to":147
+      }
+      , {
+        "from":147
+        , "to":148
+      }
+      , {
+        "from":148
+        , "to":149
+      }
+      , {
+        "from":149
+        , "to":150
+      }
+      , {
+        "from":150
+        , "to":153
+      }
+      , {
+        "from":150
+        , "to":151
+      }
+      , {
+        "from":151
+        , "to":152
+      }
+      , {
+        "from":152
+        , "to":153
+      }
+      , {
+        "from":153
+        , "to":154
+      }
+      , {
+        "from":154
+        , "to":157
+      }
+      , {
+        "from":154
+        , "to":155
+      }
+      , {
+        "from":155
+        , "to":156
+      }
+      , {
+        "from":156
+        , "to":157
+      }
+      , {
+        "from":157
+        , "to":158
+      }
+      , {
+        "from":158
+        , "to":161
+      }
+      , {
+        "from":158
+        , "to":159
+      }
+      , {
+        "from":159
+        , "to":160
+      }
+      , {
+        "from":160
+        , "to":161
+      }
+      , {
+        "from":161
+        , "to":162
+      }
+      , {
+        "from":162
+        , "to":165
+      }
+      , {
+        "from":162
+        , "to":163
+      }
+      , {
+        "from":163
+        , "to":164
+      }
+      , {
+        "from":164
+        , "to":165
+      }
+      , {
+        "from":165
+        , "to":166
+      }
+      , {
+        "from":166
+        , "to":169
+      }
+      , {
+        "from":166
+        , "to":167
+      }
+      , {
+        "from":167
+        , "to":168
+      }
+      , {
+        "from":168
+        , "to":169
+      }
+      , {
+        "from":169
+        , "to":170
+      }
+      , {
+        "from":170
+        , "to":173
+      }
+      , {
+        "from":170
+        , "to":171
+      }
+      , {
+        "from":171
+        , "to":172
+      }
+      , {
+        "from":172
+        , "to":173
+      }
+      , {
+        "from":173
+        , "to":174
+      }
+      , {
+        "from":174
+        , "to":177
+      }
+      , {
+        "from":174
+        , "to":175
+      }
+      , {
+        "from":175
+        , "to":176
+      }
+      , {
+        "from":176
+        , "to":177
+      }
+      , {
+        "from":177
+        , "to":178
+      }
+      , {
+        "from":178
+        , "to":181
+      }
+      , {
+        "from":178
+        , "to":179
+      }
+      , {
+        "from":179
+        , "to":180
+      }
+      , {
+        "from":180
+        , "to":181
+      }
+      , {
+        "from":181
+        , "to":183
+      }
+      , {
+        "from":181
+        , "to":182
+      }
+      , {
+        "from":182
+        , "to":183
+      }
+      , {
+        "from":183
+        , "to":185
+      }
+      , {
+        "from":183
+        , "to":184
+      }
+      , {
+        "from":184
+        , "to":187
+      }
+      , {
+        "from":185
+        , "to":186
+      }
+      , {
+        "from":186
+        , "to":187
+      }
+      , {
+        "from":187
+        , "to":189
+      }
+      , {
+        "from":187
+        , "to":188
+      }
+      , {
+        "from":188
+        , "to":190
+      }
+      , {
+        "from":190
+        , "to":192
+      }
+      , {
+        "from":189
+        , "to":191
+      }
+      , {
+        "from":191
+        , "to":192
+      }
+      , {
+        "from":331
+        , "to":333
+      }
+      , {
+        "from":329
+        , "to":330
+      }
+      , {
+        "from":330
+        , "to":334
+      }
+      , {
+        "from":332
+        , "to":333
+      }
+      , {
+        "from":333
+        , "to":334
+      }
+      , {
+        "from":334
+        , "to":335
+      }
+      , {
+        "from":335
+        , "to":197
+      }
+      , {
+        "from":336
+        , "to":337
+      }
+      , {
+        "from":337
+        , "to":197
+      }
+    ]
+  }
+}

@@ -1,0 +1,503 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x59F580746426878E",
+      "device": "xc7k160tfbg484-1",
+      "name": "bd_0",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2019.2",
+      "validated": "true"
+    },
+    "design_tree": {
+      "hls_inst": ""
+    },
+    "interface_ports": {
+      "ap_ctrl": {
+        "mode": "Slave",
+        "vlnv": "xilinx.com:interface:acc_handshake_rtl:1.0"
+      }
+    },
+    "ports": {
+      "a_address0": {
+        "type": "data",
+        "direction": "O",
+        "left": "8",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "a_address1": {
+        "type": "data",
+        "direction": "O",
+        "left": "8",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "a_ce0": {
+        "direction": "O"
+      },
+      "a_ce1": {
+        "direction": "O"
+      },
+      "a_q0": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "a_q1": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "ap_clk": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "ASSOCIATED_RESET": {
+            "value": "ap_rst",
+            "value_src": "default"
+          },
+          "CLK_DOMAIN": {
+            "value": "bd_0_ap_clk_0",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "250000000.0"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.000",
+            "value_src": "default"
+          }
+        }
+      },
+      "ap_rst": {
+        "type": "rst",
+        "direction": "I",
+        "parameters": {
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "POLARITY": {
+            "value": "ACTIVE_HIGH"
+          }
+        }
+      },
+      "col_address0": {
+        "type": "data",
+        "direction": "O",
+        "left": "8",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "col_address1": {
+        "type": "data",
+        "direction": "O",
+        "left": "8",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "col_ce0": {
+        "direction": "O"
+      },
+      "col_ce1": {
+        "direction": "O"
+      },
+      "col_q0": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "col_q1": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "matrix_address0": {
+        "type": "data",
+        "direction": "O",
+        "left": "8",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "matrix_address1": {
+        "type": "data",
+        "direction": "O",
+        "left": "8",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "matrix_ce0": {
+        "direction": "O"
+      },
+      "matrix_ce1": {
+        "direction": "O"
+      },
+      "matrix_d0": {
+        "type": "data",
+        "direction": "O",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "matrix_d1": {
+        "type": "data",
+        "direction": "O",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "matrix_q0": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "matrix_q1": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "matrix_we0": {
+        "direction": "O"
+      },
+      "matrix_we1": {
+        "direction": "O"
+      },
+      "row_address0": {
+        "type": "data",
+        "direction": "O",
+        "left": "8",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "row_address1": {
+        "type": "data",
+        "direction": "O",
+        "left": "8",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "row_ce0": {
+        "direction": "O"
+      },
+      "row_ce1": {
+        "direction": "O"
+      },
+      "row_q0": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "row_q1": {
+        "type": "data",
+        "direction": "I",
+        "left": "31",
+        "right": "0",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      }
+    },
+    "components": {
+      "hls_inst": {
+        "vlnv": "xilinx.com:hls:loop_imperfect:0.1",
+        "xci_name": "bd_0_hls_inst_0"
+      }
+    },
+    "interface_nets": {
+      "ap_ctrl_0_1": {
+        "interface_ports": [
+          "ap_ctrl",
+          "hls_inst/ap_ctrl"
+        ]
+      }
+    },
+    "nets": {
+      "hls_inst_a_address0": {
+        "ports": [
+          "hls_inst/a_address0",
+          "a_address0"
+        ]
+      },
+      "hls_inst_a_address1": {
+        "ports": [
+          "hls_inst/a_address1",
+          "a_address1"
+        ]
+      },
+      "hls_inst_a_ce0": {
+        "ports": [
+          "hls_inst/a_ce0",
+          "a_ce0"
+        ]
+      },
+      "hls_inst_a_ce1": {
+        "ports": [
+          "hls_inst/a_ce1",
+          "a_ce1"
+        ]
+      },
+      "a_q0_0_1": {
+        "ports": [
+          "a_q0",
+          "hls_inst/a_q0"
+        ]
+      },
+      "a_q1_0_1": {
+        "ports": [
+          "a_q1",
+          "hls_inst/a_q1"
+        ]
+      },
+      "ap_clk_0_1": {
+        "ports": [
+          "ap_clk",
+          "hls_inst/ap_clk"
+        ]
+      },
+      "ap_rst_0_1": {
+        "ports": [
+          "ap_rst",
+          "hls_inst/ap_rst"
+        ]
+      },
+      "hls_inst_col_address0": {
+        "ports": [
+          "hls_inst/col_address0",
+          "col_address0"
+        ]
+      },
+      "hls_inst_col_address1": {
+        "ports": [
+          "hls_inst/col_address1",
+          "col_address1"
+        ]
+      },
+      "hls_inst_col_ce0": {
+        "ports": [
+          "hls_inst/col_ce0",
+          "col_ce0"
+        ]
+      },
+      "hls_inst_col_ce1": {
+        "ports": [
+          "hls_inst/col_ce1",
+          "col_ce1"
+        ]
+      },
+      "col_q0_0_1": {
+        "ports": [
+          "col_q0",
+          "hls_inst/col_q0"
+        ]
+      },
+      "col_q1_0_1": {
+        "ports": [
+          "col_q1",
+          "hls_inst/col_q1"
+        ]
+      },
+      "hls_inst_matrix_address0": {
+        "ports": [
+          "hls_inst/matrix_address0",
+          "matrix_address0"
+        ]
+      },
+      "hls_inst_matrix_address1": {
+        "ports": [
+          "hls_inst/matrix_address1",
+          "matrix_address1"
+        ]
+      },
+      "hls_inst_matrix_ce0": {
+        "ports": [
+          "hls_inst/matrix_ce0",
+          "matrix_ce0"
+        ]
+      },
+      "hls_inst_matrix_ce1": {
+        "ports": [
+          "hls_inst/matrix_ce1",
+          "matrix_ce1"
+        ]
+      },
+      "hls_inst_matrix_d0": {
+        "ports": [
+          "hls_inst/matrix_d0",
+          "matrix_d0"
+        ]
+      },
+      "hls_inst_matrix_d1": {
+        "ports": [
+          "hls_inst/matrix_d1",
+          "matrix_d1"
+        ]
+      },
+      "matrix_q0_0_1": {
+        "ports": [
+          "matrix_q0",
+          "hls_inst/matrix_q0"
+        ]
+      },
+      "matrix_q1_0_1": {
+        "ports": [
+          "matrix_q1",
+          "hls_inst/matrix_q1"
+        ]
+      },
+      "hls_inst_matrix_we0": {
+        "ports": [
+          "hls_inst/matrix_we0",
+          "matrix_we0"
+        ]
+      },
+      "hls_inst_matrix_we1": {
+        "ports": [
+          "hls_inst/matrix_we1",
+          "matrix_we1"
+        ]
+      },
+      "hls_inst_row_address0": {
+        "ports": [
+          "hls_inst/row_address0",
+          "row_address0"
+        ]
+      },
+      "hls_inst_row_address1": {
+        "ports": [
+          "hls_inst/row_address1",
+          "row_address1"
+        ]
+      },
+      "hls_inst_row_ce0": {
+        "ports": [
+          "hls_inst/row_ce0",
+          "row_ce0"
+        ]
+      },
+      "hls_inst_row_ce1": {
+        "ports": [
+          "hls_inst/row_ce1",
+          "row_ce1"
+        ]
+      },
+      "row_q0_0_1": {
+        "ports": [
+          "row_q0",
+          "hls_inst/row_q0"
+        ]
+      },
+      "row_q1_0_1": {
+        "ports": [
+          "row_q1",
+          "hls_inst/row_q1"
+        ]
+      }
+    }
+  }
+}

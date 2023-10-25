@@ -1,0 +1,1419 @@
+{
+  "1":
+  {
+    "nodes":
+    [
+      {
+        "name":"MainKernel.B0"
+        , "id":2
+        , "start":"0"
+        , "end":"2"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"arg_N"
+            , "id":10
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_N'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_N"
+            , "id":8
+            , "start":"1"
+            , "end":"1"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_N'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":9
+            , "start":"1"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":11
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Select"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":12
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"-1 (0xFFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":13
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Integer Add"
+                , "Constant Operand":"-1 (0x1FFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":15
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dest In":"MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "17"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_N"
+            , "id":6
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_N'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":7
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":14
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dests In":"MainKernel.B1, MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "18"
+              , "22"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Feedback"
+            , "id":5
+            , "start":"1"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Unknown variable"
+                , "Max Fanout":"3"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B1"
+        , "id":3
+        , "start":"2"
+        , "end":"625"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"FFwd Dest"
+            , "id":22
+            , "start":"313"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"311"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "14"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_A"
+            , "id":21
+            , "start":"568"
+            , "end":"568"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_A'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"566"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_b"
+            , "id":20
+            , "start":"314"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_b'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"312"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_A"
+            , "id":19
+            , "start":"314"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_A'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"312"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":18
+            , "start":"313"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"311"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "14"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":25
+            , "start":"314"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Xor"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"312"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":17
+            , "start":"313"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"311"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "15"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":31
+            , "start":"314"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"3"
+                , "Start Cycle":"312"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":26
+            , "start":"314"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Select"
+                , "Max Fanout":"2"
+                , "Start Cycle":"312"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"And"
+            , "id":32
+            , "start":"314"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit And"
+                , "Max Fanout":"2"
+                , "Start Cycle":"312"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":23
+            , "start":"313"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"311"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":28
+            , "start":"314"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"5"
+                , "Start Cycle":"312"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":29
+            , "start":"314"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"5"
+                , "Start Cycle":"312"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":34
+            , "start":"314"
+            , "end":"317"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Prefetching"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"312"
+                , "Latency":"3"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":30
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":36
+            , "start":"568"
+            , "end":"568"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"5"
+                , "Start Cycle":"566"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":27
+            , "start":"314"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"312"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":28
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":24
+            , "start":"313"
+            , "end":"314"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"1"
+                , "Start Cycle":"311"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":30
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":33
+            , "start":"314"
+            , "end":"537"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"312"
+                , "Latency":"223"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":29
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Cluster 0"
+            , "id":35
+            , "start":"537"
+            , "end":"568"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Name":"i_sfc_s_c0_in_for_body_i_zts10mainkernels_c0_enter1_zts10mainkernel_131_37"
+                , "Cluster Type":"Stall-Free"
+                , "Cluster Start Cycle":"535"
+                , "Cluster Latency":"31"
+              }
+            ]
+            , "type":"cluster"
+            , "children":
+            [
+              {
+                "name":"+"
+                , "id":45
+                , "start":"537"
+                , "end":"537"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Constant Operand":"112 (0x70)"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"535"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":46
+                , "start":"537"
+                , "end":"540"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"535"
+                    , "Latency":"3"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":47
+                , "start":"541"
+                , "end":"541"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Constant Operand":"23 (0x17)"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"539"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":48
+                , "start":"537"
+                , "end":"544"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"535"
+                    , "Latency":"7"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":49
+                , "start":"545"
+                , "end":"545"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Constant Operand":"36 (0x24)"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"543"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":50
+                , "start":"537"
+                , "end":"548"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"535"
+                    , "Latency":"11"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":51
+                , "start":"549"
+                , "end":"549"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Constant Operand":"82 (0x52)"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"547"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":52
+                , "start":"537"
+                , "end":"552"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"535"
+                    , "Latency":"15"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":53
+                , "start":"553"
+                , "end":"553"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Constant Operand":"127 (0x7F)"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"551"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":54
+                , "start":"537"
+                , "end":"556"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"535"
+                    , "Latency":"19"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":55
+                , "start":"557"
+                , "end":"557"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Constant Operand":"2 (0x2)"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"555"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":56
+                , "start":"537"
+                , "end":"560"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"535"
+                    , "Latency":"23"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":31
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":57
+                , "start":"561"
+                , "end":"561"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Constant Operand":"20 (0x14)"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"559"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":32
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":58
+                , "start":"537"
+                , "end":"564"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"535"
+                    , "Latency":"27"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":33
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":59
+                , "start":"565"
+                , "end":"565"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Constant Operand":"100 (0x64)"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"563"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                      , "line":34
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Exit"
+                , "id":43
+                , "start":"565"
+                , "end":"568"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"563"
+                    , "Latency":"3"
+                    , "Exit FIFO Depth":"32"
+                    , "Exit FIFO Width":"40"
+                    , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+                  }
+                ]
+                , "type":"inst"
+              }
+            ]
+          }
+          , {
+            "name":"ST"
+            , "id":37
+            , "start":"568"
+            , "end":"624"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Store"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"2"
+                , "Start Cycle":"566"
+                , "Latency":"56"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_dram.cpp"
+                  , "line":30
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B2"
+        , "id":4
+        , "start":"625"
+        , "end":"626"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":2
+        , "to":3
+      }
+      , {
+        "from":10
+        , "to":11
+      }
+      , {
+        "from":8
+        , "to":9
+      }
+      , {
+        "from":9
+        , "to":11
+      }
+      , {
+        "from":11
+        , "to":12
+      }
+      , {
+        "from":12
+        , "to":13
+      }
+      , {
+        "from":13
+        , "to":15
+      }
+      , {
+        "from":6
+        , "to":7
+      }
+      , {
+        "from":7
+        , "to":14
+      }
+      , {
+        "from":3
+        , "to":4
+      }
+      , {
+        "from":22
+        , "to":32
+      }
+      , {
+        "from":21
+        , "to":36
+      }
+      , {
+        "from":20
+        , "to":29
+      }
+      , {
+        "from":19
+        , "to":28
+      }
+      , {
+        "from":18
+        , "to":25
+      }
+      , {
+        "from":25
+        , "to":31
+      }
+      , {
+        "from":17
+        , "to":26
+      }
+      , {
+        "from":31
+        , "to":37
+      }
+      , {
+        "from":31
+        , "to":34
+      }
+      , {
+        "from":31
+        , "to":33
+      }
+      , {
+        "from":26
+        , "to":32
+      }
+      , {
+        "from":23
+        , "to":27
+      }
+      , {
+        "from":23
+        , "to":29
+      }
+      , {
+        "from":23
+        , "to":28
+      }
+      , {
+        "from":28
+        , "to":33
+      }
+      , {
+        "from":29
+        , "to":34
+      }
+      , {
+        "from":34
+        , "to":36
+      }
+      , {
+        "from":36
+        , "to":37
+      }
+      , {
+        "from":24
+        , "to":33
+      }
+      , {
+        "from":33
+        , "to":35
+      }
+      , {
+        "from":35
+        , "to":37
+      }
+      , {
+        "from":45
+        , "to":46
+      }
+      , {
+        "from":46
+        , "to":47
+      }
+      , {
+        "from":47
+        , "to":48
+      }
+      , {
+        "from":48
+        , "to":49
+      }
+      , {
+        "from":49
+        , "to":50
+      }
+      , {
+        "from":50
+        , "to":51
+      }
+      , {
+        "from":51
+        , "to":52
+      }
+      , {
+        "from":52
+        , "to":53
+      }
+      , {
+        "from":53
+        , "to":54
+      }
+      , {
+        "from":54
+        , "to":55
+      }
+      , {
+        "from":55
+        , "to":56
+      }
+      , {
+        "from":56
+        , "to":57
+      }
+      , {
+        "from":57
+        , "to":58
+      }
+      , {
+        "from":58
+        , "to":59
+      }
+      , {
+        "from":59
+        , "to":43
+      }
+    ]
+  }
+}

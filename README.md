@@ -1,27 +1,18 @@
 ## Overview:
-This repository contains llvm passes which selectively introduce dynamic scheduling into SYCL HLS code. You can read [our paper](https://arxiv.org/pdf/2308.15120.pdf) for more details. 
-
-If you want to cite this work:
-```
-@inproceedings{szafarczyk2023fpl,
-  title={Compiler Discovered Dynamic Scheduling of Irregular Code in High-Level Synthesis}, 
-  author={Szafarczyk, Robert and Nabi, Syed Waqar and Vanderbauwhede, Wim},
-  booktitle={2023 33rd International Conference on Field-Programmable Logic and Applications (FPL)}, 
-  year={2023},
-}
-```
+This repository contains LLVM passes (under lib/) and a Load-Store Queue implementation (under LSQ/) that introduce dynamically scheduled memory operations into the Intel SYCL HLS tool. The instructions below describe how to build this code, use our compiler passes, and how to reproduce the benchmarks from the FPT23 paper.
 
 ---
 
 ## Build:
 
 **Pre-requisites:**
+- Ubuntu 20 or 22.
 - gcc >= 7.1
 - CMake >=3.16
 - git
 - Intel SYCL compiler. The version used in this project is 2023.1.0. To install it on Ubuntu: `sudo apt install intel-basekit-2023.1.0`
-- If you want to run in simulation, you have to install an rtl simulator (e.g., Questa FPGA Starter Edition is free and works well enough for small designs). 
-- To run in hardware, you can sign up to the Intel DevCloud for free to access Arria 10 and Stratix 10 FPGAs.
+- RTL simulator on path (I used the Questa FPGA Starter Edition which is free but requires a free license). 
+- (Optional) To run in hardware, I used the Intel DevCloud for free to access the Altera Arria 10AX115S FPGA.
 
 **Installation:**
 The install script downloads the intel/llvm github repo and builds it. Then it builds the passes from this repo out-of-tree.
@@ -45,6 +36,11 @@ The SYCL compiler is multi-pass -- it consists of multiple sub-commands
 to build a host and device binary. This script runs a full compilation in 
 verbose mode, and then break up the compiler steps into constituent commands.
 ```bash
+./scripts/compilation/gen_compile_scripts.py --targets=emu,sim
+```
+
+If you want to tun in hardware, then add the 'hw' target.
+```bash
 ./scripts/compilation/gen_compile_scripts.py --targets=emu,sim,hw
 ```
 
@@ -52,15 +48,63 @@ verbose mode, and then break up the compiler steps into constituent commands.
 
 ## Use:
 
-The optional '-d' flag ensures that compiler generated files are not deleted.
+The optional '-d' flag doesn't delete temporary debug files.
 ```bash
-export ELASTIC_SYCL_HLS_DIR=path/to/elastic_sycl_hls 
 elastic_pass.sh emu|sim|hw src_file [-d]
 ```
 
-To run benchmarks targetted by the passes.
+---
+
+## Reproduce benchmarks FPT23:
+
+The steps below will reproduce the csv files in FPT_benchmarks/expected_csv_files
+
+### Build for simulation
 ```bash
-export ELASTIC_SYCL_HLS_DIR=path/to/elastic_sycl_hls 
-cd experiments
-./test_all_in_sim.py
+cd $ELASTIC_SYCL_HLS_DIR/FPT_benchmarks
+./build_all.py sim
+```
+
+### (Optional) Build for hardware
+We provide Quartus reports from hardware compiles in 'intelHLS_reports' and 'our_reports' so that hardware compiles are not needed to reproduce the tables from the paper.
+The hardware compiles were generated on the Intel devcloud (https://devcloud.intel.com/oneapi/get_started/) using Quartus 19.2 targetting the Altera Arria 10AX115S FPGA board.
+```bash
+./build_all.py hw
+
+# Only needed for table 2:
+./build_for_table_2.sh
+```
+
+### Generate table I
+
+```bash
+./run_sim_benchmarks.py bram
+```
+This script will build and run all benchmarks in simulation producing a 'our_results_bram.csv' table.
+'our_results.csv' will contain results for the Intel HLS baseline and for our work.
+Together, 'our_results.csv' and 'dynamatic_vivado_results.csv' contain all the information from the paper's Table I.
+'dynamatic_vivado_results.csv' contain benchmark results for the Dynamatic HLS compiler, and Vivado 2019, respectively (obtained using 10.5281/zenodo.7406580).
+
+
+### Generate table II
+
+```bash
+./gen_table_2.py bram
+```
+This will generate 'table_2.csv' with frequency and area numbers for varying store allocation queue sizes.
+
+
+### Genearate table III (simulation runs)
+
+```bash
+./run_sim_benchmarks.py dram
+```
+The result of this script will be in 'our_results_dram.csv'. The results in the paper have been generated using harwdare runs, but simulation runs give very similar results (slight differences in DRAM behaviour).
+
+
+### (Optional) Genearate table III (hardware runs)
+
+If you have the hardware, you can reproduce table III using hardware runs. This will generate 'our_results_dram_in_hw.csv':
+```bash
+./run_hw_benchmark_dram.py
 ```

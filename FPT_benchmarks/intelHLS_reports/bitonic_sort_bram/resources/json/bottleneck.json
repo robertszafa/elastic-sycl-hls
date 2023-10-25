@@ -1,0 +1,290 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"A"
+      , "id":204
+      , "src":"49"
+      , "dst":"42"
+      , "concurrency":"1"
+      , "type":"Occupancy limiter"
+      , "brief":"Memory dependency"
+      , "loop":"MainKernel.B6"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Variable on critical loop carried feedback path: ":"A"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                  , "line":"29"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Memory dependency"
+          , "Concurrency value: ":"1"
+          , "Loop feedback path that lowered occupancy: ":
+          [
+            {
+              "type":"text"
+              , "text":"Loop: MainKernel.B8(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                  , "line":"41"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"A"
+          , "id":49
+          , "start":"5.00"
+          , "parent":"_ZTS10MainKernel.B6"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":51
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"MainKernel.B8"
+          , "id":10
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":41
+              }
+            ]
+          ]
+          , "type":"loop"
+        }
+        , {
+          "name":"Feedback"
+          , "id":42
+          , "end":"1.00"
+          , "parent":"_ZTS10MainKernel.B5"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":51
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":10
+          , "to":10
+        }
+        , {
+          "from":49
+          , "to":10
+        }
+        , {
+          "from":10
+          , "to":42
+        }
+        , {
+          "from":49
+          , "to":42
+          , "reverse":1
+        }
+      ]
+    }
+    , {
+      "name":"A"
+      , "id":205
+      , "src":"129"
+      , "dst":"149"
+      , "type":"fMAX/II"
+      , "brief":"Memory dependency"
+      , "loop":"MainKernel.B8"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Variable on critical loop carried feedback path: ":"A"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                  , "line":"29"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Memory dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"LD(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                  , "line":"46"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"ST(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                  , "line":"51"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"ST(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                  , "line":"52"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"A"
+          , "id":129
+          , "start":"2.00"
+          , "parent":"_ZTS10MainKernel.B8"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":133
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":46
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"ST"
+          , "id":147
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":51
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"ST"
+          , "id":148
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":149
+          , "end":"9.00"
+          , "parent":"_ZTS10MainKernel.B8"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":129
+          , "to":133
+        }
+        , {
+          "from":133
+          , "to":147
+        }
+        , {
+          "from":147
+          , "to":148
+        }
+        , {
+          "from":148
+          , "to":149
+        }
+        , {
+          "from":129
+          , "to":149
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

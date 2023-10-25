@@ -1,0 +1,198 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"Feedback"
+      , "id":4878
+      , "src":"80"
+      , "dst":"4337"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":">.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Loop: ":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                  , "line":"110"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                  , "line":"31"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"<<(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                  , "line":"49"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                  , "line":"110"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"LD(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                  , "line":"119"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Feedback"
+          , "id":80
+          , "start":"1.00"
+          , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "type":"inst"
+        }
+        , {
+          "name":"<<"
+          , "id":91
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                , "line":49
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":89
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                , "line":119
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":86
+          , "debug":
+          [
+            [
+              {
+                "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                , "line":31
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":95
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":4055
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                , "line":110
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":4337
+          , "end":"2.00"
+          , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
+                , "line":312
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":91
+          , "to":95
+        }
+        , {
+          "from":4055
+          , "to":4337
+        }
+        , {
+          "from":80
+          , "to":4337
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+INFO: [COSIM-47] Using XSIM for RTL simulation.
+INFO: [COSIM-14] Instrumenting C test bench ...
+   Build using "/home/dynamatic/opt/xilinx/Vivado/2019.2/tps/lnx64/gcc-6.2.0/bin/g++"
+   Compiling apatb_loop_imperfect.cpp
+   Compiling (apcc) loop_imperfect.c_pre.c.tb.c
+INFO: [HLS 200-10] Running '/home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/apcc'
+INFO: [HLS 200-10] For user 'dynamatic' on host 'dynamatic-VirtualBox' (Linux_x86_64 version 5.4.0-150-generic) on Fri Jun 23 11:10:47 CEST 2023
+INFO: [HLS 200-10] On os Ubuntu 18.04.3 LTS
+INFO: [HLS 200-10] In directory '/home/dynamatic/getTanhDouble/proj_loop_imperfect/solution1/sim/wrapc'
+clang: warning: argument unused during compilation: '-fno-builtin-isinf'
+clang: warning: argument unused during compilation: '-fno-builtin-isnan'
+INFO: [APCC 202-3] Tmp directory is /tmp/apcc_db_dynamatic/162481687511447641673
+INFO: [APCC 202-1] APCC is done.
+   Compiling (apcc) loop_imperfect_test.c_pre.c.tb.c
+INFO: [HLS 200-10] Running '/home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/apcc'
+INFO: [HLS 200-10] For user 'dynamatic' on host 'dynamatic-VirtualBox' (Linux_x86_64 version 5.4.0-150-generic) on Fri Jun 23 11:11:00 CEST 2023
+INFO: [HLS 200-10] On os Ubuntu 18.04.3 LTS
+INFO: [HLS 200-10] In directory '/home/dynamatic/getTanhDouble/proj_loop_imperfect/solution1/sim/wrapc'
+clang: warning: argument unused during compilation: '-fno-builtin-isinf'
+clang: warning: argument unused during compilation: '-fno-builtin-isnan'
+INFO: [APCC 202-3] Tmp directory is /tmp/apcc_db_dynamatic/163151687511460599012
+INFO: [APCC 202-1] APCC is done.
+   Generating cosim.tv.exe
+INFO: [COSIM-302] Starting C TB testing ... 
+INFO: [COSIM-333] Generating C post check test bench ...
+INFO: [COSIM-12] Generating RTL test bench ...
+INFO: [COSIM-1] *** C/RTL co-simulation file generation completed. ***
+INFO: [COSIM-323] Starting verilog simulation. 
+INFO: [COSIM-15] Starting XSIM ...
+ERROR: System recieved a signal named SIGSEGV and the program has to stop immediately!
+This signal was generated when a program tries to read or write outside the memory that is allocated for it, or to write memory that can only be read.
+Possible cause of this problem may be: 1) the depth setting of pointer type argument is much larger than it needed; 2)insufficient depth of array argument; 3)null pointer etc.
+Current execution stopped during CodeState = CALL_C_DUT.
+You can search CodeState variable name in apatb*.cpp file under ./sim/wrapc dir to locate the position.
+
+Files result.dat and result.golden.dat differ
+Test failed  !!!
+INFO: [XSIM 43-3496] Using init file passed via -initfile option "/home/dynamatic/opt/xilinx/Vivado/2019.2/data/xsim/ip/xsim_ip.ini".
+Vivado Simulator 2019.2
+Copyright 1986-1999, 2001-2019 Xilinx, Inc. All Rights Reserved.
+Running: /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab xil_defaultlib.apatb_loop_imperfect_top glbl -prj loop_imperfect.prj -L smartconnect_v1_0 -L axi_protocol_checker_v1_1_12 -L axi_protocol_checker_v1_1_13 -L axis_protocol_checker_v1_1_11 -L axis_protocol_checker_v1_1_12 -L xil_defaultlib -L unisims_ver -L xpm --initfile /home/dynamatic/opt/xilinx/Vivado/2019.2/data/xsim/ip/xsim_ip.ini --lib ieee_proposed=./ieee_proposed -s loop_imperfect 
+Determining compilation order of HDL files.
+WARNING: [XSIM 43-3431] One or more environment variables have been detected which affect the operation of the C compiler. These are typically not set in standard installations and are not tested by Xilinx, however they may be appropriate for your system, so the flow will attempt to continue.  If errors occur, try running xelab with the "-mt off -v 1" switches to see more information from the C compiler. The following environment variables have been detected:
+    LIBRARY_PATH
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dynamatic/getTanhDouble/proj_loop_imperfect/solution1/sim/verilog/glbl.v" into library work
+INFO: [VRFC 10-311] analyzing module glbl
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dynamatic/getTanhDouble/proj_loop_imperfect/solution1/sim/verilog/AESL_automem_A.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module AESL_automem_A
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dynamatic/getTanhDouble/proj_loop_imperfect/solution1/sim/verilog/AESL_automem_addr.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module AESL_automem_addr
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dynamatic/getTanhDouble/proj_loop_imperfect/solution1/sim/verilog/loop_imperfect.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module loop_imperfect
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dynamatic/getTanhDouble/proj_loop_imperfect/solution1/sim/verilog/loop_imperfect_fabkb.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module loop_imperfect_fabkb
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dynamatic/getTanhDouble/proj_loop_imperfect/solution1/sim/verilog/loop_imperfect.autotb.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module apatb_loop_imperfect_top
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/dynamatic/getTanhDouble/proj_loop_imperfect/solution1/sim/verilog/loop_imperfect_fmcud.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module loop_imperfect_fmcud
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dynamatic/getTanhDouble/proj_loop_imperfect/solution1/sim/verilog/ip/xil_defaultlib/loop_imperfect_ap_fadd_8_full_dsp_32.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'loop_imperfect_ap_fadd_8_full_dsp_32'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/dynamatic/getTanhDouble/proj_loop_imperfect/solution1/sim/verilog/ip/xil_defaultlib/loop_imperfect_ap_fmul_4_max_dsp_32.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'loop_imperfect_ap_fmul_4_max_dsp_32'
+Starting static elaboration
+Pass Through NonSizing Optimizer
+WARNING: [VRFC 10-3499] library name 'floating_point_v7_1_9' of instantiated unit conflicts with visible identifier [ip/xil_defaultlib/loop_imperfect_ap_fadd_8_full_dsp_32.vhd:201]
+WARNING: [VRFC 10-3499] library name 'floating_point_v7_1_9' of instantiated unit conflicts with visible identifier [ip/xil_defaultlib/loop_imperfect_ap_fmul_4_max_dsp_32.vhd:201]
+Completed static elaboration
+ERROR: [XSIM 43-3316] Signal SIGSEGV received.
+Printing stacktrace...
+
+[0] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x77388f]
+[1] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x773b07]
+[2] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x734aa2]
+[3] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x73502e]
+[4] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x7353f1]
+[5] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x7351e0]
+[6] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x7351e0]
+[7] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x7351e0]
+[8] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x7351e0]
+[9] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x7345e6]
+[10] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x73502e]
+[11] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x63b938]
+[12] /home/dynamatic/opt/xilinx/Vivado/2019.2/lib/lnx64.o/libxsimverific.so(Verific::VeriVisitor::TraverseArray(Verific::Array const*)+0x86) [0x7fd8901c6d56]
+[13] /home/dynamatic/opt/xilinx/Vivado/2019.2/lib/lnx64.o/libxsimverific.so(Verific::VeriVisitor::Visit(Verific::VeriModule&)+0x98) [0x7fd8901cd698]
+[14] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x63d102]
+[15] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x605ccb]
+[16] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x63b542]
+[17] /home/dynamatic/opt/xilinx/Vivado/2019.2/lib/lnx64.o/libxsimverific.so(Verific::VeriVisitor::TraverseArray(Verific::Array const*)+0x86) [0x7fd8901c6d56]
+[18] /home/dynamatic/opt/xilinx/Vivado/2019.2/lib/lnx64.o/libxsimverific.so(Verific::VeriVisitor::Visit(Verific::VeriModule&)+0x98) [0x7fd8901cd698]
+[19] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x63d102]
+[20] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x605ccb]
+[21] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x63b542]
+[22] /home/dynamatic/opt/xilinx/Vivado/2019.2/lib/lnx64.o/libxsimverific.so(Verific::VeriVisitor::TraverseArray(Verific::Array const*)+0x86) [0x7fd8901c6d56]
+[23] /home/dynamatic/opt/xilinx/Vivado/2019.2/lib/lnx64.o/libxsimverific.so(Verific::VeriVisitor::Visit(Verific::VeriModule&)+0x98) [0x7fd8901cd698]
+[24] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x63d102]
+[25] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x605ccb]
+[26] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x491cb4]
+[27] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x4764b2]
+[28] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x480253]
+[29] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x45241d]
+[30] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7) [0x7fd88e4d6c87]
+[31] /home/dynamatic/opt/xilinx/Vivado/2019.2/bin/unwrapped/lnx64.o/xelab() [0x46a3d0]
+
+Done
+ERROR: Please check the snapshot name which is created during 'xelab',the current snapshot name "xsim.dir/loop_imperfect/xsimk" does not exist 
+ERROR: [COSIM-4] *** C/RTL co-simulation finished: FAIL ***
+INFO: [COSIM-211] II is measurable only when transaction number is greater than 1 in RTL simulation. Otherwise, they will be marked as all NA. If user wants to calculate them, please make sure there are at least 2 transactions in RTL simulation.

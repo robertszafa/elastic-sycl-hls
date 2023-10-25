@@ -1,0 +1,136 @@
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Sun Jun 25 11:58:32 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_control_sets -verbose -file bd_0_wrapper_control_sets_placed.rpt
+| Design       : bd_0_wrapper
+| Device       : xc7k160t
+-----------------------------------------------------------------------------------------
+
+Control Set Information
+
+Table of Contents
+-----------------
+1. Summary
+2. Histogram
+3. Flip-Flop Distribution
+4. Detailed Control Set Information
+
+1. Summary
+----------
+
++----------------------------------------------------------+-------+
+|                          Status                          | Count |
++----------------------------------------------------------+-------+
+| Total control sets                                       |    58 |
+|    Minimum number of control sets                        |    58 |
+|    Addition due to synthesis replication                 |     0 |
+|    Addition due to physical synthesis replication        |     0 |
+| Unused register locations in slices containing registers |    27 |
++----------------------------------------------------------+-------+
+* Control sets can be merged at opt_design using control_set_merge or merge_equivalent_drivers
+** Run report_qor_suggestions for automated merging and remapping suggestions
+
+
+2. Histogram
+------------
+
++--------------------+-------+
+|       Fanout       | Count |
++--------------------+-------+
+| Total control sets |    58 |
+| >= 0 to < 4        |     0 |
+| >= 4 to < 6        |     0 |
+| >= 6 to < 8        |     3 |
+| >= 8 to < 10       |     0 |
+| >= 10 to < 12      |     1 |
+| >= 12 to < 14      |     0 |
+| >= 14 to < 16      |     2 |
+| >= 16              |    52 |
++--------------------+-------+
+* Control sets can be remapped at either synth_design or opt_design
+
+
+3. Flip-Flop Distribution
+-------------------------
+
++--------------+-----------------------+------------------------+-----------------+--------------+
+| Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
++--------------+-----------------------+------------------------+-----------------+--------------+
+| No           | No                    | No                     |              10 |            6 |
+| No           | No                    | Yes                    |               0 |            0 |
+| No           | Yes                   | No                     |             212 |           82 |
+| Yes          | No                    | No                     |            2786 |          942 |
+| Yes          | No                    | Yes                    |               0 |            0 |
+| Yes          | Yes                   | No                     |              21 |           12 |
++--------------+-----------------------+------------------------+-----------------+--------------+
+
+
+4. Detailed Control Set Information
+-----------------------------------
+
++--------------+--------------------------------------------------------------------+-----------------------------------------+------------------+----------------+
+| Clock Signal |                            Enable Signal                           |             Set/Reset Signal            | Slice Load Count | Bel Load Count |
++--------------+--------------------------------------------------------------------+-----------------------------------------+------------------+----------------+
+|  ap_clk      | bd_0_i/hls_inst/inst/mean_U/loop_imperfect_mean_rom_U/addr_out_ce0 |                                         |                4 |              7 |
+|  ap_clk      |                                                                    | bd_0_i/hls_inst/inst/ap_CS_fsm_state203 |                4 |              7 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ce049                                         |                                         |                4 |              7 |
+|  ap_clk      |                                                                    |                                         |                6 |             10 |
+|  ap_clk      | bd_0_i/hls_inst/inst/mean_U/loop_imperfect_mean_rom_U/E[0]         |                                         |                4 |             14 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_96_reg_110520                       |                                         |                5 |             14 |
+|  ap_clk      | bd_0_i/hls_inst/inst/ap_phi_mux_i_0_phi_fu_3235_p41                | bd_0_i/hls_inst/inst/i_0_reg_3231       |               12 |             21 |
+|  ap_clk      | bd_0_i/hls_inst/inst/data_addr_96_reg_109820                       |                                         |                8 |             28 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_64_in                                       |                                         |                5 |             28 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_28_reg_88220                        |                                         |               23 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_84_reg_106420                       |                                         |               18 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_88_reg_107720                       |                                         |               21 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_8_reg_82820                         |                                         |               19 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_92_reg_109020                       |                                         |               18 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_1_reg_80870                         |                                         |               18 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_68_reg_101220                       |                                         |               17 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_72_reg_102520                       |                                         |               17 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_16_reg_84820                        |                                         |               24 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_52_reg_96020                        |                                         |               23 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_76_reg_103820                       |                                         |               20 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_80_reg_105120                       |                                         |               20 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_20_reg_85820                        |                                         |               19 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_32_reg_89520                        |                                         |               15 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_59_in                                       |                                         |               22 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_60_in                                       |                                         |               18 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_63_in                                       |                                         |               17 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_37_in                                       |                                         |               19 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_43_in                                       |                                         |               23 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_47_in                                       |                                         |               22 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_53_in                                       |                                         |               17 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_57_in                                       |                                         |               18 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_61_in                                       |                                         |               18 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_56_reg_97320                        |                                         |               19 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_60_reg_98620                        |                                         |               23 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_64_reg_99920                        |                                         |               22 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_49_in                                       |                                         |               19 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_54_in                                       |                                         |               20 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_58_in                                       |                                         |               17 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_62_in                                       |                                         |               19 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_44_reg_93420                        |                                         |               18 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_12_reg_83820                        |                                         |               16 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_48_reg_94720                        |                                         |               18 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_24_reg_86920                        |                                         |               16 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_36_reg_90820                        |                                         |               18 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_27_in                                       |                                         |               23 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_34_in                                       |                                         |               20 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_35_in                                       |                                         |               22 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_36_in                                       |                                         |               15 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_39_in                                       |                                         |               17 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_41_in                                       |                                         |               17 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_45_in                                       |                                         |               15 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_46_in                                       |                                         |               20 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_51_in                                       |                                         |               17 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_52_in                                       |                                         |               19 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_55_in                                       |                                         |               16 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/p_56_in                                       |                                         |               19 |             56 |
+|  ap_clk      | bd_0_i/hls_inst/inst/add_ln106_40_reg_92120                        |                                         |               21 |             56 |
+|  ap_clk      |                                                                    | ap_rst                                  |               78 |            205 |
++--------------+--------------------------------------------------------------------+-----------------------------------------+------------------+----------------+
+
+

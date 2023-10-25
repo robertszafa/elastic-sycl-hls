@@ -1,0 +1,234 @@
+{
+  "nodes":
+  [
+    {
+      "name":"MainKernel"
+      , "id":1817
+      , "type":"kernel"
+      , "children":
+      [
+        {
+          "name":"On-chip Memory"
+          , "id":1818
+          , "type":"memtype"
+          , "children":
+          [
+            {
+              "name":"Unknown ROM (address space 2049)"
+              , "id":1819
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Requested size":"20 bytes"
+                  , "Implemented size":"16 bytes"
+                  , "Number of banks":"1"
+                  , "Number of replicates":"1"
+                  , "Additional information":"ROM contents for 1 replicate was  pruned based on access pattern of the load site"
+                }
+              ]
+              , "type":"romsys"
+              , "children":
+              [
+                {
+                  "name":"Bank 0"
+                  , "id":1820
+                  , "details":
+                  [
+                    {
+                      "type":"table"
+                      , "Bank width":"32 bits"
+                      , "Implemented size":"16 bytes"
+                      , "Number of replicates":"1"
+                      , "Replicate ID(s) with pruned initializer":"0"
+                    }
+                  ]
+                  , "type":"bank"
+                  , "children":
+                  [
+                    {
+                      "name":"Replicate 0"
+                      , "id":1821
+                      , "details":
+                      [
+                        {
+                          "type":"table"
+                          , "Width":"32 bits"
+                          , "Depth":"4 words"
+                          , "Size":"16 bytes"
+                          , "Additional Information":"20 % of ROM contents were pruned away based on the access pattern of the load site."
+                        }
+                      ]
+                      , "type":"replicate"
+                      , "children":
+                      [
+                        {
+                          "name":"R"
+                          , "id":1823
+                          , "type":"port"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Unknown ROM (address space 2050)"
+              , "id":1824
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Requested size":"20 bytes"
+                  , "Implemented size":"16 bytes"
+                  , "Number of banks":"1"
+                  , "Number of replicates":"1"
+                  , "Additional information":"ROM contents for 1 replicate was  pruned based on access pattern of the load site"
+                }
+              ]
+              , "type":"romsys"
+              , "children":
+              [
+                {
+                  "name":"Bank 0"
+                  , "id":1825
+                  , "details":
+                  [
+                    {
+                      "type":"table"
+                      , "Bank width":"32 bits"
+                      , "Implemented size":"16 bytes"
+                      , "Number of replicates":"1"
+                      , "Replicate ID(s) with pruned initializer":"0"
+                    }
+                  ]
+                  , "type":"bank"
+                  , "children":
+                  [
+                    {
+                      "name":"Replicate 0"
+                      , "id":1826
+                      , "details":
+                      [
+                        {
+                          "type":"table"
+                          , "Width":"32 bits"
+                          , "Depth":"4 words"
+                          , "Size":"16 bytes"
+                          , "Additional Information":"20 % of ROM contents were pruned away based on the access pattern of the load site."
+                        }
+                      ]
+                      , "type":"replicate"
+                      , "children":
+                      [
+                        {
+                          "name":"R"
+                          , "id":1828
+                          , "type":"port"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"Load"
+          , "id":1822
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Data width":"32 bits"
+              , "Type":"ROM lookup"
+              , "Loads from":"Unknown ROM (address space 2049)"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+                      , "line":"850"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+                , "line":850
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Load"
+          , "id":1827
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Data width":"32 bits"
+              , "Type":"ROM lookup"
+              , "Loads from":"Unknown ROM (address space 2050)"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+                      , "line":"850"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+                , "line":850
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":1822
+      , "to":1823
+    }
+    , {
+      "from":1827
+      , "to":1828
+    }
+  ]
+}

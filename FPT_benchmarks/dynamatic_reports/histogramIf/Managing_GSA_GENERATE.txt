@@ -1,0 +1,125 @@
+
+
+*******************************************************
+	Starting a new LSQ!!!!
+
+
+
+============================================
+
+The control dependencies before modifications are:  
+ProducerBB: BB4  has the following modified control dependencies:     1,3,
+
+ConsumerBB: BB3  has the following modified control dependencies:     1,
+
+
+
+*****************************************
+
+
+	New (Producer,Consumer) pair:
+ProducerBB: BB4  has the following modified control dependencies:     3,
+
+ConsumerBB: BB3  has the following modified control dependencies:     Has no modified control dependencies!!
+
+
+*******************************************
+
+Found 1 paths
+Printing path number 0 details
+3 -> 2 -> 1 -> 
+
+*******************************************
+
+Found 1 paths
+Printing path number 0 details
+4 -> 3 -> 2 -> 1 -> 
+The outcome of negating the product number 0is: 	 not C3 +  & 
+
+
+
+###########################################################
+
+
+
+	Let's check what came out!!
+
+
+Need to insert a MUX with:  condition = 3
+
+	Right before calling applyShannon, the size of f_gen is: 1
+
+	Inside applyShannon
+
+********* Inside get_binary_string_minterms *******************
+	Printing the minterms_only_in_binary with dontcare bits:
+0
+
+	Printing the f_supp after converting it to string
+0 + 
+
+
+**********************************************
+
+
+Printing the funct_vec of the expression initially
+not C3 &  + 
+
+
+
+Inside hasMultipleVariables!
+
+The list of var_index of these variables is: 
+2, 
+The size of present_variables is: 1
+Leaving hasMultipleVariables!
+
+Not many variables to do Shannon's!
+
+F_SUPP is a single condition!!
+	The condition is inverted!!
+
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+	Will insert a MUX in BB4 and the consumer Bx is 3
+
+
+
+============================================
+
+The control dependencies before modifications are:  
+ProducerBB: BB3  has the following modified control dependencies:     1,
+
+ConsumerBB: BB4  has the following modified control dependencies:     1,3,
+
+
+
+*****************************************
+
+
+	New (Producer,Consumer) pair:
+ProducerBB: BB3  has the following modified control dependencies:     Has no modified control dependencies!!
+
+ConsumerBB: BB4  has the following modified control dependencies:     3,
+
+
+*******************************************
+
+Found 1 paths
+Printing path number 0 details
+4 -> 3 -> 2 -> 1 -> 
+
+*******************************************
+
+Found 1 paths
+Printing path number 0 details
+3 -> 2 -> 1 -> 
+
+
+###########################################################
+
+
+
+	Let's check what came out!!
+
+
+No need to insert a GENERATE!!

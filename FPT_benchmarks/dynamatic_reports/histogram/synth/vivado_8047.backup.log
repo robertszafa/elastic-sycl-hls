@@ -1,0 +1,2726 @@
+#-----------------------------------------------------------
+# Vivado v2019.2 (64-bit)
+# SW Build 2708876 on Wed Nov  6 21:39:14 MST 2019
+# IP Build 2700528 on Thu Nov  7 00:09:20 MST 2019
+# Start of session at: Mon Jun 19 13:14:29 2023
+# Process ID: 8047
+# Current directory: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/synth
+# Command line: vivado -mode batch -source synthesize_4.tcl
+# Log file: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/synth/vivado.log
+# Journal file: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/synth/vivado.jou
+#-----------------------------------------------------------
+source synthesize_4.tcl
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/arithmetic_units.vhd
+read_vhdl: Time (s): cpu = 00:00:02 ; elapsed = 00:00:06 . Memory (MB): peak = 1500.844 ; gain = 35.016 ; free physical = 4485 ; free virtual = 9779
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/delay_buffer.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/elastic_components.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/MemCont.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/multipliers.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/mul_wrapper.vhd
+# read_verilog  ../sim/VHDL_SRC/LSQ_hist.v
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/histogram_optimized.vhd
+# read_xdc period_4.xdc
+# synth_design -top histogram -part xcku5p-sfvb784-3-e -no_iobuf -mode out_of_context
+Command: synth_design -top histogram -part xcku5p-sfvb784-3-e -no_iobuf -mode out_of_context
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xcku5p'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xcku5p'
+INFO: [Device 21-403] Loading part xcku5p-sfvb784-3-e
+INFO: Launching helper process for spawning children vivado processes
+INFO: Helper process launched with PID 8110 
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:21 . Memory (MB): peak = 2486.438 ; gain = 29.871 ; free physical = 3320 ; free virtual = 8738
+---------------------------------------------------------------------------------
+INFO: [Synth 8-638] synthesizing module 'histogram' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:56]
+INFO: [Synth 8-638] synthesizing module 'start_node' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1034]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticBuffer' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:303]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'TEHB' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:167]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'TEHB' (1#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:167]
+INFO: [Synth 8-638] synthesizing module 'OEHB' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:242]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'OEHB' (2#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:242]
+INFO: [Synth 8-256] done synthesizing module 'elasticBuffer' (3#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:303]
+INFO: [Synth 8-256] done synthesizing module 'start_node' (4#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1034]
+INFO: [Synth 8-638] synthesizing module 'Const' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1564]
+	Parameter SIZE bound to: 1 - type: integer 
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'Const' (5#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1564]
+INFO: [Synth 8-638] synthesizing module 'icmp_sgt_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/arithmetic_units.vhd:741]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module '\join ' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:113]
+	Parameter SIZE bound to: 2 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'andN' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:24]
+	Parameter n bound to: 2 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'andN' (6#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:24]
+INFO: [Synth 8-256] done synthesizing module '\join ' (7#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:113]
+INFO: [Synth 8-256] done synthesizing module 'icmp_sgt_op' (8#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/arithmetic_units.vhd:741]
+INFO: [Synth 8-638] synthesizing module 'start_node__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1034]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticBuffer__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:303]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'TEHB__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:167]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'TEHB__parameterized0' (8#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:167]
+INFO: [Synth 8-638] synthesizing module 'OEHB__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:242]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'OEHB__parameterized0' (8#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:242]
+INFO: [Synth 8-256] done synthesizing module 'elasticBuffer__parameterized0' (8#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:303]
+INFO: [Synth 8-256] done synthesizing module 'start_node__parameterized0' (8#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1034]
+INFO: [Synth 8-638] synthesizing module 'branch' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:584]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter SIZE bound to: 2 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'join__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:113]
+	Parameter SIZE bound to: 2 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'join__parameterized0' (8#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:113]
+INFO: [Synth 8-638] synthesizing module 'branchSimple' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:553]
+INFO: [Synth 8-256] done synthesizing module 'branchSimple' (9#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:553]
+INFO: [Synth 8-256] done synthesizing module 'branch' (10#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:584]
+INFO: [Synth 8-638] synthesizing module 'branch__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:584]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter SIZE bound to: 2 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'branch__parameterized0' (10#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:584]
+INFO: [Synth 8-638] synthesizing module '\fork ' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 2 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 2 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN' (11#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-638] synthesizing module 'eagerFork_RegisterBLock' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:623]
+INFO: [Synth 8-256] done synthesizing module 'eagerFork_RegisterBLock' (12#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:623]
+INFO: [Synth 8-256] done synthesizing module '\fork ' (13#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 4 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 4 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized0' (13#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized0' (13#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 4 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized1' (13#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 2 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized2' (13#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'mux' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1810]
+	Parameter INPUTS bound to: 3 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter COND_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'mux' (14#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1810]
+INFO: [Synth 8-638] synthesizing module 'mc_load_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:583]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 2 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'mc_load_op' (15#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:583]
+INFO: [Synth 8-638] synthesizing module 'lsq_load_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1987]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 2 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'lsq_load_op' (16#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1987]
+INFO: [Synth 8-638] synthesizing module 'add_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/arithmetic_units.vhd:67]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'add_op' (17#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/arithmetic_units.vhd:67]
+INFO: [Synth 8-638] synthesizing module 'lsq_store_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:2033]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 2 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'lsq_store_op' (18#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:2033]
+INFO: [Synth 8-638] synthesizing module 'icmp_slt_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/arithmetic_units.vhd:911]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'icmp_slt_op' (19#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/arithmetic_units.vhd:911]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized3' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized1' (19#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized3' (19#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'mux__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1810]
+	Parameter INPUTS bound to: 3 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+	Parameter COND_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'mux__parameterized0' (19#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1810]
+INFO: [Synth 8-638] synthesizing module 'merge' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:783]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'merge' (20#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:783]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized4' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 3 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 3 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized2' (20#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized4' (20#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized5' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 3 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized5' (20#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'elasticBuffer__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:303]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'elasticBuffer__parameterized1' (20#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:303]
+INFO: [Synth 8-638] synthesizing module 'transpFIFO' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1422]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 5 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticFifoInner' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1167]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 5 - type: integer 
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1196]
+WARNING: [Synth 8-6014] Unused sequential element fifo_valid_reg was removed.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1199]
+INFO: [Synth 8-256] done synthesizing module 'elasticFifoInner' (21#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1167]
+INFO: [Synth 8-256] done synthesizing module 'transpFIFO' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1422]
+INFO: [Synth 8-638] synthesizing module 'elasticBuffer__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:303]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'elasticBuffer__parameterized2' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:303]
+INFO: [Synth 8-638] synthesizing module 'ret_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/arithmetic_units.vhd:24]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'ret_op' (23#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/arithmetic_units.vhd:24]
+INFO: [Synth 8-3491] module 'LSQ_hist' declared at '/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:39714' bound to instance 'c_LSQ_hist' of component 'LSQ_hist' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:1855]
+INFO: [Synth 8-6157] synthesizing module 'LSQ_hist' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:39714]
+INFO: [Synth 8-6157] synthesizing module 'STORE_QUEUE_LSQ_hist' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:1]
+INFO: [Synth 8-6155] done synthesizing module 'STORE_QUEUE_LSQ_hist' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:1]
+INFO: [Synth 8-6157] synthesizing module 'LOAD_QUEUE_LSQ_hist' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:9077]
+INFO: [Synth 8-6155] done synthesizing module 'LOAD_QUEUE_LSQ_hist' (25#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:9077]
+INFO: [Synth 8-6157] synthesizing module 'GROUP_ALLOCATOR_LSQ_hist' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:39337]
+INFO: [Synth 8-6155] done synthesizing module 'GROUP_ALLOCATOR_LSQ_hist' (26#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:39337]
+INFO: [Synth 8-6157] synthesizing module 'LOAD_PORT_LSQ_hist' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:39523]
+INFO: [Synth 8-6155] done synthesizing module 'LOAD_PORT_LSQ_hist' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:39523]
+INFO: [Synth 8-6157] synthesizing module 'STORE_DATA_PORT_LSQ_hist' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:39623]
+INFO: [Synth 8-6155] done synthesizing module 'STORE_DATA_PORT_LSQ_hist' (28#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:39623]
+INFO: [Synth 8-6155] done synthesizing module 'LSQ_hist' (29#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:39714]
+INFO: [Synth 8-638] synthesizing module 'MemCont' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:753]
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter BB_COUNT bound to: 1 - type: integer 
+	Parameter LOAD_COUNT bound to: 1 - type: integer 
+	Parameter STORE_COUNT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'read_memory_arbiter' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:202]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'read_priority' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:17]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_priority' (30#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:17]
+INFO: [Synth 8-638] synthesizing module 'read_address_mux' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:52]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_address_mux' (31#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:52]
+INFO: [Synth 8-638] synthesizing module 'read_address_ready' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:86]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_address_ready' (32#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:86]
+INFO: [Synth 8-638] synthesizing module 'read_data_signals' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:116]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_data_signals' (33#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:116]
+INFO: [Synth 8-256] done synthesizing module 'read_memory_arbiter' (34#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:202]
+INFO: [Synth 8-638] synthesizing module 'write_memory_arbiter' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:464]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'write_priority' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:287]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_priority' (35#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:287]
+INFO: [Synth 8-638] synthesizing module 'write_address_mux' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:326]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_address_mux' (36#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:326]
+INFO: [Synth 8-638] synthesizing module 'write_address_ready' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:362]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_address_ready' (37#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:362]
+INFO: [Synth 8-638] synthesizing module 'write_data_signals' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:396]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_data_signals' (38#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:396]
+INFO: [Synth 8-256] done synthesizing module 'write_memory_arbiter' (39#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:464]
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:814]
+INFO: [Synth 8-256] done synthesizing module 'MemCont' (40#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/MemCont.vhd:753]
+INFO: [Synth 8-638] synthesizing module 'sink' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1105]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 0 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'sink' (41#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1105]
+INFO: [Synth 8-638] synthesizing module 'sink__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1105]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 0 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'sink__parameterized0' (41#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:1105]
+INFO: [Synth 8-638] synthesizing module 'end_node' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:481]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter MEM_INPUTS bound to: 3 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'andN__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:24]
+	Parameter n bound to: 3 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'andN__parameterized0' (41#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:24]
+WARNING: [Synth 8-3848] Net eReadyArray in module/entity end_node does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:477]
+INFO: [Synth 8-256] done synthesizing module 'end_node' (42#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/elastic_components.vhd:481]
+WARNING: [Synth 8-3848] Net n_ready_out in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:23]
+WARNING: [Synth 8-3848] Net hist_we1 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:31]
+WARNING: [Synth 8-3848] Net hist_dout1 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:32]
+WARNING: [Synth 8-3848] Net feature_we1 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:41]
+WARNING: [Synth 8-3848] Net feature_dout1 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:42]
+WARNING: [Synth 8-3848] Net weight_we1 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:51]
+WARNING: [Synth 8-3848] Net weight_dout1 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:52]
+WARNING: [Synth 8-3848] Net start_0_dataInArray_0 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:99]
+WARNING: [Synth 8-3848] Net MC_feature_pValidArray_2 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:647]
+WARNING: [Synth 8-3848] Net MC_feature_dataInArray_2 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:643]
+WARNING: [Synth 8-3848] Net MC_feature_pValidArray_3 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:648]
+WARNING: [Synth 8-3848] Net MC_feature_dataInArray_3 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:644]
+WARNING: [Synth 8-3848] Net MC_weight_pValidArray_2 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:669]
+WARNING: [Synth 8-3848] Net MC_weight_dataInArray_2 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:665]
+WARNING: [Synth 8-3848] Net MC_weight_pValidArray_3 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:670]
+WARNING: [Synth 8-3848] Net MC_weight_dataInArray_3 in module/entity histogram does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:666]
+INFO: [Synth 8-256] done synthesizing module 'histogram' (43#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/histogram_optimized.vhd:56]
+WARNING: [Synth 8-3331] design end_node has unconnected port eReadyArray[2]
+WARNING: [Synth 8-3331] design end_node has unconnected port eReadyArray[1]
+WARNING: [Synth 8-3331] design end_node has unconnected port eReadyArray[0]
+WARNING: [Synth 8-3331] design end_node has unconnected port clk
+WARNING: [Synth 8-3331] design end_node has unconnected port rst
+WARNING: [Synth 8-3331] design sink__parameterized0 has unconnected port clk
+WARNING: [Synth 8-3331] design sink__parameterized0 has unconnected port rst
+WARNING: [Synth 8-3331] design sink__parameterized0 has unconnected port dataInArray[0][0]
+WARNING: [Synth 8-3331] design sink__parameterized0 has unconnected port pValidArray[0]
+WARNING: [Synth 8-3331] design sink has unconnected port clk
+WARNING: [Synth 8-3331] design sink has unconnected port rst
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][31]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][30]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][29]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][28]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][27]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][26]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][25]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][24]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][23]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][22]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][21]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][20]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][19]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][18]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][17]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][16]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][15]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][14]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][13]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][12]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][11]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][10]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][9]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][8]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][7]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][6]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][5]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][4]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][3]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][2]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][1]
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][0]
+WARNING: [Synth 8-3331] design sink has unconnected port pValidArray[0]
+WARNING: [Synth 8-3331] design MemCont has unconnected port io_Empty_Ready
+WARNING: [Synth 8-3331] design MemCont has unconnected port io_wrDataPorts_valid[0]
+WARNING: [Synth 8-3331] design branch__parameterized0 has unconnected port clk
+WARNING: [Synth 8-3331] design branch__parameterized0 has unconnected port rst
+WARNING: [Synth 8-3331] design branch has unconnected port clk
+WARNING: [Synth 8-3331] design branch has unconnected port rst
+WARNING: [Synth 8-3331] design icmp_slt_op has unconnected port clk
+WARNING: [Synth 8-3331] design icmp_slt_op has unconnected port rst
+WARNING: [Synth 8-3331] design add_op has unconnected port clk
+WARNING: [Synth 8-3331] design add_op has unconnected port rst
+WARNING: [Synth 8-3331] design Const has unconnected port clk
+WARNING: [Synth 8-3331] design Const has unconnected port rst
+WARNING: [Synth 8-3331] design lsq_store_op has unconnected port rst
+WARNING: [Synth 8-3331] design lsq_store_op has unconnected port clk
+WARNING: [Synth 8-3331] design lsq_load_op has unconnected port rst
+WARNING: [Synth 8-3331] design lsq_load_op has unconnected port clk
+WARNING: [Synth 8-3331] design icmp_sgt_op has unconnected port clk
+WARNING: [Synth 8-3331] design icmp_sgt_op has unconnected port rst
+WARNING: [Synth 8-3331] design histogram has unconnected port n_ready_out
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_we1
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[31]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[30]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[29]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[28]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[27]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[26]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[25]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[24]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[23]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[22]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[21]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[20]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[19]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[18]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[17]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[16]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[15]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[14]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[13]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[12]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[11]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[10]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[9]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[8]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[7]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[6]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[5]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[4]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[3]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[2]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[1]
+WARNING: [Synth 8-3331] design histogram has unconnected port hist_dout1[0]
+WARNING: [Synth 8-3331] design histogram has unconnected port feature_we1
+WARNING: [Synth 8-3331] design histogram has unconnected port feature_dout1[31]
+WARNING: [Synth 8-3331] design histogram has unconnected port feature_dout1[30]
+WARNING: [Synth 8-3331] design histogram has unconnected port feature_dout1[29]
+INFO: [Common 17-14] Message 'Synth 8-3331' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:09 ; elapsed = 00:00:44 . Memory (MB): peak = 2757.203 ; gain = 300.637 ; free physical = 3094 ; free virtual = 8519
+---------------------------------------------------------------------------------
+
+Report Check Netlist: 
++------+------------------+-------+---------+-------+------------------+
+|      |Item              |Errors |Warnings |Status |Description       |
++------+------------------+-------+---------+-------+------------------+
+|1     |multi_driven_nets |      0|        0|Passed |Multi driven nets |
++------+------------------+-------+---------+-------+------------------+
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:12 ; elapsed = 00:00:51 . Memory (MB): peak = 2766.109 ; gain = 309.543 ; free physical = 3140 ; free virtual = 8565
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:12 ; elapsed = 00:00:51 . Memory (MB): peak = 2766.109 ; gain = 309.543 ; free physical = 3140 ; free virtual = 8565
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:00.26 ; elapsed = 00:00:00.73 . Memory (MB): peak = 2766.109 ; gain = 0.000 ; free physical = 3131 ; free virtual = 8556
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/synth/period_4.xdc]
+create_clock: Time (s): cpu = 00:00:02 ; elapsed = 00:00:07 . Memory (MB): peak = 2869.895 ; gain = 2.969 ; free physical = 3844 ; free virtual = 9277
+Finished Parsing XDC File [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/synth/period_4.xdc]
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2869.895 ; gain = 0.000 ; free physical = 3844 ; free virtual = 9276
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:00.13 ; elapsed = 00:00:00.40 . Memory (MB): peak = 2869.895 ; gain = 0.000 ; free physical = 3843 ; free virtual = 9275
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:23 ; elapsed = 00:01:33 . Memory (MB): peak = 2869.895 ; gain = 413.328 ; free physical = 3958 ; free virtual = 9390
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5580] Multithreading enabled for synth_design using a maximum of 4 processes.
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xcku5p-sfvb784-3-e
+INFO: [Synth 8-6742] Reading net delay rules and data
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:23 ; elapsed = 00:01:33 . Memory (MB): peak = 2881.816 ; gain = 425.250 ; free physical = 3957 ; free virtual = 9390
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:23 ; elapsed = 00:01:33 . Memory (MB): peak = 2881.816 ; gain = 425.250 ; free physical = 3957 ; free virtual = 9389
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:39613]
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/sim/VHDL_SRC/LSQ_hist.v:39704]
+INFO: [Synth 8-6904] The RAM "elasticFifoInner:/Memory_reg" of size (depth=5 x width=32) is automatically implemented using LUTRAM. BRAM implementation would be inefficient 
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:32 ; elapsed = 00:04:11 . Memory (MB): peak = 2881.816 ; gain = 425.250 ; free physical = 1498 ; free virtual = 6958
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++------+-------------------------+------------+----------+
+|      |RTL Partition            |Replication |Instances |
++------+-------------------------+------------+----------+
+|1     |LOAD_QUEUE_LSQ_hist__GB0 |           1|     25164|
+|2     |LOAD_QUEUE_LSQ_hist__GB1 |           1|     25688|
+|3     |LOAD_QUEUE_LSQ_hist__GB2 |           1|     17976|
+|4     |LOAD_QUEUE_LSQ_hist__GB3 |           1|     20511|
+|5     |LSQ_hist__GC0            |           1|     13240|
+|6     |histogram__GC0           |           1|      3365|
++------+-------------------------+------------+----------+
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 2     
+	   3 Input     32 Bit       Adders := 2     
+	   2 Input      5 Bit       Adders := 65    
+	   3 Input      5 Bit       Adders := 2     
+	   2 Input      4 Bit       Adders := 6     
+	   3 Input      4 Bit       Adders := 2     
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	               32 Bit    Registers := 101   
+	                5 Bit    Registers := 3     
+	                4 Bit    Registers := 38    
+	                1 Bit    Registers := 853   
++---RAMs : 
+	              160 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input    512 Bit        Muxes := 16    
+	   2 Input     32 Bit        Muxes := 51    
+	   2 Input     16 Bit        Muxes := 608   
+	  17 Input     16 Bit        Muxes := 80    
+	   2 Input      5 Bit        Muxes := 2     
+	  15 Input      4 Bit        Muxes := 2     
+	   2 Input      4 Bit        Muxes := 1     
+	   2 Input      2 Bit        Muxes := 3     
+	   2 Input      1 Bit        Muxes := 503   
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Hierarchical Component Statistics 
+---------------------------------------------------------------------------------
+Hierarchical RTL Component report 
+Module LOAD_QUEUE_LSQ_hist 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 31    
+	   2 Input      4 Bit       Adders := 2     
++---Registers : 
+	               32 Bit    Registers := 48    
+	                4 Bit    Registers := 19    
+	                1 Bit    Registers := 688   
++---Muxes : 
+	   2 Input    512 Bit        Muxes := 16    
+	   2 Input     32 Bit        Muxes := 18    
+	   2 Input     16 Bit        Muxes := 576   
+	  17 Input     16 Bit        Muxes := 48    
+	  15 Input      4 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 368   
+Module STORE_QUEUE_LSQ_hist 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 31    
+	   2 Input      4 Bit       Adders := 2     
++---Registers : 
+	               32 Bit    Registers := 32    
+	                4 Bit    Registers := 19    
+	                1 Bit    Registers := 96    
++---Muxes : 
+	  17 Input     16 Bit        Muxes := 32    
+	   2 Input     16 Bit        Muxes := 32    
+	   2 Input      1 Bit        Muxes := 95    
+Module GROUP_ALLOCATOR_LSQ_hist 
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input      5 Bit       Adders := 2     
+	   2 Input      4 Bit       Adders := 2     
+	   3 Input      4 Bit       Adders := 2     
++---Muxes : 
+	   2 Input      5 Bit        Muxes := 2     
+	   2 Input      4 Bit        Muxes := 1     
+Module LOAD_PORT_LSQ_hist 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 1     
++---Registers : 
+	                5 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module STORE_DATA_PORT_LSQ_hist__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 1     
++---Registers : 
+	                5 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module STORE_DATA_PORT_LSQ_hist 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 1     
++---Registers : 
+	                5 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module start_node 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module andN 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__parameterized0 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module OEHB__parameterized0 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module start_node__parameterized0 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module andN__5 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__6 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__4 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module orN__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__20 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__19 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized0__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__31 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__30 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__29 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__28 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized0 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__16 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__17 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__18 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__14 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__15 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module TEHB__7 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module mux__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__11 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__10 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__5 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__6 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module andN__10 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module add_op__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 1     
+Module andN__9 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module add_op 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 1     
+Module andN__8 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__13 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module TEHB__8 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module mux__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__parameterized0__2 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module mux__parameterized0 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 3     
+Module andN__7 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__4 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module merge 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__3 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module orN__parameterized2__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__27 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__26 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__25 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__3 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__22 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__21 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized0__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__9 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__10 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__11 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__12 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__4 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__24 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__23 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__6 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__7 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__8 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized2__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__3 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__4 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__5 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__2 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module TEHB__9 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB__2 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module elasticFifoInner 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      3 Bit       Adders := 2     
++---Registers : 
+	                1 Bit    Registers := 2     
++---RAMs : 
+	              160 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__3 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB__1 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module TEHB__parameterized0__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module OEHB__parameterized0__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module TEHB__2 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module mux 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__1 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module read_address_mux__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module read_data_signals__1 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module write_address_mux__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module write_data_signals__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module MemCont__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input     32 Bit       Adders := 1     
++---Registers : 
+	               32 Bit    Registers := 2     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module read_address_mux 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module read_data_signals 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module write_address_mux 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module write_data_signals 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module MemCont 
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input     32 Bit       Adders := 1     
++---Registers : 
+	               32 Bit    Registers := 2     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module andN__parameterized0 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+---------------------------------------------------------------------------------
+Finished RTL Hierarchical Component Statistics
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 1824 (col length:96)
+BRAMs: 960 (col length: RAMB18 96 RAMB36 48)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6904] The RAM "i_0/Buffer_2/fifo/Memory_reg" of size (depth=5 x width=32) is automatically implemented using LUTRAM. BRAM implementation would be inefficient 
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (i_0/\forkC_0/generateBlocks[0].regblock/reg_value_reg )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_2_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_0_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_7_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_6_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_8_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_9_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_10_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_11_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_13_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_5_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_3_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_15_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_14_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_12_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_4_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_1_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_2_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_1_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_3_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_4_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_5_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_6_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_7_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_8_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_9_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_10_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_11_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_12_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_13_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_14_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_15_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (storeQ/portQ_0_reg)
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:58 ; elapsed = 00:11:29 . Memory (MB): peak = 2897.828 ; gain = 441.262 ; free physical = 2953 ; free virtual = 4911
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Distributed RAM: Preliminary Mapping	Report (see note below)
++------------+--------------------------+-----------+----------------------+---------------+
+|Module Name | RTL Object               | Inference | Size (Depth x Width) | Primitives    | 
++------------+--------------------------+-----------+----------------------+---------------+
+|histogram   | Buffer_2/fifo/Memory_reg | Implied   | 8 x 32               | RAM32M16 x 3	 | 
++------------+--------------------------+-----------+----------------------+---------------+
+
+Note: The table above is a preliminary report that shows the Distributed RAMs at the current stage of the synthesis flow. Some Distributed RAMs may be reimplemented as non Distributed RAM primitives later in the synthesis flow. Multiple instantiated RAMs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++------+-------------------------+------------+----------+
+|      |RTL Partition            |Replication |Instances |
++------+-------------------------+------------+----------+
+|1     |LOAD_QUEUE_LSQ_hist__GB0 |           1|     15184|
+|2     |LOAD_QUEUE_LSQ_hist__GB1 |           1|     27214|
+|3     |LOAD_QUEUE_LSQ_hist__GB2 |           1|      9803|
+|4     |LOAD_QUEUE_LSQ_hist__GB3 |           1|     17980|
+|5     |LSQ_hist__GC0            |           1|      5957|
+|6     |histogram__GC0           |           1|      3361|
++------+-------------------------+------------+----------+
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:01:20 ; elapsed = 00:12:37 . Memory (MB): peak = 3175.695 ; gain = 719.129 ; free physical = 2335 ; free virtual = 4391
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:02:47 ; elapsed = 00:15:14 . Memory (MB): peak = 3655.156 ; gain = 1198.590 ; free physical = 2132 ; free virtual = 4221
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Distributed RAM: Final Mapping	Report
++------------+--------------------------+-----------+----------------------+---------------+
+|Module Name | RTL Object               | Inference | Size (Depth x Width) | Primitives    | 
++------------+--------------------------+-----------+----------------------+---------------+
+|histogram   | Buffer_2/fifo/Memory_reg | Implied   | 8 x 32               | RAM32M16 x 3	 | 
++------------+--------------------------+-----------+----------------------+---------------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++------+-----------------+------------+----------+
+|      |RTL Partition    |Replication |Instances |
++------+-----------------+------------+----------+
+|1     |histogram_GT0    |           1|       808|
+|2     |histogram_GT3    |           1|     17308|
+|3     |histogram_GT4    |           1|       351|
+|4     |histogram_GT6    |           1|         4|
+|5     |histogram_GT0__1 |           1|     47787|
+|6     |histogram_GT1    |           1|     12563|
++------+-----------------+------------+----------+
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:02:55 ; elapsed = 00:19:25 . Memory (MB): peak = 3667.082 ; gain = 1210.516 ; free physical = 414 ; free virtual = 2498
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++------+-----------------+------------+----------+
+|      |RTL Partition    |Replication |Instances |
++------+-----------------+------------+----------+
+|1     |histogram_GT0    |           1|       746|
+|2     |histogram_GT3    |           1|      5530|
+|3     |histogram_GT4    |           1|       351|
+|4     |histogram_GT6    |           1|         4|
+|5     |histogram_GT0__1 |           1|     14175|
+|6     |histogram_GT1    |           1|      5028|
++------+-----------------+------------+----------+
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:03:01 ; elapsed = 00:19:35 . Memory (MB): peak = 3667.082 ; gain = 1210.516 ; free physical = 393 ; free virtual = 2497
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:03:01 ; elapsed = 00:19:35 . Memory (MB): peak = 3667.082 ; gain = 1210.516 ; free physical = 393 ; free virtual = 2497
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++-+--------------+------------+----------+
+| |RTL Partition |Replication |Instances |
++-+--------------+------------+----------+
++-+--------------+------------+----------+
+
+Report Check Netlist: 
++------+------------------+-------+---------+-------+------------------+
+|      |Item              |Errors |Warnings |Status |Description       |
++------+------------------+-------+---------+-------+------------------+
+|1     |multi_driven_nets |      0|        0|Passed |Multi driven nets |
++------+------------------+-------+---------+-------+------------------+
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:03:04 ; elapsed = 00:19:39 . Memory (MB): peak = 3667.082 ; gain = 1210.516 ; free physical = 396 ; free virtual = 2500
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:03:04 ; elapsed = 00:19:39 . Memory (MB): peak = 3667.082 ; gain = 1210.516 ; free physical = 397 ; free virtual = 2500
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:03:05 ; elapsed = 00:19:41 . Memory (MB): peak = 3667.082 ; gain = 1210.516 ; free physical = 397 ; free virtual = 2500
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:03:05 ; elapsed = 00:19:41 . Memory (MB): peak = 3667.082 ; gain = 1210.516 ; free physical = 397 ; free virtual = 2500
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+---------+------+
+|      |Cell     |Count |
++------+---------+------+
+|1     |CARRY8   |   580|
+|2     |LUT1     |    48|
+|3     |LUT2     |   658|
+|4     |LUT3     |   339|
+|5     |LUT4     |  5744|
+|6     |LUT5     |  5118|
+|7     |LUT6     |  7876|
+|8     |MUXF7    |  1218|
+|9     |MUXF8    |    71|
+|10    |RAM32M16 |     3|
+|11    |FDCE     |   541|
+|12    |FDPE     |    31|
+|13    |FDRE     |  3628|
++------+---------+------+
+
+Report Instance Areas: 
++------+---------------------------------+--------------------------------+------+
+|      |Instance                         |Module                          |Cells |
++------+---------------------------------+--------------------------------+------+
+|1     |top                              |                                | 25855|
+|2     |  Buffer_1                       |elasticBuffer__parameterized1   |    71|
+|3     |    oehb1                        |OEHB_58                         |    37|
+|4     |    tehb1                        |TEHB_59                         |    34|
+|5     |  Buffer_2                       |transpFIFO                      |    26|
+|6     |    fifo                         |elasticFifoInner                |    26|
+|7     |  Buffer_3                       |elasticBuffer__parameterized1_0 |   172|
+|8     |    oehb1                        |OEHB_56                         |    74|
+|9     |    tehb1                        |TEHB_57                         |    98|
+|10    |  Buffer_4                       |elasticBuffer__parameterized2   |    20|
+|11    |    oehb1                        |OEHB__parameterized0_54         |    19|
+|12    |    tehb1                        |TEHB__parameterized0_55         |     1|
+|13    |  MC_feature                     |MemCont                         |   207|
+|14    |    read_arbiter                 |read_memory_arbiter_52          |    98|
+|15    |      data                       |read_data_signals_53            |    98|
+|16    |  MC_weight                      |MemCont_1                       |   232|
+|17    |    read_arbiter                 |read_memory_arbiter             |   129|
+|18    |      data                       |read_data_signals               |   129|
+|19    |  add_13                         |add_op                          |     4|
+|20    |  add_16                         |add_op_2                        |    62|
+|21    |  c_LSQ_hist                     |LSQ_hist                        | 24190|
+|22    |    LOAD_PORT_LSQ_hist           |LOAD_PORT_LSQ_hist              |    15|
+|23    |    STORE_ADDR_PORT_LSQ_hist     |STORE_DATA_PORT_LSQ_hist        |    16|
+|24    |    STORE_DATA_PORT_LSQ_hist     |STORE_DATA_PORT_LSQ_hist_51     |    16|
+|25    |    loadQ                        |LOAD_QUEUE_LSQ_hist             | 11682|
+|26    |    storeQ                       |STORE_QUEUE_LSQ_hist            | 12461|
+|27    |  forkC_5                        |fork__parameterized1            |     7|
+|28    |    \generateBlocks[0].regblock  |eagerFork_RegisterBLock_47      |     2|
+|29    |    \generateBlocks[1].regblock  |eagerFork_RegisterBLock_48      |     2|
+|30    |    \generateBlocks[2].regblock  |eagerFork_RegisterBLock_49      |     1|
+|31    |    \generateBlocks[3].regblock  |eagerFork_RegisterBLock_50      |     2|
+|32    |  forkC_7                        |fork__parameterized5            |     7|
+|33    |    \generateBlocks[0].regblock  |eagerFork_RegisterBLock_44      |     1|
+|34    |    \generateBlocks[1].regblock  |eagerFork_RegisterBLock_45      |     2|
+|35    |    \generateBlocks[2].regblock  |eagerFork_RegisterBLock_46      |     4|
+|36    |  forkC_9                        |fork__parameterized2            |     2|
+|37    |    \generateBlocks[0].regblock  |eagerFork_RegisterBLock_42      |     1|
+|38    |    \generateBlocks[1].regblock  |eagerFork_RegisterBLock_43      |     1|
+|39    |  fork_0                         |\fork                           |     3|
+|40    |    \generateBlocks[0].regblock  |eagerFork_RegisterBLock_40      |     1|
+|41    |    \generateBlocks[1].regblock  |eagerFork_RegisterBLock_41      |     2|
+|42    |  fork_1                         |fork__parameterized0            |    13|
+|43    |    \generateBlocks[0].regblock  |eagerFork_RegisterBLock_36      |     3|
+|44    |    \generateBlocks[1].regblock  |eagerFork_RegisterBLock_37      |     4|
+|45    |    \generateBlocks[2].regblock  |eagerFork_RegisterBLock_38      |     3|
+|46    |    \generateBlocks[3].regblock  |eagerFork_RegisterBLock_39      |     3|
+|47    |  fork_10                        |fork_3                          |     5|
+|48    |    \generateBlocks[0].regblock  |eagerFork_RegisterBLock_34      |     3|
+|49    |    \generateBlocks[1].regblock  |eagerFork_RegisterBLock_35      |     2|
+|50    |  fork_2                         |fork__parameterized4            |    10|
+|51    |    \generateBlocks[0].regblock  |eagerFork_RegisterBLock_31      |     2|
+|52    |    \generateBlocks[1].regblock  |eagerFork_RegisterBLock_32      |     1|
+|53    |    \generateBlocks[2].regblock  |eagerFork_RegisterBLock_33      |     7|
+|54    |  fork_3                         |fork_4                          |    17|
+|55    |    \generateBlocks[0].regblock  |eagerFork_RegisterBLock_29      |    15|
+|56    |    \generateBlocks[1].regblock  |eagerFork_RegisterBLock_30      |     2|
+|57    |  fork_4                         |fork__parameterized0_5          |    10|
+|58    |    \generateBlocks[0].regblock  |eagerFork_RegisterBLock_25      |     1|
+|59    |    \generateBlocks[1].regblock  |eagerFork_RegisterBLock_26      |     5|
+|60    |    \generateBlocks[2].regblock  |eagerFork_RegisterBLock_27      |     2|
+|61    |    \generateBlocks[3].regblock  |eagerFork_RegisterBLock_28      |     2|
+|62    |  fork_6                         |fork_6                          |     5|
+|63    |    \generateBlocks[0].regblock  |eagerFork_RegisterBLock_23      |     1|
+|64    |    \generateBlocks[1].regblock  |eagerFork_RegisterBLock_24      |     4|
+|65    |  fork_8                         |fork__parameterized4_7          |     3|
+|66    |    \generateBlocks[0].regblock  |eagerFork_RegisterBLock         |     1|
+|67    |    \generateBlocks[1].regblock  |eagerFork_RegisterBLock_21      |     1|
+|68    |    \generateBlocks[2].regblock  |eagerFork_RegisterBLock_22      |     1|
+|69    |  icmp_0                         |icmp_sgt_op                     |     2|
+|70    |  icmp_17                        |icmp_slt_op                     |     2|
+|71    |  load_6                         |mc_load_op                      |   105|
+|72    |    Buffer_1                     |TEHB_19                         |    69|
+|73    |    Buffer_2                     |TEHB_20                         |    36|
+|74    |  load_9                         |mc_load_op_8                    |   137|
+|75    |    Buffer_1                     |TEHB_17                         |    69|
+|76    |    Buffer_2                     |TEHB_18                         |    68|
+|77    |  n                              |start_node                      |   205|
+|78    |    startBuff                    |elasticBuffer                   |   201|
+|79    |      oehb1                      |OEHB                            |   131|
+|80    |      tehb1                      |TEHB_16                         |    70|
+|81    |  phiC_1                         |mux__parameterized0             |     3|
+|82    |    tehb1                        |TEHB__parameterized0_15         |     3|
+|83    |  phi_19                         |mux                             |    97|
+|84    |    tehb1                        |TEHB_14                         |    97|
+|85    |  phi_3                          |mux_9                           |    96|
+|86    |    tehb1                        |TEHB_13                         |    96|
+|87    |  phi_n0                         |mux_10                          |    44|
+|88    |    tehb1                        |TEHB_12                         |    44|
+|89    |  phi_n3                         |merge                           |    20|
+|90    |    tehb1                        |TEHB_11                         |    20|
+|91    |  ret_0                          |ret_op                          |    34|
+|92    |    tehb                         |TEHB                            |    34|
+|93    |  start_0                        |start_node__parameterized0      |    44|
+|94    |    startBuff                    |elasticBuffer__parameterized0   |    40|
+|95    |      oehb1                      |OEHB__parameterized0            |    38|
+|96    |      tehb1                      |TEHB__parameterized0            |     2|
++------+---------------------------------+--------------------------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:03:05 ; elapsed = 00:19:41 . Memory (MB): peak = 3667.082 ; gain = 1210.516 ; free physical = 397 ; free virtual = 2500
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 198 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:03:01 ; elapsed = 00:19:19 . Memory (MB): peak = 3667.082 ; gain = 1106.730 ; free physical = 7530 ; free virtual = 9682
+Synthesis Optimization Complete : Time (s): cpu = 00:03:08 ; elapsed = 00:19:47 . Memory (MB): peak = 3667.082 ; gain = 1210.516 ; free physical = 7534 ; free virtual = 9682
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00.16 ; elapsed = 00:00:00.23 . Memory (MB): peak = 3667.082 ; gain = 0.000 ; free physical = 7532 ; free virtual = 9681
+INFO: [Netlist 29-17] Analyzing 1872 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Parsing XDC File [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/synth/period_4.xdc]
+INFO: [Vivado 12-4761] HD.CLK_SRC property is set on port clk. The net connecting to the port drives either clock PIN or hierarchical black box. Use the create_clock constraint to create a clock on this port prior to setting HD.CLK_SRC.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/synth/period_4.xdc:2]
+Finished Parsing XDC File [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/histogram/synth/period_4.xdc]
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 3667.082 ; gain = 0.000 ; free physical = 7478 ; free virtual = 9634
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 3 instances were transformed.
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 3 instances
+
+INFO: [Common 17-83] Releasing license: Synthesis
+179 Infos, 120 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:03:22 ; elapsed = 00:20:55 . Memory (MB): peak = 3667.082 ; gain = 2166.238 ; free physical = 7632 ; free virtual = 9789
+# report_utilization > utilization_post_syn.rpt
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Mon Jun 19 13:35:47 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_utilization
+| Design       : histogram
+| Device       : xcku5psfvb784-3
+| Design State : Synthesized
+------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. CLB Logic
+1.1 Summary of Registers by Type
+2. BLOCKRAM
+3. ARITHMETIC
+4. I/O
+5. CLOCK
+6. ADVANCED
+7. CONFIGURATION
+8. Primitives
+9. Black Boxes
+10. Instantiated Netlists
+
+1. CLB Logic
+------------
+
++----------------------------+-------+-------+-----------+-------+
+|          Site Type         |  Used | Fixed | Available | Util% |
++----------------------------+-------+-------+-----------+-------+
+| CLB LUTs*                  | 17916 |     0 |    216960 |  8.26 |
+|   LUT as Logic             | 17892 |     0 |    216960 |  8.25 |
+|   LUT as Memory            |    24 |     0 |     99840 |  0.02 |
+|     LUT as Distributed RAM |    24 |     0 |           |       |
+|     LUT as Shift Register  |     0 |     0 |           |       |
+| CLB Registers              |  4200 |     0 |    433920 |  0.97 |
+|   Register as Flip Flop    |  4200 |     0 |    433920 |  0.97 |
+|   Register as Latch        |     0 |     0 |    433920 |  0.00 |
+| CARRY8                     |   580 |     0 |     27120 |  2.14 |
+| F7 Muxes                   |  1218 |     0 |    108480 |  1.12 |
+| F8 Muxes                   |    71 |     0 |     54240 |  0.13 |
+| F9 Muxes                   |     0 |     0 |     27120 |  0.00 |
++----------------------------+-------+-------+-----------+-------+
+* Warning! The Final LUT count, after physical optimizations and full implementation, is typically lower. Run opt_design after synthesis, if not already completed, for a more realistic count.
+
+
+1.1 Summary of Registers by Type
+--------------------------------
+
++-------+--------------+-------------+--------------+
+| Total | Clock Enable | Synchronous | Asynchronous |
++-------+--------------+-------------+--------------+
+| 0     |            _ |           - |            - |
+| 0     |            _ |           - |          Set |
+| 0     |            _ |           - |        Reset |
+| 0     |            _ |         Set |            - |
+| 0     |            _ |       Reset |            - |
+| 0     |          Yes |           - |            - |
+| 31    |          Yes |           - |          Set |
+| 541   |          Yes |           - |        Reset |
+| 0     |          Yes |         Set |            - |
+| 3628  |          Yes |       Reset |            - |
++-------+--------------+-------------+--------------+
+
+
+2. BLOCKRAM
+-----------
+
++----------------+------+-------+-----------+-------+
+|    Site Type   | Used | Fixed | Available | Util% |
++----------------+------+-------+-----------+-------+
+| Block RAM Tile |    0 |     0 |       480 |  0.00 |
+|   RAMB36/FIFO* |    0 |     0 |       480 |  0.00 |
+|   RAMB18       |    0 |     0 |       960 |  0.00 |
+| URAM           |    0 |     0 |        64 |  0.00 |
++----------------+------+-------+-----------+-------+
+* Note: Each Block RAM Tile only has one FIFO logic available and therefore can accommodate only one FIFO36E2 or one FIFO18E2. However, if a FIFO18E2 occupies a Block RAM Tile, that tile can still accommodate a RAMB18E2
+
+
+3. ARITHMETIC
+-------------
+
++-----------+------+-------+-----------+-------+
+| Site Type | Used | Fixed | Available | Util% |
++-----------+------+-------+-----------+-------+
+| DSPs      |    0 |     0 |      1824 |  0.00 |
++-----------+------+-------+-----------+-------+
+
+
+4. I/O
+------
+
++------------+------+-------+-----------+-------+
+|  Site Type | Used | Fixed | Available | Util% |
++------------+------+-------+-----------+-------+
+| Bonded IOB |    0 |     0 |       304 |  0.00 |
++------------+------+-------+-----------+-------+
+
+
+5. CLOCK
+--------
+
++----------------------+------+-------+-----------+-------+
+|       Site Type      | Used | Fixed | Available | Util% |
++----------------------+------+-------+-----------+-------+
+| GLOBAL CLOCK BUFFERs |    0 |     0 |       256 |  0.00 |
+|   BUFGCE             |    0 |     0 |       112 |  0.00 |
+|   BUFGCE_DIV         |    0 |     0 |        16 |  0.00 |
+|   BUFG_GT            |    0 |     0 |        96 |  0.00 |
+|   BUFGCTRL*          |    0 |     0 |        32 |  0.00 |
+| PLL                  |    0 |     0 |         8 |  0.00 |
+| MMCM                 |    0 |     0 |         4 |  0.00 |
++----------------------+------+-------+-----------+-------+
+* Note: Each used BUFGCTRL counts as two GLOBAL CLOCK BUFFERs. This table does not include global clocking resources, only buffer cell usage. See the Clock Utilization Report (report_clock_utilization) for detailed accounting of global clocking resource availability.
+
+
+6. ADVANCED
+-----------
+
++-----------------+------+-------+-----------+-------+
+|    Site Type    | Used | Fixed | Available | Util% |
++-----------------+------+-------+-----------+-------+
+| CMACE4          |    0 |     0 |         1 |  0.00 |
+| GTYE4_CHANNEL   |    0 |     0 |        16 |  0.00 |
+| GTYE4_COMMON    |    0 |     0 |         4 |  0.00 |
+| OBUFDS_GTE4     |    0 |     0 |         8 |  0.00 |
+| OBUFDS_GTE4_ADV |    0 |     0 |         8 |  0.00 |
+| PCIE40E4        |    0 |     0 |         1 |  0.00 |
+| SYSMONE4        |    0 |     0 |         1 |  0.00 |
++-----------------+------+-------+-----------+-------+
+
+
+7. CONFIGURATION
+----------------
+
++-------------+------+-------+-----------+-------+
+|  Site Type  | Used | Fixed | Available | Util% |
++-------------+------+-------+-----------+-------+
+| BSCANE2     |    0 |     0 |         4 |  0.00 |
+| DNA_PORTE2  |    0 |     0 |         1 |  0.00 |
+| EFUSE_USR   |    0 |     0 |         1 |  0.00 |
+| FRAME_ECCE4 |    0 |     0 |         1 |  0.00 |
+| ICAPE3      |    0 |     0 |         2 |  0.00 |
+| MASTER_JTAG |    0 |     0 |         1 |  0.00 |
+| STARTUPE3   |    0 |     0 |         1 |  0.00 |
++-------------+------+-------+-----------+-------+
+
+
+8. Primitives
+-------------
+
++----------+------+---------------------+
+| Ref Name | Used | Functional Category |
++----------+------+---------------------+
+| LUT6     | 7876 |                 CLB |
+| LUT4     | 5744 |                 CLB |
+| LUT5     | 5118 |                 CLB |
+| FDRE     | 3628 |            Register |
+| MUXF7    | 1218 |                 CLB |
+| LUT2     |  658 |                 CLB |
+| CARRY8   |  580 |                 CLB |
+| FDCE     |  541 |            Register |
+| LUT3     |  339 |                 CLB |
+| MUXF8    |   71 |                 CLB |
+| LUT1     |   48 |                 CLB |
+| RAMD32   |   42 |                 CLB |
+| FDPE     |   31 |            Register |
+| RAMS32   |    6 |                 CLB |
++----------+------+---------------------+
+
+
+9. Black Boxes
+--------------
+
++----------+------+
+| Ref Name | Used |
++----------+------+
+
+
+10. Instantiated Netlists
+-------------------------
+
++----------+------+
+| Ref Name | Used |
++----------+------+
+
+
+# report_timing > timing_post_syn.rpt
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -3, Temperature grade: E, Delay Type: max.
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 1 -nworst 1 -delay_type max -sort_by slack.
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------
+| Tool Version      : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date              : Mon Jun 19 13:36:19 2023
+| Host              : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command           : report_timing
+| Design            : histogram
+| Device            : xcku5p-sfvb784
+| Speed File        : -3  PRODUCTION 1.27 08-13-2019
+| Temperature Grade : E
+-----------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             1.448ns  (required time - arrival time)
+  Source:                 c_LSQ_hist/loadQ/head_reg[3]/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            c_LSQ_hist/storeQ/dataQ_11_reg[25]/D
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (clk rise@4.000ns - clk rise@0.000ns)
+  Data Path Delay:        2.540ns  (logic 0.775ns (30.512%)  route 1.765ns (69.488%))
+  Logic Levels:           13  (CARRY8=4 LUT2=1 LUT4=2 LUT5=1 LUT6=3 MUXF7=1 MUXF8=1)
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=4247, unset)         0.000     0.000    c_LSQ_hist/loadQ/clk
+                         FDRE                                         r  c_LSQ_hist/loadQ/head_reg[3]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_FDRE_C_Q)         0.066     0.066 f  c_LSQ_hist/loadQ/head_reg[3]/Q
+                         net (fo=140, unplaced)       0.182     0.248    c_LSQ_hist/loadQ/head_reg[3]_0[3]
+                         LUT4 (Prop_LUT4_I0_O)        0.123     0.371 f  c_LSQ_hist/loadQ/loadCompleted_8_i_2/O
+                         net (fo=10, unplaced)        0.164     0.535    c_LSQ_hist/loadQ/loadCompleted_8_i_2_n_0
+                         LUT6 (Prop_LUT6_I2_O)        0.048     0.583 r  c_LSQ_hist/loadQ/head[3]_i_13/O
+                         net (fo=2, unplaced)         0.175     0.758    c_LSQ_hist/loadQ/head[3]_i_13_n_0
+                         LUT5 (Prop_LUT5_I0_O)        0.032     0.790 r  c_LSQ_hist/loadQ/head[3]_i_5/O
+                         net (fo=4, unplaced)         0.187     0.977    c_LSQ_hist/loadQ/head[3]_i_5_n_0
+                         LUT6 (Prop_LUT6_I0_O)        0.032     1.009 r  c_LSQ_hist/loadQ/dataOutArray[0]_carry_i_84/O
+                         net (fo=1, unplaced)         0.175     1.184    c_LSQ_hist/loadQ/dataOutArray[0]_carry_i_84_n_0
+                         LUT4 (Prop_LUT4_I0_O)        0.032     1.216 r  c_LSQ_hist/loadQ/dataOutArray[0]_carry_i_51/O
+                         net (fo=64, unplaced)        0.262     1.478    c_LSQ_hist/loadQ/_T_98214[2]
+                         MUXF7 (Prop_MUXF7_S_O)       0.068     1.546 r  c_LSQ_hist/loadQ/dataOutArray[0]_carry_i_47/O
+                         net (fo=1, unplaced)         0.000     1.546    c_LSQ_hist/loadQ/dataOutArray[0]_carry_i_47_n_0
+                         MUXF8 (Prop_MUXF8_I0_O)      0.032     1.578 r  c_LSQ_hist/loadQ/dataOutArray[0]_carry_i_24/O
+                         net (fo=1, unplaced)         0.175     1.753    c_LSQ_hist/loadQ/dataOutArray[0]_carry_i_24_n_0
+                         LUT2 (Prop_LUT2_I0_O)        0.032     1.785 r  c_LSQ_hist/loadQ/dataOutArray[0]_carry_i_7/O
+                         net (fo=2, unplaced)         0.175     1.960    load_9/Buffer_2/loadQ_io_loadPorts_0_bits[1]
+                         LUT6 (Prop_LUT6_I0_O)        0.031     1.991 r  load_9/Buffer_2/dataOutArray[0]_carry_i_15/O
+                         net (fo=1, unplaced)         0.026     2.017    add_13/S[1]
+                         CARRY8 (Prop_CARRY8_S[1]_CO[7])
+                                                      0.176     2.193 r  add_13/dataOutArray[0]_carry/CO[7]
+                         net (fo=1, unplaced)         0.005     2.198    add_13/dataOutArray[0]_carry_n_0
+                         CARRY8 (Prop_CARRY8_CI_CO[7])
+                                                      0.018     2.216 r  add_13/dataOutArray[0]_carry__0/CO[7]
+                         net (fo=1, unplaced)         0.005     2.221    add_13/dataOutArray[0]_carry__0_n_0
+                         CARRY8 (Prop_CARRY8_CI_CO[7])
+                                                      0.018     2.239 r  add_13/dataOutArray[0]_carry__1/CO[7]
+                         net (fo=1, unplaced)         0.005     2.244    add_13/dataOutArray[0]_carry__1_n_0
+                         CARRY8 (Prop_CARRY8_CI_O[1])
+                                                      0.067     2.311 r  add_13/dataOutArray[0]_carry__2/O[1]
+                         net (fo=16, unplaced)        0.229     2.540    c_LSQ_hist/storeQ/dataQ_15_reg[31]_0[25]
+                         FDRE                                         r  c_LSQ_hist/storeQ/dataQ_11_reg[25]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        4.000     4.000 r  
+                                                      0.000     4.000 r  clk (IN)
+                         net (fo=4247, unset)         0.000     4.000    c_LSQ_hist/storeQ/clk
+                         FDRE                                         r  c_LSQ_hist/storeQ/dataQ_11_reg[25]/C
+                         clock pessimism              0.000     4.000    
+                         clock uncertainty           -0.035     3.965    
+                         FDRE (Setup_FDRE_C_D)        0.023     3.988    c_LSQ_hist/storeQ/dataQ_11_reg[25]
+  -------------------------------------------------------------------
+                         required time                          3.988    
+                         arrival time                          -2.540    
+  -------------------------------------------------------------------
+                         slack                                  1.448    
+
+
+
+
+report_timing: Time (s): cpu = 00:00:18 ; elapsed = 00:00:32 . Memory (MB): peak = 4199.871 ; gain = 532.789 ; free physical = 6908 ; free virtual = 9198
+# opt_design
+Command: opt_design
+Attempting to get a license for feature 'Implementation' and/or device 'xcku5p'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xcku5p'
+Running DRC as a precondition to command opt_design
+
+Starting DRC Task
+INFO: [Project 1-461] DRC finished with 0 Errors
+INFO: [Project 1-462] Please refer to the DRC report (report_drc) for more information.
+
+Time (s): cpu = 00:00:00.23 ; elapsed = 00:00:00.56 . Memory (MB): peak = 4207.875 ; gain = 8.004 ; free physical = 6905 ; free virtual = 9195
+
+Starting Cache Timing Information Task
+Ending Cache Timing Information Task | Checksum: 7395dbe8
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6905 ; free virtual = 9195
+
+Starting Logic Optimization Task
+
+Phase 1 Retarget
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+INFO: [Opt 31-49] Retargeted 0 cell(s).
+Phase 1 Retarget | Checksum: 175b12fc3
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6807 ; free virtual = 9099
+INFO: [Opt 31-389] Phase Retarget created 0 cells and removed 35 cells
+
+Phase 2 Constant propagation
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Phase 2 Constant propagation | Checksum: faa061d9
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6806 ; free virtual = 9099
+INFO: [Opt 31-389] Phase Constant propagation created 0 cells and removed 0 cells
+
+Phase 3 Sweep
+Phase 3 Sweep | Checksum: 1a10e2277
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:04 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6802 ; free virtual = 9095
+INFO: [Opt 31-389] Phase Sweep created 0 cells and removed 0 cells
+
+Phase 4 BUFG optimization
+INFO: [Opt 31-1077] Phase BUFG optimization inserted 0 global clock buffer(s) for CLOCK_LOW_FANOUT.
+INFO: [Opt 31-1112] Starts optimizing BUFG(s) with a common MMCM/DPLL/XPLL driver.
+INFO: [Opt 31-1112] Starts optimizing BUFG(s) with a common driver.
+INFO: [Opt 31-1092] Phase BUFG optimization transformed 0 BUFG(s) to MBUFG(s).
+Phase 4 BUFG optimization | Checksum: 1a10e2277
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:04 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6802 ; free virtual = 9095
+INFO: [Opt 31-662] Phase BUFG optimization created 0 cells of which 0 are BUFGs and removed 0 cells.
+
+Phase 5 Shift Register Optimization
+INFO: [Opt 31-1064] SRL Remap converted 0 SRLs to 0 registers and converted 0 registers of register chains to 0 SRLs
+Phase 5 Shift Register Optimization | Checksum: 1a10e2277
+
+Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6802 ; free virtual = 9095
+INFO: [Opt 31-389] Phase Shift Register Optimization created 0 cells and removed 0 cells
+
+Phase 6 Post Processing Netlist
+Phase 6 Post Processing Netlist | Checksum: 1a10e2277
+
+Time (s): cpu = 00:00:03 ; elapsed = 00:00:05 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6802 ; free virtual = 9095
+INFO: [Opt 31-389] Phase Post Processing Netlist created 0 cells and removed 0 cells
+Opt_design Change Summary
+=========================
+
+
+-------------------------------------------------------------------------------------------------------------------------
+|  Phase                        |  #Cells created  |  #Cells Removed  |  #Constrained objects preventing optimizations  |
+-------------------------------------------------------------------------------------------------------------------------
+|  Retarget                     |               0  |              35  |                                              0  |
+|  Constant propagation         |               0  |               0  |                                              0  |
+|  Sweep                        |               0  |               0  |                                              0  |
+|  BUFG optimization            |               0  |               0  |                                              0  |
+|  Shift Register Optimization  |               0  |               0  |                                              0  |
+|  Post Processing Netlist      |               0  |               0  |                                              0  |
+-------------------------------------------------------------------------------------------------------------------------
+
+
+
+Starting Connectivity Check Task
+
+Time (s): cpu = 00:00:00.08 ; elapsed = 00:00:00.13 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6802 ; free virtual = 9095
+Ending Logic Optimization Task | Checksum: 85c273a4
+
+Time (s): cpu = 00:00:03 ; elapsed = 00:00:05 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6802 ; free virtual = 9095
+
+Starting Power Optimization Task
+INFO: [Pwropt 34-132] Skipping clock gating for clocks with a period < 2.00 ns.
+Ending Power Optimization Task | Checksum: 85c273a4
+
+Time (s): cpu = 00:00:00.02 ; elapsed = 00:00:00.08 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6801 ; free virtual = 9095
+
+Starting Final Cleanup Task
+Ending Final Cleanup Task | Checksum: 85c273a4
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6801 ; free virtual = 9095
+
+Starting Netlist Obfuscation Task
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6801 ; free virtual = 9095
+Ending Netlist Obfuscation Task | Checksum: 85c273a4
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6801 ; free virtual = 9095
+INFO: [Common 17-83] Releasing license: Implementation
+19 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+opt_design completed successfully
+opt_design: Time (s): cpu = 00:00:05 ; elapsed = 00:00:09 . Memory (MB): peak = 4207.875 ; gain = 8.004 ; free physical = 6801 ; free virtual = 9094
+# place_design
+Command: place_design
+Attempting to get a license for feature 'Implementation' and/or device 'xcku5p'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xcku5p'
+INFO: [Vivado_Tcl 4-198] DRC finished with 0 Errors
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+Running DRC as a precondition to command place_design
+INFO: [Vivado_Tcl 4-198] DRC finished with 0 Errors
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+
+Starting Placer Task
+
+Phase 1 Placer Initialization
+
+Phase 1.1 Placer Initialization Netlist Sorting
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.02 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6797 ; free virtual = 9093
+Phase 1.1 Placer Initialization Netlist Sorting | Checksum: 043c9942
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.04 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6797 ; free virtual = 9093
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.01 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6797 ; free virtual = 9093
+
+Phase 1.2 IO Placement/ Clock Placement/ Build Placer Device
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Phase 1.2 IO Placement/ Clock Placement/ Build Placer Device | Checksum: 0618197f
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6766 ; free virtual = 9066
+
+Phase 1.3 Build Placer Netlist Model
+Phase 1.3 Build Placer Netlist Model | Checksum: 1e634c5f
+
+Time (s): cpu = 00:00:05 ; elapsed = 00:00:09 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6715 ; free virtual = 9020
+
+Phase 1.4 Constrain Clocks/Macros
+Phase 1.4 Constrain Clocks/Macros | Checksum: 1e634c5f
+
+Time (s): cpu = 00:00:06 ; elapsed = 00:00:09 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6715 ; free virtual = 9020
+Phase 1 Placer Initialization | Checksum: 1e634c5f
+
+Time (s): cpu = 00:00:06 ; elapsed = 00:00:09 . Memory (MB): peak = 4207.875 ; gain = 0.000 ; free physical = 6713 ; free virtual = 9019
+
+Phase 2 Global Placement
+
+Phase 2.1 Floorplanning
+Phase 2.1 Floorplanning | Checksum: 46e4dd58
+
+Time (s): cpu = 00:00:15 ; elapsed = 00:00:24 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6680 ; free virtual = 8988
+
+Phase 2.2 Global Placement Core
+
+Phase 2.2.1 Physical Synthesis In Placer
+INFO: [Physopt 32-1018] Found 274 candidate LUT instances to create LUTNM shape
+INFO: [Physopt 32-775] End 1 Pass. Optimized 357 nets or cells. Created 233 new cells, deleted 124 existing cells and moved 0 existing cell
+INFO: [Physopt 32-65] No nets found for high-fanout optimization.
+INFO: [Physopt 32-232] Optimized 0 net. Created 0 new instance.
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-456] No candidate cells for DSP register optimization found in the design.
+INFO: [Physopt 32-775] End 2 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-677] No candidate cells for Shift Register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-526] No candidate cells for BRAM register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-949] No candidate nets found for HD net replication
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+Netlist sorting complete. Time (s): cpu = 00:00:00.01 ; elapsed = 00:00:00 . Memory (MB): peak = 4211.891 ; gain = 0.000 ; free physical = 6661 ; free virtual = 8980
+
+Summary of Physical Synthesis Optimizations
+============================================
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+|  Optimization                                     |  Added Cells  |  Removed Cells  |  Optimized Cells/Nets  |  Dont Touch  |  Iterations  |  Elapsed   |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+|  LUT Combining                                    |          233  |            124  |                   357  |           0  |           1  |  00:00:02  |
+|  Very High Fanout                                 |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  DSP Register                                     |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Shift Register to Pipeline                       |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Shift Register                                   |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  BRAM Register                                    |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Dynamic/Static Region Interface Net Replication  |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Total                                            |          233  |            124  |                   357  |           0  |           7  |  00:00:02  |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Phase 2.2.1 Physical Synthesis In Placer | Checksum: 107d4de4a
+
+Time (s): cpu = 00:00:31 ; elapsed = 00:00:51 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6659 ; free virtual = 8978
+Phase 2.2 Global Placement Core | Checksum: 1239d9e28
+
+Time (s): cpu = 00:00:32 ; elapsed = 00:00:52 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6657 ; free virtual = 8977
+Phase 2 Global Placement | Checksum: 1239d9e28
+
+Time (s): cpu = 00:00:32 ; elapsed = 00:00:52 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6665 ; free virtual = 8985
+
+Phase 3 Detail Placement
+
+Phase 3.1 Commit Multi Column Macros
+Phase 3.1 Commit Multi Column Macros | Checksum: 10f3fbf22
+
+Time (s): cpu = 00:00:34 ; elapsed = 00:00:56 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6668 ; free virtual = 8988
+
+Phase 3.2 Commit Most Macros & LUTRAMs
+Phase 3.2 Commit Most Macros & LUTRAMs | Checksum: 2897da2ea
+
+Time (s): cpu = 00:00:37 ; elapsed = 00:01:01 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6665 ; free virtual = 8985
+
+Phase 3.3 Area Swap Optimization
+Phase 3.3 Area Swap Optimization | Checksum: 22819c326
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:01:02 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6665 ; free virtual = 8985
+
+Phase 3.4 IO Cut Optimizer
+Phase 3.4 IO Cut Optimizer | Checksum: 2576a2a56
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:01:02 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6664 ; free virtual = 8984
+
+Phase 3.5 Fast Optimization
+Phase 3.5 Fast Optimization | Checksum: 28082e7c1
+
+Time (s): cpu = 00:00:40 ; elapsed = 00:01:06 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6664 ; free virtual = 8984
+
+Phase 3.6 Small Shape DP
+
+Phase 3.6.1 Small Shape Clustering
+Phase 3.6.1 Small Shape Clustering | Checksum: 1f981745b
+
+Time (s): cpu = 00:00:44 ; elapsed = 00:01:12 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6643 ; free virtual = 8964
+
+Phase 3.6.2 Flow Legalize Slice Clusters
+Phase 3.6.2 Flow Legalize Slice Clusters | Checksum: 2195d2aa6
+
+Time (s): cpu = 00:00:44 ; elapsed = 00:01:13 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6641 ; free virtual = 8962
+
+Phase 3.6.3 Slice Area Swap
+Phase 3.6.3 Slice Area Swap | Checksum: 28a0de8c6
+
+Time (s): cpu = 00:00:49 ; elapsed = 00:01:20 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6625 ; free virtual = 8945
+
+Phase 3.6.4 Commit Slice Clusters
+Phase 3.6.4 Commit Slice Clusters | Checksum: 196f1db0b
+
+Time (s): cpu = 00:00:57 ; elapsed = 00:01:34 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6628 ; free virtual = 8949
+Phase 3.6 Small Shape DP | Checksum: 196f1db0b
+
+Time (s): cpu = 00:00:58 ; elapsed = 00:01:35 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6633 ; free virtual = 8954
+
+Phase 3.7 Re-assign LUT pins
+Phase 3.7 Re-assign LUT pins | Checksum: 13ba631f6
+
+Time (s): cpu = 00:01:00 ; elapsed = 00:01:39 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6633 ; free virtual = 8954
+
+Phase 3.8 Pipeline Register Optimization
+Phase 3.8 Pipeline Register Optimization | Checksum: 1f3bbcd89
+
+Time (s): cpu = 00:01:01 ; elapsed = 00:01:39 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6633 ; free virtual = 8954
+Phase 3 Detail Placement | Checksum: 1f3bbcd89
+
+Time (s): cpu = 00:01:01 ; elapsed = 00:01:40 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6633 ; free virtual = 8954
+
+Phase 4 Post Placement Optimization and Clean-Up
+
+Phase 4.1 Post Commit Optimization
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+
+Phase 4.1.1 Post Placement Optimization
+Post Placement Optimization Initialization | Checksum: eb657f15
+
+Phase 4.1.1.1 BUFG Insertion
+INFO: [Place 46-56] BUFG insertion identified 0 candidate nets. Inserted BUFG: 0, Replicated BUFG Driver: 0, Skipped due to Placement/Routing Conflicts: 0, Skipped due to Timing Degradation: 0, Skipped due to Illegal Netlist: 0.
+Phase 4.1.1.1 BUFG Insertion | Checksum: eb657f15
+
+Time (s): cpu = 00:01:11 ; elapsed = 00:01:57 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6642 ; free virtual = 8964
+INFO: [Place 30-746] Post Placement Timing Summary WNS=0.507. For the most accurate timing information please run report_timing.
+Phase 4.1.1 Post Placement Optimization | Checksum: 10ab34b9e
+
+Time (s): cpu = 00:01:28 ; elapsed = 00:02:23 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6641 ; free virtual = 8963
+Phase 4.1 Post Commit Optimization | Checksum: 10ab34b9e
+
+Time (s): cpu = 00:01:28 ; elapsed = 00:02:23 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6641 ; free virtual = 8963
+
+Phase 4.2 Post Placement Cleanup
+Phase 4.2 Post Placement Cleanup | Checksum: 10ab34b9e
+
+Time (s): cpu = 00:01:28 ; elapsed = 00:02:23 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6648 ; free virtual = 8971
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4211.891 ; gain = 0.000 ; free physical = 6629 ; free virtual = 8952
+
+Phase 4.3 Placer Reporting
+Phase 4.3 Placer Reporting | Checksum: 17a5a03f4
+
+Time (s): cpu = 00:01:34 ; elapsed = 00:02:32 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6629 ; free virtual = 8952
+
+Phase 4.4 Final Placement Cleanup
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.01 . Memory (MB): peak = 4211.891 ; gain = 0.000 ; free physical = 6629 ; free virtual = 8952
+Phase 4.4 Final Placement Cleanup | Checksum: 1f6014b4e
+
+Time (s): cpu = 00:01:34 ; elapsed = 00:02:33 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6629 ; free virtual = 8952
+Phase 4 Post Placement Optimization and Clean-Up | Checksum: 1f6014b4e
+
+Time (s): cpu = 00:01:34 ; elapsed = 00:02:33 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6629 ; free virtual = 8952
+Ending Placer Task | Checksum: 122b17a0c
+
+Time (s): cpu = 00:01:34 ; elapsed = 00:02:33 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6629 ; free virtual = 8952
+INFO: [Common 17-83] Releasing license: Implementation
+24 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+place_design completed successfully
+place_design: Time (s): cpu = 00:01:36 ; elapsed = 00:02:36 . Memory (MB): peak = 4211.891 ; gain = 4.016 ; free physical = 6665 ; free virtual = 8988
+# route_design
+Command: route_design
+Attempting to get a license for feature 'Implementation' and/or device 'xcku5p'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xcku5p'
+Running DRC as a precondition to command route_design
+INFO: [Vivado_Tcl 4-198] DRC finished with 0 Errors
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+
+
+Starting Routing Task
+Checksum: PlaceDB: 14a06395 ConstDB: 0 ShapeSum: 9e6a5e21 RouteDB: 6fa6b856
+
+Phase 1 Build RT Design
+WARNING: [Route 35-198] Port "rst" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "rst". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[1]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[1]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[22]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[22]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[23]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[23]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[19]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[19]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[20]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[20]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[30]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[30]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[21]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[21]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[11]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[11]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[2]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[2]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[26]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[26]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[19]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[19]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[20]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[20]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[14]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[14]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[17]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[17]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[12]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[12]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[18]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[18]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[27]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[27]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[25]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[25]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[10]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[10]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[0]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[0]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[3]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[3]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[4]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[4]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[6]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[6]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[28]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[28]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[31]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[31]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[30]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[30]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[27]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[27]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[24]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[24]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[29]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[29]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[8]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[8]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[1]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[1]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[2]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[2]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[10]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[10]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[11]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[11]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[9]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[9]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[18]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[18]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[13]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[13]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[15]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[15]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[22]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[22]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[24]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[24]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[26]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[26]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[29]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[29]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[12]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[12]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[5]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[5]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[7]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[7]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[21]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[21]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[16]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[16]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[23]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[23]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "weight_din1[25]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "weight_din1[25]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[28]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[28]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[17]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[17]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[31]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[31]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[8]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[8]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[5]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[5]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[16]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[16]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[14]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[14]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[7]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[7]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[9]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[9]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[3]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[3]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[15]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[15]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[13]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[13]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[6]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[6]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[0]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[0]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "hist_din1[4]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "hist_din1[4]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[14]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[14]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[5]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[5]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[7]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[7]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[8]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[8]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[10]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[10]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[11]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[11]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[17]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[17]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[4]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[4]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[0]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[0]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[16]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[16]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[19]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[19]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[1]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[1]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[23]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[23]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[29]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[29]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[3]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[3]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[15]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[15]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[12]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[12]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[18]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[18]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[22]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[22]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[27]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[27]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[13]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[13]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[28]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[28]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[30]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[30]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[6]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[6]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[20]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[20]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[24]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[24]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[25]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[25]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[26]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[26]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "start_valid" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "start_valid". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "n_din[17]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "n_din[17]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[2]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[2]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[31]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[31]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[9]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[9]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "feature_din1[21]" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "feature_din1[21]". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+WARNING: [Route 35-198] Port "end_ready" does not have an associated HD.PARTPIN_LOCS, which will prevent the partial routing of the signal "end_ready". Without this partial route, timing analysis to/from this port will not be accurate, and no routing information for this port can be exported.
+INFO: [Common 17-14] Message 'Route 35-198' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+Phase 1 Build RT Design | Checksum: 1483a2819
+
+Time (s): cpu = 00:01:15 ; elapsed = 00:01:56 . Memory (MB): peak = 4384.523 ; gain = 172.633 ; free physical = 6445 ; free virtual = 8777
+Post Restoration Checksum: NetGraph: d3ea62d5 NumContArr: 744fc544 Constraints: 0 Timing: 0
+
+Phase 2 Router Initialization
+
+Phase 2.1 Create Timer
+Phase 2.1 Create Timer | Checksum: 1483a2819
+
+Time (s): cpu = 00:01:15 ; elapsed = 00:01:56 . Memory (MB): peak = 4384.523 ; gain = 172.633 ; free physical = 6411 ; free virtual = 8744
+
+Phase 2.2 Fix Topology Constraints
+Phase 2.2 Fix Topology Constraints | Checksum: 1483a2819
+
+Time (s): cpu = 00:01:15 ; elapsed = 00:01:56 . Memory (MB): peak = 4384.523 ; gain = 172.633 ; free physical = 6401 ; free virtual = 8736
+
+Phase 2.3 Pre Route Cleanup
+Phase 2.3 Pre Route Cleanup | Checksum: 1483a2819
+
+Time (s): cpu = 00:01:15 ; elapsed = 00:01:57 . Memory (MB): peak = 4384.523 ; gain = 172.633 ; free physical = 6401 ; free virtual = 8736
+
+Phase 2.4 Global Clock Net Routing
+Phase 2.4 Global Clock Net Routing | Checksum: 1483a2819
+
+Time (s): cpu = 00:01:16 ; elapsed = 00:01:58 . Memory (MB): peak = 4384.523 ; gain = 172.633 ; free physical = 6392 ; free virtual = 8728
+
+Phase 2.5 Update Timing
+Phase 2.5 Update Timing | Checksum: 19a1eb4b1
+
+Time (s): cpu = 00:01:23 ; elapsed = 00:02:11 . Memory (MB): peak = 4384.523 ; gain = 172.633 ; free physical = 6371 ; free virtual = 8717
+INFO: [Route 35-416] Intermediate Timing Summary | WNS=0.648  | TNS=0.000  | WHS=0.008  | THS=0.000  |
+
+Phase 2 Router Initialization | Checksum: 1e0930fce
+
+Time (s): cpu = 00:01:27 ; elapsed = 00:02:17 . Memory (MB): peak = 4384.523 ; gain = 172.633 ; free physical = 6368 ; free virtual = 8713
+
+Router Utilization Summary
+  Global Vertical Routing Utilization    = 0 %
+  Global Horizontal Routing Utilization  = 0 %
+  Routable Net Status*
+  *Does not include unroutable nets such as driverless and loadless.
+  Run report_route_status for detailed report.
+  Number of Failed Nets               = 17808
+    (Failed Nets is the sum of unrouted and partially routed nets)
+  Number of Unrouted Nets             = 9205
+  Number of Partially Routed Nets     = 8603
+  Number of Node Overlaps             = 0
+
+
+Phase 3 Initial Routing
+
+Phase 3.1 Global Routing
+Phase 3.1 Global Routing | Checksum: 1e0930fce
+
+Time (s): cpu = 00:01:28 ; elapsed = 00:02:19 . Memory (MB): peak = 4388.539 ; gain = 176.648 ; free physical = 6365 ; free virtual = 8711
+Phase 3 Initial Routing | Checksum: 215cb266b
+
+Time (s): cpu = 00:01:37 ; elapsed = 00:02:32 . Memory (MB): peak = 4388.539 ; gain = 176.648 ; free physical = 6350 ; free virtual = 8697
+
+INFO: [Route 35-449] Initial Estimated Congestion
+ ________________________________________________________________________
+|           | Global Congestion | Long Congestion   | Short Congestion  |
+|           |___________________|___________________|___________________|
+| Direction | Size   | % Tiles  | Size   | % Tiles  | Size   | % Tiles  |
+|___________|________|__________|________|__________|________|__________|
+|      NORTH|     1x1|      0.01|     1x1|      0.03|     2x2|      0.18|
+|___________|________|__________|________|__________|________|__________|
+|      SOUTH|   16x16|      1.14|   16x16|      0.74|   32x32|      1.64|
+|___________|________|__________|________|__________|________|__________|
+|       EAST|     4x4|      0.17|     1x1|      0.02|   16x16|      0.99|
+|___________|________|__________|________|__________|________|__________|
+|       WEST|   16x16|      0.84|     8x8|      0.25|   32x32|      1.67|
+|___________|________|__________|________|__________|________|__________|
+Congestion Report
+GLOBAL Congestion bounded by tiles (Lower Left Tile -> Upper Right Tile):
+SOUTH
+	INT_X41Y63->INT_X56Y78 (CLEM_X41Y63->CLEL_R_X56Y78)
+	INT_X41Y62->INT_X56Y77 (CLEM_X41Y62->CLEL_R_X56Y77)
+	INT_X41Y61->INT_X56Y76 (CLEM_X41Y61->CLEL_R_X56Y76)
+	INT_X41Y60->INT_X56Y75 (CLEM_X41Y60->CLEL_R_X56Y75)
+WEST
+	INT_X48Y55->INT_X55Y78 (CLEM_X48Y55->CLEL_R_X55Y78)
+	INT_X48Y64->INT_X55Y71 (CLEM_X48Y64->CLEL_R_X55Y71)
+	INT_X48Y56->INT_X55Y63 (CLEM_X48Y56->CLEL_R_X55Y63)
+	INT_X48Y63->INT_X55Y70 (CLEM_X48Y63->CLEL_R_X55Y70)
+	INT_X48Y70->INT_X55Y77 (CLEM_X48Y70->CLEL_R_X55Y77)
+LONG Congestion bounded by tiles (Lower Left Tile -> Upper Right Tile):
+SOUTH
+	INT_X49Y55->INT_X56Y78 (CLEM_X49Y55->CLEL_R_X56Y78)
+	INT_X48Y64->INT_X55Y71 (CLEM_X48Y64->CLEL_R_X55Y71)
+	INT_X48Y56->INT_X55Y63 (CLEM_X48Y56->CLEL_R_X55Y63)
+	INT_X48Y63->INT_X55Y70 (CLEM_X48Y63->CLEL_R_X55Y70)
+	INT_X48Y70->INT_X55Y77 (CLEM_X48Y70->CLEL_R_X55Y77)
+SHORT Congestion bounded by tiles (Lower Left Tile -> Upper Right Tile):
+SOUTH
+	INT_X41Y55->INT_X56Y86 (CLEM_X41Y55->CLEL_R_X56Y86)
+	INT_X48Y64->INT_X63Y79 (CLEM_X48Y64->CLEL_R_X63Y79)
+	INT_X48Y63->INT_X63Y78 (CLEM_X48Y63->CLEL_R_X63Y78)
+	INT_X48Y62->INT_X63Y77 (CLEM_X48Y62->CLEL_R_X63Y77)
+	INT_X48Y61->INT_X63Y76 (CLEM_X48Y61->CLEL_R_X63Y76)
+EAST
+	INT_X48Y55->INT_X55Y78 (CLEM_X48Y55->CLEL_R_X55Y78)
+	INT_X48Y64->INT_X55Y71 (CLEM_X48Y64->CLEL_R_X55Y71)
+	INT_X48Y56->INT_X55Y63 (CLEM_X48Y56->CLEL_R_X55Y63)
+	INT_X48Y71->INT_X55Y78 (CLEM_X48Y71->CLEL_R_X55Y78)
+	INT_X48Y63->INT_X55Y70 (CLEM_X48Y63->CLEL_R_X55Y70)
+WEST
+	INT_X41Y55->INT_X56Y86 (CLEM_X41Y55->CLEL_R_X56Y86)
+	INT_X48Y63->INT_X63Y78 (CLEM_X48Y63->CLEL_R_X63Y78)
+	INT_X48Y62->INT_X63Y77 (CLEM_X48Y62->CLEL_R_X63Y77)
+	INT_X48Y61->INT_X63Y76 (CLEM_X48Y61->CLEL_R_X63Y76)
+	INT_X48Y60->INT_X63Y75 (CLEM_X48Y60->CLEL_R_X63Y75)
+
+INFO: [Route 35-448] Estimated Global/Short routing congestion is level 5 (32x32). Congestion levels of 5 and greater can reduce routability and impact timing closure.
+
+Phase 4 Rip-up And Reroute
+
+Phase 4.1 Global Iteration 0
+ Number of Nodes with overlaps = 17800
+ Number of Nodes with overlaps = 5347
+ Number of Nodes with overlaps = 2729
+ Number of Nodes with overlaps = 1716
+ Number of Nodes with overlaps = 1094
+ Number of Nodes with overlaps = 741
+ Number of Nodes with overlaps = 484
+ Number of Nodes with overlaps = 321
+ Number of Nodes with overlaps = 247
+ Number of Nodes with overlaps = 171
+ Number of Nodes with overlaps = 110
+ Number of Nodes with overlaps = 61
+ Number of Nodes with overlaps = 54
+ Number of Nodes with overlaps = 45
+ Number of Nodes with overlaps = 27
+ Number of Nodes with overlaps = 16
+ Number of Nodes with overlaps = 10
+ Number of Nodes with overlaps = 5
+ Number of Nodes with overlaps = 6
+ Number of Nodes with overlaps = 3
+INFO: [Route 35-443] CLB routing congestion detected. Several CLBs have high routing utilization, which can impact timing closure. Top ten most congested CLBs are: CLEM_X54Y73 CLEL_R_X54Y73 CLEL_L_X50Y59 CLEL_R_X50Y59 
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 1
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 1
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 1
+ Number of Nodes with overlaps = 1
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 0
+INFO: [Route 35-416] Intermediate Timing Summary | WNS=0.261  | TNS=0.000  | WHS=0.026  | THS=0.000  |
+
+Phase 4.1 Global Iteration 0 | Checksum: 1b9c5046a
+
+Time (s): cpu = 00:17:19 ; elapsed = 00:26:32 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6216 ; free virtual = 8686
+
+Phase 4.2 Additional Iteration for Hold
+Phase 4.2 Additional Iteration for Hold | Checksum: 1b04ab59e
+
+Time (s): cpu = 00:17:19 ; elapsed = 00:26:32 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6215 ; free virtual = 8684
+Phase 4 Rip-up And Reroute | Checksum: 1b04ab59e
+
+Time (s): cpu = 00:17:20 ; elapsed = 00:26:32 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6215 ; free virtual = 8684
+
+Phase 5 Delay and Skew Optimization
+
+Phase 5.1 Delay CleanUp
+Phase 5.1 Delay CleanUp | Checksum: 1b04ab59e
+
+Time (s): cpu = 00:17:20 ; elapsed = 00:26:33 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6215 ; free virtual = 8685
+
+Phase 5.2 Clock Skew Optimization
+Phase 5.2 Clock Skew Optimization | Checksum: 1b04ab59e
+
+Time (s): cpu = 00:17:20 ; elapsed = 00:26:33 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6215 ; free virtual = 8685
+Phase 5 Delay and Skew Optimization | Checksum: 1b04ab59e
+
+Time (s): cpu = 00:17:20 ; elapsed = 00:26:33 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6215 ; free virtual = 8685
+
+Phase 6 Post Hold Fix
+
+Phase 6.1 Hold Fix Iter
+
+Phase 6.1.1 Update Timing
+Phase 6.1.1 Update Timing | Checksum: 190b38b43
+
+Time (s): cpu = 00:17:23 ; elapsed = 00:26:38 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6216 ; free virtual = 8685
+INFO: [Route 35-416] Intermediate Timing Summary | WNS=0.261  | TNS=0.000  | WHS=0.026  | THS=0.000  |
+
+Phase 6.1 Hold Fix Iter | Checksum: 190b38b43
+
+Time (s): cpu = 00:17:23 ; elapsed = 00:26:38 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6216 ; free virtual = 8685
+Phase 6 Post Hold Fix | Checksum: 190b38b43
+
+Time (s): cpu = 00:17:23 ; elapsed = 00:26:38 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6216 ; free virtual = 8685
+
+Phase 7 Route finalize
+
+Router Utilization Summary
+  Global Vertical Routing Utilization    = 3.64412 %
+  Global Horizontal Routing Utilization  = 3.88505 %
+  Routable Net Status*
+  *Does not include unroutable nets such as driverless and loadless.
+  Run report_route_status for detailed report.
+  Number of Failed Nets               = 0
+    (Failed Nets is the sum of unrouted and partially routed nets)
+  Number of Unrouted Nets             = 0
+  Number of Partially Routed Nets     = 0
+  Number of Node Overlaps             = 0
+
+Phase 7 Route finalize | Checksum: 14b04d81f
+
+Time (s): cpu = 00:17:24 ; elapsed = 00:26:39 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6215 ; free virtual = 8685
+
+Phase 8 Verifying routed nets
+
+ Verification completed successfully
+Phase 8 Verifying routed nets | Checksum: 14b04d81f
+
+Time (s): cpu = 00:17:24 ; elapsed = 00:26:39 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6214 ; free virtual = 8683
+
+Phase 9 Depositing Routes
+Phase 9 Depositing Routes | Checksum: 14b04d81f
+
+Time (s): cpu = 00:17:26 ; elapsed = 00:26:42 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6212 ; free virtual = 8682
+
+Phase 10 Post Router Timing
+INFO: [Route 35-57] Estimated Timing Summary | WNS=0.261  | TNS=0.000  | WHS=0.026  | THS=0.000  |
+
+INFO: [Route 35-327] The final timing numbers are based on the router estimated timing analysis. For a complete and accurate timing signoff, please run report_timing_summary.
+Phase 10 Post Router Timing | Checksum: 14b04d81f
+
+Time (s): cpu = 00:17:26 ; elapsed = 00:26:42 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6214 ; free virtual = 8684
+INFO: [Route 35-16] Router Completed Successfully
+
+Time (s): cpu = 00:17:26 ; elapsed = 00:26:42 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6229 ; free virtual = 8699
+
+Routing Is Done.
+INFO: [Common 17-83] Releasing license: Implementation
+14 Infos, 100 Warnings, 0 Critical Warnings and 0 Errors encountered.
+route_design completed successfully
+route_design: Time (s): cpu = 00:17:29 ; elapsed = 00:26:47 . Memory (MB): peak = 4429.539 ; gain = 217.648 ; free physical = 6229 ; free virtual = 8699
+INFO: [Common 17-600] The following parameters have non-default value.
+general.maxThreads
+# report_utilization > utilization_post_pr.rpt
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Mon Jun 19 14:05:52 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_utilization
+| Design       : histogram
+| Device       : xcku5psfvb784-3
+| Design State : Routed
+------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. CLB Logic
+1.1 Summary of Registers by Type
+2. CLB Logic Distribution
+3. BLOCKRAM
+4. ARITHMETIC
+5. I/O
+6. CLOCK
+7. ADVANCED
+8. CONFIGURATION
+9. Primitives
+10. Black Boxes
+11. Instantiated Netlists
+
+1. CLB Logic
+------------
+
++----------------------------+-------+-------+-----------+-------+
+|          Site Type         |  Used | Fixed | Available | Util% |
++----------------------------+-------+-------+-----------+-------+
+| CLB LUTs                   | 17967 |     0 |    216960 |  8.28 |
+|   LUT as Logic             | 17943 |     0 |    216960 |  8.27 |
+|   LUT as Memory            |    24 |     0 |     99840 |  0.02 |
+|     LUT as Distributed RAM |    24 |     0 |           |       |
+|     LUT as Shift Register  |     0 |     0 |           |       |
+| CLB Registers              |  4200 |     0 |    433920 |  0.97 |
+|   Register as Flip Flop    |  4200 |     0 |    433920 |  0.97 |
+|   Register as Latch        |     0 |     0 |    433920 |  0.00 |
+| CARRY8                     |   580 |     0 |     27120 |  2.14 |
+| F7 Muxes                   |  1218 |     0 |    108480 |  1.12 |
+| F8 Muxes                   |    71 |     0 |     54240 |  0.13 |
+| F9 Muxes                   |     0 |     0 |     27120 |  0.00 |
++----------------------------+-------+-------+-----------+-------+
+
+
+1.1 Summary of Registers by Type
+--------------------------------
+
++-------+--------------+-------------+--------------+
+| Total | Clock Enable | Synchronous | Asynchronous |
++-------+--------------+-------------+--------------+
+| 0     |            _ |           - |            - |
+| 0     |            _ |           - |          Set |
+| 0     |            _ |           - |        Reset |
+| 0     |            _ |         Set |            - |
+| 0     |            _ |       Reset |            - |
+| 0     |          Yes |           - |            - |
+| 31    |          Yes |           - |          Set |
+| 541   |          Yes |           - |        Reset |
+| 0     |          Yes |         Set |            - |
+| 3628  |          Yes |       Reset |            - |
++-------+--------------+-------------+--------------+
+
+
+2. CLB Logic Distribution
+-------------------------
+
++--------------------------------------------+-------+-------+-----------+-------+
+|                  Site Type                 |  Used | Fixed | Available | Util% |
++--------------------------------------------+-------+-------+-----------+-------+
+| CLB                                        |  2834 |     0 |     27120 | 10.45 |
+|   CLBL                                     |  1538 |     0 |           |       |
+|   CLBM                                     |  1296 |     0 |           |       |
+| LUT as Logic                               | 17943 |     0 |    216960 |  8.27 |
+|   using O5 output only                     |    65 |       |           |       |
+|   using O6 output only                     | 16073 |       |           |       |
+|   using O5 and O6                          |  1805 |       |           |       |
+| LUT as Memory                              |    24 |     0 |     99840 |  0.02 |
+|   LUT as Distributed RAM                   |    24 |     0 |           |       |
+|     using O5 output only                   |     0 |       |           |       |
+|     using O6 output only                   |     0 |       |           |       |
+|     using O5 and O6                        |    24 |       |           |       |
+|   LUT as Shift Register                    |     0 |     0 |           |       |
+| CLB Registers                              |  4200 |     0 |    433920 |  0.97 |
+|   Register driven from within the CLB      |  2254 |       |           |       |
+|   Register driven from outside the CLB     |  1946 |       |           |       |
+|     LUT in front of the register is unused |   719 |       |           |       |
+|     LUT in front of the register is used   |  1227 |       |           |       |
+| Unique Control Sets                        |   156 |       |     54240 |  0.29 |
++--------------------------------------------+-------+-------+-----------+-------+
+* Note: Available Control Sets calculated as CLB Registers / 8, Review the Control Sets Report for more information regarding control sets.
+
+
+3. BLOCKRAM
+-----------
+
++----------------+------+-------+-----------+-------+
+|    Site Type   | Used | Fixed | Available | Util% |
++----------------+------+-------+-----------+-------+
+| Block RAM Tile |    0 |     0 |       480 |  0.00 |
+|   RAMB36/FIFO* |    0 |     0 |       480 |  0.00 |
+|   RAMB18       |    0 |     0 |       960 |  0.00 |
+| URAM           |    0 |     0 |        64 |  0.00 |
++----------------+------+-------+-----------+-------+
+* Note: Each Block RAM Tile only has one FIFO logic available and therefore can accommodate only one FIFO36E2 or one FIFO18E2. However, if a FIFO18E2 occupies a Block RAM Tile, that tile can still accommodate a RAMB18E2
+
+
+4. ARITHMETIC
+-------------
+
++-----------+------+-------+-----------+-------+
+| Site Type | Used | Fixed | Available | Util% |
++-----------+------+-------+-----------+-------+
+| DSPs      |    0 |     0 |      1824 |  0.00 |
++-----------+------+-------+-----------+-------+
+
+
+5. I/O
+------
+
++------------------+------+-------+-----------+-------+
+|     Site Type    | Used | Fixed | Available | Util% |
++------------------+------+-------+-----------+-------+
+| Bonded IOB       |    0 |     0 |       304 |  0.00 |
+| HPIOB_M          |    0 |     0 |        96 |  0.00 |
+| HPIOB_S          |    0 |     0 |        96 |  0.00 |
+| HDIOB_M          |    0 |     0 |        48 |  0.00 |
+| HDIOB_S          |    0 |     0 |        48 |  0.00 |
+| HPIOB_SNGL       |    0 |     0 |        16 |  0.00 |
+| HPIOBDIFFINBUF   |    0 |     0 |        96 |  0.00 |
+| HPIOBDIFFOUTBUF  |    0 |     0 |        96 |  0.00 |
+| HDIOBDIFFINBUF   |    0 |     0 |        48 |  0.00 |
+| BITSLICE_CONTROL |    0 |     0 |        32 |  0.00 |
+| BITSLICE_RX_TX   |    0 |     0 |       208 |  0.00 |
+| BITSLICE_TX      |    0 |     0 |        32 |  0.00 |
+| RIU_OR           |    0 |     0 |        16 |  0.00 |
++------------------+------+-------+-----------+-------+
+
+
+6. CLOCK
+--------
+
++----------------------+------+-------+-----------+-------+
+|       Site Type      | Used | Fixed | Available | Util% |
++----------------------+------+-------+-----------+-------+
+| GLOBAL CLOCK BUFFERs |    0 |     0 |       256 |  0.00 |
+|   BUFGCE             |    0 |     0 |       112 |  0.00 |
+|   BUFGCE_DIV         |    0 |     0 |        16 |  0.00 |
+|   BUFG_GT            |    0 |     0 |        96 |  0.00 |
+|   BUFGCTRL*          |    0 |     0 |        32 |  0.00 |
+| PLL                  |    0 |     0 |         8 |  0.00 |
+| MMCM                 |    0 |     0 |         4 |  0.00 |
++----------------------+------+-------+-----------+-------+
+* Note: Each used BUFGCTRL counts as two GLOBAL CLOCK BUFFERs. This table does not include global clocking resources, only buffer cell usage. See the Clock Utilization Report (report_clock_utilization) for detailed accounting of global clocking resource availability.
+
+
+7. ADVANCED
+-----------
+
++-----------------+------+-------+-----------+-------+
+|    Site Type    | Used | Fixed | Available | Util% |
++-----------------+------+-------+-----------+-------+
+| CMACE4          |    0 |     0 |         1 |  0.00 |
+| GTYE4_CHANNEL   |    0 |     0 |        16 |  0.00 |
+| GTYE4_COMMON    |    0 |     0 |         4 |  0.00 |
+| OBUFDS_GTE4     |    0 |     0 |         8 |  0.00 |
+| OBUFDS_GTE4_ADV |    0 |     0 |         8 |  0.00 |
+| PCIE40E4        |    0 |     0 |         1 |  0.00 |
+| SYSMONE4        |    0 |     0 |         1 |  0.00 |
++-----------------+------+-------+-----------+-------+
+
+
+8. CONFIGURATION
+----------------
+
++-------------+------+-------+-----------+-------+
+|  Site Type  | Used | Fixed | Available | Util% |
++-------------+------+-------+-----------+-------+
+| BSCANE2     |    0 |     0 |         4 |  0.00 |
+| DNA_PORTE2  |    0 |     0 |         1 |  0.00 |
+| EFUSE_USR   |    0 |     0 |         1 |  0.00 |
+| FRAME_ECCE4 |    0 |     0 |         1 |  0.00 |
+| ICAPE3      |    0 |     0 |         2 |  0.00 |
+| MASTER_JTAG |    0 |     0 |         1 |  0.00 |
+| STARTUPE3   |    0 |     0 |         1 |  0.00 |
++-------------+------+-------+-----------+-------+
+
+
+9. Primitives
+-------------
+
++----------+------+---------------------+
+| Ref Name | Used | Functional Category |
++----------+------+---------------------+
+| LUT6     | 7876 |                 CLB |
+| LUT4     | 5744 |                 CLB |
+| LUT5     | 5118 |                 CLB |
+| FDRE     | 3628 |            Register |
+| MUXF7    | 1218 |                 CLB |
+| LUT2     |  658 |                 CLB |
+| CARRY8   |  580 |                 CLB |
+| FDCE     |  541 |            Register |
+| LUT3     |  339 |                 CLB |
+| MUXF8    |   71 |                 CLB |
+| RAMD32   |   42 |                 CLB |
+| FDPE     |   31 |            Register |
+| LUT1     |   13 |                 CLB |
+| RAMS32   |    6 |                 CLB |
++----------+------+---------------------+
+
+
+10. Black Boxes
+---------------
+
++----------+------+
+| Ref Name | Used |
++----------+------+
+
+
+11. Instantiated Netlists
+-------------------------
+
++----------+------+
+| Ref Name | Used |
++----------+------+
+
+
+# report_timing > timing_post_pr.rpt
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -3, Temperature grade: E, Delay Type: max.
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 1 -nworst 1 -delay_type max -sort_by slack.
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------
+| Tool Version      : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date              : Mon Jun 19 14:06:01 2023
+| Host              : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command           : report_timing
+| Design            : histogram
+| Device            : xcku5p-sfvb784
+| Speed File        : -3  PRODUCTION 1.27 08-13-2019
+| Temperature Grade : E
+-----------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             0.273ns  (required time - arrival time)
+  Source:                 c_LSQ_hist/storeQ/head_reg[1]_rep__2/C
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Destination:            c_LSQ_hist/storeQ/head_reg[0]/CE
+                            (rising edge-triggered cell FDRE clocked by clk  {rise@0.000ns fall@2.000ns period=4.000ns})
+  Path Group:             clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            4.000ns  (clk rise@4.000ns - clk rise@0.000ns)
+  Data Path Delay:        3.474ns  (logic 0.712ns (20.495%)  route 2.762ns (79.505%))
+  Logic Levels:           9  (CARRY8=2 LUT4=1 LUT6=6)
+  Clock Path Skew:        -0.175ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    1.384ns = ( 5.384 - 4.000 ) 
+    Source Clock Delay      (SCD):    1.636ns
+    Clock Pessimism Removal (CPR):    0.077ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+  Clock Net Delay (Source):      1.636ns (routing 0.851ns, distribution 0.785ns)
+  Clock Net Delay (Destination): 1.384ns (routing 0.774ns, distribution 0.610ns)
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+    X2Y0 (CLOCK_ROOT)    net (fo=4247, unset)         1.636     1.636    c_LSQ_hist/storeQ/clk
+    SLICE_X79Y60         FDRE                                         r  c_LSQ_hist/storeQ/head_reg[1]_rep__2/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X79Y60         FDRE (Prop_AFF2_SLICEM_C_Q)
+                                                      0.069     1.705 r  c_LSQ_hist/storeQ/head_reg[1]_rep__2/Q
+                         net (fo=114, routed)         0.701     2.406    c_LSQ_hist/storeQ/head_reg[1]_rep__2_n_0
+    SLICE_X84Y65         LUT6 (Prop_G6LUT_SLICEL_I2_O)
+                                                      0.082     2.488 r  c_LSQ_hist/storeQ/hist_address0[21]_INST_0_i_3/O
+                         net (fo=1, routed)           0.185     2.673    c_LSQ_hist/storeQ/hist_address0[21]_INST_0_i_3_n_0
+    SLICE_X83Y64         LUT6 (Prop_H6LUT_SLICEL_I1_O)
+                                                      0.032     2.705 r  c_LSQ_hist/storeQ/hist_address0[21]_INST_0_i_1/O
+                         net (fo=16, routed)          0.761     3.466    c_LSQ_hist/storeQ/hist_address0[21]
+    SLICE_X68Y70         LUT6 (Prop_H6LUT_SLICEL_I0_O)
+                                                      0.032     3.498 r  c_LSQ_hist/storeQ/hist_we0_INST_0_i_320/O
+                         net (fo=1, routed)           0.013     3.511    c_LSQ_hist/storeQ/hist_we0_INST_0_i_320_n_0
+    SLICE_X68Y70         CARRY8 (Prop_CARRY8_SLICEL_S[7]_CO[7])
+                                                      0.099     3.610 r  c_LSQ_hist/storeQ/hist_we0_INST_0_i_234/CO[7]
+                         net (fo=1, routed)           0.023     3.633    c_LSQ_hist/storeQ/hist_we0_INST_0_i_234_n_0
+    SLICE_X68Y71         CARRY8 (Prop_CARRY8_SLICEL_CI_CO[2])
+                                                      0.051     3.684 r  c_LSQ_hist/storeQ/hist_we0_INST_0_i_138/CO[2]
+                         net (fo=1, routed)           0.383     4.067    c_LSQ_hist/loadQ/hist_we0_INST_0_i_32_1[0]
+    SLICE_X69Y58         LUT4 (Prop_E6LUT_SLICEL_I0_O)
+                                                      0.082     4.149 r  c_LSQ_hist/loadQ/hist_we0_INST_0_i_77/O
+                         net (fo=1, routed)           0.224     4.373    c_LSQ_hist/loadQ/hist_we0_INST_0_i_77_n_0
+    SLICE_X74Y58         LUT6 (Prop_E6LUT_SLICEM_I4_O)
+                                                      0.135     4.508 f  c_LSQ_hist/loadQ/hist_we0_INST_0_i_32/O
+                         net (fo=1, routed)           0.084     4.592    c_LSQ_hist/loadQ/hist_we0_INST_0_i_32_n_0
+    SLICE_X74Y57         LUT6 (Prop_B6LUT_SLICEM_I0_O)
+                                                      0.047     4.639 f  c_LSQ_hist/loadQ/hist_we0_INST_0_i_6/O
+                         net (fo=17, routed)          0.104     4.743    c_LSQ_hist/loadQ/hist_we0_INST_0_i_6_n_0
+    SLICE_X75Y57         LUT6 (Prop_A6LUT_SLICEM_I5_O)
+                                                      0.083     4.826 r  c_LSQ_hist/loadQ/hist_we0_INST_0/O
+                         net (fo=16, routed)          0.284     5.110    c_LSQ_hist/storeQ/head_reg[2]_rep__0_1[0]
+    SLICE_X75Y56         FDRE                                         r  c_LSQ_hist/storeQ/head_reg[0]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        4.000     4.000 r  
+                                                      0.000     4.000 r  clk (IN)
+    X2Y0 (CLOCK_ROOT)    net (fo=4247, unset)         1.384     5.384    c_LSQ_hist/storeQ/clk
+    SLICE_X75Y56         FDRE                                         r  c_LSQ_hist/storeQ/head_reg[0]/C
+                         clock pessimism              0.077     5.461    
+                         clock uncertainty           -0.035     5.426    
+    SLICE_X75Y56         FDRE (Setup_HFF2_SLICEM_C_CE)
+                                                     -0.043     5.383    c_LSQ_hist/storeQ/head_reg[0]
+  -------------------------------------------------------------------
+                         required time                          5.383    
+                         arrival time                          -5.110    
+  -------------------------------------------------------------------
+                         slack                                  0.273    
+
+
+
+
+report_timing: Time (s): cpu = 00:00:06 ; elapsed = 00:00:09 . Memory (MB): peak = 4429.539 ; gain = 0.000 ; free physical = 6223 ; free virtual = 8693
+INFO: [Common 17-206] Exiting Vivado at Mon Jun 19 14:06:01 2023...

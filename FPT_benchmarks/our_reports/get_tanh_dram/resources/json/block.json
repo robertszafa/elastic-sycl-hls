@@ -1,0 +1,3493 @@
+{
+  "7":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":25
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"3"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_array_size"
+        , "id":26
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_array_size'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":27
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":724
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_array_size"
+        , "id":28
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_array_size'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":29
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":724
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_array_size"
+        , "id":30
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_array_size'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":31
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":724
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":32
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"-1 (0xFFFFFFFF)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":724
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":33
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"33-bit Integer Add"
+            , "Constant Operand":"-1 (0x1FFFFFFFF)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":724
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Src"
+        , "id":34
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"ffwdSource"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Source"
+            , "FFwd Dests In":"MainKernel_AGU_0.B1, MainKernel_AGU_0.B1, MainKernel_AGU_0.B1, MainKernel_AGU_0.B1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":724
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Src"
+        , "id":35
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"ffwdSource"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Source"
+            , "FFwd Dest In":"MainKernel_AGU_0.B1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":724
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":26
+        , "to":27
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":27
+        , "to":34
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":28
+        , "to":29
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":29
+        , "to":31
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":30
+        , "to":31
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":31
+        , "to":32
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":32
+        , "to":33
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":33
+        , "to":35
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+    ]
+  }
+  , "8":
+  {
+    "nodes":
+    [
+      {
+        "name":"Capacity FIFO"
+        , "id":1806
+        , "subtype":"capacity fifo"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "FIFO Depth":"3"
+            , "FIFO Width":"0"
+          }
+        ]
+      }
+      , {
+        "name":"Capacity FIFO"
+        , "id":1807
+        , "subtype":"capacity fifo"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "FIFO Depth":"3"
+            , "FIFO Width":"0"
+          }
+        ]
+      }
+      , {
+        "name":"Cluster 0"
+        , "id":37
+        , "start":"1.00"
+        , "end":"5.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Cluster Name":"i_sfc_s_c0_in_for_body_i_zts16mainkernel_agu_0s_c0_enter1_zts16mainkernel_agu_0_130_1gr"
+            , "Cluster Type":"Stall-Free"
+            , "Cluster Start Cycle":"1"
+            , "Cluster Latency":"4"
+          }
+        ]
+        , "type":"cluster"
+        , "children":
+        [
+          {
+            "name":"Logic"
+            , "id":1804
+            , "subtype":"entry"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Logic Start Cycle":"1"
+                , "Cluster Logic Latency":"1"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Exit"
+            , "id":1805
+            , "subtype":"exit"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Max Fanout":"2"
+                , "Start Cycle":"2"
+                , "Latency":"3"
+                , "Exit FIFO Depth":"32"
+                , "Exit FIFO Width":"248"
+                , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":36
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":724
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_A"
+        , "id":38
+        , "start":"8.00"
+        , "end":"8.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_A'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"8"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_A"
+        , "id":39
+        , "start":"8.00"
+        , "end":"8.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_A'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"8"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"LD"
+        , "id":40
+        , "start":"5.00"
+        , "end":"8.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Load"
+            , "Width":"32 bits"
+            , "LSU Style":"Prefetching"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"5"
+            , "Latency":"3"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":725
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Capacity FIFO"
+        , "id":1808
+        , "subtype":"capacity fifo"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "FIFO Depth":"1"
+            , "FIFO Width":"32"
+          }
+        ]
+      }
+      , {
+        "name":"LD"
+        , "id":41
+        , "start":"5.00"
+        , "end":"8.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Load"
+            , "Width":"32 bits"
+            , "LSU Style":"Prefetching"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"5"
+            , "Latency":"3"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":781
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Capacity FIFO"
+        , "id":1809
+        , "subtype":"capacity fifo"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "FIFO Depth":"1"
+            , "FIFO Width":"32"
+          }
+        ]
+      }
+      , {
+        "name":"Ptr. Comp."
+        , "id":42
+        , "start":"8.00"
+        , "end":"8.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pointer Computation"
+            , "Max Fanout":"4"
+            , "Start Cycle":"8"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Ptr. Comp."
+        , "id":43
+        , "start":"8.00"
+        , "end":"8.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pointer Computation"
+            , "Max Fanout":"4"
+            , "Start Cycle":"8"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":781
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":44
+        , "start":"8.00"
+        , "end":"8.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"128 bits"
+            , "Depth":"68"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"8"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":45
+        , "start":"8.00"
+        , "end":"8.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"128 bits"
+            , "Depth":"68"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"3"
+            , "Start Cycle":"8"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":1804
+        , "to":1805
+      }
+      , {
+        "from":1804
+        , "to":1806
+      }
+      , {
+        "from":1804
+        , "to":1807
+      }
+      , {
+        "from":36
+        , "to":1804
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":38
+        , "to":42
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":1809
+        , "to":38
+      }
+      , {
+        "from":1809
+        , "to":38
+      }
+      , {
+        "from":39
+        , "to":43
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":40
+        , "to":42
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":40
+        , "to":1809
+      }
+      , {
+        "from":1805
+        , "to":40
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"248"
+          }
+        ]
+      }
+      , {
+        "from":41
+        , "to":43
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":41
+        , "to":1809
+      }
+      , {
+        "from":1805
+        , "to":41
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"248"
+          }
+        ]
+      }
+      , {
+        "from":1805
+        , "to":44
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"248"
+          }
+        ]
+      }
+      , {
+        "from":1805
+        , "to":45
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"248"
+          }
+        ]
+      }
+    ]
+  }
+  , "9":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":46
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "10":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":47
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":408
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "11":
+  {
+    "nodes":
+    [
+      {
+        "name":"RD"
+        , "id":48
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":49
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":50
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":51
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"128 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"ST"
+        , "id":52
+        , "start":"1.00"
+        , "end":"8.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Store"
+            , "Width":"32 bits"
+            , "LSU Style":"Pipelined"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"7"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/fpga_lsu.hpp"
+              , "line":74
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":48
+        , "to":49
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":49
+        , "to":50
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":50
+        , "to":52
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":50
+        , "to":51
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":52
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"128"
+          }
+        ]
+      }
+    ]
+  }
+  , "12":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":53
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "13":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":54
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":422
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "14":
+  {
+    "nodes":
+    [
+      {
+        "name":"RD"
+        , "id":55
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":56
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":57
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":58
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"64 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"LD"
+        , "id":59
+        , "start":"1.00"
+        , "end":"9.00"
+        , "subtype":"load/store"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Load"
+            , "Width":"32 bits"
+            , "LSU Style":"Pipelined"
+            , "Stall-free":"No"
+            , "Global Memory":"Yes"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"8"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/fpga_lsu.hpp"
+              , "line":56
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":60
+        , "start":"9.00"
+        , "end":"9.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"9"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":55
+        , "to":56
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":56
+        , "to":57
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":57
+        , "to":59
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":57
+        , "to":58
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":57
+        , "to":60
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":59
+        , "to":60
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+    ]
+  }
+  , "15":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":61
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "16":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":62
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":435
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "17":
+  {
+    "nodes":
+    [
+      {
+        "name":"RD"
+        , "id":63
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":64
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":65
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":66
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":67
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit And"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":68
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"8-bit Integer Compare"
+            , "Max Fanout":"3"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Xor"
+        , "id":69
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Xor"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":70
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":68
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":71
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":72
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":73
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":74
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":75
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"68"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":63
+        , "to":64
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":64
+        , "to":65
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":65
+        , "to":75
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":65
+        , "to":72
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":65
+        , "to":70
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":65
+        , "to":66
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":66
+        , "to":67
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":67
+        , "to":68
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"8"
+          }
+        ]
+      }
+      , {
+        "from":68
+        , "to":72
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":68
+        , "to":69
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":68
+        , "to":74
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":69
+        , "to":70
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":70
+        , "to":71
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":71
+        , "to":74
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":72
+        , "to":73
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":73
+        , "to":74
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":74
+        , "to":75
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+    ]
+  }
+  , "18":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":76
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "19":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":77
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":485
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+    ]
+  }
+  , "20":
+  {
+    "nodes":
+    [
+      {
+        "name":"Cluster 1"
+        , "id":79
+        , "start":"1.00"
+        , "end":"7.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Cluster Name":"i_sfc_s_c0_in_while_body_i_zts8lsq_dramin4sycl3_v13ext5intel4pipeiz15get_tanh_kernelrns1_5queueerst6vectoriisaiiees9_s9_e27pipes_c0_enter1_zts8lsq_dramin4sycl3_v13ext5intel4pipeiz15get_tanh_kernelrns1_5queueerst6vectoriisaiiees9_s9_e27pipe_3640_1gr"
+            , "Cluster Type":"Stall-Free"
+            , "Cluster Start Cycle":"1"
+            , "Cluster Latency":"6"
+          }
+        ]
+        , "type":"cluster"
+        , "children":
+        [
+          {
+            "name":"Logic"
+            , "id":1810
+            , "subtype":"entry"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Logic Start Cycle":"1"
+                , "Cluster Logic Latency":"3"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Exit"
+            , "id":1811
+            , "subtype":"exit"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Max Fanout":"2"
+                , "Start Cycle":"4"
+                , "Latency":"3"
+                , "Exit FIFO Depth":"32"
+                , "Exit FIFO Width":"288"
+                , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"Loop Input"
+        , "id":78
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Input"
+            , "Preceding Blocks":">.B0, >.B1"
+            , "Max Fanout":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":485
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":80
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":81
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"128 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"8"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":82
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":83
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":84
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":85
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"64 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":86
+        , "start":"7.00"
+        , "end":"7.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"32 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":1810
+        , "to":1811
+      }
+      , {
+        "from":78
+        , "to":1810
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":1811
+        , "to":80
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"288"
+          }
+        ]
+      }
+      , {
+        "from":1811
+        , "to":81
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"288"
+          }
+        ]
+      }
+      , {
+        "from":1811
+        , "to":82
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"288"
+          }
+        ]
+      }
+      , {
+        "from":1811
+        , "to":83
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"288"
+          }
+        ]
+      }
+      , {
+        "from":1811
+        , "to":84
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"288"
+          }
+        ]
+      }
+      , {
+        "from":1811
+        , "to":85
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"288"
+          }
+        ]
+      }
+      , {
+        "from":1811
+        , "to":86
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"288"
+          }
+        ]
+      }
+    ]
+  }
+  , "21":
+  {
+    "nodes":
+    [
+      {
+        "name":"WR"
+        , "id":87
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":88
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":89
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"8"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"3"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Or"
+        , "id":90
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Or"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Or"
+        , "id":91
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Or"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Feedback"
+        , "id":92
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":87
+        , "to":91
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":88
+        , "to":90
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":89
+        , "to":90
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":90
+        , "to":91
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":91
+        , "to":92
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+    ]
+  }
+  , "22":
+  {
+    "nodes":
+    [
+      {
+        "name":"Feedback"
+        , "id":93
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"pop"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"Unknown variable"
+            , "Max Fanout":"3"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_array_size"
+        , "id":94
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_array_size'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":95
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":797
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_array_size"
+        , "id":96
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_array_size'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Compare"
+        , "id":97
+        , "start":"1.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Compare"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":797
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_array_size"
+        , "id":98
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_array_size'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":99
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"select"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Select"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":797
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":100
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"-1 (0xFFFFFFFF)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":797
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":101
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"33-bit Integer Add"
+            , "Constant Operand":"-1 (0x1FFFFFFFF)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":797
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Src"
+        , "id":102
+        , "start":"1.00"
+        , "end":"1.00"
+        , "subtype":"ffwdSource"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Source"
+            , "FFwd Dests In":"MainKernel.B1, MainKernel.B1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":797
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Src"
+        , "id":103
+        , "start":"2.00"
+        , "end":"2.00"
+        , "subtype":"ffwdSource"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Source"
+            , "FFwd Dest In":"MainKernel.B1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"2"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":797
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":94
+        , "to":95
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":95
+        , "to":102
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":96
+        , "to":97
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":97
+        , "to":99
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":98
+        , "to":99
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":99
+        , "to":100
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":100
+        , "to":101
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":101
+        , "to":103
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+    ]
+  }
+  , "23":
+  {
+    "nodes":
+    [
+      {
+        "name":"Cluster 2"
+        , "id":105
+        , "start":"1.00"
+        , "end":"5.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Cluster Name":"i_sfc_s_c0_in_for_body_i_zts10mainkernels_c0_enter1_zts10mainkernel_12885_1gr"
+            , "Cluster Type":"Stall-Free"
+            , "Cluster Start Cycle":"1"
+            , "Cluster Latency":"4"
+          }
+        ]
+        , "type":"cluster"
+        , "children":
+        [
+          {
+            "name":"Logic"
+            , "id":1812
+            , "subtype":"entry"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Logic Start Cycle":"1"
+                , "Cluster Logic Latency":"1"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Exit"
+            , "id":1813
+            , "subtype":"exit"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Max Fanout":"2"
+                , "Start Cycle":"2"
+                , "Latency":"3"
+                , "Exit FIFO Depth":"32"
+                , "Exit FIFO Width":"40"
+                , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"Cluster 3"
+        , "id":107
+        , "start":"5.00"
+        , "end":"62.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Cluster Name":"i_sfc_s_c1_in_for_body_i_zts10mainkernels_c1_enter_zts10mainkernel_12885_5gr"
+            , "Cluster Type":"Stall-Free"
+            , "Cluster Start Cycle":"5"
+            , "Cluster Latency":"57"
+          }
+        ]
+        , "type":"cluster"
+        , "children":
+        [
+          {
+            "name":"Logic"
+            , "id":1814
+            , "subtype":"entry"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Logic Start Cycle":"5"
+                , "Cluster Logic Latency":"54"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Exit"
+            , "id":1815
+            , "subtype":"exit"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Max Fanout":"2"
+                , "Start Cycle":"59"
+                , "Latency":"3"
+                , "Exit FIFO Depth":"512"
+                , "Exit FIFO Width":"104"
+                , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":104
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_dram_elastic_pass_workdir/get_tanh_dram.ast.cpp"
+              , "line":797
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"RD"
+        , "id":106
+        , "start":"5.00"
+        , "end":"5.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Read"
+            , "Width":"32 bits"
+            , "Depth":"68"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"5"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":67
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"WR"
+        , "id":108
+        , "start":"62.00"
+        , "end":"62.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"96 bits"
+            , "Depth":"68"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"2"
+            , "Start Cycle":"62"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":1812
+        , "to":1813
+      }
+      , {
+        "from":1814
+        , "to":1815
+      }
+      , {
+        "from":104
+        , "to":1812
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":106
+        , "to":1814
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":1813
+        , "to":106
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"40"
+          }
+        ]
+      }
+      , {
+        "from":1813
+        , "to":108
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"40"
+          }
+        ]
+      }
+      , {
+        "from":1815
+        , "to":108
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"104"
+          }
+        ]
+      }
+    ]
+  }
+  , "24":
+  {
+    "nodes":
+    [
+      {
+        "name":"WR"
+        , "id":109
+        , "start":"0.00"
+        , "end":"0.00"
+        , "subtype":"default"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pipe Write"
+            , "Width":"8 bits"
+            , "Depth":"1"
+            , "Pipe Name":"sycl::_V1::ext::intel::pipe<get_tanh_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+            , "Stall-free":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+              , "line":82
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Feedback"
+        , "id":110
+        , "start":"0.00"
+        , "end":"1.00"
+        , "subtype":"push"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"Unknown variable"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+              , "line":1170
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":109
+        , "to":110
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,1220 @@
+{
+  "columns":
+  ["", "ALUTs", "FFs", "RAMs", "DSPs", "MLABs", "Details"]
+  , "debug_enabled":"true"
+  , "type":"module"
+  , "total_percent":
+  [42.6203, 22.0672, 21.8543, 20.7888, 8.10277]
+  , "total":
+  [187362, 373446, 564, 123, 59]
+  , "name":"Kernel System"
+  , "max_resources":
+  [854400, 1708800, 2713, 1518, 42720]
+  , "children":
+  [
+    {
+      "name":"Static Partition"
+      , "type":"partition"
+      , "children":
+      [
+        {
+          "name":"Board interface"
+          , "type":"resource"
+          , "data":
+          [179950, 358572, 492, 123, 0]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Platform interface logic."
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"Global interconnect"
+      , "type":"resource"
+      , "data":
+      [5034, 9568, 52, 0, 0]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"Global interconnect for 1 global load and 1 global store."
+        }
+        , {
+          "type":"brief"
+          , "text":"For 1 global load and 1 global store."
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Global Memory Interconnect"
+              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/hnj1476724450050.html"
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"System description ROM"
+      , "type":"resource"
+      , "data":
+      [0, 67, 2, 0, 0]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"This read-only memory contains information for the host about the system and about each kernel in the system, including kernel names, arguments, and attributes. The system description ROM ensures that the binary image on the FPGA is compatible with the host program."
+        }
+        , {
+          "type":"brief"
+          , "text":"Contains information for the host."
+        }
+      ]
+    }
+    , {
+      "name":"MainKernel"
+      , "compute_units":1
+      , "type":"function"
+      , "total_percent":
+      [0.687885, 0.416433, 0.306589, 0.663472, 0]
+      , "total_kernel_resources":
+      [2378, 5239, 18, 0, 59]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"Number of compute units: 1"
+        }
+        , {
+          "type":"brief"
+          , "text":"1 compute unit."
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"Function overhead"
+          , "type":"resource"
+          , "data":
+          [1072, 2225, 0, 0, 10]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Kernel dispatch logic."
+            }
+            , {
+              "type":"brief"
+              , "text":"Kernel dispatch logic."
+            }
+          ]
+        }
+        , {
+          "name":"Private Variable: \n - 'i' (maximal_matching_bram.cpp:39)"
+          , "type":"resource"
+          , "data":
+          [14, 73, 0, 0, 0]
+          , "debug":
+          [
+            [
+              {
+                "filename":"maximal_matching_bram.cpp"
+                , "line":39
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Type: Register"
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 32 bits and depth 1"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":" Depth was increased by a factor of 7 due to a loop initiation interval of 7."
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 33 bits and depth 1"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":" Depth was increased by a factor of 7 due to a loop initiation interval of 7."
+                }
+              ]
+            }
+            , {
+              "type":"brief"
+              , "text":"Register,\n1 reg, 32 width by 1 depth,\n1 reg, 33 width by 1 depth"
+            }
+          ]
+        }
+        , {
+          "name":"Private Variable: \n - 'out_scalar' (maximal_matching_bram.cpp:40)"
+          , "type":"resource"
+          , "data":
+          [7, 36, 0, 0, 0]
+          , "debug":
+          [
+            [
+              {
+                "filename":"maximal_matching_bram.cpp"
+                , "line":40
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Type: Register"
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 32 bits and depth 1"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":" Depth was increased by a factor of 7 due to a loop initiation interval of 7."
+                }
+              ]
+            }
+            , {
+              "type":"brief"
+              , "text":"Register,\n1 reg, 32 width by 1 depth"
+            }
+          ]
+        }
+        , {
+          "name":"maximal_matching_bram.cpp:32 (vertices)"
+          , "type":"resource"
+          , "data":
+          [33, 256, 4, 0, 0]
+          , "debug":
+          [
+            [
+              {
+                "filename":"maximal_matching_bram.cpp"
+                , "line":32
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Private memory":"Stall-free"
+              , "Requested size":"8000 bytes"
+              , "Implemented size":"8192 bytes"
+              , "Memory Usage":"4 RAMs"
+              , "Number of banks":"1"
+              , "Bank width":"32 bits"
+              , "Bank depth":"2048 words"
+              , "Number of replicates":"1"
+              , "Number of private copies":"1"
+              , "Clock":"Running memory at 2x clock to support more concurrent ports"
+              , "Additional information":
+              [
+                {
+                  "type":"text"
+                  , "text":"Requested size 8000 bytes, implemented size 8192 bytes, stall-free, 2 reads and 2 writes. "
+                }
+                , {
+                  "type":"text"
+                  , "text":"Reducing accesses to exactly one read and one write for all on-chip memory systems may increase overall system performance."
+                }
+                , {
+                  "type":"text"
+                  , "text":"Private memory implemented in on-chip block RAM."
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information."
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Local Memory"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"brief"
+              , "text":"Stall-free,\n8000B requested,\n8192B implemented."
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B0"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"State"
+              , "type":"resource"
+              , "data":
+              [0, 34, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Live values and control logic"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for live values and control logic. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce size of local variables"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce scope of local variables, localizing them as much as possible"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce number of nested loops"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:42"
+                  , "type":"resource"
+                  , "data":
+                  [0, 34, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":42
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [8, 2, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [8, 2, 0, 0, 0]
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:42"
+                  , "type":"resource"
+                  , "data":
+                  [102, 2, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":42
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [70, 2, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [32, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B1"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"State"
+              , "type":"resource"
+              , "data":
+              [160, 276, 0, 0, 13]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Live values and control logic"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for live values and control logic. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce size of local variables"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce scope of local variables, localizing them as much as possible"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce number of nested loops"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [160, 244, 0, 0, 13]
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:40"
+                  , "type":"resource"
+                  , "data":
+                  [0, 32, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":40
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [42, 30, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:39"
+                  , "type":"resource"
+                  , "data":
+                  [2, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":39
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:40"
+                  , "type":"resource"
+                  , "data":
+                  [1, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":40
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:42"
+                  , "type":"resource"
+                  , "data":
+                  [30, 22, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":42
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:53"
+                  , "type":"resource"
+                  , "data":
+                  [9, 8, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":53
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Cluster logic"
+              , "type":"resource"
+              , "data":
+              [28, 19, 0, 0, 5]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Logic required to efficiently support sets of operations that do not stall"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Logic required to efficiently support sets of operations that do not stall. This area cannot be affected directly."
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [11, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":""
+                        , "line":0
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [11, 0, 0, 0, 0]
+                    }
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:39"
+                  , "type":"resource"
+                  , "data":
+                  [33, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":39
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"33-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [33, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:42"
+                  , "type":"resource"
+                  , "data":
+                  [17.5, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":42
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [2, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":5
+                      , "data":
+                      [2.5, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"2-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [2, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"33-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [11, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:45"
+                  , "type":"resource"
+                  , "data":
+                  [188, 280, 6.5, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":45
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Load"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [188, 280, 6.5, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load uses a Prefetching LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Prefetching LSU"
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:46"
+                  , "type":"resource"
+                  , "data":
+                  [188, 280, 6.5, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":46
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Load"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [188, 280, 6.5, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load uses a Prefetching LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Prefetching LSU"
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:48"
+                  , "type":"resource"
+                  , "data":
+                  [26, 41, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":48
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Load"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [26, 41, 0, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load uses a Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Stall-free read from memory declared on %L."
+                          , "links":
+                          [
+                            {
+                              "filename":"maximal_matching_bram.cpp"
+                              , "line":"32"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Load-Store Units"
+                              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:49"
+                  , "type":"resource"
+                  , "data":
+                  [26, 41, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":49
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Load"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [26, 41, 0, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load uses a Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Stall-free read from memory declared on %L."
+                          , "links":
+                          [
+                            {
+                              "filename":"maximal_matching_bram.cpp"
+                              , "line":"32"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Load-Store Units"
+                              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:51"
+                  , "type":"resource"
+                  , "data":
+                  [12, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":51
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [11, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:52"
+                  , "type":"resource"
+                  , "data":
+                  [35.5, 24, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":52
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [0.5, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"Store"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [34, 24, 0, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Store uses a Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Stall-free write to memory declared on %L."
+                          , "links":
+                          [
+                            {
+                              "filename":"maximal_matching_bram.cpp"
+                              , "line":"32"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Load-Store Units"
+                              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:53"
+                  , "type":"resource"
+                  , "data":
+                  [34, 24, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":53
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Store"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [34, 24, 0, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Store uses a Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Stall-free write to memory declared on %L."
+                          , "links":
+                          [
+                            {
+                              "filename":"maximal_matching_bram.cpp"
+                              , "line":"32"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Load-Store Units"
+                              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B2"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [5, 8, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1170"
+                  , "type":"resource"
+                  , "data":
+                  [5, 8, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1170
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:40"
+                  , "type":"resource"
+                  , "data":
+                  [32, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":40
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [32, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > maximal_matching_bram.cpp:61"
+                  , "type":"resource"
+                  , "data":
+                  [304, 1588, 1, 0, 31]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+                        , "line":61
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Store"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [304, 1588, 1, 0, 31]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Store uses a Burst-coalesced LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Burst-coalesced LSU"
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,155 @@
+
+
+================================================================
+== Vivado HLS Report for 'loop_imperfect'
+================================================================
+* Date:           Fri Jun 23 11:53:52 2023
+
+* Version:        2019.2 (Build 2704478 on Wed Nov 06 22:10:23 MST 2019)
+* Project:        proj_loop_imperfect
+* Solution:       solution1
+* Product family: kintex7
+* Target device:  xc7k160t-fbg484-1
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+---------+----------+------------+
+    |  Clock |  Target | Estimated| Uncertainty|
+    +--------+---------+----------+------------+
+    |ap_clk  | 4.00 ns | 2.664 ns |   0.50 ns  |
+    +--------+---------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+-----------+-----------+------+------+---------+
+    |  Latency (cycles) |   Latency (absolute)  |   Interval  | Pipeline|
+    |   min   |   max   |    min    |    max    |  min |  max |   Type  |
+    +---------+---------+-----------+-----------+------+------+---------+
+    |     6001|     6001| 24.004 us | 24.004 us |  6001|  6001|   none  |
+    +---------+---------+-----------+-----------+------+------+---------+
+
+    + Detail: 
+        * Instance: 
+        N/A
+
+        * Loop: 
+        +----------+---------+---------+----------+-----------+-----------+------+----------+
+        |          |  Latency (cycles) | Iteration|  Initiation Interval  | Trip |          |
+        | Loop Name|   min   |   max   |  Latency |  achieved |   target  | Count| Pipelined|
+        +----------+---------+---------+----------+-----------+-----------+------+----------+
+        |- Loop 1  |     6000|     6000|         6|          -|          -|  1000|    no    |
+        +----------+---------+---------+----------+-----------+-----------+------+----------+
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-------+--------+--------+-----+
+|       Name      | BRAM_18K| DSP48E|   FF   |   LUT  | URAM|
++-----------------+---------+-------+--------+--------+-----+
+|DSP              |        -|      -|       -|       -|    -|
+|Expression       |        -|      -|       0|      91|    -|
+|FIFO             |        -|      -|       -|       -|    -|
+|Instance         |        -|      -|       -|       -|    -|
+|Memory           |        -|      -|       -|       -|    -|
+|Multiplexer      |        -|      -|       -|      50|    -|
+|Register         |        -|      -|     114|       -|    -|
++-----------------+---------+-------+--------+--------+-----+
+|Total            |        0|      0|     114|     141|    0|
++-----------------+---------+-------+--------+--------+-----+
+|Available        |      650|    600|  202800|  101400|    0|
++-----------------+---------+-------+--------+--------+-----+
+|Utilization (%)  |        0|      0|   ~0   |   ~0   |    0|
++-----------------+---------+-------+--------+--------+-----+
+
++ Detail: 
+    * Instance: 
+    N/A
+
+    * DSP48E: 
+    N/A
+
+    * Memory: 
+    N/A
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    +----------------------+----------+-------+---+----+------------+------------+
+    |     Variable Name    | Operation| DSP48E| FF| LUT| Bitwidth P0| Bitwidth P1|
+    +----------------------+----------+-------+---+----+------------+------------+
+    |i_fu_95_p2            |     +    |      0|  0|  17|          10|           1|
+    |icmp_ln108_fu_139_p2  |   icmp   |      0|  0|  18|          32|           1|
+    |icmp_ln99_fu_89_p2    |   icmp   |      0|  0|  13|          10|           6|
+    |or_ln103_fu_114_p2    |    or    |      0|  0|  11|          11|           1|
+    |or_ln108_fu_135_p2    |    or    |      0|  0|  32|          32|          32|
+    +----------------------+----------+-------+---+----+------------+------------+
+    |Total                 |          |      0|  0|  91|          95|          41|
+    +----------------------+----------+-------+---+----+------------+------------+
+
+    * Multiplexer: 
+    +------------+----+-----------+-----+-----------+
+    |    Name    | LUT| Input Size| Bits| Total Bits|
+    +------------+----+-----------+-----+-----------+
+    |ap_NS_fsm   |  41|          8|    1|          8|
+    |i_0_reg_78  |   9|          2|   10|         20|
+    +------------+----+-----------+-----+-----------+
+    |Total       |  50|         10|   11|         28|
+    +------------+----+-----------+-----+-----------+
+
+    * Register: 
+    +-------------------------+----+----+-----+-----------+
+    |           Name          | FF | LUT| Bits| Const Bits|
+    +-------------------------+----+----+-----+-----------+
+    |ap_CS_fsm                |   7|   0|    7|          0|
+    |i_0_reg_78               |  10|   0|   10|          0|
+    |i_reg_148                |  10|   0|   10|          0|
+    |icmp_ln108_reg_185       |   1|   0|    1|          0|
+    |v1_reg_173               |  32|   0|   32|          0|
+    |v2_reg_179               |  32|   0|   32|          0|
+    |vertices_addr_1_reg_168  |  11|   0|   11|          0|
+    |vertices_addr_reg_163    |  11|   0|   11|          0|
+    +-------------------------+----+----+-----+-----------+
+    |Total                    | 114|   0|  114|          0|
+    +-------------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++-------------------+-----+-----+------------+----------------+--------------+
+|     RTL Ports     | Dir | Bits|  Protocol  |  Source Object |    C Type    |
++-------------------+-----+-----+------------+----------------+--------------+
+|ap_clk             |  in |    1| ap_ctrl_hs | loop_imperfect | return value |
+|ap_rst             |  in |    1| ap_ctrl_hs | loop_imperfect | return value |
+|ap_start           |  in |    1| ap_ctrl_hs | loop_imperfect | return value |
+|ap_done            | out |    1| ap_ctrl_hs | loop_imperfect | return value |
+|ap_idle            | out |    1| ap_ctrl_hs | loop_imperfect | return value |
+|ap_ready           | out |    1| ap_ctrl_hs | loop_imperfect | return value |
+|vertices_address0  | out |   11|  ap_memory |    vertices    |     array    |
+|vertices_ce0       | out |    1|  ap_memory |    vertices    |     array    |
+|vertices_we0       | out |    1|  ap_memory |    vertices    |     array    |
+|vertices_d0        | out |   32|  ap_memory |    vertices    |     array    |
+|vertices_q0        |  in |   32|  ap_memory |    vertices    |     array    |
+|vertices_address1  | out |   11|  ap_memory |    vertices    |     array    |
+|vertices_ce1       | out |    1|  ap_memory |    vertices    |     array    |
+|vertices_we1       | out |    1|  ap_memory |    vertices    |     array    |
+|vertices_d1        | out |   32|  ap_memory |    vertices    |     array    |
+|vertices_q1        |  in |   32|  ap_memory |    vertices    |     array    |
+|edges_address0     | out |   11|  ap_memory |      edges     |     array    |
+|edges_ce0          | out |    1|  ap_memory |      edges     |     array    |
+|edges_q0           |  in |   32|  ap_memory |      edges     |     array    |
+|edges_address1     | out |   11|  ap_memory |      edges     |     array    |
+|edges_ce1          | out |    1|  ap_memory |      edges     |     array    |
+|edges_q1           |  in |   32|  ap_memory |      edges     |     array    |
++-------------------+-----+-----+------------+----------------+--------------+
+

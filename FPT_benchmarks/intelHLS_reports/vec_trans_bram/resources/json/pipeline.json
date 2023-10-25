@@ -1,0 +1,2087 @@
+{
+  "17":
+  {
+    "nodes":
+    [
+      {
+        "name":"Exit"
+        , "id":21
+        , "subtype":"exit"
+        , "start":"30.00"
+        , "end":"33.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Max Fanout":"2"
+            , "Start Cycle":"30"
+            , "Latency":"3"
+            , "Exit FIFO Depth":"512"
+            , "Exit FIFO Width":"168"
+            , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Entry"
+        , "id":22
+        , "subtype":"entry"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Cluster Entry"
+            , "Max Fanout":"0"
+            , "Start Cycle":"1"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":23
+        , "subtype":"pop"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":24
+        , "subtype":"default"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":25
+        , "subtype":"default"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":26
+        , "subtype":"pop"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":27
+        , "subtype":"default"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":29
+        , "subtype":"ffwdDest"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+        , "ffwdLinkID":
+        [
+          "15"
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":30
+        , "subtype":"select"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"33-bit Select"
+            , "Max Fanout":"2"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":31
+        , "subtype":"ffwdDest"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+        , "ffwdLinkID":
+        [
+          "14"
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Xor"
+        , "id":32
+        , "subtype":"default"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Xor"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"'i'"
+        , "id":33
+        , "subtype":"pop"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"'i'"
+            , "Max Fanout":"2"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Or"
+        , "id":34
+        , "subtype":"default"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Or"
+            , "Max Fanout":"1"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"arg_b"
+        , "id":35
+        , "subtype":"default"
+        , "start":"0.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Input Synchronization for 'arg_b'"
+            , "Max Fanout":"1"
+            , "Start Cycle":"0"
+            , "Latency":"30"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Ptr. Comp."
+        , "id":36
+        , "subtype":"default"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pointer Computation"
+            , "Max Fanout":"2"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":37
+        , "subtype":"default"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"1 (0x1)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":39
+        , "subtype":"ffwdDest"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+        , "ffwdLinkID":
+        [
+          "14"
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"And"
+        , "id":40
+        , "subtype":"default"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit And"
+            , "Max Fanout":"2"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":41
+        , "subtype":"default"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":42
+        , "subtype":"default"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":43
+        , "subtype":"select"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":45
+        , "subtype":"default"
+        , "start":"30.00"
+        , "end":"30.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":37
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":22
+        , "to":30
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"16"
+          }
+        ]
+      }
+      , {
+        "from":22
+        , "to":33
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"16"
+          }
+        ]
+      }
+      , {
+        "from":22
+        , "to":26
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"16"
+          }
+        ]
+      }
+      , {
+        "from":22
+        , "to":23
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"16"
+          }
+        ]
+      }
+      , {
+        "from":22
+        , "to":21
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"16"
+          }
+        ]
+      }
+      , {
+        "from":22
+        , "to":23
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"16"
+          }
+        ]
+      }
+      , {
+        "from":22
+        , "to":26
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"16"
+          }
+        ]
+      }
+      , {
+        "from":22
+        , "to":33
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"16"
+          }
+        ]
+      }
+      , {
+        "from":23
+        , "to":43
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":23
+        , "to":25
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":23
+        , "to":45
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":23
+        , "to":24
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":23
+        , "to":23
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":23
+        , "to":26
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":23
+        , "to":33
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":23
+        , "to":30
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":23
+        , "to":21
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":24
+        , "to":34
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":24
+        , "to":42
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":25
+        , "to":43
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":26
+        , "to":27
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":27
+        , "to":26
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":27
+        , "to":23
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":27
+        , "to":33
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":27
+        , "to":30
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":27
+        , "to":21
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":29
+        , "to":30
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+      , {
+        "from":30
+        , "to":40
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+      , {
+        "from":30
+        , "to":30
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"33"
+          }
+        ]
+      }
+      , {
+        "from":31
+        , "to":32
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":32
+        , "to":34
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":33
+        , "to":37
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":33
+        , "to":36
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":33
+        , "to":21
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":34
+        , "to":21
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":35
+        , "to":36
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":36
+        , "to":21
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":37
+        , "to":33
+        , "reverse":1
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"'i'"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"32"
+            , "Max Fanout":"1"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+      }
+      , {
+        "from":39
+        , "to":40
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":40
+        , "to":41
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":40
+        , "to":23
+        , "reverse":1
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+      }
+      , {
+        "from":40
+        , "to":26
+        , "reverse":1
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+      }
+      , {
+        "from":40
+        , "to":33
+        , "reverse":1
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"'i'"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"32"
+            , "Max Fanout":"1"
+            , "Start Cycle":"30"
+            , "Latency":"0"
+          }
+        ]
+      }
+      , {
+        "from":40
+        , "to":30
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":40
+        , "to":21
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":41
+        , "to":45
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":41
+        , "to":42
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":42
+        , "to":43
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":43
+        , "to":23
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":45
+        , "to":21
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+    ]
+  }
+  , "19":
+  {
+    "nodes":
+    [
+      {
+        "name":"Exit"
+        , "id":47
+        , "subtype":"exit"
+        , "start":"67.00"
+        , "end":"70.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Max Fanout":"2"
+            , "Start Cycle":"67"
+            , "Latency":"3"
+            , "Exit FIFO Depth":"512"
+            , "Exit FIFO Width":"8"
+            , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Entry"
+        , "id":48
+        , "subtype":"entry"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Cluster Entry"
+            , "Max Fanout":"0"
+            , "Start Cycle":"36"
+            , "Latency":"0"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Ptr. Comp."
+        , "id":49
+        , "subtype":"default"
+        , "start":"36.00"
+        , "end":"37.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pointer Computation"
+            , "Max Fanout":"4"
+            , "Start Cycle":"36"
+            , "Latency":"1"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"A"
+        , "id":50
+        , "subtype":"pop"
+        , "start":"37.00"
+        , "end":"37.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Read"
+            , "Variable":"A"
+            , "Max Fanout":"1"
+            , "Start Cycle":"37"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":39
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"LD"
+        , "id":51
+        , "subtype":"load/store"
+        , "start":"37.00"
+        , "end":"38.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Load"
+            , "Width":"32 bits"
+            , "LSU Style":"Pipelined never-stall"
+            , "Stall-free":"Yes"
+            , "Global Memory":"No"
+            , "Max Fanout":"2"
+            , "Start Cycle":"37"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":38
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":52
+        , "subtype":"default"
+        , "start":"38.00"
+        , "end":"38.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"112 (0x70)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"38"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"*"
+        , "id":53
+        , "subtype":"default"
+        , "start":"38.00"
+        , "end":"41.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Multiply"
+            , "Max Fanout":"3"
+            , "Start Cycle":"38"
+            , "Latency":"3"
+            , "Implementation Preference":"Default DSP usage"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":54
+        , "subtype":"default"
+        , "start":"42.00"
+        , "end":"42.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"23 (0x17)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"42"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"*"
+        , "id":55
+        , "subtype":"default"
+        , "start":"38.00"
+        , "end":"45.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Multiply"
+            , "Max Fanout":"3"
+            , "Start Cycle":"38"
+            , "Latency":"7"
+            , "Implementation Preference":"Default DSP usage"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":56
+        , "subtype":"default"
+        , "start":"46.00"
+        , "end":"46.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"36 (0x24)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"46"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"*"
+        , "id":57
+        , "subtype":"default"
+        , "start":"38.00"
+        , "end":"49.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Multiply"
+            , "Max Fanout":"3"
+            , "Start Cycle":"38"
+            , "Latency":"11"
+            , "Implementation Preference":"Default DSP usage"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":58
+        , "subtype":"default"
+        , "start":"50.00"
+        , "end":"50.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"82 (0x52)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"50"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"*"
+        , "id":59
+        , "subtype":"default"
+        , "start":"38.00"
+        , "end":"53.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Multiply"
+            , "Max Fanout":"3"
+            , "Start Cycle":"38"
+            , "Latency":"15"
+            , "Implementation Preference":"Default DSP usage"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":60
+        , "subtype":"default"
+        , "start":"54.00"
+        , "end":"54.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"127 (0x7F)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"54"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"*"
+        , "id":61
+        , "subtype":"default"
+        , "start":"38.00"
+        , "end":"57.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Multiply"
+            , "Max Fanout":"3"
+            , "Start Cycle":"38"
+            , "Latency":"19"
+            , "Implementation Preference":"Default DSP usage"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":62
+        , "subtype":"default"
+        , "start":"58.00"
+        , "end":"58.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"2 (0x2)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"58"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"*"
+        , "id":63
+        , "subtype":"default"
+        , "start":"38.00"
+        , "end":"61.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Multiply"
+            , "Max Fanout":"3"
+            , "Start Cycle":"38"
+            , "Latency":"23"
+            , "Implementation Preference":"Default DSP usage"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":40
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":64
+        , "subtype":"default"
+        , "start":"62.00"
+        , "end":"62.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"20 (0x14)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"62"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":41
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"*"
+        , "id":65
+        , "subtype":"default"
+        , "start":"38.00"
+        , "end":"65.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Multiply"
+            , "Max Fanout":"3"
+            , "Start Cycle":"38"
+            , "Latency":"27"
+            , "Implementation Preference":"Default DSP usage"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":42
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"+"
+        , "id":66
+        , "subtype":"default"
+        , "start":"66.00"
+        , "end":"66.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"32-bit Integer Add"
+            , "Constant Operand":"100 (0x64)"
+            , "Max Fanout":"1"
+            , "Start Cycle":"66"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":43
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Ptr. Comp."
+        , "id":67
+        , "subtype":"default"
+        , "start":"36.00"
+        , "end":"66.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Pointer Computation"
+            , "Max Fanout":"4"
+            , "Start Cycle":"36"
+            , "Latency":"30"
+          }
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"ST"
+        , "id":68
+        , "subtype":"load/store"
+        , "start":"66.00"
+        , "end":"67.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Store"
+            , "Width":"32 bits"
+            , "LSU Style":"Pipelined never-stall"
+            , "Stall-free":"Yes"
+            , "Global Memory":"No"
+            , "Max Fanout":"1"
+            , "Start Cycle":"66"
+            , "Latency":"1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/vec_trans_bram.cpp"
+              , "line":39
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":48
+        , "to":49
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"128"
+          }
+        ]
+      }
+      , {
+        "from":48
+        , "to":50
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"128"
+          }
+        ]
+      }
+      , {
+        "from":48
+        , "to":68
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"128"
+          }
+        ]
+      }
+      , {
+        "from":48
+        , "to":51
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"128"
+          }
+        ]
+      }
+      , {
+        "from":48
+        , "to":50
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"128"
+          }
+        ]
+      }
+      , {
+        "from":48
+        , "to":67
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"128"
+          }
+        ]
+      }
+      , {
+        "from":49
+        , "to":51
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":50
+        , "to":51
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":65
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":63
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":61
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":59
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":57
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":55
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":53
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":51
+        , "to":52
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":52
+        , "to":53
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":53
+        , "to":54
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":54
+        , "to":55
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":55
+        , "to":56
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":56
+        , "to":57
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":57
+        , "to":58
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":58
+        , "to":59
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":59
+        , "to":60
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":60
+        , "to":61
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":61
+        , "to":62
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":62
+        , "to":63
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":63
+        , "to":64
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":64
+        , "to":65
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":65
+        , "to":66
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":66
+        , "to":68
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"32"
+          }
+        ]
+      }
+      , {
+        "from":67
+        , "to":68
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":68
+        , "to":50
+        , "reverse":1
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Feedback Write"
+            , "Variable":"A"
+            , "Feedback FIFO Depth":"1"
+            , "Feedback FIFO Width":"1"
+            , "Max Fanout":"1"
+            , "Start Cycle":"67"
+            , "Latency":"0"
+          }
+        ]
+      }
+    ]
+  }
+}

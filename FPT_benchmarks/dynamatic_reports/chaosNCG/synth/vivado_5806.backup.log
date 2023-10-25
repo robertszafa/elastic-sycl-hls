@@ -1,0 +1,44 @@
+#-----------------------------------------------------------
+# Vivado v2019.2 (64-bit)
+# SW Build 2708876 on Wed Nov  6 21:39:14 MST 2019
+# IP Build 2700528 on Thu Nov  7 00:09:20 MST 2019
+# Start of session at: Mon Jun 26 10:46:32 2023
+# Process ID: 5806
+# Current directory: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/synth
+# Command line: vivado -mode batch -source synthesize_4.tcl
+# Log file: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/synth/vivado.log
+# Journal file: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/synth/vivado.jou
+#-----------------------------------------------------------
+source synthesize_4.tcl
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/arithmetic_units.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/delay_buffer.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/elastic_components.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/MemCont.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/multipliers.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/mul_wrapper.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/two_port_RAM.vhd
+# read_verilog  ../sim/VHDL_SRC/LSQ_buffer.v
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/chaosNCG_optimized.vhd
+# read_xdc period_4.xdc
+# synth_design -mode out_of_context -flatten_hierarchy rebuilt -top array_RAM -part xc7k160tfbg484-1
+Command: synth_design -mode out_of_context -flatten_hierarchy rebuilt -top array_RAM -part xc7k160tfbg484-1
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7k160t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7k160t'
+INFO: [Device 21-403] Loading part xc7k160tfbg484-1
+INFO: Launching helper process for spawning children vivado processes
+INFO: Helper process launched with PID 5813 
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:05 . Memory (MB): peak = 1978.281 ; gain = 201.684 ; free physical = 5442 ; free virtual = 9573
+---------------------------------------------------------------------------------
+ERROR: [Synth 8-4169] error in use clause: package 'sim_package' not found in library 'work' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/two_port_RAM.vhd:7]
+INFO: [Synth 8-2810] unit two_port_ram ignored due to previous errors [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/chaosNCG/sim/VHDL_SRC/two_port_RAM.vhd:11]
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:06 . Memory (MB): peak = 2046.969 ; gain = 270.371 ; free physical = 5476 ; free virtual = 9611
+---------------------------------------------------------------------------------
+RTL Elaboration failed
+INFO: [Common 17-83] Releasing license: Synthesis
+4 Infos, 0 Warnings, 0 Critical Warnings and 2 Errors encountered.
+synth_design failed
+ERROR: [Common 17-69] Command failed: Synthesis failed - please see the console or run log file for details
+INFO: [Common 17-206] Exiting Vivado at Mon Jun 26 10:46:54 2023...

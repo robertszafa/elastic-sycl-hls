@@ -1,0 +1,2831 @@
+{
+  "1":
+  {
+    "nodes":
+    [
+      {
+        "name":"MainKernel.B0"
+        , "id":2
+        , "start":"0"
+        , "end":"2"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"arg_N"
+            , "id":14
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_N'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_N"
+            , "id":12
+            , "start":"1"
+            , "end":"1"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_N'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":13
+            , "start":"1"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":34
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":15
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Select"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":34
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":16
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"-1 (0xFFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":34
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":17
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Integer Add"
+                , "Constant Operand":"-1 (0x1FFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":34
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":19
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dests In":"MainKernel.B2, MainKernel.B4"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "107"
+              , "35"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":34
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_N"
+            , "id":10
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_N'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":11
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":18
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dests In":"MainKernel.B2, MainKernel.B4, MainKernel.B4, MainKernel.B5"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "112"
+              , "37"
+              , "64"
+              , "102"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Feedback"
+            , "id":9
+            , "start":"1"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Unknown variable"
+                , "Max Fanout":"3"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B2"
+        , "id":4
+        , "start":"2"
+        , "end":"10"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"Cluster 0"
+            , "id":28
+            , "start":"3"
+            , "end":"10"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Name":"i_sfc_s_c0_in_for_body6_i_preheader_zts10mainkernels_c0_enter2_zts10mainkernel_163_1gr"
+                , "Cluster Type":"Stall-Free"
+                , "Cluster Start Cycle":"1"
+                , "Cluster Latency":"7"
+              }
+            ]
+            , "type":"cluster"
+            , "children":
+            [
+              {
+                "name":"Global variable"
+                , "id":110
+                , "start":"4"
+                , "end":"4"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"Feedback Read"
+                    , "Variable":"Global variable"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"2"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                      , "line":34
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":115
+                , "start":"4"
+                , "end":"4"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Constant Operand":"1 (0x1)"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"2"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                      , "line":34
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"FFwd Dest"
+                , "id":107
+                , "start":"3"
+                , "end":"3"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"FFwd Destination"
+                    , "FFwd Src In":"MainKernel.B0"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"1"
+                    , "Latency":"0"
+                  }
+                ]
+                , "ffwdLinkID":
+                [
+                  "19"
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                      , "line":34
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":108
+                , "start":"3"
+                , "end":"3"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"33-bit Select"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"1"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                      , "line":34
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"arg_N"
+                , "id":109
+                , "start":"2"
+                , "end":"4"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"Input Synchronization for 'arg_N'"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"0"
+                    , "Latency":"2"
+                  }
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":111
+                , "start":"4"
+                , "end":"7"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"2"
+                    , "Latency":"3"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                      , "line":36
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"FFwd Dest"
+                , "id":112
+                , "start":"3"
+                , "end":"3"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"FFwd Destination"
+                    , "FFwd Src In":"MainKernel.B0"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"1"
+                    , "Latency":"0"
+                  }
+                ]
+                , "ffwdLinkID":
+                [
+                  "18"
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                      , "line":35
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"And"
+                , "id":113
+                , "start":"3"
+                , "end":"3"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"1-bit And"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"1"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                      , "line":35
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Exit"
+                , "id":105
+                , "start":"7"
+                , "end":"10"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"5"
+                    , "Latency":"3"
+                    , "Exit FIFO Depth":"32"
+                    , "Exit FIFO Width":"64"
+                    , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+                  }
+                ]
+                , "type":"inst"
+              }
+            ]
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B4"
+        , "id":6
+        , "start":"10"
+        , "end":"964"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"FFwd Dest"
+            , "id":64
+            , "start":"485"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"475"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "18"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_data"
+            , "id":55
+            , "start":"489"
+            , "end":"489"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_data'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"479"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_addr_in"
+            , "id":52
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_addr_in'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_w"
+            , "id":47
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_w'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_in"
+            , "id":43
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_in'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":37
+            , "start":"485"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"475"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "18"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":38
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Xor"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"2"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":35
+            , "start":"485"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"475"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "19"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":34
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":57
+            , "start":"488"
+            , "end":"489"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"1"
+                , "Start Cycle":"478"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":34
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Xor"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"3"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":45
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"4"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":66
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dests In":"MainKernel.B5, MainKernel.B5, MainKernel.B5, MainKernel.B5"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "78"
+              , "83"
+              , "88"
+              , "96"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":36
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Select"
+                , "Max Fanout":"2"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"And"
+            , "id":65
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit And"
+                , "Max Fanout":"2"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":39
+            , "start":"485"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"475"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":62
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":40
+            , "start":"11"
+            , "end":"12"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":36
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":42
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":36
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":44
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"6"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":46
+            , "start":"486"
+            , "end":"489"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Prefetching"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"3"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":48
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"6"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":49
+            , "start":"486"
+            , "end":"489"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Prefetching"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"3"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Xor"
+            , "id":50
+            , "start":"489"
+            , "end":"489"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Xor"
+                , "Max Fanout":"1"
+                , "Start Cycle":"479"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"<<"
+            , "id":51
+            , "start":"489"
+            , "end":"809"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Left Shift"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"479"
+                , "Latency":"320"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":53
+            , "start":"486"
+            , "end":"486"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"6"
+                , "Start Cycle":"476"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":54
+            , "start":"486"
+            , "end":"489"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Prefetching"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"3"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":56
+            , "start":"489"
+            , "end":"489"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"6"
+                , "Start Cycle":"479"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":58
+            , "start":"489"
+            , "end":"809"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"479"
+                , "Latency":"320"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":59
+            , "start":"809"
+            , "end":"809"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Max Fanout":"1"
+                , "Start Cycle":"799"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"ST"
+            , "id":60
+            , "start":"809"
+            , "end":"963"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Store"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"799"
+                , "Latency":"154"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B3"
+        , "id":5
+        , "start":"964"
+        , "end":"964"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+      }
+      , {
+        "name":"MainKernel.B1"
+        , "id":3
+        , "start":"964"
+        , "end":"965"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"arg_N"
+            , "id":22
+            , "start":"965"
+            , "end":"965"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_N'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_N"
+            , "id":20
+            , "start":"964"
+            , "end":"964"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_N'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"0"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":21
+            , "start":"964"
+            , "end":"965"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"0"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":43
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":23
+            , "start":"965"
+            , "end":"965"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Select"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":43
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":24
+            , "start":"965"
+            , "end":"965"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"-1 (0xFFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":43
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":25
+            , "start":"965"
+            , "end":"965"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Integer Add"
+                , "Constant Operand":"-1 (0x1FFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":43
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":26
+            , "start":"965"
+            , "end":"965"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dest In":"MainKernel.B5"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "68"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":43
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B5"
+        , "id":7
+        , "start":"965"
+        , "end":"2238"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"FFwd Dest"
+            , "id":102
+            , "start":"1441"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "18"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":96
+            , "start":"1438"
+            , "end":"1439"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B4"
+                , "Max Fanout":"1"
+                , "Start Cycle":"473"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "66"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":88
+            , "start":"1438"
+            , "end":"1439"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B4"
+                , "Max Fanout":"1"
+                , "Start Cycle":"473"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "66"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_data"
+            , "id":86
+            , "start":"1762"
+            , "end":"1762"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_data'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"797"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":83
+            , "start":"1438"
+            , "end":"1439"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B4"
+                , "Max Fanout":"1"
+                , "Start Cycle":"473"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "66"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_addr_out"
+            , "id":81
+            , "start":"1442"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_addr_out'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":78
+            , "start":"1438"
+            , "end":"1439"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B4"
+                , "Max Fanout":"1"
+                , "Start Cycle":"473"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "66"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_mean"
+            , "id":76
+            , "start":"1442"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_mean'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_N"
+            , "id":72
+            , "start":"1438"
+            , "end":"1438"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_N'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"473"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_N"
+            , "id":70
+            , "start":"1438"
+            , "end":"1438"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_N'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"473"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":71
+            , "start":"1438"
+            , "end":"1438"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"-1 (0xFFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"473"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":43
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"*"
+            , "id":73
+            , "start":"1438"
+            , "end":"1441"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Multiply"
+                , "Max Fanout":"2"
+                , "Start Cycle":"473"
+                , "Latency":"3"
+                , "Implementation Preference":"Default DSP usage"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":43
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":68
+            , "start":"1441"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"476"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "26"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":43
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":79
+            , "start":"1442"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":84
+            , "start":"1442"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":89
+            , "start":"1442"
+            , "end":"1443"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":97
+            , "start":"1442"
+            , "end":"1443"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":37
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":69
+            , "start":"1442"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Select"
+                , "Max Fanout":"2"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":42
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"And"
+            , "id":103
+            , "start":"1442"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit And"
+                , "Max Fanout":"2"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":35
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":74
+            , "start":"1441"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"476"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":42
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":75
+            , "start":"1442"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":43
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":77
+            , "start":"1442"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"5"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":80
+            , "start":"1442"
+            , "end":"1762"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"2"
+                , "Start Cycle":"477"
+                , "Latency":"320"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":44
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"-"
+            , "id":93
+            , "start":"2082"
+            , "end":"2082"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Subtract"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1117"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":46
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":82
+            , "start":"1442"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"5"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":85
+            , "start":"1442"
+            , "end":"1762"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"320"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":45
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":87
+            , "start":"1762"
+            , "end":"1762"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"5"
+                , "Start Cycle":"797"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":100
+            , "start":"1442"
+            , "end":"1442"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"477"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":42
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":90
+            , "start":"1761"
+            , "end":"1762"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"1"
+                , "Start Cycle":"796"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":50
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":91
+            , "start":"1762"
+            , "end":"2082"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"2"
+                , "Start Cycle":"797"
+                , "Latency":"320"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":45
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":92
+            , "start":"2082"
+            , "end":"2082"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1117"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":46
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":94
+            , "start":"2082"
+            , "end":"2083"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Select"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1117"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":46
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":95
+            , "start":"2083"
+            , "end":"2083"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1118"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":46
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"ST"
+            , "id":98
+            , "start":"2083"
+            , "end":"2237"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Store"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1118"
+                , "Latency":"154"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_dram.cpp"
+                  , "line":50
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B6"
+        , "id":8
+        , "start":"2238"
+        , "end":"2239"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":2
+        , "to":4
+      }
+      , {
+        "from":14
+        , "to":15
+      }
+      , {
+        "from":12
+        , "to":13
+      }
+      , {
+        "from":13
+        , "to":15
+      }
+      , {
+        "from":15
+        , "to":16
+      }
+      , {
+        "from":16
+        , "to":17
+      }
+      , {
+        "from":17
+        , "to":19
+      }
+      , {
+        "from":10
+        , "to":11
+      }
+      , {
+        "from":11
+        , "to":18
+      }
+      , {
+        "from":4
+        , "to":6
+      }
+      , {
+        "from":110
+        , "to":115
+      }
+      , {
+        "from":110
+        , "to":111
+      }
+      , {
+        "from":107
+        , "to":108
+      }
+      , {
+        "from":108
+        , "to":113
+      }
+      , {
+        "from":109
+        , "to":111
+      }
+      , {
+        "from":111
+        , "to":105
+      }
+      , {
+        "from":112
+        , "to":113
+      }
+      , {
+        "from":113
+        , "to":105
+      }
+      , {
+        "from":6
+        , "to":5
+      }
+      , {
+        "from":64
+        , "to":65
+      }
+      , {
+        "from":55
+        , "to":56
+      }
+      , {
+        "from":52
+        , "to":53
+      }
+      , {
+        "from":47
+        , "to":48
+      }
+      , {
+        "from":43
+        , "to":44
+      }
+      , {
+        "from":37
+        , "to":38
+      }
+      , {
+        "from":38
+        , "to":45
+      }
+      , {
+        "from":38
+        , "to":66
+      }
+      , {
+        "from":35
+        , "to":36
+      }
+      , {
+        "from":57
+        , "to":58
+      }
+      , {
+        "from":34
+        , "to":66
+      }
+      , {
+        "from":34
+        , "to":45
+      }
+      , {
+        "from":45
+        , "to":60
+      }
+      , {
+        "from":45
+        , "to":58
+      }
+      , {
+        "from":45
+        , "to":54
+      }
+      , {
+        "from":45
+        , "to":49
+      }
+      , {
+        "from":45
+        , "to":46
+      }
+      , {
+        "from":36
+        , "to":65
+      }
+      , {
+        "from":39
+        , "to":62
+      }
+      , {
+        "from":39
+        , "to":42
+      }
+      , {
+        "from":40
+        , "to":42
+      }
+      , {
+        "from":42
+        , "to":53
+      }
+      , {
+        "from":42
+        , "to":48
+      }
+      , {
+        "from":42
+        , "to":44
+      }
+      , {
+        "from":44
+        , "to":46
+      }
+      , {
+        "from":46
+        , "to":50
+      }
+      , {
+        "from":48
+        , "to":49
+      }
+      , {
+        "from":49
+        , "to":50
+      }
+      , {
+        "from":50
+        , "to":51
+      }
+      , {
+        "from":51
+        , "to":59
+      }
+      , {
+        "from":53
+        , "to":54
+      }
+      , {
+        "from":54
+        , "to":56
+      }
+      , {
+        "from":56
+        , "to":60
+      }
+      , {
+        "from":56
+        , "to":58
+      }
+      , {
+        "from":58
+        , "to":59
+      }
+      , {
+        "from":59
+        , "to":60
+      }
+      , {
+        "from":5
+        , "to":4
+      }
+      , {
+        "from":5
+        , "to":3
+      }
+      , {
+        "from":3
+        , "to":7
+      }
+      , {
+        "from":22
+        , "to":23
+      }
+      , {
+        "from":20
+        , "to":21
+      }
+      , {
+        "from":21
+        , "to":23
+      }
+      , {
+        "from":23
+        , "to":24
+      }
+      , {
+        "from":24
+        , "to":25
+      }
+      , {
+        "from":25
+        , "to":26
+      }
+      , {
+        "from":7
+        , "to":8
+      }
+      , {
+        "from":102
+        , "to":103
+      }
+      , {
+        "from":96
+        , "to":97
+      }
+      , {
+        "from":88
+        , "to":89
+      }
+      , {
+        "from":86
+        , "to":87
+      }
+      , {
+        "from":83
+        , "to":84
+      }
+      , {
+        "from":81
+        , "to":82
+      }
+      , {
+        "from":78
+        , "to":79
+      }
+      , {
+        "from":76
+        , "to":77
+      }
+      , {
+        "from":72
+        , "to":73
+      }
+      , {
+        "from":70
+        , "to":71
+      }
+      , {
+        "from":71
+        , "to":73
+      }
+      , {
+        "from":73
+        , "to":75
+      }
+      , {
+        "from":68
+        , "to":69
+      }
+      , {
+        "from":79
+        , "to":80
+      }
+      , {
+        "from":84
+        , "to":85
+      }
+      , {
+        "from":89
+        , "to":91
+      }
+      , {
+        "from":97
+        , "to":98
+      }
+      , {
+        "from":69
+        , "to":103
+      }
+      , {
+        "from":74
+        , "to":100
+      }
+      , {
+        "from":74
+        , "to":75
+      }
+      , {
+        "from":75
+        , "to":82
+      }
+      , {
+        "from":75
+        , "to":77
+      }
+      , {
+        "from":77
+        , "to":80
+      }
+      , {
+        "from":80
+        , "to":94
+      }
+      , {
+        "from":80
+        , "to":93
+      }
+      , {
+        "from":93
+        , "to":94
+      }
+      , {
+        "from":82
+        , "to":85
+      }
+      , {
+        "from":85
+        , "to":87
+      }
+      , {
+        "from":87
+        , "to":98
+      }
+      , {
+        "from":87
+        , "to":91
+      }
+      , {
+        "from":90
+        , "to":91
+      }
+      , {
+        "from":91
+        , "to":95
+      }
+      , {
+        "from":91
+        , "to":92
+      }
+      , {
+        "from":92
+        , "to":94
+      }
+      , {
+        "from":94
+        , "to":95
+      }
+      , {
+        "from":95
+        , "to":98
+      }
+    ]
+  }
+}

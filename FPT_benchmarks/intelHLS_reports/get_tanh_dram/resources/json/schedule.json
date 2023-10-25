@@ -1,0 +1,6708 @@
+{
+  "1":
+  {
+    "nodes":
+    [
+      {
+        "name":"MainKernel.B0"
+        , "id":2
+        , "start":"0"
+        , "end":"2"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"arg_array_size"
+            , "id":10
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_array_size'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_array_size"
+            , "id":8
+            , "start":"1"
+            , "end":"1"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_array_size'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":9
+            , "start":"1"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":11
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Select"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":12
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"-1 (0xFFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":13
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Integer Add"
+                , "Constant Operand":"-1 (0x1FFFFFFFF)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":15
+            , "start":"2"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dest In":"MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"2"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "17"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_array_size"
+            , "id":6
+            , "start":"1"
+            , "end":"1"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_array_size'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Compare"
+            , "id":7
+            , "start":"1"
+            , "end":"1"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Compare"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Src"
+            , "id":14
+            , "start":"1"
+            , "end":"1"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Source"
+                , "FFwd Dests In":"MainKernel.B1, MainKernel.B1, MainKernel.B1, MainKernel.B1"
+                , "Max Fanout":"1"
+                , "Start Cycle":"1"
+                , "Latency":"0"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "19"
+              , "21"
+              , "23"
+              , "25"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Feedback"
+            , "id":5
+            , "start":"1"
+            , "end":"2"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Unknown variable"
+                , "Max Fanout":"3"
+                , "Start Cycle":"1"
+                , "Latency":"1"
+              }
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B1"
+        , "id":3
+        , "start":"2"
+        , "end":"744"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+        , "children":
+        [
+          {
+            "name":"FFwd Dest"
+            , "id":25
+            , "start":"371"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"369"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "14"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_A"
+            , "id":24
+            , "start":"671"
+            , "end":"671"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_A'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"669"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":23
+            , "start":"371"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"369"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "14"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_addr_out"
+            , "id":22
+            , "start":"372"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_addr_out'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"370"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":21
+            , "start":"371"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"369"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "14"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_A"
+            , "id":20
+            , "start":"375"
+            , "end":"375"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_A'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"373"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":19
+            , "start":"371"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"369"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "14"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"arg_addr_in"
+            , "id":18
+            , "start":"372"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Input Synchronization for 'arg_addr_in'"
+                , "Max Fanout":"1"
+                , "Start Cycle":"370"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"FFwd Dest"
+            , "id":17
+            , "start":"371"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"FFwd Destination"
+                , "FFwd Src In":"MainKernel.B0"
+                , "Max Fanout":"1"
+                , "Start Cycle":"369"
+                , "Latency":"1"
+              }
+            ]
+            , "ffwdLinkID":
+            [
+              "15"
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":33
+            , "start":"372"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"1"
+                , "Start Cycle":"370"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":34
+            , "start":"372"
+            , "end":"373"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"1"
+                , "Start Cycle":"370"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":35
+            , "start":"372"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"1"
+                , "Start Cycle":"370"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Or"
+            , "id":36
+            , "start":"372"
+            , "end":"373"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"1-bit Or"
+                , "Max Fanout":"1"
+                , "Start Cycle":"370"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Select"
+            , "id":28
+            , "start":"372"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"33-bit Select"
+                , "Max Fanout":"2"
+                , "Start Cycle":"370"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":26
+            , "start":"371"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"2"
+                , "Start Cycle":"369"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":30
+            , "start":"372"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"7"
+                , "Start Cycle":"370"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":37
+            , "start":"372"
+            , "end":"375"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Prefetching"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"370"
+                , "Latency":"3"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":40
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":39
+            , "start":"375"
+            , "end":"375"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"7"
+                , "Start Cycle":"373"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":31
+            , "start":"372"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"7"
+                , "Start Cycle":"370"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":38
+            , "start":"372"
+            , "end":"375"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Prefetching"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"370"
+                , "Latency":"3"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":115
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Ptr. Comp."
+            , "id":40
+            , "start":"671"
+            , "end":"671"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Pointer Computation"
+                , "Max Fanout":"7"
+                , "Start Cycle":"669"
+                , "Latency":"0"
+              }
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"+"
+            , "id":29
+            , "start":"372"
+            , "end":"372"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"32-bit Integer Add"
+                , "Constant Operand":"1 (0x1)"
+                , "Max Fanout":"1"
+                , "Start Cycle":"370"
+                , "Latency":"0"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":38
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Global variable"
+            , "id":27
+            , "start":"374"
+            , "end":"375"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Feedback Read"
+                , "Variable":"Global variable"
+                , "Max Fanout":"1"
+                , "Start Cycle":"372"
+                , "Latency":"1"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":115
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"LD"
+            , "id":41
+            , "start":"375"
+            , "end":"614"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Load"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"1"
+                , "Start Cycle":"373"
+                , "Latency":"239"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":40
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+          , {
+            "name":"Cluster 0"
+            , "id":42
+            , "start":"614"
+            , "end":"671"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Cluster Name":"i_sfc_s_c0_in_for_body_i_zts10mainkernels_c0_enter1_zts10mainkernel_130_50"
+                , "Cluster Type":"Stall-Free"
+                , "Cluster Start Cycle":"612"
+                , "Cluster Latency":"57"
+              }
+            ]
+            , "type":"cluster"
+            , "children":
+            [
+              {
+                "name":"Compare"
+                , "id":51
+                , "start":"615"
+                , "end":"616"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"613"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":45
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":52
+                , "start":"614"
+                , "end":"615"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"612"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":53
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":53
+                , "start":"614"
+                , "end":"615"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"612"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":53
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":54
+                , "start":"615"
+                , "end":"615"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"613"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":53
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"bit.shuffle"
+                , "id":211
+                , "start":"615"
+                , "end":"615"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"bit.shuffle"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"613"
+                    , "Latency":"0"
+                  }
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"<<"
+                , "id":55
+                , "start":"615"
+                , "end":"615"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Left Shift"
+                    , "Constant Operand":"12 (0xC)"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"613"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":64
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":56
+                , "start":"615"
+                , "end":"615"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"613"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":64
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":57
+                , "start":"616"
+                , "end":"616"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"614"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":58
+                , "start":"616"
+                , "end":"616"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"614"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":62
+                , "start":"616"
+                , "end":"616"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"2 (0x2)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"614"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":65
+                , "start":"616"
+                , "end":"616"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"614"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":59
+                , "start":"616"
+                , "end":"616"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"614"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":60
+                , "start":"616"
+                , "end":"616"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"614"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":61
+                , "start":"616"
+                , "end":"616"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"614"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":63
+                , "start":"616"
+                , "end":"616"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"614"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":96
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":68
+                , "start":"616"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"614"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":96
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":71
+                , "start":"617"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"3 (0x3)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"615"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":74
+                , "start":"617"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"615"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":64
+                , "start":"616"
+                , "end":"616"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"614"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":69
+                , "start":"616"
+                , "end":"616"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"614"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":70
+                , "start":"617"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"615"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":73
+                , "start":"617"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"615"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":80
+                , "start":"617"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"615"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":81
+                , "start":"617"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"615"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":74
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":84
+                , "start":"617"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"615"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":91
+                , "start":"617"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"615"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":92
+                , "start":"618"
+                , "end":"618"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"616"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":74
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":95
+                , "start":"618"
+                , "end":"618"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"616"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":102
+                , "start":"618"
+                , "end":"618"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"616"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":103
+                , "start":"618"
+                , "end":"618"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"616"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":106
+                , "start":"618"
+                , "end":"618"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"616"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":113
+                , "start":"618"
+                , "end":"618"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"616"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":114
+                , "start":"619"
+                , "end":"619"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"617"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":117
+                , "start":"619"
+                , "end":"619"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"617"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":124
+                , "start":"619"
+                , "end":"619"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"617"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":125
+                , "start":"619"
+                , "end":"619"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"617"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":74
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":128
+                , "start":"619"
+                , "end":"619"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"617"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":135
+                , "start":"619"
+                , "end":"619"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"617"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":136
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":74
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":139
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":146
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":147
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":150
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":157
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":158
+                , "start":"621"
+                , "end":"621"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"619"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":161
+                , "start":"621"
+                , "end":"621"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"619"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":168
+                , "start":"621"
+                , "end":"621"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"619"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":169
+                , "start":"621"
+                , "end":"621"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"619"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":74
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":172
+                , "start":"621"
+                , "end":"621"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"619"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":179
+                , "start":"621"
+                , "end":"621"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"619"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":180
+                , "start":"622"
+                , "end":"622"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"620"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":74
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":183
+                , "start":"622"
+                , "end":"622"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"620"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":190
+                , "start":"622"
+                , "end":"622"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"620"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":83
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":191
+                , "start":"622"
+                , "end":"622"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"620"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":194
+                , "start":"622"
+                , "end":"622"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"620"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":201
+                , "start":"622"
+                , "end":"622"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"620"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":97
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Compare"
+                , "id":202
+                , "start":"622"
+                , "end":"623"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Compare"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"620"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":75
+                , "start":"617"
+                , "end":"618"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"615"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":66
+                , "start":"616"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"614"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":67
+                , "start":"617"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Constant Operand":"4945 (0x1351)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"615"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":72
+                , "start":"617"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"3 (0x3)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"615"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":77
+                , "start":"617"
+                , "end":"617"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"615"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":78
+                , "start":"618"
+                , "end":"618"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"616"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":79
+                , "start":"618"
+                , "end":"618"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"616"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":96
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":82
+                , "start":"619"
+                , "end":"619"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"4 (0x4)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"617"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":88
+                , "start":"619"
+                , "end":"619"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"617"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":89
+                , "start":"619"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"617"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":76
+                , "start":"618"
+                , "end":"618"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"616"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":83
+                , "start":"619"
+                , "end":"619"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"4 (0x4)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"617"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":85
+                , "start":"619"
+                , "end":"619"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"617"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":86
+                , "start":"619"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"617"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":87
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":82
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":93
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"4 (0x4)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":99
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":100
+                , "start":"621"
+                , "end":"621"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"619"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":90
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":94
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"4 (0x4)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":96
+                , "start":"620"
+                , "end":"620"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"618"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":97
+                , "start":"621"
+                , "end":"621"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"619"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":98
+                , "start":"621"
+                , "end":"621"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"619"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":82
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":104
+                , "start":"622"
+                , "end":"622"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"5 (0x5)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"620"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":107
+                , "start":"622"
+                , "end":"622"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"620"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":108
+                , "start":"622"
+                , "end":"623"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"620"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":101
+                , "start":"621"
+                , "end":"621"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"619"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":105
+                , "start":"622"
+                , "end":"622"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"5 (0x5)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"620"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":110
+                , "start":"622"
+                , "end":"622"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"620"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":111
+                , "start":"622"
+                , "end":"623"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"620"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":112
+                , "start":"623"
+                , "end":"623"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"621"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":96
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":115
+                , "start":"623"
+                , "end":"623"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"6 (0x6)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"621"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":118
+                , "start":"623"
+                , "end":"623"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"621"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":119
+                , "start":"624"
+                , "end":"624"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"622"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":109
+                , "start":"623"
+                , "end":"623"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"621"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":116
+                , "start":"623"
+                , "end":"623"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"6 (0x6)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"621"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":121
+                , "start":"623"
+                , "end":"623"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"621"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":122
+                , "start":"624"
+                , "end":"624"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"622"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":123
+                , "start":"624"
+                , "end":"624"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"622"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":96
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":126
+                , "start":"625"
+                , "end":"625"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"7 (0x7)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"623"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":132
+                , "start":"625"
+                , "end":"625"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"623"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":133
+                , "start":"625"
+                , "end":"626"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"623"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":120
+                , "start":"624"
+                , "end":"624"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"622"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":127
+                , "start":"625"
+                , "end":"625"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"7 (0x7)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"623"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":129
+                , "start":"625"
+                , "end":"625"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"623"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":130
+                , "start":"625"
+                , "end":"626"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"623"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":131
+                , "start":"626"
+                , "end":"626"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"624"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":82
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":137
+                , "start":"626"
+                , "end":"626"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"7 (0x7)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"624"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":143
+                , "start":"626"
+                , "end":"626"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"624"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":144
+                , "start":"627"
+                , "end":"627"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"625"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":134
+                , "start":"626"
+                , "end":"626"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"624"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":138
+                , "start":"626"
+                , "end":"626"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"7 (0x7)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"624"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":140
+                , "start":"626"
+                , "end":"626"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"624"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":141
+                , "start":"627"
+                , "end":"627"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"625"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":142
+                , "start":"627"
+                , "end":"627"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"625"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":82
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":148
+                , "start":"628"
+                , "end":"628"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"8 (0x8)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"626"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":151
+                , "start":"628"
+                , "end":"628"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"626"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":152
+                , "start":"628"
+                , "end":"629"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"626"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":145
+                , "start":"627"
+                , "end":"627"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"625"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":149
+                , "start":"628"
+                , "end":"628"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"8 (0x8)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"626"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":154
+                , "start":"628"
+                , "end":"628"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"626"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":155
+                , "start":"628"
+                , "end":"629"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"626"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":156
+                , "start":"629"
+                , "end":"629"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"627"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":96
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":159
+                , "start":"629"
+                , "end":"629"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"9 (0x9)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"627"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":162
+                , "start":"629"
+                , "end":"629"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"627"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":163
+                , "start":"630"
+                , "end":"630"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"628"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":153
+                , "start":"629"
+                , "end":"629"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"627"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":160
+                , "start":"629"
+                , "end":"629"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"9 (0x9)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"627"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":165
+                , "start":"629"
+                , "end":"629"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"627"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":166
+                , "start":"630"
+                , "end":"630"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"628"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":167
+                , "start":"630"
+                , "end":"630"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"628"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":96
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":170
+                , "start":"631"
+                , "end":"631"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"10 (0xA)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"629"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":176
+                , "start":"631"
+                , "end":"631"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"629"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":177
+                , "start":"631"
+                , "end":"632"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"629"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":164
+                , "start":"630"
+                , "end":"630"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"628"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":171
+                , "start":"631"
+                , "end":"631"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"10 (0xA)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"629"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":173
+                , "start":"631"
+                , "end":"631"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"629"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":174
+                , "start":"631"
+                , "end":"632"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"629"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":175
+                , "start":"632"
+                , "end":"632"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"630"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":82
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":181
+                , "start":"632"
+                , "end":"632"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"10 (0xA)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"630"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":187
+                , "start":"632"
+                , "end":"632"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"630"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":188
+                , "start":"633"
+                , "end":"633"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"631"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":75
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":178
+                , "start":"632"
+                , "end":"632"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"630"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":182
+                , "start":"632"
+                , "end":"632"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"10 (0xA)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"630"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":184
+                , "start":"632"
+                , "end":"632"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"630"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":185
+                , "start":"633"
+                , "end":"633"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"631"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":76
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":186
+                , "start":"633"
+                , "end":"633"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"631"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":82
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":192
+                , "start":"634"
+                , "end":"634"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"11 (0xB)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"632"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":195
+                , "start":"634"
+                , "end":"634"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"632"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":196
+                , "start":"634"
+                , "end":"635"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"632"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":89
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":189
+                , "start":"633"
+                , "end":"633"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"631"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":81
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":193
+                , "start":"634"
+                , "end":"634"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"11 (0xB)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"632"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":198
+                , "start":"634"
+                , "end":"634"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"632"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":199
+                , "start":"634"
+                , "end":"635"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"632"
+                    , "Latency":"1"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":90
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":200
+                , "start":"635"
+                , "end":"635"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"633"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":96
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":203
+                , "start":"635"
+                , "end":"635"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"12 (0xC)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"633"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":205
+                , "start":"635"
+                , "end":"635"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"633"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":206
+                , "start":"636"
+                , "end":"636"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"634"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":197
+                , "start":"635"
+                , "end":"635"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"633"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":95
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":204
+                , "start":"635"
+                , "end":"635"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Logical Right Shift"
+                    , "Constant Operand":"12 (0xC)"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"633"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"-"
+                , "id":208
+                , "start":"635"
+                , "end":"635"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Subtract"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"633"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":209
+                , "start":"636"
+                , "end":"636"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"634"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":210
+                , "start":"636"
+                , "end":"636"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"634"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":207
+                , "start":"636"
+                , "end":"636"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"634"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":88
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"ROM Lookup"
+                , "id":212
+                , "start":"615"
+                , "end":"636"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"On-chip Read-Only Memory Lookup"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"613"
+                    , "Latency":"21"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":107
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":213
+                , "start":"636"
+                , "end":"639"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"4"
+                    , "Start Cycle":"634"
+                    , "Latency":"3"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":107
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":218
+                , "start":"636"
+                , "end":"639"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"4"
+                    , "Start Cycle":"634"
+                    , "Latency":"3"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":109
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"ROM Lookup"
+                , "id":214
+                , "start":"615"
+                , "end":"636"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"On-chip Read-Only Memory Lookup"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"613"
+                    , "Latency":"21"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":107
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":215
+                , "start":"636"
+                , "end":"639"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"4"
+                    , "Start Cycle":"634"
+                    , "Latency":"3"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":107
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":216
+                , "start":"640"
+                , "end":"640"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"638"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":107
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"*"
+                , "id":217
+                , "start":"636"
+                , "end":"639"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Multiply"
+                    , "Max Fanout":"4"
+                    , "Start Cycle":"634"
+                    , "Latency":"3"
+                    , "Implementation Preference":"Default DSP usage"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":109
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"+"
+                , "id":219
+                , "start":"640"
+                , "end":"640"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Integer Add"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"638"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":109
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":">>"
+                , "id":220
+                , "start":"640"
+                , "end":"640"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Arithmetic Right Shift"
+                    , "Constant Operand":"12 (0xC)"
+                    , "Max Fanout":"3"
+                    , "Start Cycle":"638"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":109
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"/"
+                , "id":221
+                , "start":"641"
+                , "end":"668"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Signed Integer Divide"
+                    , "Max Fanout":"389"
+                    , "Start Cycle":"639"
+                    , "Latency":"27"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":111
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Select"
+                , "id":222
+                , "start":"668"
+                , "end":"668"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Instruction":"32-bit Select"
+                    , "Max Fanout":"1"
+                    , "Start Cycle":"666"
+                    , "Latency":"0"
+                  }
+                ]
+                , "debug":
+                [
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                      , "line":111
+                    }
+                  ]
+                ]
+                , "type":"inst"
+              }
+              , {
+                "name":"Exit"
+                , "id":49
+                , "start":"668"
+                , "end":"671"
+                , "details":
+                [
+                  {
+                    "type":"table"
+                    , "Max Fanout":"2"
+                    , "Start Cycle":"666"
+                    , "Latency":"3"
+                    , "Exit FIFO Depth":"512"
+                    , "Exit FIFO Width":"40"
+                    , "Details":"Exit FIFO depth is sized to accommodate all data that may be in-flight in the stall-free cluster; this depth will be equal to or greater than the latency of the cluster.  The width of the FIFO depends on the amount of data that needs to pass from the stall-free logic cluster to the stall-able logic below it."
+                  }
+                ]
+                , "type":"inst"
+              }
+            ]
+          }
+          , {
+            "name":"ST"
+            , "id":43
+            , "start":"671"
+            , "end":"743"
+            , "details":
+            [
+              {
+                "type":"table"
+                , "Instruction":"Store"
+                , "Width":"32 bits"
+                , "LSU Style":"Burst-coalesced"
+                , "Stall-free":"No"
+                , "Global Memory":"Yes"
+                , "Max Fanout":"2"
+                , "Start Cycle":"669"
+                , "Latency":"72"
+              }
+            ]
+            , "debug":
+            [
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/experiments/get_tanh_dram.cpp"
+                  , "line":115
+                }
+              ]
+            ]
+            , "type":"inst"
+          }
+        ]
+      }
+      , {
+        "name":"MainKernel.B2"
+        , "id":4
+        , "start":"744"
+        , "end":"745"
+        , "details":
+        [
+          {
+            "type":"table"
+          }
+        ]
+        , "type":"bb"
+      }
+    ]
+    , "links":
+    [
+      {
+        "from":2
+        , "to":3
+      }
+      , {
+        "from":10
+        , "to":11
+      }
+      , {
+        "from":8
+        , "to":9
+      }
+      , {
+        "from":9
+        , "to":11
+      }
+      , {
+        "from":11
+        , "to":12
+      }
+      , {
+        "from":12
+        , "to":13
+      }
+      , {
+        "from":13
+        , "to":15
+      }
+      , {
+        "from":6
+        , "to":7
+      }
+      , {
+        "from":7
+        , "to":14
+      }
+      , {
+        "from":3
+        , "to":4
+      }
+      , {
+        "from":25
+        , "to":36
+      }
+      , {
+        "from":24
+        , "to":40
+      }
+      , {
+        "from":23
+        , "to":35
+      }
+      , {
+        "from":22
+        , "to":31
+      }
+      , {
+        "from":21
+        , "to":34
+      }
+      , {
+        "from":20
+        , "to":39
+      }
+      , {
+        "from":19
+        , "to":33
+      }
+      , {
+        "from":18
+        , "to":30
+      }
+      , {
+        "from":17
+        , "to":28
+      }
+      , {
+        "from":33
+        , "to":37
+      }
+      , {
+        "from":34
+        , "to":41
+      }
+      , {
+        "from":35
+        , "to":38
+      }
+      , {
+        "from":36
+        , "to":43
+      }
+      , {
+        "from":26
+        , "to":29
+      }
+      , {
+        "from":26
+        , "to":31
+      }
+      , {
+        "from":26
+        , "to":30
+      }
+      , {
+        "from":30
+        , "to":37
+      }
+      , {
+        "from":37
+        , "to":39
+      }
+      , {
+        "from":39
+        , "to":41
+      }
+      , {
+        "from":31
+        , "to":38
+      }
+      , {
+        "from":38
+        , "to":40
+      }
+      , {
+        "from":40
+        , "to":43
+      }
+      , {
+        "from":27
+        , "to":41
+      }
+      , {
+        "from":41
+        , "to":42
+      }
+      , {
+        "from":42
+        , "to":43
+      }
+      , {
+        "from":51
+        , "to":222
+      }
+      , {
+        "from":52
+        , "to":54
+      }
+      , {
+        "from":53
+        , "to":54
+      }
+      , {
+        "from":54
+        , "to":55
+      }
+      , {
+        "from":54
+        , "to":211
+      }
+      , {
+        "from":55
+        , "to":56
+      }
+      , {
+        "from":56
+        , "to":60
+      }
+      , {
+        "from":56
+        , "to":57
+      }
+      , {
+        "from":57
+        , "to":59
+      }
+      , {
+        "from":57
+        , "to":58
+      }
+      , {
+        "from":58
+        , "to":68
+      }
+      , {
+        "from":58
+        , "to":62
+      }
+      , {
+        "from":62
+        , "to":66
+      }
+      , {
+        "from":62
+        , "to":65
+      }
+      , {
+        "from":65
+        , "to":66
+      }
+      , {
+        "from":59
+        , "to":60
+      }
+      , {
+        "from":60
+        , "to":69
+      }
+      , {
+        "from":60
+        , "to":61
+      }
+      , {
+        "from":61
+        , "to":66
+      }
+      , {
+        "from":61
+        , "to":64
+      }
+      , {
+        "from":61
+        , "to":63
+      }
+      , {
+        "from":63
+        , "to":68
+      }
+      , {
+        "from":68
+        , "to":79
+      }
+      , {
+        "from":68
+        , "to":71
+      }
+      , {
+        "from":71
+        , "to":75
+      }
+      , {
+        "from":71
+        , "to":74
+      }
+      , {
+        "from":74
+        , "to":75
+      }
+      , {
+        "from":64
+        , "to":69
+      }
+      , {
+        "from":69
+        , "to":80
+      }
+      , {
+        "from":69
+        , "to":70
+      }
+      , {
+        "from":70
+        , "to":78
+      }
+      , {
+        "from":70
+        , "to":75
+      }
+      , {
+        "from":70
+        , "to":73
+      }
+      , {
+        "from":73
+        , "to":80
+      }
+      , {
+        "from":80
+        , "to":91
+      }
+      , {
+        "from":80
+        , "to":81
+      }
+      , {
+        "from":81
+        , "to":89
+      }
+      , {
+        "from":81
+        , "to":86
+      }
+      , {
+        "from":81
+        , "to":84
+      }
+      , {
+        "from":84
+        , "to":91
+      }
+      , {
+        "from":91
+        , "to":102
+      }
+      , {
+        "from":91
+        , "to":92
+      }
+      , {
+        "from":92
+        , "to":100
+      }
+      , {
+        "from":92
+        , "to":97
+      }
+      , {
+        "from":92
+        , "to":95
+      }
+      , {
+        "from":95
+        , "to":102
+      }
+      , {
+        "from":102
+        , "to":113
+      }
+      , {
+        "from":102
+        , "to":103
+      }
+      , {
+        "from":103
+        , "to":111
+      }
+      , {
+        "from":103
+        , "to":108
+      }
+      , {
+        "from":103
+        , "to":106
+      }
+      , {
+        "from":106
+        , "to":113
+      }
+      , {
+        "from":113
+        , "to":124
+      }
+      , {
+        "from":113
+        , "to":114
+      }
+      , {
+        "from":114
+        , "to":122
+      }
+      , {
+        "from":114
+        , "to":119
+      }
+      , {
+        "from":114
+        , "to":117
+      }
+      , {
+        "from":117
+        , "to":124
+      }
+      , {
+        "from":124
+        , "to":135
+      }
+      , {
+        "from":124
+        , "to":125
+      }
+      , {
+        "from":125
+        , "to":133
+      }
+      , {
+        "from":125
+        , "to":130
+      }
+      , {
+        "from":125
+        , "to":128
+      }
+      , {
+        "from":128
+        , "to":135
+      }
+      , {
+        "from":135
+        , "to":146
+      }
+      , {
+        "from":135
+        , "to":136
+      }
+      , {
+        "from":136
+        , "to":144
+      }
+      , {
+        "from":136
+        , "to":141
+      }
+      , {
+        "from":136
+        , "to":139
+      }
+      , {
+        "from":139
+        , "to":146
+      }
+      , {
+        "from":146
+        , "to":157
+      }
+      , {
+        "from":146
+        , "to":147
+      }
+      , {
+        "from":147
+        , "to":155
+      }
+      , {
+        "from":147
+        , "to":152
+      }
+      , {
+        "from":147
+        , "to":150
+      }
+      , {
+        "from":150
+        , "to":157
+      }
+      , {
+        "from":157
+        , "to":168
+      }
+      , {
+        "from":157
+        , "to":158
+      }
+      , {
+        "from":158
+        , "to":166
+      }
+      , {
+        "from":158
+        , "to":163
+      }
+      , {
+        "from":158
+        , "to":161
+      }
+      , {
+        "from":161
+        , "to":168
+      }
+      , {
+        "from":168
+        , "to":179
+      }
+      , {
+        "from":168
+        , "to":169
+      }
+      , {
+        "from":169
+        , "to":177
+      }
+      , {
+        "from":169
+        , "to":174
+      }
+      , {
+        "from":169
+        , "to":172
+      }
+      , {
+        "from":172
+        , "to":179
+      }
+      , {
+        "from":179
+        , "to":190
+      }
+      , {
+        "from":179
+        , "to":180
+      }
+      , {
+        "from":180
+        , "to":188
+      }
+      , {
+        "from":180
+        , "to":185
+      }
+      , {
+        "from":180
+        , "to":183
+      }
+      , {
+        "from":183
+        , "to":190
+      }
+      , {
+        "from":190
+        , "to":201
+      }
+      , {
+        "from":190
+        , "to":191
+      }
+      , {
+        "from":191
+        , "to":199
+      }
+      , {
+        "from":191
+        , "to":196
+      }
+      , {
+        "from":191
+        , "to":194
+      }
+      , {
+        "from":194
+        , "to":201
+      }
+      , {
+        "from":201
+        , "to":202
+      }
+      , {
+        "from":202
+        , "to":209
+      }
+      , {
+        "from":202
+        , "to":206
+      }
+      , {
+        "from":75
+        , "to":76
+      }
+      , {
+        "from":66
+        , "to":67
+      }
+      , {
+        "from":67
+        , "to":76
+      }
+      , {
+        "from":67
+        , "to":72
+      }
+      , {
+        "from":72
+        , "to":78
+      }
+      , {
+        "from":72
+        , "to":77
+      }
+      , {
+        "from":77
+        , "to":78
+      }
+      , {
+        "from":78
+        , "to":79
+      }
+      , {
+        "from":79
+        , "to":87
+      }
+      , {
+        "from":79
+        , "to":82
+      }
+      , {
+        "from":82
+        , "to":89
+      }
+      , {
+        "from":82
+        , "to":88
+      }
+      , {
+        "from":88
+        , "to":89
+      }
+      , {
+        "from":89
+        , "to":90
+      }
+      , {
+        "from":76
+        , "to":90
+      }
+      , {
+        "from":76
+        , "to":83
+      }
+      , {
+        "from":83
+        , "to":86
+      }
+      , {
+        "from":83
+        , "to":85
+      }
+      , {
+        "from":85
+        , "to":86
+      }
+      , {
+        "from":86
+        , "to":87
+      }
+      , {
+        "from":87
+        , "to":98
+      }
+      , {
+        "from":87
+        , "to":93
+      }
+      , {
+        "from":93
+        , "to":100
+      }
+      , {
+        "from":93
+        , "to":99
+      }
+      , {
+        "from":99
+        , "to":100
+      }
+      , {
+        "from":100
+        , "to":101
+      }
+      , {
+        "from":90
+        , "to":101
+      }
+      , {
+        "from":90
+        , "to":94
+      }
+      , {
+        "from":94
+        , "to":97
+      }
+      , {
+        "from":94
+        , "to":96
+      }
+      , {
+        "from":96
+        , "to":97
+      }
+      , {
+        "from":97
+        , "to":98
+      }
+      , {
+        "from":98
+        , "to":112
+      }
+      , {
+        "from":98
+        , "to":104
+      }
+      , {
+        "from":104
+        , "to":108
+      }
+      , {
+        "from":104
+        , "to":107
+      }
+      , {
+        "from":107
+        , "to":108
+      }
+      , {
+        "from":108
+        , "to":109
+      }
+      , {
+        "from":101
+        , "to":109
+      }
+      , {
+        "from":101
+        , "to":105
+      }
+      , {
+        "from":105
+        , "to":111
+      }
+      , {
+        "from":105
+        , "to":110
+      }
+      , {
+        "from":110
+        , "to":111
+      }
+      , {
+        "from":111
+        , "to":112
+      }
+      , {
+        "from":112
+        , "to":123
+      }
+      , {
+        "from":112
+        , "to":115
+      }
+      , {
+        "from":115
+        , "to":119
+      }
+      , {
+        "from":115
+        , "to":118
+      }
+      , {
+        "from":118
+        , "to":119
+      }
+      , {
+        "from":119
+        , "to":120
+      }
+      , {
+        "from":109
+        , "to":120
+      }
+      , {
+        "from":109
+        , "to":116
+      }
+      , {
+        "from":116
+        , "to":122
+      }
+      , {
+        "from":116
+        , "to":121
+      }
+      , {
+        "from":121
+        , "to":122
+      }
+      , {
+        "from":122
+        , "to":123
+      }
+      , {
+        "from":123
+        , "to":131
+      }
+      , {
+        "from":123
+        , "to":126
+      }
+      , {
+        "from":126
+        , "to":133
+      }
+      , {
+        "from":126
+        , "to":132
+      }
+      , {
+        "from":132
+        , "to":133
+      }
+      , {
+        "from":133
+        , "to":134
+      }
+      , {
+        "from":120
+        , "to":134
+      }
+      , {
+        "from":120
+        , "to":127
+      }
+      , {
+        "from":127
+        , "to":130
+      }
+      , {
+        "from":127
+        , "to":129
+      }
+      , {
+        "from":129
+        , "to":130
+      }
+      , {
+        "from":130
+        , "to":131
+      }
+      , {
+        "from":131
+        , "to":142
+      }
+      , {
+        "from":131
+        , "to":137
+      }
+      , {
+        "from":137
+        , "to":144
+      }
+      , {
+        "from":137
+        , "to":143
+      }
+      , {
+        "from":143
+        , "to":144
+      }
+      , {
+        "from":144
+        , "to":145
+      }
+      , {
+        "from":134
+        , "to":145
+      }
+      , {
+        "from":134
+        , "to":138
+      }
+      , {
+        "from":138
+        , "to":141
+      }
+      , {
+        "from":138
+        , "to":140
+      }
+      , {
+        "from":140
+        , "to":141
+      }
+      , {
+        "from":141
+        , "to":142
+      }
+      , {
+        "from":142
+        , "to":156
+      }
+      , {
+        "from":142
+        , "to":148
+      }
+      , {
+        "from":148
+        , "to":152
+      }
+      , {
+        "from":148
+        , "to":151
+      }
+      , {
+        "from":151
+        , "to":152
+      }
+      , {
+        "from":152
+        , "to":153
+      }
+      , {
+        "from":145
+        , "to":153
+      }
+      , {
+        "from":145
+        , "to":149
+      }
+      , {
+        "from":149
+        , "to":155
+      }
+      , {
+        "from":149
+        , "to":154
+      }
+      , {
+        "from":154
+        , "to":155
+      }
+      , {
+        "from":155
+        , "to":156
+      }
+      , {
+        "from":156
+        , "to":167
+      }
+      , {
+        "from":156
+        , "to":159
+      }
+      , {
+        "from":159
+        , "to":163
+      }
+      , {
+        "from":159
+        , "to":162
+      }
+      , {
+        "from":162
+        , "to":163
+      }
+      , {
+        "from":163
+        , "to":164
+      }
+      , {
+        "from":153
+        , "to":164
+      }
+      , {
+        "from":153
+        , "to":160
+      }
+      , {
+        "from":160
+        , "to":166
+      }
+      , {
+        "from":160
+        , "to":165
+      }
+      , {
+        "from":165
+        , "to":166
+      }
+      , {
+        "from":166
+        , "to":167
+      }
+      , {
+        "from":167
+        , "to":175
+      }
+      , {
+        "from":167
+        , "to":170
+      }
+      , {
+        "from":170
+        , "to":177
+      }
+      , {
+        "from":170
+        , "to":176
+      }
+      , {
+        "from":176
+        , "to":177
+      }
+      , {
+        "from":177
+        , "to":178
+      }
+      , {
+        "from":164
+        , "to":178
+      }
+      , {
+        "from":164
+        , "to":171
+      }
+      , {
+        "from":171
+        , "to":174
+      }
+      , {
+        "from":171
+        , "to":173
+      }
+      , {
+        "from":173
+        , "to":174
+      }
+      , {
+        "from":174
+        , "to":175
+      }
+      , {
+        "from":175
+        , "to":186
+      }
+      , {
+        "from":175
+        , "to":181
+      }
+      , {
+        "from":181
+        , "to":188
+      }
+      , {
+        "from":181
+        , "to":187
+      }
+      , {
+        "from":187
+        , "to":188
+      }
+      , {
+        "from":188
+        , "to":189
+      }
+      , {
+        "from":178
+        , "to":189
+      }
+      , {
+        "from":178
+        , "to":182
+      }
+      , {
+        "from":182
+        , "to":185
+      }
+      , {
+        "from":182
+        , "to":184
+      }
+      , {
+        "from":184
+        , "to":185
+      }
+      , {
+        "from":185
+        , "to":186
+      }
+      , {
+        "from":186
+        , "to":200
+      }
+      , {
+        "from":186
+        , "to":192
+      }
+      , {
+        "from":192
+        , "to":196
+      }
+      , {
+        "from":192
+        , "to":195
+      }
+      , {
+        "from":195
+        , "to":196
+      }
+      , {
+        "from":196
+        , "to":197
+      }
+      , {
+        "from":189
+        , "to":197
+      }
+      , {
+        "from":189
+        , "to":193
+      }
+      , {
+        "from":193
+        , "to":199
+      }
+      , {
+        "from":193
+        , "to":198
+      }
+      , {
+        "from":198
+        , "to":199
+      }
+      , {
+        "from":199
+        , "to":200
+      }
+      , {
+        "from":200
+        , "to":210
+      }
+      , {
+        "from":200
+        , "to":203
+      }
+      , {
+        "from":203
+        , "to":206
+      }
+      , {
+        "from":203
+        , "to":205
+      }
+      , {
+        "from":205
+        , "to":206
+      }
+      , {
+        "from":206
+        , "to":207
+      }
+      , {
+        "from":197
+        , "to":207
+      }
+      , {
+        "from":197
+        , "to":204
+      }
+      , {
+        "from":204
+        , "to":209
+      }
+      , {
+        "from":204
+        , "to":208
+      }
+      , {
+        "from":208
+        , "to":209
+      }
+      , {
+        "from":209
+        , "to":210
+      }
+      , {
+        "from":210
+        , "to":218
+      }
+      , {
+        "from":210
+        , "to":215
+      }
+      , {
+        "from":207
+        , "to":217
+      }
+      , {
+        "from":207
+        , "to":213
+      }
+      , {
+        "from":212
+        , "to":218
+      }
+      , {
+        "from":212
+        , "to":213
+      }
+      , {
+        "from":213
+        , "to":216
+      }
+      , {
+        "from":218
+        , "to":219
+      }
+      , {
+        "from":214
+        , "to":217
+      }
+      , {
+        "from":214
+        , "to":215
+      }
+      , {
+        "from":215
+        , "to":216
+      }
+      , {
+        "from":216
+        , "to":221
+      }
+      , {
+        "from":217
+        , "to":219
+      }
+      , {
+        "from":219
+        , "to":220
+      }
+      , {
+        "from":220
+        , "to":221
+      }
+      , {
+        "from":221
+        , "to":222
+      }
+      , {
+        "from":222
+        , "to":49
+      }
+    ]
+  }
+}

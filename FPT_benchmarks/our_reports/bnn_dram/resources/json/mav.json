@@ -1,0 +1,4016 @@
+{
+  "nodes":
+  [
+    {
+      "type":"kernel"
+      , "id":2
+      , "name":"MainKernel_AGU_0"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":3
+          , "name":"MainKernel_AGU_0.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":4
+          , "name":"MainKernel_AGU_0.B1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"8"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Entry to loop. "
+              , "Loops To":"6"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":5
+          , "name":"MainKernel_AGU_0.B2"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"1"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":6
+          , "name":"MainKernel_AGU_0.B3"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Exit which branches back to loop. "
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":7
+          , "name":"MainKernel_AGU_0.B4"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":10
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":729
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Prefetching"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"6"
+                  , "Latency":"2"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":11
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"128 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"13"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":13
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"128 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"13"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":18
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":726
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"19"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":19
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"13"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"13"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":8
+          , "name":"MainKernel_AGU_0.B5"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":15
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":735
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"9"
+                  , "Latency":"207"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":16
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"128 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"221"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":17
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"128 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"221"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":20
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":732
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"21"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":21
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"221"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"221"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":9
+          , "name":"MainKernel_AGU_0.B6"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":22
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"bnn_dram_elastic_fpga_hw.prj/ZTS16MainKernel_AGU_0_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":23
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":719
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":24
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":719
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":25
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":719
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":26
+              , "name":"arg_N"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":719
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"32 bits"
+                  , "Kernel":"ZTS16MainKernel_AGU_0"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":27
+              , "name":"arg_data"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":719
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS16MainKernel_AGU_0"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":28
+              , "name":"arg_addr_in"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":719
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS16MainKernel_AGU_0"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":29
+              , "name":"arg_addr_out"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":719
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS16MainKernel_AGU_0"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"kernel"
+      , "id":31
+      , "name":">"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":32
+          , "name":">.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":33
+          , "name":">.B1"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":35
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"1"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":37
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"128 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"1"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":39
+              , "name":"Store"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/fpga_lsu.hpp"
+                    , "line":74
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Pipelined"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"1"
+                  , "Latency":"7"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":40
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":408
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"41"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":41
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"8"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"8"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":34
+          , "name":">.B2"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":42
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"bnn_dram_elastic_fpga_hw.prj/ZTS9StorePortIN4sycl3_V13ext5intel4pipeIZ10bnn_kernelRNS1_5queueERKSt6vectorIiSaIiEESB_SB_SB_SB_RS9__csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":43
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":406
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":44
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":406
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":45
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":406
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"kernel"
+      , "id":46
+      , "name":"0>"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":47
+          , "name":"0>.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":48
+          , "name":"0>.B1"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":50
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"1"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":52
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"64 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"1"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":54
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/fpga_lsu.hpp"
+                    , "line":56
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Pipelined"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"1"
+                  , "Latency":"7"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":55
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"9"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":57
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":422
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"58"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":58
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"9"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"9"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":49
+          , "name":"0>.B2"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":59
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"bnn_dram_elastic_fpga_hw.prj/ZTS8LoadPortIN4sycl3_V13ext5intel4pipeIZ10bnn_kernelRNS1_5queueERKSt6vectorIiSaIiEESB_SB_SB_SB_RS9_i_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":60
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":420
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":61
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":420
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":62
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":420
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"kernel"
+      , "id":63
+      , "name":"0>"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":64
+          , "name":"0>.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":65
+          , "name":"0>.B1"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":67
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"1"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":69
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"2"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":71
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"2"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":72
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"2"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":74
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"2"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":76
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":435
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"77"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":77
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"2"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":66
+          , "name":"0>.B2"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":78
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"bnn_dram_elastic_fpga_hw.prj/ZTS7LoadMuxIN4sycl3_V13ext5intel4pipeIZ10bnn_kernelRNS1_5queueERKSt6vectorIiSaIiEESB_SB_SB_SB_RS9_iE_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":79
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":433
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":80
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":433
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":81
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":433
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"kernel"
+      , "id":82
+      , "name":">"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":83
+          , "name":">.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":84
+          , "name":">.B1"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":86
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"1"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"1"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":88
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"1"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":90
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"128 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"2"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":91
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"128 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"4"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":92
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"7"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":93
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"128 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"7"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":94
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"7"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":95
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"7"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":96
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"7"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":97
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"64 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"7"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":98
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"7"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":102
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":485
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"103"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":103
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"7"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"7"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":85
+          , "name":">.B2"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":99
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"0"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":100
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"0"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":101
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"8"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"0"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":104
+              , "name":"Begin"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":105
+              , "name":"End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":106
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"bnn_dram_elastic_fpga_hw.prj/ZTS8LSQ_DRAMIN4sycl3_V13ext5intel4pipeIZ10bnn_kernelRNS1_5queueERKSt6vectorIiSaIiEESB_SB_SB_SB_RS9_i_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":107
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":450
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":108
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":450
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":109
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":450
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"kernel"
+      , "id":110
+      , "name":"MainKernel"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":111
+          , "name":"MainKernel.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":112
+          , "name":"MainKernel.B1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"8"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Entry to loop. "
+              , "Loops To":"114"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":113
+          , "name":"MainKernel.B2"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"1"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":114
+          , "name":"MainKernel.B3"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Exit which branches back to loop. "
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":115
+          , "name":"MainKernel.B4"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":118
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":759
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Prefetching"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"6"
+                  , "Latency":"2"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":119
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"9"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":120
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":759
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Prefetching"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"6"
+                  , "Latency":"2"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":121
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"9"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":126
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":757
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"127"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":127
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"9"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"9"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":116
+          , "name":"MainKernel.B5"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":122
+              , "name":"Load"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":765
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Type":"Burst-coalesced"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"9"
+                  , "Latency":"223"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Load-Store Units"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":123
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"233"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":124
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"16"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"234"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":128
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":763
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"129"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":129
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"234"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"234"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":117
+          , "name":"MainKernel.B6"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":125
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"1"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"0"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":130
+              , "name":"Begin"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":131
+              , "name":"End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":132
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"bnn_dram_elastic_fpga_hw.prj/ZTS10MainKernel_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":133
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":749
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":134
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":749
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":135
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":749
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":136
+              , "name":"arg_N"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":749
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"32 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":137
+              , "name":"arg_in"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":749
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":138
+              , "name":"arg_w"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":749
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":139
+              , "name":"arg_mean"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+                    , "line":749
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Stable":"No"
+                  , "Width":"64 bits"
+                  , "Kernel":"ZTS10MainKernel"
+                  , "Alignment":"1024"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"memtype"
+      , "id":1
+      , "name":"Global Memory"
+      , "children":
+      [
+        {
+          "type":"memsys"
+          , "id":30
+          , "name":"DDR"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Number of banks":"2"
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":12
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":719
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"128 bits"
+          , "Depth":"16"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":75
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":433
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"32 bits"
+          , "Depth":"16"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":14
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":719
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"128 bits"
+          , "Depth":"16"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":89
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":450
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"96 bits"
+          , "Depth":"16"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":70
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":433
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"8 bits"
+          , "Depth":"16"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":68
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":433
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"8 bits"
+          , "Depth":"8"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":53
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":420
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"64 bits"
+          , "Depth":"8"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":51
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":420
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"8 bits"
+          , "Depth":"8"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":73
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":433
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"32 bits"
+          , "Depth":"16"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":56
+      , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":420
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"32 bits"
+          , "Depth":"8"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":87
+      , "name":"sycl::_V1::ext::intel::pipe<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":450
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"8 bits"
+          , "Depth":"1"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":38
+      , "name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":406
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"128 bits"
+          , "Depth":"8"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":36
+      , "name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueDRAM<int, fpga_tools::PipeArray<bnn_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bnn_dram_elastic_pass_workdir/bnn_dram.ast.cpp"
+            , "line":406
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"8 bits"
+          , "Depth":"8"
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":11
+      , "to":12
+    }
+    , {
+      "from":13
+      , "to":14
+    }
+    , {
+      "from":16
+      , "to":12
+    }
+    , {
+      "from":17
+      , "to":14
+    }
+    , {
+      "from":23
+      , "to":3
+    }
+    , {
+      "from":9
+      , "to":24
+    }
+    , {
+      "from":3
+      , "to":25
+      , "reverse":2
+    }
+    , {
+      "from":26
+      , "to":4
+    }
+    , {
+      "from":27
+      , "to":20
+    }
+    , {
+      "from":28
+      , "to":18
+    }
+    , {
+      "from":29
+      , "to":20
+    }
+    , {
+      "from":6
+      , "to":4
+    }
+    , {
+      "from":3
+      , "to":4
+    }
+    , {
+      "from":6
+      , "to":5
+    }
+    , {
+      "from":19
+      , "to":6
+    }
+    , {
+      "from":19
+      , "to":18
+    }
+    , {
+      "from":4
+      , "to":18
+    }
+    , {
+      "from":11
+      , "to":19
+    }
+    , {
+      "from":13
+      , "to":19
+    }
+    , {
+      "from":10
+      , "to":19
+    }
+    , {
+      "from":21
+      , "to":20
+    }
+    , {
+      "from":5
+      , "to":20
+    }
+    , {
+      "from":16
+      , "to":21
+    }
+    , {
+      "from":17
+      , "to":21
+    }
+    , {
+      "from":15
+      , "to":21
+    }
+    , {
+      "from":21
+      , "to":9
+    }
+    , {
+      "from":18
+      , "to":10
+    }
+    , {
+      "from":10
+      , "to":11
+    }
+    , {
+      "from":10
+      , "to":13
+    }
+    , {
+      "from":20
+      , "to":15
+    }
+    , {
+      "from":15
+      , "to":16
+    }
+    , {
+      "from":15
+      , "to":17
+    }
+    , {
+      "from":30
+      , "to":10
+    }
+    , {
+      "from":30
+      , "to":15
+    }
+    , {
+      "from":36
+      , "to":35
+    }
+    , {
+      "from":38
+      , "to":37
+    }
+    , {
+      "from":43
+      , "to":32
+    }
+    , {
+      "from":34
+      , "to":44
+    }
+    , {
+      "from":32
+      , "to":45
+      , "reverse":2
+    }
+    , {
+      "from":41
+      , "to":40
+    }
+    , {
+      "from":32
+      , "to":40
+    }
+    , {
+      "from":35
+      , "to":41
+    }
+    , {
+      "from":39
+      , "to":41
+    }
+    , {
+      "from":37
+      , "to":41
+    }
+    , {
+      "from":41
+      , "to":34
+    }
+    , {
+      "from":40
+      , "to":35
+    }
+    , {
+      "from":35
+      , "to":37
+    }
+    , {
+      "from":35
+      , "to":39
+    }
+    , {
+      "from":37
+      , "to":39
+    }
+    , {
+      "from":39
+      , "to":30
+    }
+    , {
+      "from":51
+      , "to":50
+    }
+    , {
+      "from":53
+      , "to":52
+    }
+    , {
+      "from":55
+      , "to":56
+    }
+    , {
+      "from":60
+      , "to":47
+    }
+    , {
+      "from":49
+      , "to":61
+    }
+    , {
+      "from":47
+      , "to":62
+      , "reverse":2
+    }
+    , {
+      "from":58
+      , "to":57
+    }
+    , {
+      "from":47
+      , "to":57
+    }
+    , {
+      "from":50
+      , "to":58
+    }
+    , {
+      "from":55
+      , "to":58
+    }
+    , {
+      "from":52
+      , "to":58
+    }
+    , {
+      "from":54
+      , "to":58
+    }
+    , {
+      "from":58
+      , "to":49
+    }
+    , {
+      "from":57
+      , "to":50
+    }
+    , {
+      "from":50
+      , "to":52
+    }
+    , {
+      "from":50
+      , "to":54
+    }
+    , {
+      "from":52
+      , "to":54
+    }
+    , {
+      "from":50
+      , "to":55
+    }
+    , {
+      "from":54
+      , "to":55
+    }
+    , {
+      "from":30
+      , "to":54
+    }
+    , {
+      "from":68
+      , "to":67
+    }
+    , {
+      "from":70
+      , "to":69
+    }
+    , {
+      "from":56
+      , "to":71
+    }
+    , {
+      "from":73
+      , "to":72
+    }
+    , {
+      "from":74
+      , "to":75
+    }
+    , {
+      "from":79
+      , "to":64
+    }
+    , {
+      "from":66
+      , "to":80
+    }
+    , {
+      "from":64
+      , "to":81
+      , "reverse":2
+    }
+    , {
+      "from":77
+      , "to":76
+    }
+    , {
+      "from":64
+      , "to":76
+    }
+    , {
+      "from":67
+      , "to":77
+    }
+    , {
+      "from":74
+      , "to":77
+    }
+    , {
+      "from":69
+      , "to":77
+    }
+    , {
+      "from":71
+      , "to":77
+    }
+    , {
+      "from":72
+      , "to":77
+    }
+    , {
+      "from":77
+      , "to":66
+    }
+    , {
+      "from":76
+      , "to":67
+    }
+    , {
+      "from":67
+      , "to":69
+    }
+    , {
+      "from":67
+      , "to":71
+    }
+    , {
+      "from":69
+      , "to":71
+    }
+    , {
+      "from":67
+      , "to":72
+    }
+    , {
+      "from":69
+      , "to":72
+    }
+    , {
+      "from":67
+      , "to":74
+    }
+    , {
+      "from":69
+      , "to":74
+    }
+    , {
+      "from":71
+      , "to":74
+    }
+    , {
+      "from":72
+      , "to":74
+    }
+    , {
+      "from":87
+      , "to":86
+    }
+    , {
+      "from":89
+      , "to":88
+    }
+    , {
+      "from":14
+      , "to":90
+    }
+    , {
+      "from":12
+      , "to":91
+    }
+    , {
+      "from":92
+      , "to":36
+    }
+    , {
+      "from":93
+      , "to":38
+    }
+    , {
+      "from":94
+      , "to":68
+    }
+    , {
+      "from":95
+      , "to":70
+    }
+    , {
+      "from":96
+      , "to":51
+    }
+    , {
+      "from":97
+      , "to":53
+    }
+    , {
+      "from":98
+      , "to":73
+    }
+    , {
+      "from":99
+      , "to":51
+    }
+    , {
+      "from":100
+      , "to":68
+    }
+    , {
+      "from":101
+      , "to":36
+    }
+    , {
+      "from":107
+      , "to":83
+    }
+    , {
+      "from":105
+      , "to":108
+    }
+    , {
+      "from":83
+      , "to":109
+      , "reverse":2
+    }
+    , {
+      "from":103
+      , "to":102
+    }
+    , {
+      "from":83
+      , "to":102
+    }
+    , {
+      "from":86
+      , "to":103
+    }
+    , {
+      "from":90
+      , "to":103
+    }
+    , {
+      "from":91
+      , "to":103
+    }
+    , {
+      "from":92
+      , "to":103
+    }
+    , {
+      "from":94
+      , "to":103
+    }
+    , {
+      "from":96
+      , "to":103
+    }
+    , {
+      "from":93
+      , "to":103
+    }
+    , {
+      "from":95
+      , "to":103
+    }
+    , {
+      "from":97
+      , "to":103
+    }
+    , {
+      "from":98
+      , "to":103
+    }
+    , {
+      "from":103
+      , "to":104
+    }
+    , {
+      "from":99
+      , "to":105
+    }
+    , {
+      "from":100
+      , "to":105
+    }
+    , {
+      "from":101
+      , "to":105
+    }
+    , {
+      "from":102
+      , "to":86
+    }
+    , {
+      "from":102
+      , "to":88
+    }
+    , {
+      "from":88
+      , "to":90
+    }
+    , {
+      "from":102
+      , "to":91
+    }
+    , {
+      "from":86
+      , "to":92
+    }
+    , {
+      "from":90
+      , "to":92
+    }
+    , {
+      "from":91
+      , "to":92
+    }
+    , {
+      "from":86
+      , "to":93
+    }
+    , {
+      "from":90
+      , "to":93
+    }
+    , {
+      "from":91
+      , "to":93
+    }
+    , {
+      "from":86
+      , "to":94
+    }
+    , {
+      "from":90
+      , "to":94
+    }
+    , {
+      "from":91
+      , "to":94
+    }
+    , {
+      "from":86
+      , "to":95
+    }
+    , {
+      "from":90
+      , "to":95
+    }
+    , {
+      "from":91
+      , "to":95
+    }
+    , {
+      "from":86
+      , "to":96
+    }
+    , {
+      "from":90
+      , "to":96
+    }
+    , {
+      "from":91
+      , "to":96
+    }
+    , {
+      "from":86
+      , "to":97
+    }
+    , {
+      "from":90
+      , "to":97
+    }
+    , {
+      "from":91
+      , "to":97
+    }
+    , {
+      "from":86
+      , "to":98
+    }
+    , {
+      "from":90
+      , "to":98
+    }
+    , {
+      "from":91
+      , "to":98
+    }
+    , {
+      "from":104
+      , "to":99
+    }
+    , {
+      "from":104
+      , "to":100
+    }
+    , {
+      "from":104
+      , "to":101
+    }
+    , {
+      "from":75
+      , "to":119
+    }
+    , {
+      "from":121
+      , "to":89
+    }
+    , {
+      "from":75
+      , "to":123
+    }
+    , {
+      "from":124
+      , "to":89
+    }
+    , {
+      "from":125
+      , "to":87
+    }
+    , {
+      "from":133
+      , "to":111
+    }
+    , {
+      "from":131
+      , "to":134
+    }
+    , {
+      "from":111
+      , "to":135
+      , "reverse":2
+    }
+    , {
+      "from":136
+      , "to":111
+    }
+    , {
+      "from":137
+      , "to":126
+    }
+    , {
+      "from":138
+      , "to":126
+    }
+    , {
+      "from":139
+      , "to":128
+    }
+    , {
+      "from":114
+      , "to":112
+    }
+    , {
+      "from":111
+      , "to":112
+    }
+    , {
+      "from":114
+      , "to":113
+    }
+    , {
+      "from":127
+      , "to":114
+    }
+    , {
+      "from":127
+      , "to":126
+    }
+    , {
+      "from":112
+      , "to":126
+    }
+    , {
+      "from":119
+      , "to":127
+    }
+    , {
+      "from":121
+      , "to":127
+    }
+    , {
+      "from":118
+      , "to":127
+    }
+    , {
+      "from":120
+      , "to":127
+    }
+    , {
+      "from":129
+      , "to":128
+    }
+    , {
+      "from":113
+      , "to":128
+    }
+    , {
+      "from":123
+      , "to":129
+    }
+    , {
+      "from":124
+      , "to":129
+    }
+    , {
+      "from":122
+      , "to":129
+    }
+    , {
+      "from":129
+      , "to":130
+    }
+    , {
+      "from":125
+      , "to":131
+    }
+    , {
+      "from":126
+      , "to":118
+    }
+    , {
+      "from":126
+      , "to":119
+    }
+    , {
+      "from":126
+      , "to":120
+    }
+    , {
+      "from":119
+      , "to":121
+    }
+    , {
+      "from":118
+      , "to":121
+    }
+    , {
+      "from":120
+      , "to":121
+    }
+    , {
+      "from":128
+      , "to":122
+    }
+    , {
+      "from":128
+      , "to":123
+    }
+    , {
+      "from":123
+      , "to":124
+    }
+    , {
+      "from":122
+      , "to":124
+    }
+    , {
+      "from":130
+      , "to":125
+    }
+    , {
+      "from":30
+      , "to":118
+    }
+    , {
+      "from":30
+      , "to":120
+    }
+    , {
+      "from":30
+      , "to":122
+    }
+  ]
+}

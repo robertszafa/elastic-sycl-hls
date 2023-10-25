@@ -1,0 +1,223 @@
+
+
+================================================================
+== Vivado HLS Report for 'loop_imperfect'
+================================================================
+* Date:           Tue Oct 24 09:44:33 2023
+
+* Version:        2019.2 (Build 2704478 on Wed Nov 06 22:10:23 MST 2019)
+* Project:        proj_loop_imperfect
+* Solution:       solution1
+* Product family: kintex7
+* Target device:  xc7k160t-fbg484-1
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+---------+----------+------------+
+    |  Clock |  Target | Estimated| Uncertainty|
+    +--------+---------+----------+------------+
+    |ap_clk  | 4.00 ns | 5.328 ns |   0.50 ns  |
+    +--------+---------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+----------+----------+-----+-----+---------+
+    |  Latency (cycles) |  Latency (absolute) |  Interval | Pipeline|
+    |   min   |   max   |    min   |    max   | min | max |   Type  |
+    +---------+---------+----------+----------+-----+-----+---------+
+    |        ?|        ?|         ?|         ?|    ?|    ?|   none  |
+    +---------+---------+----------+----------+-----+-----+---------+
+
+    + Detail: 
+        * Instance: 
+        N/A
+
+        * Loop: 
+        +-----------------+---------+---------+----------+-----------+-----------+------+----------+
+        |                 |  Latency (cycles) | Iteration|  Initiation Interval  | Trip |          |
+        |    Loop Name    |   min   |   max   |  Latency |  achieved |   target  | Count| Pipelined|
+        +-----------------+---------+---------+----------+-----------+-----------+------+----------+
+        |- Loop 1         |        ?|        ?|         ?|          -|          -|     6|    no    |
+        | + Loop 1.1      |        ?|        ?|       195|          -|          -|     ?|    no    |
+        |  ++ Loop 1.1.1  |      192|      192|         3|          3|          1|    64|    yes   |
+        +-----------------+---------+---------+----------+-----------+-----------+------+----------+
+
+============================================================
++ Verbose Summary: Synthesis Manager
+============================================================
+InlineROM: 1
+ExposeGlobal: 0
+============================================================
++ Verbose Summary: CDFG Model
+============================================================
+IsTopModel: 1
+ResetActiveHigh: 1
+IsCombinational: 0
+IsDatapathOnly: 0
+HasWiredReturn: 1
+HasMFsm: 0
+HasVarLatency: 1
+IsPipeline: 0
+IsRtlPipelined: 0
+IsInstanceOverlapped: 0
+IsDontTouch: 0
+HasImplIP: 0
+IsGatedGlobalClock: 0
+
++ Individual pipeline summary: 
+  * Pipeline-0: initiation interval (II) = 3, depth = 3
+
+
+============================================================
++ Verbose Summary: Schedule
+============================================================
+* Number of FSM states : 7
+* Pipeline : 1
+  Pipeline-0 : II = 3, D = 3, States = { 4 5 6 }
+* Dataflow Pipeline: 0
+
+* FSM state transitions: 
+1 --> 2 
+2 --> 3 
+3 --> 4 2 
+4 --> 7 5 
+5 --> 6 
+6 --> 4 
+7 --> 3 
+
+* FSM state operations: 
+
+State 1 <SV = 0> <Delay = 1.06>
+ST_1 : Operation 8 [1/1] (0.00ns)   --->   "call void (...)* @_ssdm_op_SpecBitsMap([64 x i32]* %A) nounwind, !map !7"   --->   Operation 8 'specbitsmap' <Predicate = true> <Delay = 0.00>
+ST_1 : Operation 9 [1/1] (0.00ns)   --->   "call void (...)* @_ssdm_op_SpecTopModule([15 x i8]* @loop_imperfect_str) nounwind"   --->   Operation 9 'spectopmodule' <Predicate = true> <Delay = 0.00>
+ST_1 : Operation 10 [1/1] (1.06ns)   --->   "br label %1" [loop_imperfect.c:96]   --->   Operation 10 'br' <Predicate = true> <Delay = 1.06>
+
+State 2 <SV = 1> <Delay = 1.54>
+ST_2 : Operation 11 [1/1] (0.00ns)   --->   "%k_0 = phi i32 [ 2, %0 ], [ %k, %4 ]"   --->   Operation 11 'phi' 'k_0' <Predicate = true> <Delay = 0.00>
+ST_2 : Operation 12 [1/1] (1.54ns)   --->   "%icmp_ln96 = icmp slt i32 %k_0, 65" [loop_imperfect.c:96]   --->   Operation 12 'icmp' 'icmp_ln96' <Predicate = true> <Delay = 1.54> <Core = "Cmp">   --->   Core 25 'Cmp' <Latency = 0> <II = 1> <Delay = 1.54> <FuncUnit> <Opcode : 'icmp'> <InPorts = 2> <OutPorts = 1>
+ST_2 : Operation 13 [1/1] (0.00ns)   --->   "%empty = call i32 (...)* @_ssdm_op_SpecLoopTripCount(i64 6, i64 6, i64 6) nounwind"   --->   Operation 13 'speclooptripcount' 'empty' <Predicate = true> <Delay = 0.00>
+ST_2 : Operation 14 [1/1] (0.00ns)   --->   "br i1 %icmp_ln96, label %.preheader1.preheader, label %5" [loop_imperfect.c:96]   --->   Operation 14 'br' <Predicate = true> <Delay = 0.00>
+ST_2 : Operation 15 [1/1] (0.00ns)   --->   "%trunc_ln96 = trunc i32 %k_0 to i6" [loop_imperfect.c:96]   --->   Operation 15 'trunc' 'trunc_ln96' <Predicate = (icmp_ln96)> <Delay = 0.00>
+ST_2 : Operation 16 [1/1] (1.06ns)   --->   "br label %.preheader1" [loop_imperfect.c:99]   --->   Operation 16 'br' <Predicate = (icmp_ln96)> <Delay = 1.06>
+ST_2 : Operation 17 [1/1] (0.00ns)   --->   "ret void" [loop_imperfect.c:121]   --->   Operation 17 'ret' <Predicate = (!icmp_ln96)> <Delay = 0.00>
+
+State 3 <SV = 2> <Delay = 1.54>
+ST_3 : Operation 18 [1/1] (0.00ns)   --->   "%j_0_in = phi i32 [ %k_0, %.preheader1.preheader ], [ %j, %.preheader1.loopexit ]"   --->   Operation 18 'phi' 'j_0_in' <Predicate = true> <Delay = 0.00>
+ST_3 : Operation 19 [1/1] (0.00ns)   --->   "%trunc_ln1 = call i31 @_ssdm_op_PartSelect.i31.i32.i32.i32(i32 %j_0_in, i32 1, i32 31)" [loop_imperfect.c:99]   --->   Operation 19 'partselect' 'trunc_ln1' <Predicate = true> <Delay = 0.00>
+ST_3 : Operation 20 [1/1] (1.54ns)   --->   "%icmp_ln99 = icmp sgt i31 %trunc_ln1, 0" [loop_imperfect.c:99]   --->   Operation 20 'icmp' 'icmp_ln99' <Predicate = true> <Delay = 1.54> <Core = "Cmp">   --->   Core 25 'Cmp' <Latency = 0> <II = 1> <Delay = 1.54> <FuncUnit> <Opcode : 'icmp'> <InPorts = 2> <OutPorts = 1>
+ST_3 : Operation 21 [1/1] (0.00ns)   --->   "br i1 %icmp_ln99, label %.preheader.preheader, label %4" [loop_imperfect.c:99]   --->   Operation 21 'br' <Predicate = true> <Delay = 0.00>
+ST_3 : Operation 22 [1/1] (0.00ns)   --->   "%j = zext i31 %trunc_ln1 to i32" [loop_imperfect.c:99]   --->   Operation 22 'zext' 'j' <Predicate = (icmp_ln99)> <Delay = 0.00>
+ST_3 : Operation 23 [1/1] (0.00ns)   --->   "%trunc_ln99_1 = call i30 @_ssdm_op_PartSelect.i30.i32.i32.i32(i32 %j_0_in, i32 1, i32 30)" [loop_imperfect.c:99]   --->   Operation 23 'partselect' 'trunc_ln99_1' <Predicate = (icmp_ln99)> <Delay = 0.00>
+ST_3 : Operation 24 [1/1] (1.06ns)   --->   "br label %.preheader" [loop_imperfect.c:102]   --->   Operation 24 'br' <Predicate = (icmp_ln99)> <Delay = 1.06>
+ST_3 : Operation 25 [1/1] (0.00ns)   --->   "%k = shl i32 %k_0, 1" [loop_imperfect.c:96]   --->   Operation 25 'shl' 'k' <Predicate = (!icmp_ln99)> <Delay = 0.00>
+ST_3 : Operation 26 [1/1] (0.00ns)   --->   "br label %1" [loop_imperfect.c:96]   --->   Operation 26 'br' <Predicate = (!icmp_ln99)> <Delay = 0.00>
+
+State 4 <SV = 3> <Delay = 3.33>
+ST_4 : Operation 27 [1/1] (0.00ns)   --->   "%i_0 = phi i7 [ %i, %hls_label_0_end ], [ 0, %.preheader.preheader ]"   --->   Operation 27 'phi' 'i_0' <Predicate = true> <Delay = 0.00>
+ST_4 : Operation 28 [1/1] (1.18ns)   --->   "%icmp_ln102 = icmp eq i7 %i_0, -64" [loop_imperfect.c:102]   --->   Operation 28 'icmp' 'icmp_ln102' <Predicate = true> <Delay = 1.18> <Core = "Cmp">   --->   Core 25 'Cmp' <Latency = 0> <II = 1> <Delay = 1.54> <FuncUnit> <Opcode : 'icmp'> <InPorts = 2> <OutPorts = 1>
+ST_4 : Operation 29 [1/1] (0.00ns)   --->   "%empty_4 = call i32 (...)* @_ssdm_op_SpecLoopTripCount(i64 64, i64 64, i64 64) nounwind"   --->   Operation 29 'speclooptripcount' 'empty_4' <Predicate = true> <Delay = 0.00>
+ST_4 : Operation 30 [1/1] (1.37ns)   --->   "%i = add i7 %i_0, 1" [loop_imperfect.c:102]   --->   Operation 30 'add' 'i' <Predicate = true> <Delay = 1.37> <Core = "AddSub">   --->   Core 14 'AddSub' <Latency = 0> <II = 1> <Delay = 1.37> <FuncUnit> <Opcode : 'add' 'sub'> <InPorts = 2> <OutPorts = 1>
+ST_4 : Operation 31 [1/1] (0.00ns)   --->   "br i1 %icmp_ln102, label %.preheader1.loopexit, label %hls_label_0_begin" [loop_imperfect.c:102]   --->   Operation 31 'br' <Predicate = true> <Delay = 0.00>
+ST_4 : Operation 32 [1/1] (0.00ns)   --->   "%trunc_ln102 = trunc i7 %i_0 to i6" [loop_imperfect.c:102]   --->   Operation 32 'trunc' 'trunc_ln102' <Predicate = (!icmp_ln102)> <Delay = 0.00>
+ST_4 : Operation 33 [1/1] (0.00ns)   --->   "%zext_ln102 = zext i7 %i_0 to i30" [loop_imperfect.c:102]   --->   Operation 33 'zext' 'zext_ln102' <Predicate = (!icmp_ln102)> <Delay = 0.00>
+ST_4 : Operation 34 [1/1] (0.00ns)   --->   "%tmp = call i32 (...)* @_ssdm_op_SpecRegionBegin([12 x i8]* @p_str) nounwind" [loop_imperfect.c:102]   --->   Operation 34 'specregionbegin' 'tmp' <Predicate = (!icmp_ln102)> <Delay = 0.00>
+ST_4 : Operation 35 [1/1] (0.00ns)   --->   "call void (...)* @_ssdm_op_SpecPipeline(i32 -1, i32 1, i32 1, i32 0, [1 x i8]* @p_str1) nounwind" [loop_imperfect.c:103]   --->   Operation 35 'specpipeline' <Predicate = (!icmp_ln102)> <Delay = 0.00>
+ST_4 : Operation 36 [1/1] (0.67ns)   --->   "%l = xor i30 %zext_ln102, %trunc_ln99_1" [loop_imperfect.c:105]   --->   Operation 36 'xor' 'l' <Predicate = (!icmp_ln102)> <Delay = 0.67> <Core = "LogicGate">   --->   Core 27 'LogicGate' <Latency = 0> <II = 1> <Delay = 0.61> <FuncUnit> <Opcode : 'and' 'or' 'xor'> <InPorts = 2> <OutPorts = 1>
+ST_4 : Operation 37 [1/1] (1.54ns)   --->   "%icmp_ln107 = icmp ugt i30 %l, %zext_ln102" [loop_imperfect.c:107]   --->   Operation 37 'icmp' 'icmp_ln107' <Predicate = (!icmp_ln102)> <Delay = 1.54> <Core = "Cmp">   --->   Core 25 'Cmp' <Latency = 0> <II = 1> <Delay = 1.54> <FuncUnit> <Opcode : 'icmp'> <InPorts = 2> <OutPorts = 1>
+ST_4 : Operation 38 [1/1] (0.00ns)   --->   "br i1 %icmp_ln107, label %2, label %hls_label_0_end" [loop_imperfect.c:107]   --->   Operation 38 'br' <Predicate = (!icmp_ln102)> <Delay = 0.00>
+ST_4 : Operation 39 [1/1] (0.00ns)   --->   "%zext_ln108 = zext i7 %i_0 to i64" [loop_imperfect.c:108]   --->   Operation 39 'zext' 'zext_ln108' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 0.00>
+ST_4 : Operation 40 [1/1] (0.00ns)   --->   "%A_addr = getelementptr [64 x i32]* %A, i64 0, i64 %zext_ln108" [loop_imperfect.c:108]   --->   Operation 40 'getelementptr' 'A_addr' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 0.00>
+ST_4 : Operation 41 [2/2] (2.66ns)   --->   "%Ai = load i32* %A_addr, align 4" [loop_imperfect.c:108]   --->   Operation 41 'load' 'Ai' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 2.66> <Core = "RAM">   --->   Core 37 'RAM' <Latency = 1> <II = 1> <Delay = 2.66> <Storage> <Opcode : 'load' 'store'> <Ports = 2> <Width = 32> <Depth = 64> <RAM>
+ST_4 : Operation 42 [1/1] (0.00ns)   --->   "%zext_ln109 = zext i30 %l to i64" [loop_imperfect.c:109]   --->   Operation 42 'zext' 'zext_ln109' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 0.00>
+ST_4 : Operation 43 [1/1] (0.00ns)   --->   "%A_addr_1 = getelementptr [64 x i32]* %A, i64 0, i64 %zext_ln109" [loop_imperfect.c:109]   --->   Operation 43 'getelementptr' 'A_addr_1' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 0.00>
+ST_4 : Operation 44 [2/2] (2.66ns)   --->   "%Al = load i32* %A_addr_1, align 4" [loop_imperfect.c:109]   --->   Operation 44 'load' 'Al' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 2.66> <Core = "RAM">   --->   Core 37 'RAM' <Latency = 1> <II = 1> <Delay = 2.66> <Storage> <Opcode : 'load' 'store'> <Ports = 2> <Width = 32> <Depth = 64> <RAM>
+ST_4 : Operation 45 [1/1] (0.61ns)   --->   "%and_ln112 = and i6 %trunc_ln102, %trunc_ln96" [loop_imperfect.c:112]   --->   Operation 45 'and' 'and_ln112' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 0.61> <Core = "LogicGate">   --->   Core 27 'LogicGate' <Latency = 0> <II = 1> <Delay = 0.61> <FuncUnit> <Opcode : 'and' 'or' 'xor'> <InPorts = 2> <OutPorts = 1>
+
+State 5 <SV = 4> <Delay = 5.32>
+ST_5 : Operation 46 [1/2] (2.66ns)   --->   "%Ai = load i32* %A_addr, align 4" [loop_imperfect.c:108]   --->   Operation 46 'load' 'Ai' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 2.66> <Core = "RAM">   --->   Core 37 'RAM' <Latency = 1> <II = 1> <Delay = 2.66> <Storage> <Opcode : 'load' 'store'> <Ports = 2> <Width = 32> <Depth = 64> <RAM>
+ST_5 : Operation 47 [1/2] (2.66ns)   --->   "%Al = load i32* %A_addr_1, align 4" [loop_imperfect.c:109]   --->   Operation 47 'load' 'Al' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 2.66> <Core = "RAM">   --->   Core 37 'RAM' <Latency = 1> <II = 1> <Delay = 2.66> <Storage> <Opcode : 'load' 'store'> <Ports = 2> <Width = 32> <Depth = 64> <RAM>
+ST_5 : Operation 48 [1/1] (1.15ns)   --->   "%icmp_ln112 = icmp eq i6 %and_ln112, 0" [loop_imperfect.c:112]   --->   Operation 48 'icmp' 'icmp_ln112' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 1.15> <Core = "Cmp">   --->   Core 25 'Cmp' <Latency = 0> <II = 1> <Delay = 1.54> <FuncUnit> <Opcode : 'icmp'> <InPorts = 2> <OutPorts = 1>
+ST_5 : Operation 49 [1/1] (1.54ns)   --->   "%icmp_ln112_1 = icmp sgt i32 %Ai, %Al" [loop_imperfect.c:112]   --->   Operation 49 'icmp' 'icmp_ln112_1' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 1.54> <Core = "Cmp">   --->   Core 25 'Cmp' <Latency = 0> <II = 1> <Delay = 1.54> <FuncUnit> <Opcode : 'icmp'> <InPorts = 2> <OutPorts = 1>
+ST_5 : Operation 50 [1/1] (0.61ns)   --->   "%and_ln112_1 = and i1 %icmp_ln112, %icmp_ln112_1" [loop_imperfect.c:112]   --->   Operation 50 'and' 'and_ln112_1' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 0.61> <Core = "LogicGate">   --->   Core 27 'LogicGate' <Latency = 0> <II = 1> <Delay = 0.61> <FuncUnit> <Opcode : 'and' 'or' 'xor'> <InPorts = 2> <OutPorts = 1>
+ST_5 : Operation 51 [1/1] (0.00ns)   --->   "br i1 %and_ln112_1, label %.critedge, label %3" [loop_imperfect.c:112]   --->   Operation 51 'br' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 0.00>
+ST_5 : Operation 52 [1/1] (1.54ns)   --->   "%icmp_ln112_2 = icmp slt i32 %Ai, %Al" [loop_imperfect.c:112]   --->   Operation 52 'icmp' 'icmp_ln112_2' <Predicate = (!icmp_ln102 & icmp_ln107 & !and_ln112_1)> <Delay = 1.54> <Core = "Cmp">   --->   Core 25 'Cmp' <Latency = 0> <II = 1> <Delay = 1.54> <FuncUnit> <Opcode : 'icmp'> <InPorts = 2> <OutPorts = 1>
+ST_5 : Operation 53 [1/1] (1.15ns)   --->   "%icmp_ln112_3 = icmp ne i6 %and_ln112, 0" [loop_imperfect.c:112]   --->   Operation 53 'icmp' 'icmp_ln112_3' <Predicate = (!icmp_ln102 & icmp_ln107 & !and_ln112_1)> <Delay = 1.15> <Core = "Cmp">   --->   Core 25 'Cmp' <Latency = 0> <II = 1> <Delay = 1.54> <FuncUnit> <Opcode : 'icmp'> <InPorts = 2> <OutPorts = 1>
+ST_5 : Operation 54 [1/1] (0.61ns)   --->   "%and_ln112_2 = and i1 %icmp_ln112_2, %icmp_ln112_3" [loop_imperfect.c:112]   --->   Operation 54 'and' 'and_ln112_2' <Predicate = (!icmp_ln102 & icmp_ln107 & !and_ln112_1)> <Delay = 0.61> <Core = "LogicGate">   --->   Core 27 'LogicGate' <Latency = 0> <II = 1> <Delay = 0.61> <FuncUnit> <Opcode : 'and' 'or' 'xor'> <InPorts = 2> <OutPorts = 1>
+ST_5 : Operation 55 [1/1] (0.00ns)   --->   "br i1 %and_ln112_2, label %.critedge, label %._crit_edge3" [loop_imperfect.c:113]   --->   Operation 55 'br' <Predicate = (!icmp_ln102 & icmp_ln107 & !and_ln112_1)> <Delay = 0.00>
+ST_5 : Operation 56 [1/1] (2.66ns)   --->   "store i32 %Al, i32* %A_addr, align 4" [loop_imperfect.c:114]   --->   Operation 56 'store' <Predicate = (!icmp_ln102 & icmp_ln107 & and_ln112_2) | (!icmp_ln102 & icmp_ln107 & and_ln112_1)> <Delay = 2.66> <Core = "RAM">   --->   Core 37 'RAM' <Latency = 1> <II = 1> <Delay = 2.66> <Storage> <Opcode : 'load' 'store'> <Ports = 2> <Width = 32> <Depth = 64> <RAM>
+
+State 6 <SV = 5> <Delay = 2.66>
+ST_6 : Operation 57 [1/1] (2.66ns)   --->   "store i32 %Ai, i32* %A_addr_1, align 4" [loop_imperfect.c:115]   --->   Operation 57 'store' <Predicate = (!icmp_ln102 & icmp_ln107 & and_ln112_2) | (!icmp_ln102 & icmp_ln107 & and_ln112_1)> <Delay = 2.66> <Core = "RAM">   --->   Core 37 'RAM' <Latency = 1> <II = 1> <Delay = 2.66> <Storage> <Opcode : 'load' 'store'> <Ports = 2> <Width = 32> <Depth = 64> <RAM>
+ST_6 : Operation 58 [1/1] (0.00ns)   --->   "br label %._crit_edge3" [loop_imperfect.c:116]   --->   Operation 58 'br' <Predicate = (!icmp_ln102 & icmp_ln107 & and_ln112_2) | (!icmp_ln102 & icmp_ln107 & and_ln112_1)> <Delay = 0.00>
+ST_6 : Operation 59 [1/1] (0.00ns)   --->   "br label %hls_label_0_end" [loop_imperfect.c:117]   --->   Operation 59 'br' <Predicate = (!icmp_ln102 & icmp_ln107)> <Delay = 0.00>
+ST_6 : Operation 60 [1/1] (0.00ns)   --->   "%empty_5 = call i32 (...)* @_ssdm_op_SpecRegionEnd([12 x i8]* @p_str, i32 %tmp) nounwind" [loop_imperfect.c:118]   --->   Operation 60 'specregionend' 'empty_5' <Predicate = (!icmp_ln102)> <Delay = 0.00>
+ST_6 : Operation 61 [1/1] (0.00ns)   --->   "br label %.preheader" [loop_imperfect.c:102]   --->   Operation 61 'br' <Predicate = (!icmp_ln102)> <Delay = 0.00>
+
+State 7 <SV = 4> <Delay = 0.00>
+ST_7 : Operation 62 [1/1] (0.00ns)   --->   "br label %.preheader1"   --->   Operation 62 'br' <Predicate = true> <Delay = 0.00>
+
+
+============================================================
++ Verbose Summary: Timing violations
+============================================================
+Target clock period: 4ns, clock uncertainty: 0.5ns.
+
+ <State 1>: 1.06ns
+The critical path consists of the following:
+	multiplexor before 'phi' operation ('k') with incoming values : ('k', loop_imperfect.c:96) [6]  (1.06 ns)
+
+ <State 2>: 1.55ns
+The critical path consists of the following:
+	'phi' operation ('k') with incoming values : ('k', loop_imperfect.c:96) [6]  (0 ns)
+	'icmp' operation ('icmp_ln96', loop_imperfect.c:96) [7]  (1.55 ns)
+
+ <State 3>: 1.54ns
+The critical path consists of the following:
+	'phi' operation ('j') with incoming values : ('j', loop_imperfect.c:99) ('k', loop_imperfect.c:96) [14]  (0 ns)
+	'icmp' operation ('icmp_ln99', loop_imperfect.c:99) [16]  (1.54 ns)
+
+ <State 4>: 3.34ns
+The critical path consists of the following:
+	'phi' operation ('i') with incoming values : ('i', loop_imperfect.c:102) [23]  (0 ns)
+	'xor' operation ('l', loop_imperfect.c:105) [33]  (0.674 ns)
+	'getelementptr' operation ('A_addr_1', loop_imperfect.c:109) [41]  (0 ns)
+	'load' operation ('Al', loop_imperfect.c:109) on array 'A' [42]  (2.66 ns)
+
+ <State 5>: 5.33ns
+The critical path consists of the following:
+	'load' operation ('Al', loop_imperfect.c:109) on array 'A' [42]  (2.66 ns)
+	'store' operation ('store_ln114', loop_imperfect.c:114) of variable 'Al', loop_imperfect.c:109 on array 'A' [54]  (2.66 ns)
+
+ <State 6>: 2.66ns
+The critical path consists of the following:
+	'store' operation ('store_ln115', loop_imperfect.c:115) of variable 'Ai', loop_imperfect.c:108 on array 'A' [55]  (2.66 ns)
+
+ <State 7>: 0ns
+The critical path consists of the following:
+
+
+============================================================
++ Verbose Summary: Binding
+============================================================
+N/A
+* FSMD analyzer results:
+  - Output states:
+ - Input state : 
+  - Chain level:
+	State 1
+	State 2
+	State 3
+	State 4
+	State 5
+	State 6
+	State 7
+
+
+============================================================
++ Verbose Summary: Datapath Resource usage 
+============================================================
+N/A

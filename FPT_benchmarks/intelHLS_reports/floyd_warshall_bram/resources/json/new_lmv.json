@@ -1,0 +1,475 @@
+{
+  "nodes":
+  [
+    {
+      "name":"MainKernel"
+      , "id":120
+      , "type":"kernel"
+      , "children":
+      [
+        {
+          "name":"On-chip Memory"
+          , "id":121
+          , "type":"memtype"
+          , "children":
+          [
+            {
+              "name":"dist"
+              , "id":122
+              , "brief":"Implemented size:512 bytes = (128 words per bank) x (4 bytes per word) | Memory Usage:2 RAMs | Number of banks:1 | Bank width (word size):4 bytes | Bank depth:128 words | Number of replicates:1 | Number of private copies:1 | RAM Mode:True dual-port | Pump configuration:Double-pumped"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Declared at":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"%L"
+                      , "links":
+                      [
+                        {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                          , "line":"29"
+                        }
+                      ]
+                    }
+                  ]
+                  , "Requested size":"400 bytes"
+                  , "Implemented size":"512 bytes = (128 words per bank) x (4 bytes per word)"
+                  , "Memory Usage":"2 RAMs"
+                  , "Additional information":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"RAM usage is increased from 1 RAM to 2 RAMs because the width of individual RAM blocks in true dual-port mode is limited to 20 bits."
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"In each private copy:</br>  Variable 'dist' occupies memory words [0-99] and has 1 array element per memory word.</br>  Memory words [100-127] are unused padding."
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Running memory at 2x clock to support more concurrent ports"
+                    }
+                  ]
+                  , "Number of banks":"1"
+                  , "Bank width (word size)":"4 bytes"
+                  , "Bank depth":"128 words"
+                  , "Number of replicates":"1"
+                  , "Number of private copies":"1"
+                  , "RAM Mode":"True dual-port"
+                  , "Pump configuration":"Double-pumped"
+                  , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Local Memory"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                    , "line":29
+                  }
+                ]
+              ]
+              , "type":"memsys"
+              , "children":
+              [
+                {
+                  "name":"Bank 0"
+                  , "id":127
+                  , "brief":"Memory Usage:2 RAMs | Bank width:4 bytes | Bank depth:128 words | Implemented bank size:512 bytes = (128 words) x (4 bytes per word)"
+                  , "details":
+                  [
+                    {
+                      "type":"table"
+                      , "Memory Usage":"2 RAMs"
+                      , "Bank width":"4 bytes"
+                      , "Bank depth":"128 words"
+                      , "Implemented bank size":"512 bytes = (128 words) x (4 bytes per word)"
+                      , "Number of active ports":"4"
+                      , "Number of read ports":"3"
+                      , "Number of write ports":"1"
+                      , "Additional information":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"RAM usage is increased from 1 RAM to 2 RAMs because the width of individual RAM blocks in true dual-port mode is limited to 20 bits."
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"In each private copy:</br>  Variable 'dist' occupies memory words [0-99] and has 1 array element per memory word.</br>  Memory words [100-127] are unused padding."
+                        }
+                      ]
+                      , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                    }
+                  ]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                        , "line":29
+                      }
+                    ]
+                  ]
+                  , "type":"bank"
+                  , "children":
+                  [
+                    {
+                      "name":"Replicate 0"
+                      , "id":128
+                      , "padding":"28"
+                      , "depth":"128"
+                      , "brief":"Implemented size:512 bytes = (128 words) x (4 bytes per word) | Memory Usage:2 RAMs"
+                      , "details":
+                      [
+                        {
+                          "type":"table"
+                          , "Implemented size":"512 bytes = (128 words) x (4 bytes per word)"
+                          , "Memory Usage":"2 RAMs"
+                          , "Number of physical ports":"4"
+                          , "Number of read ports":"3"
+                          , "Number of write ports":"1"
+                          , "Additional information":
+                          [
+                            {
+                              "type":"text"
+                              , "text":"RAM usage is increased from 1 RAM to 2 RAMs because the width of individual RAM blocks in true dual-port mode is limited to 20 bits."
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"In each private copy:</br>  Variable 'dist' occupies memory words [0-99] and has 1 array element per memory word.</br>  Memory words [100-127] are unused padding."
+                            }
+                          ]
+                          , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                        }
+                      ]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                            , "line":29
+                          }
+                        ]
+                      ]
+                      , "type":"replicate"
+                      , "children":
+                      [
+                        {
+                          "name":"R"
+                          , "id":129
+                          , "type":"port"
+                        }
+                        , {
+                          "name":"R"
+                          , "id":130
+                          , "type":"port"
+                        }
+                        , {
+                          "name":"R"
+                          , "id":131
+                          , "type":"port"
+                        }
+                        , {
+                          "name":"W"
+                          , "id":729
+                          , "type":"port"
+                        }
+                      ]
+                      , "copies":
+                      {
+                        "num":1
+                        , "details":
+                        [
+                          {
+                            "type":"table"
+                            , "Width":"4 bytes"
+                            , "Depth per copy (including padding)":"128 words"
+                            , "Number of private copies":"1"
+                            , "Additional information":"In each private copy:</br>  Variable 'dist' occupies memory words [0-99] and has 1 array element per memory word.</br>  Memory words [100-127] are unused padding."
+                            , "Address bit information":"<table><tr><td>Byte address</td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td>b<sub>1</sub></td><td>b<sub>0</sub></td></tr><tr><td>Sub-word bits</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>0</td><td>0</td></tr><tr><td>Word address bits</td><td>b<sub>8</sub></td><td>b<sub>7</sub></td><td>b<sub>6</sub></td><td>b<sub>5</sub></td><td>b<sub>4</sub></td><td>b<sub>3</sub></td><td>b<sub>2</sub></td><td></td><td></td></tr></table>"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"Load"
+          , "id":123
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:dist | Start cycle:2 | Latency:4"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"dist"
+              , "Start cycle":"2"
+              , "Latency":"4"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                      , "line":"39"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                , "line":39
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Load"
+          , "id":124
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:dist | Start cycle:2 | Latency:4"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"dist"
+              , "Start cycle":"2"
+              , "Latency":"4"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                      , "line":"39"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                , "line":39
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Load"
+          , "id":125
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:dist | Start cycle:2 | Latency:4"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Loads from":"dist"
+              , "Start cycle":"2"
+              , "Latency":"4"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                      , "line":"39"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                , "line":39
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Store"
+          , "id":126
+          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Stores to:dist | Start cycle:7 | Latency:1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Width":"32 bits"
+              , "Stall-free":"Yes"
+              , "Type":"Pipelined never-stall"
+              , "Stores to":"dist"
+              , "Start cycle":"7"
+              , "Latency":"1"
+              , "Inlined Debug Locations":
+              [
+                {
+                  "type":"text"
+                  , "text":"%L > %L"
+                  , "links":
+                  [
+                    {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                      , "line":"40"
+                    }
+                    , {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                  ]
+                }
+              ]
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Load-Store Units"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/floyd_warshall_bram.cpp"
+                , "line":40
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+    }
+  ]
+  , "links":
+  [
+    {
+      "from":129
+      , "to":123
+    }
+    , {
+      "from":130
+      , "to":124
+    }
+    , {
+      "from":131
+      , "to":125
+    }
+    , {
+      "from":126
+      , "to":729
+    }
+  ]
+}

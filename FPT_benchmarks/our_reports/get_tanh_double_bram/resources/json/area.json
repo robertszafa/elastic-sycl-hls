@@ -1,0 +1,3149 @@
+{
+  "columns":
+  ["", "ALUTs", "FFs", "RAMs", "DSPs", "MLABs", "Details"]
+  , "debug_enabled":"true"
+  , "type":"module"
+  , "total_percent":
+  [43.785, 23.0733, 22.143, 21.268, 8.43215]
+  , "total":
+  [196358, 378379, 577, 128, 39]
+  , "name":"Kernel System"
+  , "max_resources":
+  [854400, 1708800, 2713, 1518, 42720]
+  , "children":
+  [
+    {
+      "name":"Static Partition"
+      , "type":"partition"
+      , "children":
+      [
+        {
+          "name":"Board interface"
+          , "type":"resource"
+          , "data":
+          [179950, 358572, 492, 123, 0]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Platform interface logic."
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"Global interconnect"
+      , "type":"resource"
+      , "data":
+      [5034, 9568, 52, 0, 0]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"Global interconnect for 2 global loads and 0 global stores."
+        }
+        , {
+          "type":"brief"
+          , "text":"For 2 global loads and 0 global stores."
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Global Memory Interconnect"
+              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/hnj1476724450050.html"
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"System description ROM"
+      , "type":"resource"
+      , "data":
+      [0, 67, 2, 0, 0]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"This read-only memory contains information for the host about the system and about each kernel in the system, including kernel names, arguments, and attributes. The system description ROM ensures that the binary image on the FPGA is compatible with the host program."
+        }
+        , {
+          "type":"brief"
+          , "text":"Contains information for the host."
+        }
+      ]
+    }
+    , {
+      "name":"Pipe resources"
+      , "type":"group"
+      , "children":
+      [
+        {
+          "name":"Pipe (sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<get_tanh_double_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>)"
+          , "type":"resource"
+          , "data":
+          [11, 294, 3, 0, 0]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Pipe is implemented 96 bits wide by 32 deep."
+            }
+            , {
+              "type":"brief"
+              , "text":"96b wide by 32 deep."
+            }
+            , {
+              "type":"text"
+              , "text":"See %L for more information"
+              , "links":
+              [
+                {
+                  "guide":"Best Practices Guide : Channels"
+                  , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"Pipe (sycl::_V1::ext::intel::pipe<get_tanh_double_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>)"
+          , "type":"resource"
+          , "data":
+          [11, 22, 0, 0, 0]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Pipe is implemented 8 bits wide by 1 deep."
+            }
+            , {
+              "type":"brief"
+              , "text":"8b wide by 1 deep."
+            }
+            , {
+              "type":"text"
+              , "text":"See %L for more information"
+              , "links":
+              [
+                {
+                  "guide":"Best Practices Guide : Channels"
+                  , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"MainKernel"
+      , "compute_units":1
+      , "type":"function"
+      , "total_percent":
+      [0.37646, 0.244733, 0.154904, 0, 0.329381]
+      , "total_kernel_resources":
+      [1731, 2647, 0, 4.5, 18]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"Number of compute units: 1"
+        }
+        , {
+          "type":"brief"
+          , "text":"1 compute unit."
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"Function overhead"
+          , "type":"resource"
+          , "data":
+          [1338, 2411, 0, 0, 10]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Kernel dispatch logic."
+            }
+            , {
+              "type":"brief"
+              , "text":"Kernel dispatch logic."
+            }
+          ]
+        }
+        , {
+          "name":"Private Variable: \n - 'i' (get_tanh_double_bram.ast.cpp:754)"
+          , "type":"resource"
+          , "data":
+          [7, 37, 0, 0, 0]
+          , "debug":
+          [
+            [
+              {
+                "filename":"get_tanh_double_bram.ast.cpp"
+                , "line":754
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Type: Register"
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 33 bits and depth 1"
+            }
+            , {
+              "type":"brief"
+              , "text":"Register,\n1 reg, 33 width by 1 depth"
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B0"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"State"
+              , "type":"resource"
+              , "data":
+              [2, 34, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Live values and control logic"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for live values and control logic. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce size of local variables"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce scope of local variables, localizing them as much as possible"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce number of nested loops"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:754"
+                  , "type":"resource"
+                  , "data":
+                  [2, 34, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":754
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [8, 2, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [8, 2, 0, 0, 0]
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:754"
+                  , "type":"resource"
+                  , "data":
+                  [78, 1, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":754
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [46, 1, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [32, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B1"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"State"
+              , "type":"resource"
+              , "data":
+              [88, 110, 0, 0, 3]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Live values and control logic"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for live values and control logic. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce size of local variables"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce scope of local variables, localizing them as much as possible"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce number of nested loops"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [88, 110, 0, 0, 3]
+                }
+              ]
+            }
+            , {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [33, 28, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:754"
+                  , "type":"resource"
+                  , "data":
+                  [33, 28, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":754
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Cluster logic"
+              , "type":"resource"
+              , "data":
+              [16, 12, 0, 0, 5]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Logic required to efficiently support sets of operations that do not stall"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Logic required to efficiently support sets of operations that do not stall. This area cannot be affected directly."
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:746 > \npipes.hpp:67"
+                  , "type":"resource"
+                  , "data":
+                  [1, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":746
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":67
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Pipe Read"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:747 > \npipes.hpp:82"
+                  , "type":"resource"
+                  , "data":
+                  [4, 2, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":747
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":82
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Pipe Write"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [4, 2, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:754"
+                  , "type":"resource"
+                  , "data":
+                  [50, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":754
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":5
+                      , "data":
+                      [3, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"2-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [2, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"33-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [11, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"33-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [33, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:756"
+                  , "type":"resource"
+                  , "data":
+                  [96, 0, 0, 4.5, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":756
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Integer Multiply"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [96, 0, 0, 4.5, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B2"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [5, 8, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1170"
+                  , "type":"resource"
+                  , "data":
+                  [5, 8, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1170
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:748 > \npipes.hpp:82"
+                  , "type":"resource"
+                  , "data":
+                  [5, 2, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":748
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":82
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Pipe Write"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [5, 2, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"MainKernel_AGU_0"
+      , "compute_units":1
+      , "type":"function"
+      , "total_percent":
+      [0.508004, 0.324204, 0.213659, 0.958349, 0]
+      , "total_kernel_resources":
+      [2370, 3651, 26, 0, 20]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"Number of compute units: 1"
+        }
+        , {
+          "type":"brief"
+          , "text":"1 compute unit."
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"Function overhead"
+          , "type":"resource"
+          , "data":
+          [1338, 2411, 0, 0, 10]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Kernel dispatch logic."
+            }
+            , {
+              "type":"brief"
+              , "text":"Kernel dispatch logic."
+            }
+          ]
+        }
+        , {
+          "name":"Private Variable: \n - 'i' (get_tanh_double_bram.ast.cpp:728)"
+          , "type":"resource"
+          , "data":
+          [14, 73, 0, 0, 0]
+          , "debug":
+          [
+            [
+              {
+                "filename":"get_tanh_double_bram.ast.cpp"
+                , "line":728
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Type: Register"
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 32 bits and depth 1"
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 33 bits and depth 1"
+            }
+            , {
+              "type":"brief"
+              , "text":"Register,\n1 reg, 32 width by 1 depth,\n1 reg, 33 width by 1 depth"
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel_AGU_0.B0"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"State"
+              , "type":"resource"
+              , "data":
+              [2, 34, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Live values and control logic"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for live values and control logic. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce size of local variables"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce scope of local variables, localizing them as much as possible"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce number of nested loops"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:728"
+                  , "type":"resource"
+                  , "data":
+                  [2, 34, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":728
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [8, 2, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [8, 2, 0, 0, 0]
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:728"
+                  , "type":"resource"
+                  , "data":
+                  [78, 1, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":728
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [46, 1, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [32, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel_AGU_0.B1"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"State"
+              , "type":"resource"
+              , "data":
+              [104, 204, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Live values and control logic"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for live values and control logic. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce size of local variables"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce scope of local variables, localizing them as much as possible"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce number of nested loops"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [104, 204, 0, 0, 0]
+                }
+              ]
+            }
+            , {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [34, 28, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:728"
+                  , "type":"resource"
+                  , "data":
+                  [34, 28, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":728
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Cluster logic"
+              , "type":"resource"
+              , "data":
+              [8, 6, 0, 0, 10]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Logic required to efficiently support sets of operations that do not stall"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Logic required to efficiently support sets of operations that do not stall. This area cannot be affected directly."
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:721 > \npipes.hpp:82"
+                  , "type":"resource"
+                  , "data":
+                  [3, 2, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":721
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":82
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Pipe Write"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [3, 2, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:722 > \npipes.hpp:82"
+                  , "type":"resource"
+                  , "data":
+                  [4, 2, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":722
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":82
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Pipe Write"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [4, 2, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:728"
+                  , "type":"resource"
+                  , "data":
+                  [52, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":728
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":9
+                      , "data":
+                      [5, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"2-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [2, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"33-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [11, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"33-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [33, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:729"
+                  , "type":"resource"
+                  , "data":
+                  [360, 440, 13, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":729
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Load"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [360, 440, 13, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load uses a Prefetching LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Prefetching LSU"
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:731"
+                  , "type":"resource"
+                  , "data":
+                  [360, 440, 13, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":731
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Load"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [360, 440, 13, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load uses a Prefetching LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Prefetching LSU"
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel_AGU_0.B2"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [5, 8, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1170"
+                  , "type":"resource"
+                  , "data":
+                  [5, 8, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1170
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":">"
+      , "compute_units":1
+      , "type":"function"
+      , "total_percent":
+      [0.945585, 0.851007, 0.208216, 0.0737191, 0]
+      , "total_kernel_resources":
+      [7251, 3558, 2, 0, 1]
+      , "details":
+      [
+        {
+          "type":"text"
+          , "text":"Number of compute units: 1"
+        }
+        , {
+          "type":"text"
+          , "text":"Max global work dimension: 0"
+        }
+        , {
+          "type":"brief"
+          , "text":"1 compute unit.\nMax global work dimension: 0"
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"Coalesced Private Variables: \n - 'st_val' (get_tanh_double_bram.ast.cpp:127)\n - 'bypass_val' (get_tanh_double_bram.ast.cpp:171)"
+          , "type":"resource"
+          , "data":
+          [7, 36, 0, 0, 0]
+          , "debug":
+          [
+            [
+              {
+                "filename":"get_tanh_double_bram.ast.cpp"
+                , "line":127
+              }
+            ]
+            , [
+              {
+                "filename":"get_tanh_double_bram.ast.cpp"
+                , "line":171
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Type: Register"
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 32 bits and depth 1"
+            }
+            , {
+              "type":"brief"
+              , "text":"Register,\n1 reg, 32 width by 1 depth"
+            }
+          ]
+        }
+        , {
+          "name":"Memory with unknown name (address space 66)"
+          , "type":"resource"
+          , "data":
+          [0, 0, 2, 0, 0]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Local memory":"Stall-free"
+              , "Requested size":"4000 bytes"
+              , "Implemented size":"4096 bytes"
+              , "Memory Usage":"2 RAMs"
+              , "Number of banks":"1"
+              , "Bank width":"32 bits"
+              , "Bank depth":"1024 words"
+              , "Number of replicates":"1"
+              , "Number of private copies":"1"
+              , "Additional information":"Requested size 4000 bytes, implemented size 4096 bytes, stall-free, 1 read and 1 write. "
+              , "Reference":
+              [
+                {
+                  "type":"text"
+                  , "text":"See %L for more information."
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Local Memory"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"brief"
+              , "text":"Stall-free,\n4000B requested,\n4096B implemented."
+            }
+          ]
+        }
+        , {
+          "name":"Private Variable: \n - 'next_tag' (get_tanh_double_bram.ast.cpp:280)"
+          , "type":"resource"
+          , "data":
+          [7, 36, 0, 0, 0]
+          , "debug":
+          [
+            [
+              {
+                "filename":"get_tanh_double_bram.ast.cpp"
+                , "line":280
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Type: Register"
+            }
+            , {
+              "type":"text"
+              , "text":"1 register of width 32 bits and depth 1"
+            }
+            , {
+              "type":"brief"
+              , "text":"Register,\n1 reg, 32 width by 1 depth"
+            }
+          ]
+        }
+        , {
+          "name":">.B0"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [8, 2, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:64"
+                  , "type":"resource"
+                  , "data":
+                  [8, 2, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":64
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":">.B1"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"State"
+              , "type":"resource"
+              , "data":
+              [9, 57, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Live values and control logic"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for live values and control logic. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce size of local variables"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce scope of local variables, localizing them as much as possible"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"reduce number of nested loops"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [9, 57, 0, 0, 0]
+                }
+              ]
+            }
+            , {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [988, 3310, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [582, 2429, 0, 0, 0]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:110"
+                  , "type":"resource"
+                  , "data":
+                  [7, 7, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":110
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:113 > \npipes.hpp:31"
+                  , "type":"resource"
+                  , "data":
+                  [7, 12, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":113
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":31
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:177"
+                  , "type":"resource"
+                  , "data":
+                  [8.75, 39, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":177
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:193"
+                  , "type":"resource"
+                  , "data":
+                  [1.75, 3, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":193
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:226"
+                  , "type":"resource"
+                  , "data":
+                  [35, 156, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":226
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:237 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:239"
+                  , "type":"resource"
+                  , "data":
+                  [7, 12, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":237
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":239
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:237 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:253"
+                  , "type":"resource"
+                  , "data":
+                  [4, 9.66667, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":237
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":253
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:261 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:264"
+                  , "type":"resource"
+                  , "data":
+                  [16, 24, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":261
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":264
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:261 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:265"
+                  , "type":"resource"
+                  , "data":
+                  [18.5, 30, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":261
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":265
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:261 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:266"
+                  , "type":"resource"
+                  , "data":
+                  [24, 43.3333, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":261
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":266
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:286 > \npipes.hpp:32"
+                  , "type":"resource"
+                  , "data":
+                  [3.5, 18, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":286
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":32
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:302"
+                  , "type":"resource"
+                  , "data":
+                  [25.5, 126, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":302
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:312"
+                  , "type":"resource"
+                  , "data":
+                  [240, 389, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":312
+                      }
+                    ]
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:316"
+                  , "type":"resource"
+                  , "data":
+                  [8, 12, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":316
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"Cluster logic"
+              , "type":"resource"
+              , "data":
+              [8, 6, 0, 0, 1]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Logic required to efficiently support sets of operations that do not stall"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Logic required to efficiently support sets of operations that do not stall. This area cannot be affected directly."
+                }
+              ]
+            }
+            , {
+              "name":"Computation"
+              , "type":"resource"
+              , "children":
+              [
+                {
+                  "name":"No Source Line"
+                  , "type":"resource"
+                  , "data":
+                  [2173, 2, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":""
+                        , "line":0
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [3, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [73, 2, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":65
+                      , "data":
+                      [2080, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [16, 0, 0, 0, 0]
+                    }
+                  ]
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:112"
+                  , "type":"resource"
+                  , "data":
+                  [1, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":112
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [0.5, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [0.5, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:113 > \npipes.hpp:31"
+                  , "type":"resource"
+                  , "data":
+                  [8, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":113
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":31
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [8, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:113 > \npipes.hpp:32"
+                  , "type":"resource"
+                  , "data":
+                  [1, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":113
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":32
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Non-Blocking Pipe Read"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:119"
+                  , "type":"resource"
+                  , "data":
+                  [30.3333, 8, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":119
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [21.3333, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"Load"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [9, 8, 0, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load uses a Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Stall-free read from memory declared on unknown line."
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Load-Store Units"
+                              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:130 > \npipes.hpp:32"
+                  , "type":"resource"
+                  , "data":
+                  [54.3333, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":130
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":32
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [53.3333, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"Non-Blocking Pipe Read"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:164 > \nget_tanh_double_bram.ast.cpp:50"
+                  , "type":"resource"
+                  , "data":
+                  [14.5, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":164
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":50
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [0.5, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [2, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [11, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:165"
+                  , "type":"resource"
+                  , "data":
+                  [34, 24, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":165
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Store"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [34, 24, 0, 0, 0]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Store uses a Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Pipelined never-stall LSU"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Stall-free write to memory declared on unknown line."
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Load-Store Units"
+                              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:174"
+                  , "type":"resource"
+                  , "data":
+                  [24, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":174
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [2, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [22, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:176"
+                  , "type":"resource"
+                  , "data":
+                  [1.95, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":176
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [0.25, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [0.2, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [1.5, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:177"
+                  , "type":"resource"
+                  , "data":
+                  [57.9, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":177
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [0.5, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [0.9, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [0.5, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [53.3333, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [2.66667, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:184 > \npipes.hpp:49"
+                  , "type":"resource"
+                  , "data":
+                  [4.95, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":184
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":49
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [0.25, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [1.7, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"Non-Blocking Pipe Write"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [3, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:193"
+                  , "type":"resource"
+                  , "data":
+                  [11.6667, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":193
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":4
+                      , "data":
+                      [10.6667, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:208 > \npipes.hpp:32"
+                  , "type":"resource"
+                  , "data":
+                  [1, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":208
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":32
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Non-Blocking Pipe Read"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:226"
+                  , "type":"resource"
+                  , "data":
+                  [209, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":226
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":6
+                      , "data":
+                      [192, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [16, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:237 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:239"
+                  , "type":"resource"
+                  , "data":
+                  [11.8667, 2, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":237
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":239
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [0.866667, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [2, 2, 0, 0, 0]
+                    }
+                    , {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [8, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:237 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:243"
+                  , "type":"resource"
+                  , "data":
+                  [2997, 64, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":237
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":243
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":64
+                      , "data":
+                      [64, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Integer Compare"
+                      , "type":"resource"
+                      , "count":127
+                      , "data":
+                      [2933, 64, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:237 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:250"
+                  , "type":"resource"
+                  , "data":
+                  [63.3333, 3, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":237
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":250
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit And"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"1-bit Or"
+                      , "type":"resource"
+                      , "count":63
+                      , "data":
+                      [62.3333, 3, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:237 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:253"
+                  , "type":"resource"
+                  , "data":
+                  [7, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":237
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":253
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":3
+                      , "data":
+                      [7, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:261 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:264"
+                  , "type":"resource"
+                  , "data":
+                  [16, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":261
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":264
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [16, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:261 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:265"
+                  , "type":"resource"
+                  , "data":
+                  [20.6667, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":261
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":265
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":6
+                      , "data":
+                      [20.6667, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:261 > \nunrolled_loop.hpp:74 > unrolled_loop.hpp:56 > \nget_tanh_double_bram.ast.cpp:266"
+                  , "type":"resource"
+                  , "data":
+                  [26, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":261
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":74
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/include_sycl/unrolled_loop.hpp"
+                        , "line":56
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":266
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":7
+                      , "data":
+                      [26, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:279"
+                  , "type":"resource"
+                  , "data":
+                  [0.5, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":279
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [0.5, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:286 > \npipes.hpp:32"
+                  , "type":"resource"
+                  , "data":
+                  [33, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":286
+                      }
+                      , {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                        , "line":32
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":2
+                      , "data":
+                      [32, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"Non-Blocking Pipe Read"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:302"
+                  , "type":"resource"
+                  , "data":
+                  [161, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":302
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"1-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [1, 0, 0, 0, 0]
+                    }
+                    , {
+                      "name":"32-bit Select"
+                      , "type":"resource"
+                      , "count":6
+                      , "data":
+                      [160, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:312"
+                  , "type":"resource"
+                  , "data":
+                  [248, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":312
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":31
+                      , "data":
+                      [248, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+                , {
+                  "name":"handler.hpp:1166 > get_tanh_double_bram.ast.cpp:316"
+                  , "type":"resource"
+                  , "data":
+                  [8, 0, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1166
+                      }
+                      , {
+                        "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/get_tanh_double_bram_elastic_pass_workdir/get_tanh_double_bram.ast.cpp"
+                        , "line":316
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"8-bit Select"
+                      , "type":"resource"
+                      , "count":1
+                      , "data":
+                      [8, 0, 0, 0, 0]
+                    }
+                  ]
+                  , "replace_name":"true"
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":">.B2"
+          , "type":"basicblock"
+          , "children":
+          [
+            {
+              "name":"Feedback"
+              , "type":"resource"
+              , "data":
+              [5, 8, 0, 0, 0]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Loop-carried dependencies"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Resources for loop-carried dependencies. To reduce this area:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"reduce number and size of loop-carried variables"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"handler.hpp:1170"
+                  , "type":"resource"
+                  , "data":
+                  [5, 8, 0, 0, 0]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                        , "line":1170
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

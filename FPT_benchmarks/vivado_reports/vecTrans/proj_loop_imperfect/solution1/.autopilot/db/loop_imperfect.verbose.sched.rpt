@@ -1,0 +1,445 @@
+
+
+================================================================
+== Vivado HLS Report for 'loop_imperfect'
+================================================================
+* Date:           Sun Jun 25 13:43:45 2023
+
+* Version:        2019.2 (Build 2704478 on Wed Nov 06 22:10:23 MST 2019)
+* Project:        proj_loop_imperfect
+* Solution:       solution1
+* Product family: kintex7
+* Target device:  xc7k160t-fbg484-1
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+---------+----------+------------+
+    |  Clock |  Target | Estimated| Uncertainty|
+    +--------+---------+----------+------------+
+    |ap_clk  | 4.00 ns | 8.483 ns |   0.50 ns  |
+    +--------+---------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+----------+----------+-------+-------+---------+
+    |  Latency (cycles) |  Latency (absolute) |    Interval   | Pipeline|
+    |   min   |   max   |    min   |    max   |  min  |  max  |   Type  |
+    +---------+---------+----------+----------+-------+-------+---------+
+    |    30002|    30002| 0.255 ms | 0.255 ms |  30002|  30002|   none  |
+    +---------+---------+----------+----------+-------+-------+---------+
+
+    + Detail: 
+        * Instance: 
+        N/A
+
+        * Loop: 
+        +----------+---------+---------+----------+-----------+-----------+------+----------+
+        |          |  Latency (cycles) | Iteration|  Initiation Interval  | Trip |          |
+        | Loop Name|   min   |   max   |  Latency |  achieved |   target  | Count| Pipelined|
+        +----------+---------+---------+----------+-----------+-----------+------+----------+
+        |- Loop 1  |    30000|    30000|        30|         30|          1|  1000|    yes   |
+        +----------+---------+---------+----------+-----------+-----------+------+----------+
+
+============================================================
++ Verbose Summary: Synthesis Manager
+============================================================
+InlineROM: 1
+ExposeGlobal: 0
+============================================================
++ Verbose Summary: CDFG Model
+============================================================
+IsTopModel: 1
+ResetActiveHigh: 1
+IsCombinational: 0
+IsDatapathOnly: 0
+HasWiredReturn: 1
+HasMFsm: 0
+HasVarLatency: 1
+IsPipeline: 0
+IsRtlPipelined: 0
+IsInstanceOverlapped: 0
+IsDontTouch: 0
+HasImplIP: 0
+IsGatedGlobalClock: 0
+
++ Individual pipeline summary: 
+  * Pipeline-0: initiation interval (II) = 30, depth = 30
+
+
+============================================================
++ Verbose Summary: Schedule
+============================================================
+* Number of FSM states : 32
+* Pipeline : 1
+  Pipeline-0 : II = 30, D = 30, States = { 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 }
+* Dataflow Pipeline: 0
+
+* FSM state transitions: 
+1 --> 2 
+2 --> 32 3 
+3 --> 4 
+4 --> 5 
+5 --> 6 
+6 --> 7 
+7 --> 8 
+8 --> 9 
+9 --> 10 
+10 --> 11 
+11 --> 12 
+12 --> 13 
+13 --> 14 
+14 --> 15 
+15 --> 16 
+16 --> 17 
+17 --> 18 
+18 --> 19 
+19 --> 20 
+20 --> 21 
+21 --> 22 
+22 --> 23 
+23 --> 24 
+24 --> 25 
+25 --> 26 
+26 --> 27 
+27 --> 28 
+28 --> 29 
+29 --> 30 
+30 --> 31 
+31 --> 2 
+32 --> 
+
+* FSM state operations: 
+
+State 1 <SV = 0> <Delay = 1.06>
+ST_1 : Operation 33 [1/1] (0.00ns)   --->   "call void (...)* @_ssdm_op_SpecBitsMap([1000 x i32]* %A) nounwind, !map !7"   --->   Operation 33 'specbitsmap' <Predicate = true> <Delay = 0.00>
+ST_1 : Operation 34 [1/1] (0.00ns)   --->   "call void (...)* @_ssdm_op_SpecBitsMap([1000 x i32]* %b) nounwind, !map !13"   --->   Operation 34 'specbitsmap' <Predicate = true> <Delay = 0.00>
+ST_1 : Operation 35 [1/1] (0.00ns)   --->   "call void (...)* @_ssdm_op_SpecTopModule([15 x i8]* @loop_imperfect_str) nounwind"   --->   Operation 35 'spectopmodule' <Predicate = true> <Delay = 0.00>
+ST_1 : Operation 36 [1/1] (1.06ns)   --->   "br label %1" [loop_imperfect.c:96]   --->   Operation 36 'br' <Predicate = true> <Delay = 1.06>
+
+State 2 <SV = 1> <Delay = 2.66>
+ST_2 : Operation 37 [1/1] (0.00ns)   --->   "%i_0 = phi i10 [ 0, %0 ], [ %i, %hls_label_0 ]"   --->   Operation 37 'phi' 'i_0' <Predicate = true> <Delay = 0.00>
+ST_2 : Operation 38 [1/1] (1.29ns)   --->   "%icmp_ln96 = icmp eq i10 %i_0, -24" [loop_imperfect.c:96]   --->   Operation 38 'icmp' 'icmp_ln96' <Predicate = true> <Delay = 1.29> <Core = "Cmp">   --->   Core 25 'Cmp' <Latency = 0> <II = 1> <Delay = 1.29> <FuncUnit> <Opcode : 'icmp'> <InPorts = 2> <OutPorts = 1>
+ST_2 : Operation 39 [1/1] (0.00ns)   --->   "%empty = call i32 (...)* @_ssdm_op_SpecLoopTripCount(i64 1000, i64 1000, i64 1000) nounwind"   --->   Operation 39 'speclooptripcount' 'empty' <Predicate = true> <Delay = 0.00>
+ST_2 : Operation 40 [1/1] (1.41ns)   --->   "%i = add i10 %i_0, 1" [loop_imperfect.c:96]   --->   Operation 40 'add' 'i' <Predicate = true> <Delay = 1.41> <Core = "AddSub">   --->   Core 14 'AddSub' <Latency = 0> <II = 1> <Delay = 1.78> <FuncUnit> <Opcode : 'add' 'sub'> <InPorts = 2> <OutPorts = 1>
+ST_2 : Operation 41 [1/1] (0.00ns)   --->   "br i1 %icmp_ln96, label %2, label %hls_label_0" [loop_imperfect.c:96]   --->   Operation 41 'br' <Predicate = true> <Delay = 0.00>
+ST_2 : Operation 42 [1/1] (0.00ns)   --->   "%zext_ln98 = zext i10 %i_0 to i64" [loop_imperfect.c:98]   --->   Operation 42 'zext' 'zext_ln98' <Predicate = (!icmp_ln96)> <Delay = 0.00>
+ST_2 : Operation 43 [1/1] (0.00ns)   --->   "%A_addr = getelementptr [1000 x i32]* %A, i64 0, i64 %zext_ln98" [loop_imperfect.c:98]   --->   Operation 43 'getelementptr' 'A_addr' <Predicate = (!icmp_ln96)> <Delay = 0.00>
+ST_2 : Operation 44 [2/2] (2.66ns)   --->   "%d = load i32* %A_addr, align 4" [loop_imperfect.c:98]   --->   Operation 44 'load' 'd' <Predicate = (!icmp_ln96)> <Delay = 2.66> <Core = "RAM">   --->   Core 37 'RAM' <Latency = 1> <II = 1> <Delay = 2.66> <Storage> <Opcode : 'load' 'store'> <Ports = 2> <Width = 32> <Depth = 1000> <RAM>
+ST_2 : Operation 45 [1/1] (0.00ns)   --->   "%b_addr = getelementptr [1000 x i32]* %b, i64 0, i64 %zext_ln98" [loop_imperfect.c:99]   --->   Operation 45 'getelementptr' 'b_addr' <Predicate = (!icmp_ln96)> <Delay = 0.00>
+ST_2 : Operation 46 [2/2] (2.66ns)   --->   "%b_load = load i32* %b_addr, align 4" [loop_imperfect.c:99]   --->   Operation 46 'load' 'b_load' <Predicate = (!icmp_ln96)> <Delay = 2.66> <Core = "RAM">   --->   Core 37 'RAM' <Latency = 1> <II = 1> <Delay = 2.66> <Storage> <Opcode : 'load' 'store'> <Ports = 2> <Width = 32> <Depth = 1000> <RAM>
+
+State 3 <SV = 2> <Delay = 7.79>
+ST_3 : Operation 47 [1/2] (2.66ns)   --->   "%d = load i32* %A_addr, align 4" [loop_imperfect.c:98]   --->   Operation 47 'load' 'd' <Predicate = true> <Delay = 2.66> <Core = "RAM">   --->   Core 37 'RAM' <Latency = 1> <II = 1> <Delay = 2.66> <Storage> <Opcode : 'load' 'store'> <Ports = 2> <Width = 32> <Depth = 1000> <RAM>
+ST_3 : Operation 48 [1/1] (1.78ns)   --->   "%add_ln99 = add nsw i32 %d, 112" [loop_imperfect.c:99]   --->   Operation 48 'add' 'add_ln99' <Predicate = true> <Delay = 1.78> <Core = "AddSub">   --->   Core 14 'AddSub' <Latency = 0> <II = 1> <Delay = 1.78> <FuncUnit> <Opcode : 'add' 'sub'> <InPorts = 2> <OutPorts = 1>
+ST_3 : Operation 49 [5/5] (3.34ns)   --->   "%mul_ln99 = mul nsw i32 %d, %add_ln99" [loop_imperfect.c:99]   --->   Operation 49 'mul' 'mul_ln99' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+ST_3 : Operation 50 [1/2] (2.66ns)   --->   "%b_load = load i32* %b_addr, align 4" [loop_imperfect.c:99]   --->   Operation 50 'load' 'b_load' <Predicate = true> <Delay = 2.66> <Core = "RAM">   --->   Core 37 'RAM' <Latency = 1> <II = 1> <Delay = 2.66> <Storage> <Opcode : 'load' 'store'> <Ports = 2> <Width = 32> <Depth = 1000> <RAM>
+
+State 4 <SV = 3> <Delay = 3.34>
+ST_4 : Operation 51 [4/5] (3.34ns)   --->   "%mul_ln99 = mul nsw i32 %d, %add_ln99" [loop_imperfect.c:99]   --->   Operation 51 'mul' 'mul_ln99' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 5 <SV = 4> <Delay = 3.34>
+ST_5 : Operation 52 [3/5] (3.34ns)   --->   "%mul_ln99 = mul nsw i32 %d, %add_ln99" [loop_imperfect.c:99]   --->   Operation 52 'mul' 'mul_ln99' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 6 <SV = 5> <Delay = 3.34>
+ST_6 : Operation 53 [2/5] (3.34ns)   --->   "%mul_ln99 = mul nsw i32 %d, %add_ln99" [loop_imperfect.c:99]   --->   Operation 53 'mul' 'mul_ln99' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 7 <SV = 6> <Delay = 8.48>
+ST_7 : Operation 54 [1/5] (3.34ns)   --->   "%mul_ln99 = mul nsw i32 %d, %add_ln99" [loop_imperfect.c:99]   --->   Operation 54 'mul' 'mul_ln99' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+ST_7 : Operation 55 [1/1] (1.78ns)   --->   "%add_ln99_1 = add nsw i32 %mul_ln99, 23" [loop_imperfect.c:99]   --->   Operation 55 'add' 'add_ln99_1' <Predicate = true> <Delay = 1.78> <Core = "AddSub">   --->   Core 14 'AddSub' <Latency = 0> <II = 1> <Delay = 1.78> <FuncUnit> <Opcode : 'add' 'sub'> <InPorts = 2> <OutPorts = 1>
+ST_7 : Operation 56 [5/5] (3.34ns)   --->   "%mul_ln99_1 = mul nsw i32 %d, %add_ln99_1" [loop_imperfect.c:99]   --->   Operation 56 'mul' 'mul_ln99_1' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 8 <SV = 7> <Delay = 3.34>
+ST_8 : Operation 57 [4/5] (3.34ns)   --->   "%mul_ln99_1 = mul nsw i32 %d, %add_ln99_1" [loop_imperfect.c:99]   --->   Operation 57 'mul' 'mul_ln99_1' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 9 <SV = 8> <Delay = 3.34>
+ST_9 : Operation 58 [3/5] (3.34ns)   --->   "%mul_ln99_1 = mul nsw i32 %d, %add_ln99_1" [loop_imperfect.c:99]   --->   Operation 58 'mul' 'mul_ln99_1' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 10 <SV = 9> <Delay = 3.34>
+ST_10 : Operation 59 [2/5] (3.34ns)   --->   "%mul_ln99_1 = mul nsw i32 %d, %add_ln99_1" [loop_imperfect.c:99]   --->   Operation 59 'mul' 'mul_ln99_1' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 11 <SV = 10> <Delay = 8.48>
+ST_11 : Operation 60 [1/5] (3.34ns)   --->   "%mul_ln99_1 = mul nsw i32 %d, %add_ln99_1" [loop_imperfect.c:99]   --->   Operation 60 'mul' 'mul_ln99_1' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+ST_11 : Operation 61 [1/1] (1.78ns)   --->   "%add_ln99_2 = add nsw i32 %mul_ln99_1, 36" [loop_imperfect.c:99]   --->   Operation 61 'add' 'add_ln99_2' <Predicate = true> <Delay = 1.78> <Core = "AddSub">   --->   Core 14 'AddSub' <Latency = 0> <II = 1> <Delay = 1.78> <FuncUnit> <Opcode : 'add' 'sub'> <InPorts = 2> <OutPorts = 1>
+ST_11 : Operation 62 [5/5] (3.34ns)   --->   "%mul_ln99_2 = mul nsw i32 %d, %add_ln99_2" [loop_imperfect.c:99]   --->   Operation 62 'mul' 'mul_ln99_2' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 12 <SV = 11> <Delay = 3.34>
+ST_12 : Operation 63 [4/5] (3.34ns)   --->   "%mul_ln99_2 = mul nsw i32 %d, %add_ln99_2" [loop_imperfect.c:99]   --->   Operation 63 'mul' 'mul_ln99_2' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 13 <SV = 12> <Delay = 3.34>
+ST_13 : Operation 64 [3/5] (3.34ns)   --->   "%mul_ln99_2 = mul nsw i32 %d, %add_ln99_2" [loop_imperfect.c:99]   --->   Operation 64 'mul' 'mul_ln99_2' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 14 <SV = 13> <Delay = 3.34>
+ST_14 : Operation 65 [2/5] (3.34ns)   --->   "%mul_ln99_2 = mul nsw i32 %d, %add_ln99_2" [loop_imperfect.c:99]   --->   Operation 65 'mul' 'mul_ln99_2' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 15 <SV = 14> <Delay = 8.48>
+ST_15 : Operation 66 [1/5] (3.34ns)   --->   "%mul_ln99_2 = mul nsw i32 %d, %add_ln99_2" [loop_imperfect.c:99]   --->   Operation 66 'mul' 'mul_ln99_2' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+ST_15 : Operation 67 [1/1] (1.78ns)   --->   "%add_ln99_3 = add nsw i32 %mul_ln99_2, 82" [loop_imperfect.c:99]   --->   Operation 67 'add' 'add_ln99_3' <Predicate = true> <Delay = 1.78> <Core = "AddSub">   --->   Core 14 'AddSub' <Latency = 0> <II = 1> <Delay = 1.78> <FuncUnit> <Opcode : 'add' 'sub'> <InPorts = 2> <OutPorts = 1>
+ST_15 : Operation 68 [5/5] (3.34ns)   --->   "%mul_ln99_3 = mul nsw i32 %d, %add_ln99_3" [loop_imperfect.c:99]   --->   Operation 68 'mul' 'mul_ln99_3' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 16 <SV = 15> <Delay = 3.34>
+ST_16 : Operation 69 [4/5] (3.34ns)   --->   "%mul_ln99_3 = mul nsw i32 %d, %add_ln99_3" [loop_imperfect.c:99]   --->   Operation 69 'mul' 'mul_ln99_3' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 17 <SV = 16> <Delay = 3.34>
+ST_17 : Operation 70 [3/5] (3.34ns)   --->   "%mul_ln99_3 = mul nsw i32 %d, %add_ln99_3" [loop_imperfect.c:99]   --->   Operation 70 'mul' 'mul_ln99_3' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 18 <SV = 17> <Delay = 3.34>
+ST_18 : Operation 71 [2/5] (3.34ns)   --->   "%mul_ln99_3 = mul nsw i32 %d, %add_ln99_3" [loop_imperfect.c:99]   --->   Operation 71 'mul' 'mul_ln99_3' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 19 <SV = 18> <Delay = 8.48>
+ST_19 : Operation 72 [1/5] (3.34ns)   --->   "%mul_ln99_3 = mul nsw i32 %d, %add_ln99_3" [loop_imperfect.c:99]   --->   Operation 72 'mul' 'mul_ln99_3' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+ST_19 : Operation 73 [1/1] (1.78ns)   --->   "%add_ln99_4 = add nsw i32 %mul_ln99_3, 127" [loop_imperfect.c:99]   --->   Operation 73 'add' 'add_ln99_4' <Predicate = true> <Delay = 1.78> <Core = "AddSub">   --->   Core 14 'AddSub' <Latency = 0> <II = 1> <Delay = 1.78> <FuncUnit> <Opcode : 'add' 'sub'> <InPorts = 2> <OutPorts = 1>
+ST_19 : Operation 74 [5/5] (3.34ns)   --->   "%mul_ln99_4 = mul nsw i32 %d, %add_ln99_4" [loop_imperfect.c:99]   --->   Operation 74 'mul' 'mul_ln99_4' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 20 <SV = 19> <Delay = 3.34>
+ST_20 : Operation 75 [4/5] (3.34ns)   --->   "%mul_ln99_4 = mul nsw i32 %d, %add_ln99_4" [loop_imperfect.c:99]   --->   Operation 75 'mul' 'mul_ln99_4' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 21 <SV = 20> <Delay = 3.34>
+ST_21 : Operation 76 [3/5] (3.34ns)   --->   "%mul_ln99_4 = mul nsw i32 %d, %add_ln99_4" [loop_imperfect.c:99]   --->   Operation 76 'mul' 'mul_ln99_4' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 22 <SV = 21> <Delay = 3.34>
+ST_22 : Operation 77 [2/5] (3.34ns)   --->   "%mul_ln99_4 = mul nsw i32 %d, %add_ln99_4" [loop_imperfect.c:99]   --->   Operation 77 'mul' 'mul_ln99_4' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 23 <SV = 22> <Delay = 8.48>
+ST_23 : Operation 78 [1/5] (3.34ns)   --->   "%mul_ln99_4 = mul nsw i32 %d, %add_ln99_4" [loop_imperfect.c:99]   --->   Operation 78 'mul' 'mul_ln99_4' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+ST_23 : Operation 79 [1/1] (1.78ns)   --->   "%add_ln99_5 = add nsw i32 %mul_ln99_4, 2" [loop_imperfect.c:99]   --->   Operation 79 'add' 'add_ln99_5' <Predicate = true> <Delay = 1.78> <Core = "AddSub">   --->   Core 14 'AddSub' <Latency = 0> <II = 1> <Delay = 1.78> <FuncUnit> <Opcode : 'add' 'sub'> <InPorts = 2> <OutPorts = 1>
+ST_23 : Operation 80 [5/5] (3.34ns)   --->   "%mul_ln99_5 = mul nsw i32 %d, %add_ln99_5" [loop_imperfect.c:99]   --->   Operation 80 'mul' 'mul_ln99_5' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 24 <SV = 23> <Delay = 3.34>
+ST_24 : Operation 81 [4/5] (3.34ns)   --->   "%mul_ln99_5 = mul nsw i32 %d, %add_ln99_5" [loop_imperfect.c:99]   --->   Operation 81 'mul' 'mul_ln99_5' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 25 <SV = 24> <Delay = 3.34>
+ST_25 : Operation 82 [3/5] (3.34ns)   --->   "%mul_ln99_5 = mul nsw i32 %d, %add_ln99_5" [loop_imperfect.c:99]   --->   Operation 82 'mul' 'mul_ln99_5' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 26 <SV = 25> <Delay = 3.34>
+ST_26 : Operation 83 [2/5] (3.34ns)   --->   "%mul_ln99_5 = mul nsw i32 %d, %add_ln99_5" [loop_imperfect.c:99]   --->   Operation 83 'mul' 'mul_ln99_5' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 27 <SV = 26> <Delay = 8.48>
+ST_27 : Operation 84 [1/5] (3.34ns)   --->   "%mul_ln99_5 = mul nsw i32 %d, %add_ln99_5" [loop_imperfect.c:99]   --->   Operation 84 'mul' 'mul_ln99_5' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+ST_27 : Operation 85 [1/1] (1.78ns)   --->   "%add_ln99_6 = add nsw i32 %mul_ln99_5, 20" [loop_imperfect.c:99]   --->   Operation 85 'add' 'add_ln99_6' <Predicate = true> <Delay = 1.78> <Core = "AddSub">   --->   Core 14 'AddSub' <Latency = 0> <II = 1> <Delay = 1.78> <FuncUnit> <Opcode : 'add' 'sub'> <InPorts = 2> <OutPorts = 1>
+ST_27 : Operation 86 [5/5] (3.34ns)   --->   "%mul_ln99_6 = mul nsw i32 %d, %add_ln99_6" [loop_imperfect.c:99]   --->   Operation 86 'mul' 'mul_ln99_6' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 28 <SV = 27> <Delay = 3.34>
+ST_28 : Operation 87 [4/5] (3.34ns)   --->   "%mul_ln99_6 = mul nsw i32 %d, %add_ln99_6" [loop_imperfect.c:99]   --->   Operation 87 'mul' 'mul_ln99_6' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 29 <SV = 28> <Delay = 3.34>
+ST_29 : Operation 88 [3/5] (3.34ns)   --->   "%mul_ln99_6 = mul nsw i32 %d, %add_ln99_6" [loop_imperfect.c:99]   --->   Operation 88 'mul' 'mul_ln99_6' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 30 <SV = 29> <Delay = 3.34>
+ST_30 : Operation 89 [2/5] (3.34ns)   --->   "%mul_ln99_6 = mul nsw i32 %d, %add_ln99_6" [loop_imperfect.c:99]   --->   Operation 89 'mul' 'mul_ln99_6' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+
+State 31 <SV = 30> <Delay = 7.79>
+ST_31 : Operation 90 [1/1] (0.00ns)   --->   "%tmp = call i32 (...)* @_ssdm_op_SpecRegionBegin([12 x i8]* @p_str) nounwind" [loop_imperfect.c:96]   --->   Operation 90 'specregionbegin' 'tmp' <Predicate = true> <Delay = 0.00>
+ST_31 : Operation 91 [1/1] (0.00ns)   --->   "call void (...)* @_ssdm_op_SpecPipeline(i32 -1, i32 1, i32 1, i32 0, [1 x i8]* @p_str1) nounwind" [loop_imperfect.c:97]   --->   Operation 91 'specpipeline' <Predicate = true> <Delay = 0.00>
+ST_31 : Operation 92 [1/5] (3.34ns)   --->   "%mul_ln99_6 = mul nsw i32 %d, %add_ln99_6" [loop_imperfect.c:99]   --->   Operation 92 'mul' 'mul_ln99_6' <Predicate = true> <Delay = 3.34> <Core = "MulnS">   --->   Core 17 'MulnS' <Latency = 4> <II = 1> <Delay = 3.34> <FuncUnit> <Opcode : 'mul'> <InPorts = 2> <OutPorts = 1>
+ST_31 : Operation 93 [1/1] (1.78ns)   --->   "%add_ln99_7 = add nsw i32 %mul_ln99_6, 100" [loop_imperfect.c:99]   --->   Operation 93 'add' 'add_ln99_7' <Predicate = true> <Delay = 1.78> <Core = "AddSub">   --->   Core 14 'AddSub' <Latency = 0> <II = 1> <Delay = 1.78> <FuncUnit> <Opcode : 'add' 'sub'> <InPorts = 2> <OutPorts = 1>
+ST_31 : Operation 94 [1/1] (0.00ns)   --->   "%sext_ln99 = sext i32 %b_load to i64" [loop_imperfect.c:99]   --->   Operation 94 'sext' 'sext_ln99' <Predicate = true> <Delay = 0.00>
+ST_31 : Operation 95 [1/1] (0.00ns)   --->   "%A_addr_1 = getelementptr [1000 x i32]* %A, i64 0, i64 %sext_ln99" [loop_imperfect.c:99]   --->   Operation 95 'getelementptr' 'A_addr_1' <Predicate = true> <Delay = 0.00>
+ST_31 : Operation 96 [1/1] (2.66ns)   --->   "store i32 %add_ln99_7, i32* %A_addr_1, align 4" [loop_imperfect.c:99]   --->   Operation 96 'store' <Predicate = true> <Delay = 2.66> <Core = "RAM">   --->   Core 37 'RAM' <Latency = 1> <II = 1> <Delay = 2.66> <Storage> <Opcode : 'load' 'store'> <Ports = 2> <Width = 32> <Depth = 1000> <RAM>
+ST_31 : Operation 97 [1/1] (0.00ns)   --->   "%empty_2 = call i32 (...)* @_ssdm_op_SpecRegionEnd([12 x i8]* @p_str, i32 %tmp) nounwind" [loop_imperfect.c:105]   --->   Operation 97 'specregionend' 'empty_2' <Predicate = true> <Delay = 0.00>
+ST_31 : Operation 98 [1/1] (0.00ns)   --->   "br label %1" [loop_imperfect.c:96]   --->   Operation 98 'br' <Predicate = true> <Delay = 0.00>
+
+State 32 <SV = 2> <Delay = 0.00>
+ST_32 : Operation 99 [1/1] (0.00ns)   --->   "ret void" [loop_imperfect.c:106]   --->   Operation 99 'ret' <Predicate = true> <Delay = 0.00>
+
+
+============================================================
++ Verbose Summary: Timing violations
+============================================================
+Target clock period: 4ns, clock uncertainty: 0.5ns.
+
+ <State 1>: 1.06ns
+The critical path consists of the following:
+	multiplexor before 'phi' operation ('i') with incoming values : ('i', loop_imperfect.c:96) [8]  (1.06 ns)
+
+ <State 2>: 2.66ns
+The critical path consists of the following:
+	'phi' operation ('i') with incoming values : ('i', loop_imperfect.c:96) [8]  (0 ns)
+	'getelementptr' operation ('A_addr', loop_imperfect.c:98) [17]  (0 ns)
+	'load' operation ('d', loop_imperfect.c:98) on array 'A' [18]  (2.66 ns)
+
+ <State 3>: 7.8ns
+The critical path consists of the following:
+	'load' operation ('d', loop_imperfect.c:98) on array 'A' [18]  (2.66 ns)
+	'add' operation ('add_ln99', loop_imperfect.c:99) [19]  (1.78 ns)
+	'mul' operation ('mul_ln99', loop_imperfect.c:99) [20]  (3.35 ns)
+
+ <State 4>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99', loop_imperfect.c:99) [20]  (3.35 ns)
+
+ <State 5>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99', loop_imperfect.c:99) [20]  (3.35 ns)
+
+ <State 6>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99', loop_imperfect.c:99) [20]  (3.35 ns)
+
+ <State 7>: 8.48ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99', loop_imperfect.c:99) [20]  (3.35 ns)
+	'add' operation ('add_ln99_1', loop_imperfect.c:99) [21]  (1.78 ns)
+	'mul' operation ('mul_ln99_1', loop_imperfect.c:99) [22]  (3.35 ns)
+
+ <State 8>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_1', loop_imperfect.c:99) [22]  (3.35 ns)
+
+ <State 9>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_1', loop_imperfect.c:99) [22]  (3.35 ns)
+
+ <State 10>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_1', loop_imperfect.c:99) [22]  (3.35 ns)
+
+ <State 11>: 8.48ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_1', loop_imperfect.c:99) [22]  (3.35 ns)
+	'add' operation ('add_ln99_2', loop_imperfect.c:99) [23]  (1.78 ns)
+	'mul' operation ('mul_ln99_2', loop_imperfect.c:99) [24]  (3.35 ns)
+
+ <State 12>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_2', loop_imperfect.c:99) [24]  (3.35 ns)
+
+ <State 13>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_2', loop_imperfect.c:99) [24]  (3.35 ns)
+
+ <State 14>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_2', loop_imperfect.c:99) [24]  (3.35 ns)
+
+ <State 15>: 8.48ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_2', loop_imperfect.c:99) [24]  (3.35 ns)
+	'add' operation ('add_ln99_3', loop_imperfect.c:99) [25]  (1.78 ns)
+	'mul' operation ('mul_ln99_3', loop_imperfect.c:99) [26]  (3.35 ns)
+
+ <State 16>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_3', loop_imperfect.c:99) [26]  (3.35 ns)
+
+ <State 17>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_3', loop_imperfect.c:99) [26]  (3.35 ns)
+
+ <State 18>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_3', loop_imperfect.c:99) [26]  (3.35 ns)
+
+ <State 19>: 8.48ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_3', loop_imperfect.c:99) [26]  (3.35 ns)
+	'add' operation ('add_ln99_4', loop_imperfect.c:99) [27]  (1.78 ns)
+	'mul' operation ('mul_ln99_4', loop_imperfect.c:99) [28]  (3.35 ns)
+
+ <State 20>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_4', loop_imperfect.c:99) [28]  (3.35 ns)
+
+ <State 21>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_4', loop_imperfect.c:99) [28]  (3.35 ns)
+
+ <State 22>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_4', loop_imperfect.c:99) [28]  (3.35 ns)
+
+ <State 23>: 8.48ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_4', loop_imperfect.c:99) [28]  (3.35 ns)
+	'add' operation ('add_ln99_5', loop_imperfect.c:99) [29]  (1.78 ns)
+	'mul' operation ('mul_ln99_5', loop_imperfect.c:99) [30]  (3.35 ns)
+
+ <State 24>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_5', loop_imperfect.c:99) [30]  (3.35 ns)
+
+ <State 25>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_5', loop_imperfect.c:99) [30]  (3.35 ns)
+
+ <State 26>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_5', loop_imperfect.c:99) [30]  (3.35 ns)
+
+ <State 27>: 8.48ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_5', loop_imperfect.c:99) [30]  (3.35 ns)
+	'add' operation ('add_ln99_6', loop_imperfect.c:99) [31]  (1.78 ns)
+	'mul' operation ('mul_ln99_6', loop_imperfect.c:99) [32]  (3.35 ns)
+
+ <State 28>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_6', loop_imperfect.c:99) [32]  (3.35 ns)
+
+ <State 29>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_6', loop_imperfect.c:99) [32]  (3.35 ns)
+
+ <State 30>: 3.35ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_6', loop_imperfect.c:99) [32]  (3.35 ns)
+
+ <State 31>: 7.8ns
+The critical path consists of the following:
+	'mul' operation ('mul_ln99_6', loop_imperfect.c:99) [32]  (3.35 ns)
+	'add' operation ('add_ln99_7', loop_imperfect.c:99) [33]  (1.78 ns)
+	'store' operation ('store_ln99', loop_imperfect.c:99) of variable 'add_ln99_7', loop_imperfect.c:99 on array 'A' [38]  (2.66 ns)
+
+ <State 32>: 0ns
+The critical path consists of the following:
+
+
+============================================================
++ Verbose Summary: Binding
+============================================================
+N/A
+* FSMD analyzer results:
+  - Output states:
+ - Input state : 
+  - Chain level:
+	State 1
+	State 2
+	State 3
+	State 4
+	State 5
+	State 6
+	State 7
+	State 8
+	State 9
+	State 10
+	State 11
+	State 12
+	State 13
+	State 14
+	State 15
+	State 16
+	State 17
+	State 18
+	State 19
+	State 20
+	State 21
+	State 22
+	State 23
+	State 24
+	State 25
+	State 26
+	State 27
+	State 28
+	State 29
+	State 30
+	State 31
+	State 32
+
+
+============================================================
++ Verbose Summary: Datapath Resource usage 
+============================================================
+N/A

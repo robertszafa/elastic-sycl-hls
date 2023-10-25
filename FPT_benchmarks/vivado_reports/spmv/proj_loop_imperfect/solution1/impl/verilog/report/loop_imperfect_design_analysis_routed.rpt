@@ -1,0 +1,94 @@
+Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
+-------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2019.2 (lin64) Build 2708876 Wed Nov  6 21:39:14 MST 2019
+| Date         : Sun Jun 25 13:40:22 2023
+| Host         : dynamatic-VirtualBox running 64-bit Ubuntu 18.04.3 LTS
+| Command      : report_design_analysis -file ./report/loop_imperfect_design_analysis_routed.rpt
+| Design       : bd_0_wrapper
+| Device       : xc7k160t
+| Design State : Physopt postRoute
+-------------------------------------------------------------------------------------------------
+
+Report Design Analysis
+
+Table of Contents
+-----------------
+1. Setup Path Characteristics 1-1
+2. Logic Level Distribution
+3. Placer Final Level Congestion Reporting
+4. Initial Estimated Router Congestion Reporting
+5. SLR Net Crossing Reporting
+
+1. Setup Path Characteristics 1-1
+---------------------------------
+
++---------------------------+-----------------------------+
+|      Characteristics      |           Path #1           |
++---------------------------+-----------------------------+
+| Requirement               |                       4.000 |
+| Path Delay                |                       3.308 |
+| Logic Delay               | 0.322(10%)                  |
+| Net Delay                 | 2.986(90%)                  |
+| Clock Skew                |                      -0.034 |
+| Slack                     |                       0.202 |
+| Clock Relationship        | Safely Timed                |
+| Logic Levels              |                           1 |
+| Routes                    |                           0 |
+| Logical Path              | FDRE LUT3 DSP48E1           |
+| Start Point Clock         | ap_clk                      |
+| End Point Clock           | ap_clk                      |
+| DSP Block                 | Seq                         |
+| BRAM                      | None                        |
+| IO Crossings              |                           0 |
+| Config Crossings          |                           0 |
+| SLR Crossings             |                           0 |
+| PBlocks                   |                           0 |
+| High Fanout               |                          52 |
+| Dont Touch                |                           0 |
+| Mark Debug                |                           0 |
+| Start Point Pin Primitive | FDRE/C                      |
+| End Point Pin Primitive   | DSP48E1/CEA1                |
+| Start Point Pin           | icmp_ln97_reg_1728_reg[0]/C |
+| End Point Pin             | buff0_reg/CEA1              |
++---------------------------+-----------------------------+
+* Bounding box calculated as % of dimensions for the target device (308, 500)
+
+
+2. Logic Level Distribution
+---------------------------
+
++-----------------+-------------+-----+-----+----+----+----+---+
+| End Point Clock | Requirement |  0  |  1  |  2 |  3 |  4 | 5 |
++-----------------+-------------+-----+-----+----+----+----+---+
+| ap_clk          | 4.000ns     | 125 | 749 | 38 | 66 | 18 | 4 |
++-----------------+-------------+-----+-----+----+----+----+---+
+* Columns represent the logic levels per end point clock
+** Distribution is for top worst 1000 paths
+
+
+3. Placer Final Level Congestion Reporting
+------------------------------------------
+
++-----------+-------+------------+--------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+------------+
+| Direction | Level | Congestion | Window | Combined LUTs | Avg LUT Input | LUT | LUTRAM | Flop | MUXF | RAMB | DSP | CARRY | SRL | Cell Names |
++-----------+-------+------------+--------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+------------+
+* No congestion windows are found above level 5
+
+
+4. Initial Estimated Router Congestion Reporting
+------------------------------------------------
+
++-----------+------+-------+------------------+--------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+------------+
+| Direction | Type | Level | Percentage Tiles | Window | Combined LUTs | Avg LUT Input | LUT | LUTRAM | Flop | MUXF | RAMB | DSP | CARRY | SRL | Cell Names |
++-----------+------+-------+------------------+--------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+------------+
+
+
+5. SLR Net Crossing Reporting
+-----------------------------
+
++------------+-----------------------------+
+| Cell Names | Number of Nets crossing SLR |
++------------+-----------------------------+
+* The current part is not an SSI device
+
+

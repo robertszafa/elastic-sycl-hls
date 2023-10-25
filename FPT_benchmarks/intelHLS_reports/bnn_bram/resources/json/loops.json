@@ -1,0 +1,465 @@
+{
+  "columns":
+  ["", "Pipelined", "II", "Speculated iterations", "Details"]
+  , "children":
+  [
+    {
+      "name":"Kernel: MainKernel"
+      , "data":
+      ["", "", ""]
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+            , "line":28
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"brief"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"fMAX bottleneck block: None"
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Kernels"
+              , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/ipp1476408832230.html"
+            }
+          ]
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"MainKernel.B2"
+          , "data":
+          ["Yes", ">=1", "0"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                , "line":42
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Stallable instruction: n/a"
+            }
+            , {
+              "type":"text"
+              , "text":"Maximum concurrent iterations: Capacity of loop"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"Use the %L viewer to estimate capacity"
+                  , "links":
+                  [
+                    {
+                      "view":"Fmax II Report"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"See %L for more information"
+              , "links":
+              [
+                {
+                  "guide":"Best Practices Guide : Nested Loops"
+                  , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/rfr1469543500580.html"
+                }
+              ]
+            }
+          ]
+          , "children":
+          [
+            {
+              "name":"MainKernel.B4"
+              , "data":
+              ["Yes", "~2", "1"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                    , "line":43
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Memory dependency"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Compiler failed to schedule this loop with smaller II due to memory dependency:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"From: Load Operation (%L > %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                          , "line":"1166"
+                        }
+                        , {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"46"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"To: Store Operation (%L > %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                          , "line":"1166"
+                        }
+                        , {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"46"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"Most critical loop feedback path during scheduling:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"1.00 clock cycle Store Operation (%L > %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                          , "line":"1166"
+                        }
+                        , {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"46"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"1.00 clock cycle Load Operation (%L > %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                          , "line":"1166"
+                        }
+                        , {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"46"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"0.89 clock cycles 32-bit Integer Add Operation (%L > %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                          , "line":"1166"
+                        }
+                        , {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"46"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"II is an approximation due to the following stallable instruction:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Load Operation (%L > %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                          , "line":"1166"
+                        }
+                        , {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"46"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"Maximum concurrent iterations: Capacity of loop"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Use the %L viewer to estimate capacity"
+                      , "links":
+                      [
+                        {
+                          "view":"Fmax II Report"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/wfa1476380079940.html"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"MainKernel.B5"
+          , "data":
+          ["Yes", "~2", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                , "line":50
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":"Memory dependency"
+            }
+            , {
+              "type":"text"
+              , "text":"Compiler failed to schedule this loop with smaller II due to memory dependency:"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"From: Load Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                      , "line":"53"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"To: Store Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                      , "line":"58"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Most critical loop feedback path during scheduling:"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"Number of nodes in critical path exceeded what the compiler has captured. Only the top 5 failing nodes are listed."
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"1.00 clock cycle 32-bit Select Operation (%L > %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                          , "line":"1166"
+                        }
+                        , {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"54"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"1.00 clock cycle Load Operation (%L > %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                          , "line":"1166"
+                        }
+                        , {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"53"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"1.00 clock cycle 32-bit Integer Compare Operation (%L > %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                          , "line":"1166"
+                        }
+                        , {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"54"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"1.00 clock cycle Store Operation (%L > %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                          , "line":"1166"
+                        }
+                        , {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"58"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"0.89 clock cycles 32-bit Integer Add Operation (%L > %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                          , "line":"1166"
+                        }
+                        , {
+                          "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                          , "line":"54"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"II is an approximation due to the following stallable instruction:"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"Load Operation (%L > %L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
+                      , "line":"1166"
+                    }
+                    , {
+                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bnn_bram.cpp"
+                      , "line":"53"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Maximum concurrent iterations: Capacity of loop"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"Use the %L viewer to estimate capacity"
+                  , "links":
+                  [
+                    {
+                      "view":"Fmax II Report"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"See %L for more information"
+              , "links":
+              [
+                {
+                  "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                  , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/wfa1476380079940.html"
+                }
+              ]
+            }
+          ]
+          , "children":
+          [
+          ]
+        }
+      ]
+    }
+  ]
+}

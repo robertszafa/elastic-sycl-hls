@@ -1,0 +1,1315 @@
+#-----------------------------------------------------------
+# Vivado v2019.2 (64-bit)
+# SW Build 2708876 on Wed Nov  6 21:39:14 MST 2019
+# IP Build 2700528 on Thu Nov  7 00:09:20 MST 2019
+# Start of session at: Fri Jun 23 10:01:06 2023
+# Process ID: 13781
+# Current directory: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/synth
+# Command line: vivado -mode batch -source synthesize_4.tcl
+# Log file: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/synth/vivado.log
+# Journal file: /home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/synth/vivado.jou
+#-----------------------------------------------------------
+source synthesize_4.tcl
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/arithmetic_units.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/delay_buffer.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/elastic_components.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/MemCont.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/multipliers.vhd
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/mul_wrapper.vhd
+# read_verilog  ../sim/VHDL_SRC/LSQ_A.v
+# read_vhdl -vhdl2008 ../sim/VHDL_SRC/getTanh_double_optimized.vhd
+# read_xdc period_4.xdc
+# synth_design -top getTanh_double -part xc7k160tfbg484-1 -no_iobuf -mode out_of_context
+Command: synth_design -top getTanh_double -part xc7k160tfbg484-1 -no_iobuf -mode out_of_context
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7k160t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7k160t'
+INFO: [Device 21-403] Loading part xc7k160tfbg484-1
+INFO: Launching helper process for spawning children vivado processes
+INFO: Helper process launched with PID 13790 
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:07 . Memory (MB): peak = 2179.598 ; gain = 388.590 ; free physical = 8081 ; free virtual = 10249
+---------------------------------------------------------------------------------
+INFO: [Synth 8-638] synthesizing module 'getTanh_double' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:43]
+INFO: [Synth 8-638] synthesizing module 'Const' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1564]
+	Parameter SIZE bound to: 1 - type: integer 
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'Const' (1#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1564]
+INFO: [Synth 8-638] synthesizing module 'start_node' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1034]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticBuffer' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:303]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'TEHB' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:167]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'TEHB' (2#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:167]
+INFO: [Synth 8-638] synthesizing module 'OEHB' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:242]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'OEHB' (3#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:242]
+INFO: [Synth 8-256] done synthesizing module 'elasticBuffer' (4#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:303]
+INFO: [Synth 8-256] done synthesizing module 'start_node' (5#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1034]
+INFO: [Synth 8-638] synthesizing module '\fork ' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 3 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 3 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN' (6#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-638] synthesizing module 'eagerFork_RegisterBLock' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:623]
+INFO: [Synth 8-256] done synthesizing module 'eagerFork_RegisterBLock' (7#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:623]
+INFO: [Synth 8-256] done synthesizing module '\fork ' (8#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'mux' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1810]
+	Parameter INPUTS bound to: 3 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter COND_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'TEHB__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:167]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'TEHB__parameterized0' (8#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:167]
+INFO: [Synth 8-256] done synthesizing module 'mux' (9#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1810]
+INFO: [Synth 8-638] synthesizing module 'mc_load_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:583]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 2 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'mc_load_op' (10#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:583]
+INFO: [Synth 8-638] synthesizing module 'lsq_load_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1987]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 2 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'lsq_load_op' (11#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1987]
+INFO: [Synth 8-638] synthesizing module 'fmul_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:2116]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module '\join ' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:113]
+	Parameter SIZE bound to: 2 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'andN' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:24]
+	Parameter n bound to: 2 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'andN' (12#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:24]
+INFO: [Synth 8-256] done synthesizing module '\join ' (13#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:113]
+INFO: [Synth 8-638] synthesizing module 'delay_buffer' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/delay_buffer.vhd:16]
+	Parameter SIZE bound to: 4 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'delay_buffer' (14#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/delay_buffer.vhd:16]
+	Parameter ID bound to: 1 - type: integer 
+	Parameter NUM_STAGE bound to: 6 - type: integer 
+	Parameter din0_WIDTH bound to: 32 - type: integer 
+	Parameter din1_WIDTH bound to: 32 - type: integer 
+	Parameter dout_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-637] synthesizing blackbox instance 'array_RAM_fmul_32ns_32ns_32_6_max_dsp_1_U1' of component 'array_RAM_fmul_32cud' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:2171]
+WARNING: [Synth 8-3848] Net oehb_datain in module/entity fmul_op does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:2140]
+INFO: [Synth 8-256] done synthesizing module 'fmul_op' (15#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:2116]
+INFO: [Synth 8-638] synthesizing module 'fadd_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:1933]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'delay_buffer__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/delay_buffer.vhd:16]
+	Parameter SIZE bound to: 8 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'delay_buffer__parameterized0' (15#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/delay_buffer.vhd:16]
+	Parameter ID bound to: 1 - type: integer 
+	Parameter NUM_STAGE bound to: 10 - type: integer 
+	Parameter din0_WIDTH bound to: 32 - type: integer 
+	Parameter din1_WIDTH bound to: 32 - type: integer 
+	Parameter dout_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-637] synthesizing blackbox instance 'array_RAM_fadd_32ns_32ns_32_10_full_dsp_1_U1' of component 'array_RAM_fadd_32bkb' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:1990]
+WARNING: [Synth 8-3848] Net oehb_datain in module/entity fadd_op does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:1957]
+INFO: [Synth 8-256] done synthesizing module 'fadd_op' (16#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:1933]
+INFO: [Synth 8-638] synthesizing module 'lsq_store_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:2033]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 2 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'lsq_store_op' (17#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:2033]
+INFO: [Synth 8-638] synthesizing module 'add_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:67]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'add_op' (18#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:67]
+INFO: [Synth 8-638] synthesizing module 'icmp_ult_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:827]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'icmp_ult_op' (19#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:827]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized0' (19#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized0' (19#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'mux__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1810]
+	Parameter INPUTS bound to: 3 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+	Parameter COND_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'mux__parameterized0' (19#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1810]
+INFO: [Synth 8-638] synthesizing module 'branch' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:584]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter SIZE bound to: 2 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'join__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:113]
+	Parameter SIZE bound to: 2 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'join__parameterized0' (19#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:113]
+INFO: [Synth 8-638] synthesizing module 'branchSimple' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:553]
+INFO: [Synth 8-256] done synthesizing module 'branchSimple' (20#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:553]
+INFO: [Synth 8-256] done synthesizing module 'branch' (21#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:584]
+INFO: [Synth 8-638] synthesizing module 'merge' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:783]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'merge' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:783]
+INFO: [Synth 8-638] synthesizing module 'branch__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:584]
+	Parameter INPUTS bound to: 2 - type: integer 
+	Parameter SIZE bound to: 2 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'branch__parameterized0' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:584]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 2 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 2 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized1' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized1' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 3 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized2' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized3' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 6 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 6 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized2' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized3' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'fork__parameterized4' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter SIZE bound to: 5 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'orN__parameterized3' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:68]
+	Parameter n bound to: 5 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'orN__parameterized3' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:68]
+INFO: [Synth 8-256] done synthesizing module 'fork__parameterized4' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:671]
+INFO: [Synth 8-638] synthesizing module 'elasticBuffer__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:303]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'OEHB__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:242]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'OEHB__parameterized0' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:242]
+INFO: [Synth 8-256] done synthesizing module 'elasticBuffer__parameterized0' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:303]
+INFO: [Synth 8-638] synthesizing module 'elasticBuffer__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:303]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'elasticBuffer__parameterized1' (22#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:303]
+INFO: [Synth 8-638] synthesizing module 'transpFIFO' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1422]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+	Parameter FIFO_DEPTH bound to: 13 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticFifoInner' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1167]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+	Parameter FIFO_DEPTH bound to: 13 - type: integer 
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1196]
+WARNING: [Synth 8-6014] Unused sequential element fifo_valid_reg was removed.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1199]
+INFO: [Synth 8-256] done synthesizing module 'elasticFifoInner' (23#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1167]
+INFO: [Synth 8-256] done synthesizing module 'transpFIFO' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1422]
+INFO: [Synth 8-638] synthesizing module 'transpFIFO__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1422]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+	Parameter FIFO_DEPTH bound to: 35 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticFifoInner__parameterized0' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1167]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 1 - type: integer 
+	Parameter FIFO_DEPTH bound to: 35 - type: integer 
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1196]
+WARNING: [Synth 8-6014] Unused sequential element fifo_valid_reg was removed.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1199]
+INFO: [Synth 8-256] done synthesizing module 'elasticFifoInner__parameterized0' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1167]
+INFO: [Synth 8-256] done synthesizing module 'transpFIFO__parameterized0' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1422]
+INFO: [Synth 8-638] synthesizing module 'transpFIFO__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1422]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 16 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticFifoInner__parameterized1' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1167]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 16 - type: integer 
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1196]
+WARNING: [Synth 8-6014] Unused sequential element fifo_valid_reg was removed.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1199]
+INFO: [Synth 8-256] done synthesizing module 'elasticFifoInner__parameterized1' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1167]
+INFO: [Synth 8-256] done synthesizing module 'transpFIFO__parameterized1' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1422]
+INFO: [Synth 8-638] synthesizing module 'transpFIFO__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1422]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 22 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticFifoInner__parameterized2' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1167]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 22 - type: integer 
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1196]
+WARNING: [Synth 8-6014] Unused sequential element fifo_valid_reg was removed.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1199]
+INFO: [Synth 8-256] done synthesizing module 'elasticFifoInner__parameterized2' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1167]
+INFO: [Synth 8-256] done synthesizing module 'transpFIFO__parameterized2' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1422]
+INFO: [Synth 8-638] synthesizing module 'transpFIFO__parameterized3' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1422]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 38 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'elasticFifoInner__parameterized3' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1167]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+	Parameter FIFO_DEPTH bound to: 38 - type: integer 
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1196]
+WARNING: [Synth 8-6014] Unused sequential element fifo_valid_reg was removed.  [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1199]
+INFO: [Synth 8-256] done synthesizing module 'elasticFifoInner__parameterized3' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1167]
+INFO: [Synth 8-256] done synthesizing module 'transpFIFO__parameterized3' (24#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1422]
+INFO: [Synth 8-638] synthesizing module 'ret_op' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:24]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'ret_op' (25#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/arithmetic_units.vhd:24]
+INFO: [Synth 8-3491] module 'LSQ_A' declared at '/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:522642' bound to instance 'c_LSQ_A' of component 'LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:1585]
+INFO: [Synth 8-6157] synthesizing module 'LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:522642]
+INFO: [Synth 8-6157] synthesizing module 'STORE_QUEUE_LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:1]
+INFO: [Synth 8-6155] done synthesizing module 'STORE_QUEUE_LSQ_A' (26#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:1]
+INFO: [Synth 8-6157] synthesizing module 'LOAD_QUEUE_LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:80901]
+INFO: [Synth 8-6155] done synthesizing module 'LOAD_QUEUE_LSQ_A' (27#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:80901]
+INFO: [Synth 8-6157] synthesizing module 'GROUP_ALLOCATOR_LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:522073]
+INFO: [Synth 8-6155] done synthesizing module 'GROUP_ALLOCATOR_LSQ_A' (28#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:522073]
+INFO: [Synth 8-6157] synthesizing module 'LOAD_PORT_LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:522451]
+INFO: [Synth 8-6155] done synthesizing module 'LOAD_PORT_LSQ_A' (29#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:522451]
+INFO: [Synth 8-6157] synthesizing module 'STORE_DATA_PORT_LSQ_A' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:522551]
+INFO: [Synth 8-6155] done synthesizing module 'STORE_DATA_PORT_LSQ_A' (30#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:522551]
+INFO: [Synth 8-6155] done synthesizing module 'LSQ_A' (31#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:522642]
+INFO: [Synth 8-638] synthesizing module 'MemCont' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:753]
+	Parameter DATA_SIZE bound to: 32 - type: integer 
+	Parameter ADDRESS_SIZE bound to: 32 - type: integer 
+	Parameter BB_COUNT bound to: 1 - type: integer 
+	Parameter LOAD_COUNT bound to: 1 - type: integer 
+	Parameter STORE_COUNT bound to: 1 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'read_memory_arbiter' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:202]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'read_priority' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:17]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_priority' (32#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:17]
+INFO: [Synth 8-638] synthesizing module 'read_address_mux' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:52]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_address_mux' (33#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:52]
+INFO: [Synth 8-638] synthesizing module 'read_address_ready' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:86]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_address_ready' (34#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:86]
+INFO: [Synth 8-638] synthesizing module 'read_data_signals' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:116]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'read_data_signals' (35#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:116]
+INFO: [Synth 8-256] done synthesizing module 'read_memory_arbiter' (36#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:202]
+INFO: [Synth 8-638] synthesizing module 'write_memory_arbiter' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:464]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-638] synthesizing module 'write_priority' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:287]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_priority' (37#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:287]
+INFO: [Synth 8-638] synthesizing module 'write_address_mux' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:326]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter ADDR_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_address_mux' (38#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:326]
+INFO: [Synth 8-638] synthesizing module 'write_address_ready' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:362]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_address_ready' (39#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:362]
+INFO: [Synth 8-638] synthesizing module 'write_data_signals' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:396]
+	Parameter ARBITER_SIZE bound to: 1 - type: integer 
+	Parameter DATA_WIDTH bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'write_data_signals' (40#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:396]
+INFO: [Synth 8-256] done synthesizing module 'write_memory_arbiter' (41#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:464]
+WARNING: [Synth 8-614] signal 'rst' is read in the process but is not in the sensitivity list [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:814]
+INFO: [Synth 8-256] done synthesizing module 'MemCont' (42#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/MemCont.vhd:753]
+INFO: [Synth 8-638] synthesizing module 'sink' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1105]
+	Parameter INPUT_COUNT bound to: 1 - type: integer 
+	Parameter OUTPUT_COUNT bound to: 0 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 1 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'sink' (43#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:1105]
+INFO: [Synth 8-638] synthesizing module 'end_node' [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:481]
+	Parameter INPUTS bound to: 1 - type: integer 
+	Parameter MEM_INPUTS bound to: 2 - type: integer 
+	Parameter OUTPUTS bound to: 1 - type: integer 
+	Parameter DATA_SIZE_IN bound to: 32 - type: integer 
+	Parameter DATA_SIZE_OUT bound to: 32 - type: integer 
+WARNING: [Synth 8-3848] Net eReadyArray in module/entity end_node does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:477]
+INFO: [Synth 8-256] done synthesizing module 'end_node' (44#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/elastic_components.vhd:481]
+WARNING: [Synth 8-3848] Net A_we1 in module/entity getTanh_double does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:28]
+WARNING: [Synth 8-3848] Net A_dout1 in module/entity getTanh_double does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:29]
+WARNING: [Synth 8-3848] Net addr_we1 in module/entity getTanh_double does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:38]
+WARNING: [Synth 8-3848] Net addr_dout1 in module/entity getTanh_double does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:39]
+WARNING: [Synth 8-3848] Net start_0_dataInArray_0 in module/entity getTanh_double does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:56]
+WARNING: [Synth 8-3848] Net MC_addr_pValidArray_2 in module/entity getTanh_double does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:568]
+WARNING: [Synth 8-3848] Net MC_addr_dataInArray_2 in module/entity getTanh_double does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:564]
+WARNING: [Synth 8-3848] Net MC_addr_pValidArray_3 in module/entity getTanh_double does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:569]
+WARNING: [Synth 8-3848] Net MC_addr_dataInArray_3 in module/entity getTanh_double does not have driver. [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:565]
+INFO: [Synth 8-256] done synthesizing module 'getTanh_double' (45#1) [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/getTanh_double_optimized.vhd:43]
+WARNING: [Synth 8-3331] design end_node has unconnected port eReadyArray[1]
+WARNING: [Synth 8-3331] design end_node has unconnected port eReadyArray[0]
+WARNING: [Synth 8-3331] design end_node has unconnected port clk
+WARNING: [Synth 8-3331] design end_node has unconnected port rst
+WARNING: [Synth 8-3331] design sink has unconnected port clk
+WARNING: [Synth 8-3331] design sink has unconnected port rst
+WARNING: [Synth 8-3331] design sink has unconnected port dataInArray[0][0]
+WARNING: [Synth 8-3331] design sink has unconnected port pValidArray[0]
+WARNING: [Synth 8-3331] design MemCont has unconnected port io_Empty_Ready
+WARNING: [Synth 8-3331] design MemCont has unconnected port io_wrDataPorts_valid[0]
+WARNING: [Synth 8-3331] design branch__parameterized0 has unconnected port clk
+WARNING: [Synth 8-3331] design branch__parameterized0 has unconnected port rst
+WARNING: [Synth 8-3331] design branch has unconnected port clk
+WARNING: [Synth 8-3331] design branch has unconnected port rst
+WARNING: [Synth 8-3331] design icmp_ult_op has unconnected port clk
+WARNING: [Synth 8-3331] design icmp_ult_op has unconnected port rst
+WARNING: [Synth 8-3331] design Const has unconnected port clk
+WARNING: [Synth 8-3331] design Const has unconnected port rst
+WARNING: [Synth 8-3331] design add_op has unconnected port clk
+WARNING: [Synth 8-3331] design add_op has unconnected port rst
+WARNING: [Synth 8-3331] design lsq_store_op has unconnected port rst
+WARNING: [Synth 8-3331] design lsq_store_op has unconnected port clk
+WARNING: [Synth 8-3331] design lsq_load_op has unconnected port rst
+WARNING: [Synth 8-3331] design lsq_load_op has unconnected port clk
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_we1
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[31]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[30]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[29]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[28]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[27]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[26]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[25]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[24]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[23]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[22]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[21]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[20]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[19]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[18]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[17]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[16]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[15]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[14]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[13]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[12]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[11]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[10]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[9]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[8]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[7]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[6]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[5]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[4]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[3]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[2]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[1]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_dout1[0]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_we1
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[31]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[30]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[29]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[28]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[27]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[26]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[25]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[24]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[23]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[22]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[21]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[20]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[19]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[18]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[17]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[16]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[15]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[14]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[13]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[12]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[11]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[10]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[9]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[8]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[7]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[6]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[5]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[4]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[3]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[2]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[1]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port addr_dout1[0]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port start_in[0]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_din0[31]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_din0[30]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_din0[29]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_din0[28]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_din0[27]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_din0[26]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_din0[25]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_din0[24]
+WARNING: [Synth 8-3331] design getTanh_double has unconnected port A_din0[23]
+INFO: [Common 17-14] Message 'Synth 8-3331' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:06:03 ; elapsed = 00:06:51 . Memory (MB): peak = 6166.488 ; gain = 4375.480 ; free physical = 5257 ; free virtual = 7510
+---------------------------------------------------------------------------------
+
+Report Check Netlist: 
++------+------------------+-------+---------+-------+------------------+
+|      |Item              |Errors |Warnings |Status |Description       |
++------+------------------+-------+---------+-------+------------------+
+|1     |multi_driven_nets |      0|        0|Passed |Multi driven nets |
++------+------------------+-------+---------+-------+------------------+
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:06:29 ; elapsed = 00:07:20 . Memory (MB): peak = 6166.488 ; gain = 4375.480 ; free physical = 5767 ; free virtual = 8021
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:06:29 ; elapsed = 00:07:20 . Memory (MB): peak = 6166.488 ; gain = 4375.480 ; free physical = 5767 ; free virtual = 8021
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 6166.488 ; gain = 0.000 ; free physical = 4517 ; free virtual = 6771
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/synth/period_4.xdc]
+Finished Parsing XDC File [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/synth/period_4.xdc]
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00.02 ; elapsed = 00:00:00.03 . Memory (MB): peak = 6997.891 ; gain = 0.000 ; free physical = 3276 ; free virtual = 5545
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 6997.891 ; gain = 0.000 ; free physical = 3268 ; free virtual = 5537
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:07:59 ; elapsed = 00:08:59 . Memory (MB): peak = 6997.891 ; gain = 5206.883 ; free physical = 5651 ; free virtual = 7920
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5580] Multithreading enabled for synth_design using a maximum of 4 processes.
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7k160tfbg484-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:07:59 ; elapsed = 00:08:59 . Memory (MB): peak = 7009.812 ; gain = 5218.805 ; free physical = 5650 ; free virtual = 7920
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:07:59 ; elapsed = 00:08:59 . Memory (MB): peak = 7009.812 ; gain = 5218.805 ; free physical = 5650 ; free virtual = 7920
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:522541]
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [/home/dynamatic/Dynamatic/etc/dynamatic/fpga23-straight-lsq-interface/experiments/benchmarks/getTanh_double/sim/VHDL_SRC/LSQ_A.v:522632]
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:12:57 ; elapsed = 00:15:21 . Memory (MB): peak = 7013.898 ; gain = 5222.891 ; free physical = 3146 ; free virtual = 5500
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++------+-----------------------+------------+----------+
+|      |RTL Partition          |Replication |Instances |
++------+-----------------------+------------+----------+
+|1     |STORE_QUEUE_LSQ_A__GB0 |           1|     54912|
+|2     |STORE_QUEUE_LSQ_A__GB1 |           1|     14720|
+|3     |STORE_QUEUE_LSQ_A__GB2 |           1|     40128|
+|4     |STORE_QUEUE_LSQ_A__GB3 |           1|     29662|
+|5     |STORE_QUEUE_LSQ_A__GB4 |           1|     65600|
+|6     |STORE_QUEUE_LSQ_A__GB5 |           1|     37905|
+|7     |STORE_QUEUE_LSQ_A__GB6 |           1|     27392|
+|8     |STORE_QUEUE_LSQ_A__GB7 |           1|     27786|
+|9     |STORE_QUEUE_LSQ_A__GB8 |           1|     13215|
+|10    |STORE_QUEUE_LSQ_A__GB9 |           1|     24430|
+|11    |LOAD_QUEUE_LSQ_A__GB0  |           1|   2506335|
+|12    |LSQ_A__GC0             |           1|       408|
+|13    |getTanh_double__GC0    |           1|      3112|
++------+-----------------------+------------+----------+
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 1     
+	   3 Input     32 Bit       Adders := 1     
+	   2 Input      7 Bit       Adders := 257   
+	   3 Input      7 Bit       Adders := 2     
+	   2 Input      6 Bit       Adders := 10    
+	   3 Input      6 Bit       Adders := 2     
+	   2 Input      5 Bit       Adders := 4     
+	   2 Input      4 Bit       Adders := 5     
++---Registers : 
+	               32 Bit    Registers := 330   
+	                7 Bit    Registers := 3     
+	                6 Bit    Registers := 70    
+	                5 Bit    Registers := 1     
+	                4 Bit    Registers := 3     
+	                1 Bit    Registers := 9382  
++---RAMs : 
+	               1K Bit         RAMs := 1     
+	              704 Bit         RAMs := 1     
+	              512 Bit         RAMs := 1     
+	               35 Bit         RAMs := 1     
+	               13 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input   2048 Bit        Muxes := 64    
+	   2 Input     64 Bit        Muxes := 8576  
+	  65 Input     64 Bit        Muxes := 320   
+	   2 Input     32 Bit        Muxes := 85    
+	   2 Input      7 Bit        Muxes := 2     
+	  63 Input      6 Bit        Muxes := 2     
+	   2 Input      6 Bit        Muxes := 1     
+	   2 Input      2 Bit        Muxes := 3     
+	   2 Input      1 Bit        Muxes := 4971  
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Hierarchical Component Statistics 
+---------------------------------------------------------------------------------
+Hierarchical RTL Component report 
+Module STORE_QUEUE_LSQ_A 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      7 Bit       Adders := 127   
+	   2 Input      6 Bit       Adders := 2     
++---Registers : 
+	               32 Bit    Registers := 128   
+	                6 Bit    Registers := 66    
+	                1 Bit    Registers := 384   
++---Muxes : 
+	   2 Input     64 Bit        Muxes := 128   
+	  65 Input     64 Bit        Muxes := 128   
+	   2 Input      1 Bit        Muxes := 383   
+Module LOAD_QUEUE_LSQ_A 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      7 Bit       Adders := 127   
+	   2 Input      6 Bit       Adders := 2     
++---Registers : 
+	               32 Bit    Registers := 192   
+	                6 Bit    Registers := 2     
+	                1 Bit    Registers := 8896  
++---Muxes : 
+	   2 Input   2048 Bit        Muxes := 64    
+	   2 Input     64 Bit        Muxes := 8448  
+	  65 Input     64 Bit        Muxes := 192   
+	   2 Input     32 Bit        Muxes := 66    
+	  63 Input      6 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 4544  
+Module GROUP_ALLOCATOR_LSQ_A 
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input      7 Bit       Adders := 2     
+	   2 Input      6 Bit       Adders := 2     
+	   3 Input      6 Bit       Adders := 2     
++---Muxes : 
+	   2 Input      7 Bit        Muxes := 2     
+	   2 Input      6 Bit        Muxes := 1     
+Module LOAD_PORT_LSQ_A 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      7 Bit       Adders := 1     
++---Registers : 
+	                7 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module STORE_DATA_PORT_LSQ_A__1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      7 Bit       Adders := 1     
++---Registers : 
+	                7 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module STORE_DATA_PORT_LSQ_A 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      7 Bit       Adders := 1     
++---Registers : 
+	                7 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module OEHB 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module start_node 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module orN 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__18 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__19 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module TEHB__parameterized0 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module mux 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__parameterized0__4 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__parameterized0__5 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module andN__8 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module delay_buffer__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 4     
+Module OEHB__4 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module andN__11 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module delay_buffer__parameterized0__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 8     
+Module OEHB__7 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module andN__9 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module delay_buffer__2 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 4     
+Module OEHB__5 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module andN__10 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module delay_buffer__3 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 4     
+Module OEHB__6 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module andN 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module delay_buffer__parameterized0 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 8     
+Module OEHB__3 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module andN__7 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module delay_buffer 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 4     
+Module OEHB__2 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module andN__6 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module add_op 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 1     
+Module andN__5 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__17 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module TEHB__2 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module mux__parameterized0 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 3     
+Module andN__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module TEHB__parameterized0__3 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module merge 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__4 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module orN__parameterized1__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__21 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__20 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized1__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__23 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__22 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__14 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__15 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__16 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__8 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__9 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__10 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__11 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__12 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__13 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized1__3 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__25 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__24 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__6 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__7 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module orN__parameterized3 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module eagerFork_RegisterBLock__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__2 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__3 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__4 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module eagerFork_RegisterBLock__5 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
+Module TEHB__parameterized0__2 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module OEHB__parameterized0 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
+Module TEHB__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module OEHB__1 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 2     
+Module elasticFifoInner 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      4 Bit       Adders := 2     
++---Registers : 
+	                4 Bit    Registers := 1     
+	                1 Bit    Registers := 2     
++---RAMs : 
+	               13 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module elasticFifoInner__parameterized0 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      6 Bit       Adders := 2     
++---Registers : 
+	                6 Bit    Registers := 1     
+	                1 Bit    Registers := 2     
++---RAMs : 
+	               35 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__parameterized0 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module elasticFifoInner__parameterized1 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 2     
+	   2 Input      4 Bit       Adders := 3     
++---Registers : 
+	                4 Bit    Registers := 2     
+	                1 Bit    Registers := 2     
++---RAMs : 
+	              512 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__parameterized1 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module elasticFifoInner__parameterized2 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 2     
++---Registers : 
+	                5 Bit    Registers := 1     
+	                1 Bit    Registers := 2     
++---RAMs : 
+	              704 Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__parameterized2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module elasticFifoInner__parameterized3 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      6 Bit       Adders := 2     
++---Registers : 
+	                6 Bit    Registers := 1     
+	                1 Bit    Registers := 2     
++---RAMs : 
+	               1K Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module transpFIFO__parameterized3 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module TEHB__parameterized0__1 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module read_address_mux 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module read_data_signals 
+Detailed RTL Component Info : 
++---Registers : 
+	               32 Bit    Registers := 1     
+	                1 Bit    Registers := 2     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 1     
+Module write_address_mux 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module write_data_signals 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module MemCont 
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input     32 Bit       Adders := 1     
++---Registers : 
+	               32 Bit    Registers := 2     
++---Muxes : 
+	   2 Input     32 Bit        Muxes := 1     
+Module andN__2 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+Module andN__3 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 1     
+---------------------------------------------------------------------------------
+Finished RTL Hierarchical Component Statistics
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 600 (col length:100)
+BRAMs: 650 (col length: RAMB18 100 RAMB36 50)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_6/fifo/Head_reg_rep[0]' (FDRE) to 'i_0/Buffer_6/fifo/Head_reg[0]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_6/fifo/Head_reg_rep[1]' (FDRE) to 'i_0/Buffer_6/fifo/Head_reg[1]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_6/fifo/Head_reg_rep[2]' (FDRE) to 'i_0/Buffer_6/fifo/Head_reg[2]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_6/fifo/Head_reg_rep[3]' (FDRE) to 'i_0/Buffer_6/fifo/Head_reg[3]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_6/fifo/Head_reg_rep[4]' (FDRE) to 'i_0/Buffer_6/fifo/Head_reg[4]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_7/fifo/Head_reg_rep[0]' (FDRE) to 'i_0/Buffer_7/fifo/Head_reg[0]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_7/fifo/Head_reg_rep[1]' (FDRE) to 'i_0/Buffer_7/fifo/Head_reg[1]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_7/fifo/Head_reg_rep[2]' (FDRE) to 'i_0/Buffer_7/fifo/Head_reg[2]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_7/fifo/Head_reg_rep[3]' (FDRE) to 'i_0/Buffer_7/fifo/Head_reg[3]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_7/fifo/Head_reg_rep[4]' (FDRE) to 'i_0/Buffer_7/fifo/Head_reg[4]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_7/fifo/Head_reg_rep[5]' (FDRE) to 'i_0/Buffer_7/fifo/Head_reg[5]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_3/fifo/Head_reg_rep[2]' (FDRE) to 'i_0/Buffer_3/fifo/Head_reg[2]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_3/fifo/Head_reg_rep[1]' (FDRE) to 'i_0/Buffer_3/fifo/Head_reg[1]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_3/fifo/Head_reg_rep[0]' (FDRE) to 'i_0/Buffer_3/fifo/Head_reg[0]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_3/fifo/Head_reg_rep[3]' (FDRE) to 'i_0/Buffer_3/fifo/Head_reg[3]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_4/fifo/Head_reg_rep[5]' (FDRE) to 'i_0/Buffer_4/fifo/Head_reg[5]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_4/fifo/Head_reg_rep[3]' (FDRE) to 'i_0/Buffer_4/fifo/Head_reg[3]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_4/fifo/Head_reg_rep[2]' (FDRE) to 'i_0/Buffer_4/fifo/Head_reg[2]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_4/fifo/Head_reg_rep[1]' (FDRE) to 'i_0/Buffer_4/fifo/Head_reg[1]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_4/fifo/Head_reg_rep[0]' (FDRE) to 'i_0/Buffer_4/fifo/Head_reg[0]'
+INFO: [Synth 8-3886] merging instance 'i_0/Buffer_4/fifo/Head_reg_rep[4]' (FDRE) to 'i_0/Buffer_4/fifo/Head_reg[4]'
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (i_0/\forkC_0/generateBlocks[0].regblock/reg_value_reg )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_25_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_24_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_26_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_27_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_28_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_29_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_30_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_31_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_32_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_33_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_34_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_35_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_36_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_37_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_38_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_39_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_40_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_41_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_42_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_43_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_44_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_45_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_46_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_47_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_48_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_49_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_50_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_51_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_52_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_53_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_54_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_55_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_56_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_57_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_58_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_59_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_60_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_61_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_62_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_63_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_0_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_1_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_2_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_3_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_4_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_5_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_6_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_7_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_8_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_9_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_10_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_11_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_12_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_13_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_14_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_15_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_16_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_17_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_18_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_19_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_20_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_21_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_22_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_23_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_3_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_2_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_4_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_5_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_6_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_7_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_8_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_9_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_10_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_11_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_12_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_13_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_14_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_15_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_16_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_17_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_18_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_19_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_20_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_21_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_22_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_23_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_24_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_25_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_26_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_27_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_28_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_29_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_30_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_31_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_32_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_33_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_34_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_35_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (portQ_36_reg)
+INFO: [Common 17-14] Message 'Synth 8-3333' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:20:15 ; elapsed = 00:30:37 . Memory (MB): peak = 7025.824 ; gain = 5234.816 ; free physical = 2484 ; free virtual = 5355
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Distributed RAM: Preliminary Mapping	Report (see note below)
++---------------+--------------------------+-----------+----------------------+--------------+
+|Module Name    | RTL Object               | Inference | Size (Depth x Width) | Primitives   | 
++---------------+--------------------------+-----------+----------------------+--------------+
+|getTanh_double | Buffer_5/fifo/Memory_reg | Implied   | 16 x 32              | RAM32M x 6	  | 
+|getTanh_double | Buffer_6/fifo/Memory_reg | Implied   | 32 x 32              | RAM32M x 6	  | 
+|getTanh_double | Buffer_7/fifo/Memory_reg | Implied   | 64 x 32              | RAM64M x 11	 | 
++---------------+--------------------------+-----------+----------------------+--------------+
+
+Note: The table above is a preliminary report that shows the Distributed RAMs at the current stage of the synthesis flow. Some Distributed RAMs may be reimplemented as non Distributed RAM primitives later in the synthesis flow. Multiple instantiated RAMs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++------+-----------------------+------------+----------+
+|      |RTL Partition          |Replication |Instances |
++------+-----------------------+------------+----------+
+|1     |STORE_QUEUE_LSQ_A__GB0 |           1|      4972|
+|2     |STORE_QUEUE_LSQ_A__GB1 |           1|      1198|
+|3     |STORE_QUEUE_LSQ_A__GB2 |           1|      2445|
+|4     |STORE_QUEUE_LSQ_A__GB3 |           1|      1957|
+|5     |STORE_QUEUE_LSQ_A__GB4 |           1|      5354|
+|6     |STORE_QUEUE_LSQ_A__GB5 |           1|      2233|
+|7     |STORE_QUEUE_LSQ_A__GB6 |           1|      1717|
+|8     |STORE_QUEUE_LSQ_A__GB7 |           1|      2822|
+|9     |STORE_QUEUE_LSQ_A__GB8 |           1|      4042|
+|10    |STORE_QUEUE_LSQ_A__GB9 |           1|     24340|
+|11    |LOAD_QUEUE_LSQ_A__GB0  |           1|   1898412|
+|12    |LSQ_A__GC0             |           1|       276|
+|13    |getTanh_double__GC0    |           1|      1923|
++------+-----------------------+------------+----------+
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:20:47 ; elapsed = 00:31:12 . Memory (MB): peak = 7025.824 ; gain = 5234.816 ; free physical = 1946 ; free virtual = 5181
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------

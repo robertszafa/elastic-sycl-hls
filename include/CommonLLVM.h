@@ -430,6 +430,44 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   return nullptr;
 }
 
+/// Determine whether block 'To' is reachable from 'From' within the loop 'L',
+/// i.e. without taking the loop back edge.
+///
+/// CFG.h has an isPotentiallyReachable API, but that assumes that every block
+/// within loop has a path to every other block (via the backedge). It would
+/// require adding loop exit/header to the exclusion list. The below is simpler.
+[[maybe_unused]] bool isReachableWithinLoop(const BasicBlock *From,
+                                            const BasicBlock *To,
+                                            const Loop *L) {
+  assert(L->contains(From) && L->contains(To) &&
+         "isReachableWithinLoop(From, To, L): From/To blocks not in L body.");
+
+  const BasicBlock *Stop = L->getLoopLatch();
+
+  if (Stop == To)
+    return true; // 'From' in loop body always reaches loop latch. 
+
+  SetVector<const BasicBlock *> visited;
+  SmallVector<const BasicBlock *> worklist = {From};
+
+  bool isReachable = false;
+  while (!worklist.empty()) {
+    auto Current = worklist.pop_back_val();
+    
+    if (Current == To) {
+      isReachable = true;
+      break;
+    } else if (Current == Stop) {
+      continue;
+    } else if (!visited.contains(Current)) {
+      visited.insert(Current);
+      worklist.append(succ_begin(Current), succ_end(Current));
+    }
+  }
+
+  return isReachable;
+}
+
 } // namespace
 
 #endif

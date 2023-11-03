@@ -330,6 +330,8 @@ void DataHazardAnalysis::calculatePoisonBlocks(DominatorTree &DT,
                                                LoopInfo &LI) {
   // Go through every specBB that contains speculative allocations.
   for (auto [specBB, allocStack] : speculationStack) {
+    const auto L = LI.getLoopFor(specBB);
+
     // Init
     for (auto alloc : allocStack) 
       poisonLocations[alloc] = SmallVector<PoisonLocation>();
@@ -339,32 +341,35 @@ void DataHazardAnalysis::calculatePoisonBlocks(DominatorTree &DT,
       auto trueBB = alloc->getParent();
 
       // Check every pred~>succ CFG edge dominated by specBB.
-      for (auto predBB : LI.getLoopFor(specBB)->blocks()) {
-        if (!DT.dominates(specBB, predBB))
+      for (auto EdgeStart : L->blocks()) {
+        if (!DT.dominates(specBB, EdgeStart))
           continue;
 
-        for (auto succBB : successors(predBB)) {
-          // Ignore the CFG edge where the speculation is becomes or is true.
-          if (predBB == trueBB || succBB == trueBB)
+        for (auto EdgeEnd : successors(EdgeStart)) {
+          bool edgeLeadsToTrueBB = (EdgeStart == trueBB || EdgeEnd == trueBB);
+          if (edgeLeadsToTrueBB)
             continue;
 
-          // Check if a poisonBB for {alloc} here would break allocStack order.
+          // Check if poisonBB for {alloc} on this edge breaks allocStack order.
           bool breaksSpeculationOrder = false;
           for (auto allocI : allocStack) {
             // Go up to current trueBB. 
             if (allocI->getParent() == trueBB)
               break;
-            // Check if we would break the speculation order.
-            if (DT.dominates(succBB, allocI->getParent()))
+
+            if (isReachableWithinLoop(EdgeEnd, allocI->getParent(), L)) {
               breaksSpeculationOrder = true;
+              break;
+            }
           }
 
           // When taking the pred~>suc CFG edge, does trueBB become unreachable?
           bool trueBlockBecomesUnreachable =
-              DT.dominates(predBB, trueBB) && !DT.dominates(succBB, trueBB);
+              isReachableWithinLoop(EdgeStart, trueBB, L) &&
+              !isReachableWithinLoop(EdgeEnd, trueBB, L);
 
           if (trueBlockBecomesUnreachable && !breaksSpeculationOrder) 
-            poisonLocations[alloc].push_back({predBB, succBB});
+            poisonLocations[alloc].push_back({EdgeStart, EdgeEnd});
         }
       }
     }

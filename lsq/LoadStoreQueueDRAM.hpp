@@ -10,13 +10,11 @@ Load Store Queue kernel for SYCL HLS. The LSQ is for off-chip memory.
 #include <sycl/sycl.hpp>
 
 #include <sycl/ext/intel/fpga_extensions.hpp>
-#include <sycl/ext/intel/ac_types/ac_int.hpp>
 
-#include "pipe_utils.hpp"
-#include "tuple.hpp"
-#include "unrolled_loop.hpp"
 #include "constexpr_math.hpp"
-#include "device_print.hpp"
+#include "pipe_utils.hpp"
+#include "unrolled_loop.hpp"
+#include "tuple.hpp"
 
 using namespace sycl;
 using namespace fpga_tools;
@@ -52,18 +50,20 @@ template <typename LSQ_ID>
 class StorePort;
 template <typename LSQ_ID>
 class LSQ_DRAM;
+template <typename LSQ_ID>
+class StoreReqMux;
 
 template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           typename st_req_pipes, typename st_val_pipes,
-          typename end_signal_pipe, bool USE_SPECULATION, int NUM_LDS,
-          int NUM_STS, int LD_Q_SIZE = 4, int ST_Q_SIZE = 8>
+          typename end_signal_pipe, bool USE_SPECULATION, uint NUM_LDS,
+          uint NUM_STS, uint LD_Q_SIZE = 4, uint ST_Q_SIZE = 8>
 [[clang::optnone]] event LoadStoreQueueDRAM(queue &q) {
   assert(LD_Q_SIZE >= 2 && "Load queue size must be at least 2.");
   assert(ST_Q_SIZE >= 2 && "Store queue size must be at least 2.");
 
   // Pipes to connect LSQ to ld/st ports and to ld value mux.
-  using pred_st_port_pipe = pipe<class pred_st_port_pipe_class, bool, LSU_STORE_LATENCY>;
-  using st_port_val_pipe = pipe<class st_port_val_pipe_class, addr_dram_val_pair_t<value_t>, LSU_STORE_LATENCY>;
+  using pred_st_port_pipe = pipe<class pred_st_port_pipe_class, bool, NUM_STS>;
+  using st_port_val_pipe = pipe<class st_port_val_pipe_class, addr_dram_val_pair_t<value_t>, NUM_STS>;
 
   // Each load gets its own load port and load mux, thus the use of PipeArrays.
   using pred_ld_port_pipes = PipeArray<class pred_ld_port_pipe_class, bool, LSU_LOAD_LATENCY, NUM_LDS>;
@@ -117,6 +117,49 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
     });
   }); // End load port and load mux kernels
 
+  // Multiple store requests are muxed when coming into the LSQ.
+  using st_req_pipe = pipe<class st_req_pipe_mux_, req_lsq_dram_t, NUM_STS>;
+  using st_req_mux_end_signal = pipe<class st_req_mux_end_signal_, bool>;
+  if constexpr (NUM_STS > 1) {
+    q.single_task<StoreReqMux<end_signal_pipe>>([=]() KERNEL_PRAGMAS {
+      // The expected next tag, always increasing by one.
+      uint next_tag = 1;
+
+      NTuple<req_lsq_dram_t, NUM_STS> st_req_tuple;
+      NTuple<bool, NUM_STS> read_succ_tuple;
+
+      bool end_signal = false;
+      [[intel::initiation_interval(1)]] 
+      [[intel::speculated_iterations(0)]]
+      while (!end_signal) {
+        st_req_mux_end_signal::read(end_signal);
+
+        // Choose one, based on tag.
+        bool is_req_valid = false;
+        req_lsq_dram_t req_to_write;
+        UnrolledLoop<NUM_STS>([&](auto k) {
+          auto& read_succ = read_succ_tuple. template get<k>();
+          auto& st_req = st_req_tuple. template get<k>();
+          // Only one will match.
+          if (read_succ) { 
+            if (st_req.tag == next_tag) {
+              is_req_valid = true;
+              read_succ = false;
+              req_to_write = st_req;
+            }
+          } else {
+            st_req = st_req_pipes:: template PipeAt<k>::read(read_succ);
+          }
+        });
+
+        if (is_req_valid) {
+          st_req_pipe::write(req_to_write);
+          next_tag++;
+        }
+      }
+    });
+  } 
+
   /// Load store queue kernel.
   auto lsqEvent = q.submit([&](handler &hnd) {
     hnd.single_task<LSQ_DRAM<end_signal_pipe>>([=]() KERNEL_PRAGMAS {
@@ -136,17 +179,14 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
       [[intel::fpga_register]] LD_STATE ld_state[NUM_LDS][LD_Q_SIZE];
       [[intel::fpga_register]] addr_dram_t ld_addr[NUM_LDS][LD_Q_SIZE];
       [[intel::fpga_register]] uint ld_tag[NUM_LDS][LD_Q_SIZE];
-      [[intel::fpga_register]] bool ld_no_conflict[NUM_LDS][LD_Q_SIZE];
+      [[intel::fpga_register]] bool ld_is_safe[NUM_LDS][LD_Q_SIZE];
       [[intel::fpga_register]] value_t bypass_val[NUM_LDS][LD_Q_SIZE];
       [[intel::fpga_register]] bool is_bypass[NUM_LDS][LD_Q_SIZE];
 
       // Signal to stop the LSQ.
       bool end_signal = false;
 
-      // Used if NUM_STS > 1. st_reqs and st_vals are muxed based on tag.
-      req_lsq_dram_t st_req_read[NUM_STS];
-      bool st_req_read_succ[NUM_STS];
-      uint next_st_req_tag = 1;
+      // Used if NUM_STS > 1. st_vals are muxed based on tag.
       tagged_val_lsq_dram_t<value_t> st_val_read[NUM_STS];
       bool st_val_read_succ[NUM_STS];
       uint next_st_val_tag = 1;
@@ -181,19 +221,19 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           } else {
             // Store value mux.
             UnrolledLoop<NUM_STS>([&](auto k) {
-              if (!st_val_read_succ[k])
+              if (st_val_read_succ[k]) {
+                if (st_val_read[k].tag == next_st_val_tag) {
+                  st_val_read_succ[k] = false;
+                  st_val_arrived = true;
+                  st_val = st_val_read[k].value;
+                  if constexpr (USE_SPECULATION) 
+                    st_val_valid = st_val_read[k].valid;
+                  else
+                    st_val_valid = true;
+                }
+              } else {
                 st_val_read[k] =
                     st_val_pipes::template PipeAt<k>::read(st_val_read_succ[k]);
-            });
-            UnrolledLoop<NUM_STS>([&](auto k) {
-              if (st_val_read_succ[k] && st_val_read[k].tag == next_st_val_tag) {
-                st_val_read_succ[k] = false;
-                st_val_arrived = true;
-                st_val = st_val_read[k].value;
-                if constexpr (USE_SPECULATION) 
-                  st_val_valid = st_val_read[k].valid;
-                else
-                  st_val_valid = true;
               }
             });
 
@@ -226,27 +266,14 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           auto next_st_alloc_addr = INVALID_ADDRESS;
           req_lsq_dram_t st_req;
 
-          if constexpr (NUM_STS == 1) {
+          if constexpr (NUM_STS == 1)
             st_req = st_req_pipes:: template PipeAt<0>::read(st_req_valid);
-          } else { // Store request mux.
-            UnrolledLoop<NUM_STS>([&](auto k) {
-              if (!st_req_read_succ[k])
-                st_req_read[k] =
-                    st_req_pipes::template PipeAt<k>::read(st_req_read_succ[k]);
-            });
-            UnrolledLoop<NUM_STS>([&](auto k) {
-              if (st_req_read_succ[k] && st_req_read[k].tag == next_st_req_tag) {
-                st_req_read_succ[k] = false;
-                st_req = st_req_read[k];
-                st_req_valid = true;
-              }
-            });
-          }
+          else 
+            st_req = st_req_pipe::read(st_req_valid);
 
           if (st_req_valid) {
             next_st_alloc_addr = st_req.addr;
             last_st_req_tag++;
-            next_st_req_tag++;
           }
 
           #pragma unroll
@@ -264,84 +291,84 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
 
         /************************* Start Load Logic **************************/
         // All loads proceed in parallel.
-        UnrolledLoop<NUM_LDS>([&](auto iLd) {
-          if (ld_state[iLd][0] == LD_STATE::SEARCH && ld_no_conflict[iLd][0]) {
+        UnrolledLoop<NUM_LDS>([&](auto iPort) {
+          if (ld_state[iPort][0] == LD_STATE::SEARCH && ld_is_safe[iPort][0]) {
             // Inform ld MUX to expect value from bypass pipe or ld port.
-            pred_ld_mux_pipes:: template PipeAt<iLd>::write(1);
-            ld_mux_sel_pipes:: template PipeAt<iLd>::write(is_bypass[iLd][0]);
-            if (is_bypass[iLd][0]) {
+            pred_ld_mux_pipes:: template PipeAt<iPort>::write(1);
+            ld_mux_sel_pipes:: template PipeAt<iPort>::write(is_bypass[iPort][0]);
+            if (is_bypass[iPort][0]) {
               // If bypass, then send value directly to mux.
-              ld_mux_from_bypass_val_pipes::template PipeAt<iLd>::write(
-                  bypass_val[iLd][0]);
+              ld_mux_from_bypass_val_pipes::template PipeAt<iPort>::write(
+                  bypass_val[iPort][0]);
             } else {
               // Otherwise, issue load request to load port.
-              pred_ld_port_pipes:: template PipeAt<iLd>::write(1);
-              ld_port_addr_pipes:: template PipeAt<iLd>::write(ld_addr[iLd][0]);
+              pred_ld_port_pipes:: template PipeAt<iPort>::write(1);
+              ld_port_addr_pipes:: template PipeAt<iPort>::write(ld_addr[iPort][0]);
             }
 
-            ld_state[iLd][0] = LD_STATE::WAIT_FOR_REQ;
+            ld_state[iPort][0] = LD_STATE::WAIT_FOR_REQ;
           }
 
           // Wait for load allocation if there is space in the queue.
-          if (ld_state[iLd][LD_Q_SIZE-1] == LD_STATE::WAIT_FOR_REQ) {
+          if (ld_state[iPort][LD_Q_SIZE-1] == LD_STATE::WAIT_FOR_REQ) {
             bool pipe_succ = false;
-            auto ld_req = ld_req_pipes:: template PipeAt<iLd>::read(pipe_succ);
+            auto ld_req = ld_req_pipes:: template PipeAt<iPort>::read(pipe_succ);
             if (pipe_succ) {
-              ld_addr[iLd][LD_Q_SIZE - 1] = ld_req.addr;
-              ld_tag[iLd][LD_Q_SIZE - 1] = ld_req.tag;
-              ld_state[iLd][LD_Q_SIZE - 1] = LD_STATE::SEARCH;
+              ld_addr[iPort][LD_Q_SIZE - 1] = ld_req.addr;
+              ld_tag[iPort][LD_Q_SIZE - 1] = ld_req.tag;
+              ld_state[iPort][LD_Q_SIZE - 1] = LD_STATE::SEARCH;
             }
-            ld_no_conflict[iLd][LD_Q_SIZE-1] = false;
+            ld_is_safe[iPort][LD_Q_SIZE-1] = false;
           }
 
           // Check the first 2 entries in the ld alloc queue for store conflicts.
-          UnrolledLoop<2>([&](auto iAlloc) {
-            if (ld_tag[iLd][iAlloc] <= last_st_req_tag) {
-              // Pipeline stage before the OR-reduction.
+          UnrolledLoop<2>([&](auto iLd) {
+            if (ld_tag[iPort][iLd] <= last_st_req_tag) {
               bool match[ST_Q_SIZE];
-              bool ld_wait = false;
               #pragma unroll
               for (int i = 0; i < ST_Q_SIZE; ++i) {
-                match[i] = (st_alloc_addr[i] == ld_addr[iLd][iAlloc] &&
-                            st_alloc_tag[i] <= ld_tag[iLd][iAlloc]);
+                match[i] = (st_alloc_addr[i] == ld_addr[iPort][iLd] && 
+                            st_alloc_tag[i] <= ld_tag[iPort][iLd]);
               }
 
+              bool ld_wait = false;
               #pragma unroll
-              for (int i = 0; i < ST_Q_SIZE; ++i) 
+              for (int i=0; i<ST_Q_SIZE; ++i)
                 ld_wait |= match[i];
 
-              if (!ld_wait)
-                ld_no_conflict[iLd][iAlloc] = true;
+              // Once a load is marked as safe, it cannot go back to unsafe.
+              if (!ld_wait) 
+                ld_is_safe[iPort][iLd] = true;
             }
 
-            // Check iif we can possibly forward a value from the store commit
+            // Check if we can possibly forward a value from the store commit
             // queue. 'is_bypass' is only valid when 'no_conflict' is true, so
             // check for bypass on every invocation.
-            is_bypass[iLd][iAlloc] = false;
+            is_bypass[iPort][iLd] = false;
             #pragma unroll
             for (int i = 0; i < LSU_STORE_LATENCY; ++i) {
               // If multiple matches, then the most recent one wins. No need to
               // check the tags since all stores in the commit queue by
               // definition come before this load in program order.
-              if (st_commit_addr[i] == ld_addr[iLd][iAlloc]) {
-                is_bypass[iLd][iAlloc] = true;
-                bypass_val[iLd][iAlloc] = st_commit_value[i];
+              if (st_commit_addr[i] == ld_addr[iPort][iLd]) {
+                is_bypass[iPort][iLd] = true;
+                bypass_val[iPort][iLd] = st_commit_value[i];
               }
             }
           });
 
           // Shift ld alloc queue whenever the top alloc has no valid request.
-          if (ld_state[iLd][0] == LD_STATE::WAIT_FOR_REQ) {
+          if (ld_state[iPort][0] == LD_STATE::WAIT_FOR_REQ) {
             UnrolledLoop<LD_Q_SIZE - 1>([&](auto i) {
-              ld_state[iLd][i] = ld_state[iLd][i + 1];
-              ld_addr[iLd][i] = ld_addr[iLd][i + 1];
-              ld_tag[iLd][i] = ld_tag[iLd][i + 1];
-              ld_no_conflict[iLd][i] = ld_no_conflict[iLd][i + 1];
-              is_bypass[iLd][i] = is_bypass[iLd][i+1];
-              bypass_val[iLd][i] = bypass_val[iLd][i+1];
+              ld_state[iPort][i] = ld_state[iPort][i + 1];
+              ld_addr[iPort][i] = ld_addr[iPort][i + 1];
+              ld_tag[iPort][i] = ld_tag[iPort][i + 1];
+              ld_is_safe[iPort][i] = ld_is_safe[iPort][i + 1];
+              is_bypass[iPort][i] = is_bypass[iPort][i+1];
+              bypass_val[iPort][i] = bypass_val[iPort][i+1];
             });
-            ld_state[iLd][LD_Q_SIZE-1] = LD_STATE::WAIT_FOR_REQ;
-            ld_no_conflict[iLd][LD_Q_SIZE-1] = false;
+            ld_state[iPort][LD_Q_SIZE-1] = LD_STATE::WAIT_FOR_REQ;
+            ld_is_safe[iPort][LD_Q_SIZE-1] = false;
           }
         });
         /************************** End Load Logic ***************************/
@@ -354,6 +381,9 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         pred_ld_mux_pipes:: template PipeAt<iLd>::write(0);
       });
       pred_st_port_pipe::write(0);
+
+      if constexpr (NUM_STS > 1) 
+        st_req_mux_end_signal::write(0);
 
     });
   }); // End LSQ kernel

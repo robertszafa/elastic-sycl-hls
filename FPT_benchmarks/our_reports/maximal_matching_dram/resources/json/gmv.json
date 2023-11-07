@@ -3,7 +3,7 @@
   [
     {
       "name":"DDR"
-      , "id":1196
+      , "id":1197
       , "details":
       [
         {
@@ -20,7 +20,7 @@
       [
         {
           "name":"channel 0"
-          , "id":1198
+          , "id":1199
           , "details":
           [
             {
@@ -38,7 +38,7 @@
         }
         , {
           "name":"channel 1"
-          , "id":1199
+          , "id":1200
           , "details":
           [
             {
@@ -58,8 +58,8 @@
     }
     , {
       "name":"Memory Controller"
-      , "id":1197
-      , "parent":"1196"
+      , "id":1198
+      , "parent":"1197"
       , "bw":"34133.00"
       , "num_channels":"2"
       , "interleave":"1"
@@ -74,19 +74,19 @@
     }
     , {
       "name":"Global Memory Interconnect"
-      , "id":1200
-      , "parent":"1196"
+      , "id":1201
+      , "parent":"1197"
       , "type":"bb"
       , "children":
       [
         {
           "name":"SHARE"
-          , "id":1201
+          , "id":1202
           , "type":"arb"
         }
         , {
           "name":"Write Interconnect"
-          , "id":1204
+          , "id":1205
           , "details":
           [
             {
@@ -102,7 +102,7 @@
         }
         , {
           "name":"Read Interconnect"
-          , "id":1202
+          , "id":1203
           , "details":
           [
             {
@@ -116,7 +116,7 @@
         }
         , {
           "name":"Read Interconnect Router"
-          , "id":1203
+          , "id":1204
           , "details":
           [
             {
@@ -129,12 +129,12 @@
           [
             {
               "name":"Bus 0"
-              , "id":1213
+              , "id":1214
               , "type":"memsys"
             }
             , {
               "name":"Bus 1"
-              , "id":1214
+              , "id":1215
               , "type":"memsys"
             }
           ]
@@ -143,14 +143,14 @@
     }
     , {
       "name":"Global Memory Loads"
-      , "id":1205
-      , "parent":"1196"
+      , "id":1206
+      , "parent":"1197"
       , "type":"bb"
       , "children":
       [
         {
           "name":"LD"
-          , "id":1206
+          , "id":1207
           , "kwidth":"64"
           , "mwidth":"512"
           , "details":
@@ -171,7 +171,7 @@
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/maximal_matching_dram_elastic_pass_workdir/maximal_matching_dram.ast.cpp"
-                , "line":725
+                , "line":867
               }
             ]
           ]
@@ -179,7 +179,7 @@
         }
         , {
           "name":"LD"
-          , "id":1209
+          , "id":1210
           , "kwidth":"32"
           , "mwidth":"512"
           , "details":
@@ -208,7 +208,7 @@
         }
         , {
           "name":"LD"
-          , "id":1210
+          , "id":1211
           , "kwidth":"32"
           , "mwidth":"512"
           , "details":
@@ -237,7 +237,7 @@
         }
         , {
           "name":"LD"
-          , "id":1211
+          , "id":1212
           , "kwidth":"64"
           , "mwidth":"512"
           , "details":
@@ -258,7 +258,7 @@
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/maximal_matching_dram_elastic_pass_workdir/maximal_matching_dram.ast.cpp"
-                , "line":757
+                , "line":899
               }
             ]
           ]
@@ -268,14 +268,14 @@
     }
     , {
       "name":"Global Memory Stores"
-      , "id":1207
-      , "parent":"1196"
+      , "id":1208
+      , "parent":"1197"
       , "type":"bb"
       , "children":
       [
         {
           "name":"ST"
-          , "id":1208
+          , "id":1209
           , "kwidth":"32"
           , "mwidth":"512"
           , "details":
@@ -304,7 +304,7 @@
         }
         , {
           "name":"ST"
-          , "id":1212
+          , "id":1213
           , "kwidth":"32"
           , "mwidth":"512"
           , "details":
@@ -325,7 +325,7 @@
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/maximal_matching_dram_elastic_pass_workdir/maximal_matching_dram.ast.cpp"
-                , "line":768
+                , "line":910
               }
             ]
           ]
@@ -337,83 +337,83 @@
   , "links":
   [
     {
-      "from":1198
-      , "to":1197
-    }
-    , {
-      "from":1197
+      "from":1199
       , "to":1198
     }
     , {
-      "from":1199
-      , "to":1197
-    }
-    , {
-      "from":1197
+      "from":1198
       , "to":1199
     }
     , {
-      "from":1202
-      , "to":1201
+      "from":1200
+      , "to":1198
     }
     , {
-      "from":1204
-      , "to":1201
+      "from":1198
+      , "to":1200
     }
     , {
-      "from":1201
-      , "to":1197
-    }
-    , {
-      "from":1206
+      "from":1203
       , "to":1202
     }
     , {
-      "from":1208
-      , "to":1204
+      "from":1205
+      , "to":1202
+    }
+    , {
+      "from":1202
+      , "to":1198
+    }
+    , {
+      "from":1207
+      , "to":1203
     }
     , {
       "from":1209
-      , "to":1202
+      , "to":1205
     }
     , {
       "from":1210
-      , "to":1202
+      , "to":1203
     }
     , {
       "from":1211
-      , "to":1202
+      , "to":1203
     }
     , {
       "from":1212
-      , "to":1204
+      , "to":1203
     }
     , {
-      "from":1197
-      , "to":1213
+      "from":1213
+      , "to":1205
     }
     , {
-      "from":1197
+      "from":1198
       , "to":1214
     }
     , {
-      "from":1213
-      , "to":1206
-      , "reverse":1
+      "from":1198
+      , "to":1215
     }
     , {
       "from":1214
-      , "to":1209
+      , "to":1207
       , "reverse":1
     }
     , {
-      "from":1213
+      "from":1215
       , "to":1210
       , "reverse":1
     }
     , {
       "from":1214
       , "to":1211
+      , "reverse":1
+    }
+    , {
+      "from":1215
+      , "to":1212
       , "reverse":1
     }
   ]

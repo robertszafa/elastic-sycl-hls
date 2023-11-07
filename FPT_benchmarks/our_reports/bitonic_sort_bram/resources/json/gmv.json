@@ -3,7 +3,7 @@
   [
     {
       "name":"DDR"
-      , "id":1102
+      , "id":903
       , "details":
       [
         {
@@ -20,7 +20,7 @@
       [
         {
           "name":"channel 0"
-          , "id":1104
+          , "id":905
           , "details":
           [
             {
@@ -38,7 +38,7 @@
         }
         , {
           "name":"channel 1"
-          , "id":1105
+          , "id":906
           , "details":
           [
             {
@@ -58,8 +58,8 @@
     }
     , {
       "name":"Memory Controller"
-      , "id":1103
-      , "parent":"1102"
+      , "id":904
+      , "parent":"903"
       , "bw":"34133.00"
       , "num_channels":"2"
       , "interleave":"1"
@@ -74,146 +74,15 @@
     }
     , {
       "name":"Global Memory Interconnect"
-      , "id":1106
-      , "parent":"1102"
+      , "id":907
+      , "parent":"903"
       , "type":"bb"
       , "children":
       [
         {
           "name":"SHARE"
-          , "id":1107
+          , "id":908
           , "type":"arb"
-        }
-        , {
-          "name":"Write Interconnect"
-          , "id":1110
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Name":"DDR"
-              , "Interconnect Style":"tree"
-              , "Writes":"1"
-              , "User specified force-single-store-ring flag":"False"
-              , "Store Rings":"2"
-            }
-          ]
-          , "type":"bb"
-        }
-        , {
-          "name":"Read Interconnect"
-          , "id":1108
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Name":"DDR"
-              , "Interconnect Style":"tree"
-              , "Reads":"1"
-            }
-          ]
-          , "type":"bb"
-        }
-        , {
-          "name":"Read Interconnect Router"
-          , "id":1109
-          , "details":
-          [
-            {
-              "type":"table"
-              , "User specified num-reorder flag":"Unset"
-            }
-          ]
-          , "type":"memsys"
-          , "children":
-          [
-            {
-              "name":"Bus 0"
-              , "id":1115
-              , "type":"memsys"
-            }
-            , {
-              "name":"Bus 1"
-              , "id":1116
-              , "type":"memsys"
-            }
-          ]
-        }
-      ]
-    }
-    , {
-      "name":"Global Memory Loads"
-      , "id":1111
-      , "parent":"1102"
-      , "type":"bb"
-      , "children":
-      [
-        {
-          "name":"LD"
-          , "id":1112
-          , "kwidth":"32"
-          , "mwidth":"512"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Start Cycle":"5"
-              , "Latency":"2 cycles"
-              , "Width":"32 bits"
-              , "DDR Width":"512 bits"
-              , "Uses Caching":"No"
-              , "LSU Style":"PREFETCHING"
-              , "Kernel":"MainKernel"
-            }
-          ]
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":770
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-      ]
-    }
-    , {
-      "name":"Global Memory Stores"
-      , "id":1113
-      , "parent":"1102"
-      , "type":"bb"
-      , "children":
-      [
-        {
-          "name":"ST"
-          , "id":1114
-          , "kwidth":"32"
-          , "mwidth":"512"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Start Cycle":"9"
-              , "Latency":"2 cycles"
-              , "Width":"32 bits"
-              , "DDR Width":"512 bits"
-              , "Uses Write Ack":"No"
-              , "LSU Style":"BURST-COALESCED"
-              , "Kernel":"MainKernel"
-            }
-          ]
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":790
-              }
-            ]
-          ]
-          , "type":"inst"
         }
       ]
     }
@@ -221,53 +90,24 @@
   , "links":
   [
     {
-      "from":1104
-      , "to":1103
+      "from":905
+      , "to":904
     }
     , {
-      "from":1103
-      , "to":1104
+      "from":904
+      , "to":905
     }
     , {
-      "from":1105
-      , "to":1103
+      "from":906
+      , "to":904
     }
     , {
-      "from":1103
-      , "to":1105
+      "from":904
+      , "to":906
     }
     , {
-      "from":1108
-      , "to":1107
-    }
-    , {
-      "from":1110
-      , "to":1107
-    }
-    , {
-      "from":1107
-      , "to":1103
-    }
-    , {
-      "from":1112
-      , "to":1108
-    }
-    , {
-      "from":1114
-      , "to":1110
-    }
-    , {
-      "from":1103
-      , "to":1115
-    }
-    , {
-      "from":1103
-      , "to":1116
-    }
-    , {
-      "from":1115
-      , "to":1112
-      , "reverse":1
+      "from":908
+      , "to":904
     }
   ]
 }

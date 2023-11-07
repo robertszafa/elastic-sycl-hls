@@ -113,7 +113,7 @@
                 {
                   "type":"table"
                   , "Width":"96 bits"
-                  , "Depth":"48"
+                  , "Depth":"4"
                   , "Stall-free":"No"
                   , "Start Cycle":"6"
                   , "Latency":"0"
@@ -152,7 +152,7 @@
                 {
                   "type":"table"
                   , "Width":"96 bits"
-                  , "Depth":"48"
+                  , "Depth":"4"
                   , "Stall-free":"No"
                   , "Start Cycle":"6"
                   , "Latency":"0"
@@ -191,7 +191,7 @@
                 {
                   "type":"table"
                   , "Width":"96 bits"
-                  , "Depth":"48"
+                  , "Depth":"4"
                   , "Stall-free":"No"
                   , "Start Cycle":"6"
                   , "Latency":"0"
@@ -230,7 +230,7 @@
                 {
                   "type":"table"
                   , "Width":"64 bits"
-                  , "Depth":"16"
+                  , "Depth":"4"
                   , "Stall-free":"No"
                   , "Start Cycle":"6"
                   , "Latency":"0"
@@ -260,7 +260,7 @@
                 [
                   {
                     "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":731
+                    , "line":879
                   }
                 ]
               ]
@@ -337,7 +337,7 @@
                 [
                   {
                     "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":719
+                    , "line":867
                   }
                 ]
               ]
@@ -351,7 +351,7 @@
                 [
                   {
                     "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":719
+                    , "line":867
                   }
                 ]
               ]
@@ -365,7 +365,7 @@
                 [
                   {
                     "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":719
+                    , "line":867
                   }
                 ]
               ]
@@ -377,13 +377,13 @@
     , {
       "type":"kernel"
       , "id":24
-      , "name":">"
+      , "name":"LoadReqMux"
       , "children":
       [
         {
           "type":"bb"
           , "id":25
-          , "name":">.B0"
+          , "name":"LoadReqMux.B0"
           , "details":
           [
             {
@@ -395,7 +395,7 @@
         , {
           "type":"bb"
           , "id":26
-          , "name":">.B1"
+          , "name":"LoadReqMux.B1"
           , "children":
           [
             {
@@ -440,13 +440,355 @@
             , {
               "type":"inst"
               , "id":30
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"4"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"3"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":31
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"4"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"3"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":32
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"4"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"3"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":33
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"3"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"6"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":35
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                    , "line":120
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"36"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":36
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"6"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"6"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":27
+          , "name":"LoadReqMux.B2"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":37
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"floyd_warshall_bram_elastic_fpga_hw.prj/ZTSZ18LoadStoreQueueBRAMIiN10fpga_tools9PipeArrayIZ20floydWarshall_kernelRN4sycl3_V15queueERSt6vecto_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":38
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                    , "line":110
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":39
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                    , "line":110
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":40
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                    , "line":110
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"kernel"
+      , "id":41
+      , "name":">"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":42
+          , "name":">.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":43
+          , "name":">.B1"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":45
+              , "name":"Non-Blocking Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":32
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"1"
+                  , "Stall-free":"Yes"
+                  , "Start Cycle":"1"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":47
               , "name":"Load"
               , "debug":
               [
                 [
                   {
                     "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":119
+                    , "line":211
                   }
                 ]
               ]
@@ -479,7 +821,7 @@
             }
             , {
               "type":"inst"
-              , "id":31
+              , "id":48
               , "name":"Non-Blocking Pipe Read"
               , "debug":
               [
@@ -495,9 +837,9 @@
                 {
                   "type":"table"
                   , "Width":"96 bits"
-                  , "Depth":"16"
+                  , "Depth":"4"
                   , "Stall-free":"Yes"
-                  , "Start Cycle":"1"
+                  , "Start Cycle":"2"
                   , "Latency":"0"
                   , "Reference":
                   [
@@ -518,14 +860,14 @@
             }
             , {
               "type":"inst"
-              , "id":33
+              , "id":50
               , "name":"Store"
               , "debug":
               [
                 [
                   {
                     "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":165
+                    , "line":261
                   }
                 ]
               ]
@@ -558,7 +900,7 @@
             }
             , {
               "type":"inst"
-              , "id":34
+              , "id":51
               , "name":"Non-Blocking Pipe Write"
               , "debug":
               [
@@ -574,7 +916,7 @@
                 {
                   "type":"table"
                   , "Width":"32 bits"
-                  , "Depth":"49"
+                  , "Depth":"5"
                   , "Stall-free":"Yes"
                   , "Start Cycle":"3"
                   , "Latency":"0"
@@ -597,7 +939,7 @@
             }
             , {
               "type":"inst"
-              , "id":36
+              , "id":53
               , "name":"Non-Blocking Pipe Write"
               , "debug":
               [
@@ -613,7 +955,7 @@
                 {
                   "type":"table"
                   , "Width":"32 bits"
-                  , "Depth":"49"
+                  , "Depth":"5"
                   , "Stall-free":"Yes"
                   , "Start Cycle":"3"
                   , "Latency":"0"
@@ -636,7 +978,7 @@
             }
             , {
               "type":"inst"
-              , "id":38
+              , "id":55
               , "name":"Non-Blocking Pipe Write"
               , "debug":
               [
@@ -652,7 +994,7 @@
                 {
                   "type":"table"
                   , "Width":"32 bits"
-                  , "Depth":"49"
+                  , "Depth":"5"
                   , "Stall-free":"Yes"
                   , "Start Cycle":"3"
                   , "Latency":"0"
@@ -675,7 +1017,7 @@
             }
             , {
               "type":"inst"
-              , "id":40
+              , "id":57
               , "name":"Non-Blocking Pipe Read"
               , "debug":
               [
@@ -691,7 +1033,7 @@
                 {
                   "type":"table"
                   , "Width":"96 bits"
-                  , "Depth":"48"
+                  , "Depth":"3"
                   , "Stall-free":"Yes"
                   , "Start Cycle":"2"
                   , "Latency":"0"
@@ -714,85 +1056,7 @@
             }
             , {
               "type":"inst"
-              , "id":41
-              , "name":"Non-Blocking Pipe Read"
-              , "debug":
-              [
-                [
-                  {
-                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
-                    , "line":32
-                  }
-                ]
-              ]
-              , "details":
-              [
-                {
-                  "type":"table"
-                  , "Width":"96 bits"
-                  , "Depth":"48"
-                  , "Stall-free":"Yes"
-                  , "Start Cycle":"2"
-                  , "Latency":"0"
-                  , "Reference":
-                  [
-                    {
-                      "type":"text"
-                      , "text":"See %L for more information"
-                      , "links":
-                      [
-                        {
-                          "guide":"Best Practices Guide : Channels"
-                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-            , {
-              "type":"inst"
-              , "id":42
-              , "name":"Non-Blocking Pipe Read"
-              , "debug":
-              [
-                [
-                  {
-                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
-                    , "line":32
-                  }
-                ]
-              ]
-              , "details":
-              [
-                {
-                  "type":"table"
-                  , "Width":"96 bits"
-                  , "Depth":"48"
-                  , "Stall-free":"Yes"
-                  , "Start Cycle":"2"
-                  , "Latency":"0"
-                  , "Reference":
-                  [
-                    {
-                      "type":"text"
-                      , "text":"See %L for more information"
-                      , "links":
-                      [
-                        {
-                          "guide":"Best Practices Guide : Channels"
-                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-            , {
-              "type":"inst"
-              , "id":43
+              , "id":58
               , "name":"Non-Blocking Pipe Read"
               , "debug":
               [
@@ -808,7 +1072,7 @@
                 {
                   "type":"table"
                   , "Width":"64 bits"
-                  , "Depth":"16"
+                  , "Depth":"4"
                   , "Stall-free":"Yes"
                   , "Start Cycle":"2"
                   , "Latency":"0"
@@ -831,14 +1095,14 @@
             }
             , {
               "type":"inst"
-              , "id":44
+              , "id":60
               , "name":"Loop Input"
               , "debug":
               [
                 [
                   {
                     "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":110
+                    , "line":202
                   }
                 ]
               ]
@@ -848,13 +1112,13 @@
                   "type":"table"
                   , "Start Cycle":"0"
                   , "Latency":"1"
-                  , "Loops To":"45"
+                  , "Loops To":"61"
                 }
               ]
             }
             , {
               "type":"inst"
-              , "id":45
+              , "id":61
               , "name":"Loop End"
               , "details":
               [
@@ -881,429 +1145,13 @@
         }
         , {
           "type":"bb"
-          , "id":27
+          , "id":44
           , "name":">.B2"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Latency":"0"
-            }
-          ]
-        }
-        , {
-          "type":"csr"
-          , "id":46
-          , "name":"Register Map"
-          , "debug":
-          [
-            [
-              {
-                "filename":"floyd_warshall_bram_elastic_fpga_hw.prj/ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ20floydWarshall_kernelRNS1_5queueERSt6vectorIiSaIiEESA_E27pi_csr.hpp"
-                , "line":1
-              }
-            ]
-          ]
-          , "children":
-          [
-            {
-              "type":"interface"
-              , "id":47
-              , "name":"start"
-              , "debug":
-              [
-                [
-                  {
-                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":62
-                  }
-                ]
-              ]
-            }
-            , {
-              "type":"interface"
-              , "id":48
-              , "name":"done"
-              , "debug":
-              [
-                [
-                  {
-                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":62
-                  }
-                ]
-              ]
-            }
-            , {
-              "type":"interface"
-              , "id":49
-              , "name":"busy"
-              , "debug":
-              [
-                [
-                  {
-                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":62
-                  }
-                ]
-              ]
-            }
-          ]
-        }
-        , {
-          "type":"memtype"
-          , "id":50
-          , "name":"On-chip Memory"
-          , "children":
-          [
-            {
-              "type":"memsys"
-              , "id":51
-              , "name":"Unknown name (address space 66)"
-              , "debug":
-              [
-              ]
-              , "details":
-              [
-                {
-                  "type":"table"
-                  , "Requested size":"400 bytes"
-                  , "Implemented size":"512 bytes"
-                  , "Number of banks":"1"
-                  , "Bank width":"32 bits"
-                  , "Bank depth":"128 words"
-                  , "Number of replicates":"1"
-                  , "Number of private copies":"1"
-                  , "Reference":
-                  [
-                    {
-                      "type":"text"
-                      , "text":"See %L for more information"
-                      , "links":
-                      [
-                        {
-                          "guide":"Best Practices Guide : Local Memory"
-                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-    , {
-      "type":"kernel"
-      , "id":55
-      , "name":"MainKernel"
-      , "children":
-      [
-        {
-          "type":"bb"
-          , "id":56
-          , "name":"MainKernel.B0"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Latency":"2"
-            }
-          ]
-        }
-        , {
-          "type":"bb"
-          , "id":57
-          , "name":"MainKernel.B1"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Latency":"4"
-              , "II":"1"
-              , "Subloops":"Yes"
-              , "Pipelined":"Yes"
-              , "Fmax Bottlenecks":"No"
-              , "Loop Info":"Entry to loop. "
-              , "Loops To":"59"
-            }
-          ]
-        }
-        , {
-          "type":"bb"
-          , "id":58
-          , "name":"MainKernel.B2"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Latency":"5"
-              , "II":"1"
-              , "Subloops":"Yes"
-              , "Pipelined":"Yes"
-              , "Fmax Bottlenecks":"No"
-              , "Loop Info":"Entry to loop. "
-              , "Loops To":"60"
-            }
-          ]
-        }
-        , {
-          "type":"bb"
-          , "id":59
-          , "name":"MainKernel.B3"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Latency":"0"
-              , "II":"1"
-              , "Subloops":"Yes"
-              , "Pipelined":"Yes"
-              , "Fmax Bottlenecks":"No"
-              , "Loop Info":"Exit which branches back to loop. "
-            }
-          ]
-        }
-        , {
-          "type":"bb"
-          , "id":60
-          , "name":"MainKernel.B4"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Latency":"0"
-              , "II":"1"
-              , "Subloops":"Yes"
-              , "Pipelined":"Yes"
-              , "Fmax Bottlenecks":"No"
-              , "Loop Info":"Exit which branches back to loop. "
-            }
-          ]
-        }
-        , {
-          "type":"bb"
-          , "id":61
-          , "name":"MainKernel.B5"
           , "children":
           [
             {
               "type":"inst"
-              , "id":63
-              , "name":"Pipe Read"
-              , "debug":
-              [
-                [
-                  {
-                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
-                    , "line":67
-                  }
-                ]
-              ]
-              , "details":
-              [
-                {
-                  "type":"table"
-                  , "Width":"32 bits"
-                  , "Depth":"49"
-                  , "Stall-free":"No"
-                  , "Start Cycle":"6"
-                  , "Latency":"0"
-                  , "Reference":
-                  [
-                    {
-                      "type":"text"
-                      , "text":"See %L for more information"
-                      , "links":
-                      [
-                        {
-                          "guide":"Best Practices Guide : Channels"
-                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-            , {
-              "type":"inst"
-              , "id":64
-              , "name":"Pipe Read"
-              , "debug":
-              [
-                [
-                  {
-                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
-                    , "line":67
-                  }
-                ]
-              ]
-              , "details":
-              [
-                {
-                  "type":"table"
-                  , "Width":"32 bits"
-                  , "Depth":"49"
-                  , "Stall-free":"No"
-                  , "Start Cycle":"5"
-                  , "Latency":"0"
-                  , "Reference":
-                  [
-                    {
-                      "type":"text"
-                      , "text":"See %L for more information"
-                      , "links":
-                      [
-                        {
-                          "guide":"Best Practices Guide : Channels"
-                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-            , {
-              "type":"inst"
-              , "id":65
-              , "name":"Pipe Read"
-              , "debug":
-              [
-                [
-                  {
-                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
-                    , "line":67
-                  }
-                ]
-              ]
-              , "details":
-              [
-                {
-                  "type":"table"
-                  , "Width":"32 bits"
-                  , "Depth":"49"
-                  , "Stall-free":"No"
-                  , "Start Cycle":"5"
-                  , "Latency":"0"
-                  , "Reference":
-                  [
-                    {
-                      "type":"text"
-                      , "text":"See %L for more information"
-                      , "links":
-                      [
-                        {
-                          "guide":"Best Practices Guide : Channels"
-                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-            , {
-              "type":"inst"
-              , "id":66
-              , "name":"Pipe Write"
-              , "debug":
-              [
-                [
-                  {
-                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
-                    , "line":82
-                  }
-                ]
-              ]
-              , "details":
-              [
-                {
-                  "type":"table"
-                  , "Width":"96 bits"
-                  , "Depth":"16"
-                  , "Stall-free":"No"
-                  , "Start Cycle":"6"
-                  , "Latency":"0"
-                  , "Reference":
-                  [
-                    {
-                      "type":"text"
-                      , "text":"See %L for more information"
-                      , "links":
-                      [
-                        {
-                          "guide":"Best Practices Guide : Channels"
-                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-            , {
-              "type":"inst"
-              , "id":68
-              , "name":"Loop Input"
-              , "debug":
-              [
-                [
-                  {
-                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":763
-                  }
-                ]
-              ]
-              , "details":
-              [
-                {
-                  "type":"table"
-                  , "Start Cycle":"0"
-                  , "Latency":"1"
-                  , "Loops To":"69"
-                }
-              ]
-            }
-            , {
-              "type":"inst"
-              , "id":69
-              , "name":"Loop End"
-              , "details":
-              [
-                {
-                  "type":"table"
-                  , "Start Cycle":"6"
-                  , "Latency":"1"
-                }
-              ]
-            }
-          ]
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Latency":"6"
-              , "II":"1"
-              , "Subloops":"No"
-              , "Pipelined":"Yes"
-              , "Fmax Bottlenecks":"No"
-              , "Loop Info":""
-            }
-          ]
-        }
-        , {
-          "type":"bb"
-          , "id":62
-          , "name":"MainKernel.B6"
-          , "children":
-          [
-            {
-              "type":"inst"
-              , "id":67
+              , "id":59
               , "name":"Pipe Write"
               , "debug":
               [
@@ -1342,7 +1190,7 @@
             }
             , {
               "type":"inst"
-              , "id":70
+              , "id":62
               , "name":"Begin"
               , "details":
               [
@@ -1355,7 +1203,7 @@
             }
             , {
               "type":"inst"
-              , "id":71
+              , "id":63
               , "name":"End"
               , "details":
               [
@@ -1377,7 +1225,491 @@
         }
         , {
           "type":"csr"
-          , "id":72
+          , "id":64
+          , "name":"Register Map"
+          , "debug":
+          [
+            [
+              {
+                "filename":"floyd_warshall_bram_elastic_fpga_hw.prj/ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ20floydWarshall_kernelRNS1_5queueERSt6vectorIiSaIiEESA_E27pi_csr.hpp"
+                , "line":1
+              }
+            ]
+          ]
+          , "children":
+          [
+            {
+              "type":"interface"
+              , "id":65
+              , "name":"start"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                    , "line":153
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":66
+              , "name":"done"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                    , "line":153
+                  }
+                ]
+              ]
+            }
+            , {
+              "type":"interface"
+              , "id":67
+              , "name":"busy"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                    , "line":153
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+        , {
+          "type":"memtype"
+          , "id":68
+          , "name":"On-chip Memory"
+          , "children":
+          [
+            {
+              "type":"memsys"
+              , "id":69
+              , "name":"Unknown name (address space 66)"
+              , "debug":
+              [
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Requested size":"400 bytes"
+                  , "Implemented size":"512 bytes"
+                  , "Number of banks":"1"
+                  , "Bank width":"32 bits"
+                  , "Bank depth":"128 words"
+                  , "Number of replicates":"1"
+                  , "Number of private copies":"1"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Local Memory"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/chn1469549457114.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "type":"kernel"
+      , "id":73
+      , "name":"MainKernel"
+      , "children":
+      [
+        {
+          "type":"bb"
+          , "id":74
+          , "name":"MainKernel.B0"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"2"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":75
+          , "name":"MainKernel.B1"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"4"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Entry to loop. "
+              , "Loops To":"77"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":76
+          , "name":"MainKernel.B2"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"5"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Entry to loop. "
+              , "Loops To":"78"
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":77
+          , "name":"MainKernel.B3"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Exit which branches back to loop. "
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":78
+          , "name":"MainKernel.B4"
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+              , "II":"1"
+              , "Subloops":"Yes"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":"Exit which branches back to loop. "
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":79
+          , "name":"MainKernel.B5"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":81
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"5"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"6"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":82
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"5"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"5"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":83
+              , "name":"Pipe Read"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":67
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"32 bits"
+                  , "Depth":"5"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"5"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":84
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"96 bits"
+                  , "Depth":"4"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"6"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":86
+              , "name":"Loop Input"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                    , "line":911
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                  , "Loops To":"87"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":87
+              , "name":"Loop End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"6"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"6"
+              , "II":"1"
+              , "Subloops":"No"
+              , "Pipelined":"Yes"
+              , "Fmax Bottlenecks":"No"
+              , "Loop Info":""
+            }
+          ]
+        }
+        , {
+          "type":"bb"
+          , "id":80
+          , "name":"MainKernel.B6"
+          , "children":
+          [
+            {
+              "type":"inst"
+              , "id":85
+              , "name":"Pipe Write"
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
+                    , "line":82
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Width":"8 bits"
+                  , "Depth":"1"
+                  , "Stall-free":"No"
+                  , "Start Cycle":"0"
+                  , "Latency":"0"
+                  , "Reference":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Channels"
+                          , "link":"file:////glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/qah1476410829821.html"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":88
+              , "name":"Begin"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                }
+              ]
+            }
+            , {
+              "type":"inst"
+              , "id":89
+              , "name":"End"
+              , "details":
+              [
+                {
+                  "type":"table"
+                  , "Start Cycle":"0"
+                  , "Latency":"1"
+                }
+              ]
+            }
+          ]
+          , "details":
+          [
+            {
+              "type":"table"
+              , "Latency":"0"
+            }
+          ]
+        }
+        , {
+          "type":"csr"
+          , "id":90
           , "name":"Register Map"
           , "debug":
           [
@@ -1392,42 +1724,42 @@
           [
             {
               "type":"interface"
-              , "id":73
+              , "id":91
               , "name":"start"
               , "debug":
               [
                 [
                   {
                     "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":749
+                    , "line":897
                   }
                 ]
               ]
             }
             , {
               "type":"interface"
-              , "id":74
+              , "id":92
               , "name":"done"
               , "debug":
               [
                 [
                   {
                     "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":749
+                    , "line":897
                   }
                 ]
               ]
             }
             , {
               "type":"interface"
-              , "id":75
+              , "id":93
               , "name":"busy"
               , "debug":
               [
                 [
                   {
                     "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                    , "line":749
+                    , "line":897
                   }
                 ]
               ]
@@ -1445,7 +1777,7 @@
         [
           {
             "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-            , "line":719
+            , "line":867
           }
         ]
       ]
@@ -1454,7 +1786,7 @@
         {
           "type":"table"
           , "Width":"96 bits"
-          , "Depth":"48"
+          , "Depth":"4"
         }
       ]
     }
@@ -1467,7 +1799,7 @@
         [
           {
             "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-            , "line":719
+            , "line":867
           }
         ]
       ]
@@ -1476,7 +1808,7 @@
         {
           "type":"table"
           , "Width":"96 bits"
-          , "Depth":"48"
+          , "Depth":"4"
         }
       ]
     }
@@ -1489,7 +1821,7 @@
         [
           {
             "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-            , "line":719
+            , "line":867
           }
         ]
       ]
@@ -1498,20 +1830,20 @@
         {
           "type":"table"
           , "Width":"96 bits"
-          , "Depth":"48"
+          , "Depth":"4"
         }
       ]
     }
     , {
       "type":"pipe"
-      , "id":35
+      , "id":52
       , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floydWarshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
       , "debug":
       [
         [
           {
             "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-            , "line":62
+            , "line":153
           }
         ]
       ]
@@ -1520,20 +1852,20 @@
         {
           "type":"table"
           , "Width":"32 bits"
-          , "Depth":"49"
+          , "Depth":"5"
         }
       ]
     }
     , {
       "type":"pipe"
-      , "id":37
+      , "id":54
       , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floydWarshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
       , "debug":
       [
         [
           {
             "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-            , "line":62
+            , "line":153
           }
         ]
       ]
@@ -1542,20 +1874,20 @@
         {
           "type":"table"
           , "Width":"32 bits"
-          , "Depth":"49"
+          , "Depth":"5"
         }
       ]
     }
     , {
       "type":"pipe"
-      , "id":39
+      , "id":56
       , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floydWarshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
       , "debug":
       [
         [
           {
             "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-            , "line":62
+            , "line":153
           }
         ]
       ]
@@ -1564,7 +1896,7 @@
         {
           "type":"table"
           , "Width":"32 bits"
-          , "Depth":"49"
+          , "Depth":"5"
         }
       ]
     }
@@ -1577,7 +1909,7 @@
         [
           {
             "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-            , "line":719
+            , "line":867
           }
         ]
       ]
@@ -1586,20 +1918,20 @@
         {
           "type":"table"
           , "Width":"64 bits"
-          , "Depth":"16"
+          , "Depth":"4"
         }
       ]
     }
     , {
       "type":"pipe"
-      , "id":32
+      , "id":49
       , "name":"sycl::_V1::ext::intel::pipe<fpga_tools::PipeArray<floydWarshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
       , "debug":
       [
         [
           {
             "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-            , "line":62
+            , "line":153
           }
         ]
       ]
@@ -1608,20 +1940,64 @@
         {
           "type":"table"
           , "Width":"96 bits"
-          , "Depth":"16"
+          , "Depth":"4"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":34
+      , "name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueBRAM<int, fpga_tools::PipeArray<floydWarshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+            , "line":110
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"96 bits"
+          , "Depth":"3"
         }
       ]
     }
     , {
       "type":"pipe"
       , "id":29
+      , "name":"sycl::_V1::ext::intel::pipe<sycl::_V1::event LoadStoreQueueBRAM<int, fpga_tools::PipeArray<floydWarshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
+      , "debug":
+      [
+        [
+          {
+            "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+            , "line":110
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Width":"8 bits"
+          , "Depth":"1"
+        }
+      ]
+    }
+    , {
+      "type":"pipe"
+      , "id":46
       , "name":"sycl::_V1::ext::intel::pipe<floydWarshall_kernel(sycl::_V1::queue&, std::vector<int, std::allocator<int>"
       , "debug":
       [
         [
           {
             "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-            , "line":62
+            , "line":153
           }
         ]
       ]
@@ -1739,286 +2115,371 @@
       , "to":28
     }
     , {
-      "from":32
-      , "to":31
-    }
-    , {
-      "from":34
-      , "to":35
-    }
-    , {
-      "from":36
-      , "to":37
-    }
-    , {
-      "from":38
-      , "to":39
-    }
-    , {
       "from":11
-      , "to":40
+      , "to":30
     }
     , {
       "from":13
-      , "to":41
+      , "to":31
     }
     , {
       "from":15
-      , "to":42
+      , "to":32
     }
     , {
-      "from":17
-      , "to":43
+      "from":33
+      , "to":34
     }
     , {
-      "from":47
+      "from":38
       , "to":25
     }
     , {
       "from":27
-      , "to":48
+      , "to":39
     }
     , {
       "from":25
-      , "to":49
+      , "to":40
       , "reverse":2
-    }
-    , {
-      "from":51
-      , "to":30
-    }
-    , {
-      "from":33
-      , "to":51
-    }
-    , {
-      "from":45
-      , "to":44
-    }
-    , {
-      "from":25
-      , "to":44
-    }
-    , {
-      "from":28
-      , "to":45
-    }
-    , {
-      "from":33
-      , "to":45
-    }
-    , {
-      "from":34
-      , "to":45
     }
     , {
       "from":36
-      , "to":45
+      , "to":35
     }
     , {
-      "from":38
-      , "to":45
+      "from":25
+      , "to":35
     }
     , {
-      "from":40
-      , "to":45
+      "from":28
+      , "to":36
     }
     , {
-      "from":41
-      , "to":45
+      "from":30
+      , "to":36
     }
     , {
-      "from":42
-      , "to":45
+      "from":31
+      , "to":36
     }
     , {
-      "from":43
-      , "to":45
+      "from":32
+      , "to":36
     }
     , {
-      "from":45
+      "from":33
+      , "to":36
+    }
+    , {
+      "from":36
       , "to":27
     }
     , {
-      "from":44
+      "from":35
       , "to":28
     }
     , {
-      "from":44
+      "from":35
       , "to":30
     }
     , {
-      "from":44
+      "from":35
       , "to":31
     }
     , {
-      "from":31
-      , "to":33
-    }
-    , {
-      "from":30
-      , "to":33
-    }
-    , {
-      "from":30
-      , "to":34
-    }
-    , {
-      "from":31
-      , "to":34
-    }
-    , {
-      "from":30
-      , "to":36
-    }
-    , {
-      "from":31
-      , "to":36
-    }
-    , {
-      "from":30
-      , "to":38
-    }
-    , {
-      "from":31
-      , "to":38
-    }
-    , {
-      "from":44
-      , "to":40
-    }
-    , {
-      "from":44
-      , "to":41
-    }
-    , {
-      "from":44
-      , "to":42
-    }
-    , {
-      "from":31
-      , "to":43
-    }
-    , {
-      "from":30
-      , "to":43
-    }
-    , {
       "from":35
-      , "to":63
-    }
-    , {
-      "from":37
-      , "to":64
-    }
-    , {
-      "from":39
-      , "to":65
-    }
-    , {
-      "from":66
       , "to":32
     }
     , {
-      "from":67
-      , "to":29
+      "from":28
+      , "to":33
     }
     , {
-      "from":73
+      "from":30
+      , "to":33
+    }
+    , {
+      "from":31
+      , "to":33
+    }
+    , {
+      "from":32
+      , "to":33
+    }
+    , {
+      "from":46
+      , "to":45
+    }
+    , {
+      "from":49
+      , "to":48
+    }
+    , {
+      "from":51
+      , "to":52
+    }
+    , {
+      "from":53
+      , "to":54
+    }
+    , {
+      "from":55
       , "to":56
     }
     , {
-      "from":71
-      , "to":74
+      "from":34
+      , "to":57
     }
     , {
-      "from":56
-      , "to":75
+      "from":17
+      , "to":58
+    }
+    , {
+      "from":59
+      , "to":29
+    }
+    , {
+      "from":65
+      , "to":42
+    }
+    , {
+      "from":63
+      , "to":66
+    }
+    , {
+      "from":42
+      , "to":67
       , "reverse":2
     }
     , {
-      "from":59
-      , "to":57
-    }
-    , {
-      "from":56
-      , "to":57
-    }
-    , {
-      "from":60
-      , "to":58
-    }
-    , {
-      "from":57
-      , "to":58
-    }
-    , {
-      "from":60
-      , "to":59
-    }
-    , {
       "from":69
+      , "to":47
+    }
+    , {
+      "from":50
+      , "to":69
+    }
+    , {
+      "from":61
       , "to":60
     }
     , {
-      "from":69
-      , "to":68
+      "from":42
+      , "to":60
+    }
+    , {
+      "from":45
+      , "to":61
+    }
+    , {
+      "from":50
+      , "to":61
+    }
+    , {
+      "from":51
+      , "to":61
+    }
+    , {
+      "from":53
+      , "to":61
+    }
+    , {
+      "from":55
+      , "to":61
+    }
+    , {
+      "from":57
+      , "to":61
     }
     , {
       "from":58
-      , "to":68
+      , "to":61
     }
     , {
-      "from":63
-      , "to":69
-    }
-    , {
-      "from":64
-      , "to":69
-    }
-    , {
-      "from":65
-      , "to":69
-    }
-    , {
-      "from":66
-      , "to":69
+      "from":61
+      , "to":62
     }
     , {
       "from":59
-      , "to":70
-    }
-    , {
-      "from":67
-      , "to":71
-    }
-    , {
-      "from":68
       , "to":63
     }
     , {
-      "from":68
-      , "to":64
+      "from":60
+      , "to":45
     }
     , {
-      "from":68
-      , "to":65
+      "from":60
+      , "to":47
     }
     , {
-      "from":63
-      , "to":66
+      "from":60
+      , "to":48
     }
     , {
-      "from":64
-      , "to":66
+      "from":48
+      , "to":50
     }
     , {
-      "from":65
-      , "to":66
+      "from":47
+      , "to":50
     }
     , {
-      "from":70
-      , "to":67
+      "from":47
+      , "to":51
+    }
+    , {
+      "from":48
+      , "to":51
+    }
+    , {
+      "from":47
+      , "to":53
+    }
+    , {
+      "from":48
+      , "to":53
+    }
+    , {
+      "from":47
+      , "to":55
+    }
+    , {
+      "from":48
+      , "to":55
+    }
+    , {
+      "from":60
+      , "to":57
+    }
+    , {
+      "from":48
+      , "to":58
+    }
+    , {
+      "from":47
+      , "to":58
+    }
+    , {
+      "from":62
+      , "to":59
+    }
+    , {
+      "from":52
+      , "to":81
+    }
+    , {
+      "from":54
+      , "to":82
+    }
+    , {
+      "from":56
+      , "to":83
+    }
+    , {
+      "from":84
+      , "to":49
+    }
+    , {
+      "from":85
+      , "to":46
+    }
+    , {
+      "from":91
+      , "to":74
+    }
+    , {
+      "from":89
+      , "to":92
+    }
+    , {
+      "from":74
+      , "to":93
+      , "reverse":2
+    }
+    , {
+      "from":77
+      , "to":75
+    }
+    , {
+      "from":74
+      , "to":75
+    }
+    , {
+      "from":78
+      , "to":76
+    }
+    , {
+      "from":75
+      , "to":76
+    }
+    , {
+      "from":78
+      , "to":77
+    }
+    , {
+      "from":87
+      , "to":78
+    }
+    , {
+      "from":87
+      , "to":86
+    }
+    , {
+      "from":76
+      , "to":86
+    }
+    , {
+      "from":81
+      , "to":87
+    }
+    , {
+      "from":82
+      , "to":87
+    }
+    , {
+      "from":83
+      , "to":87
+    }
+    , {
+      "from":84
+      , "to":87
+    }
+    , {
+      "from":77
+      , "to":88
+    }
+    , {
+      "from":85
+      , "to":89
+    }
+    , {
+      "from":86
+      , "to":81
+    }
+    , {
+      "from":86
+      , "to":82
+    }
+    , {
+      "from":86
+      , "to":83
+    }
+    , {
+      "from":81
+      , "to":84
+    }
+    , {
+      "from":82
+      , "to":84
+    }
+    , {
+      "from":83
+      , "to":84
+    }
+    , {
+      "from":88
+      , "to":85
     }
   ]
 }

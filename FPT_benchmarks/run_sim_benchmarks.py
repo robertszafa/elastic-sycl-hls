@@ -67,8 +67,14 @@ def get_resource_report(report_dir):
 
             res['Freq'] = int(float(data['quartusFitClockSummary']['nodes'][0]['kernel clock']))
             for node in data['quartusFitResourceUsageSummary']['nodes']:
+                # Kernel system also includes OpenCL logic to start/poll kernels.
                 if node['name'] == 'Quartus Fitter: Kernel System':
                     res['ALM'] = int(float(node['alm']))
+
+                # Our overhead is even lower if summing up just kernels, without 
+                # OpenCL logic. Stick to the number where *we* look worse.
+                # if node['type'] == 'kernel':
+                #     res['ALM'] += int(float(node['alm']))
 
     except Exception as e:
         print('\n*Exception*\n')
@@ -86,7 +92,7 @@ if __name__ == '__main__':
     CSV_FILE = CSV_FILE_DRAM if 'dram' == sys.argv[1] else CSV_FILE_BRAM
     BENCHMARKS = BENCHMARKS_DRAM if 'dram' == sys.argv[1] else BENCHMARKS_BRAM
 
-    with open(CSV_FILE, 'a') as f:
+    with open(CSV_FILE, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(['Benchmark', 'Cycles Intel', 'Cycles Ours', 'Cycles Ours', 'Cycles Ours/Intel', 'Cycles Ours/Intel', 
                         'Freq Intel (MHz)', 'Freq Ours (MHz)', 'Freq Ours/Intel',
@@ -112,21 +118,22 @@ if __name__ == '__main__':
                 continue
 
             
-            row = [kernel.replace("_dram", "")]
+            only_kernel = kernel.replace("_bram", "").replace("_dram", "")
+            row = [only_kernel]
 
             cycles_intel = run_and_get_cycles(BIN_INTEL, a_size, 0)
-            row.append(cycles_intel)
+            row.append(round(cycles_intel/1000, 1))
             
             cycles_ours = []
             for p in [0, 50, 100]: # different % of true data hazards
                 cycles_ours.append(run_and_get_cycles(BIN_OURS, a_size, p))
 
             # Cycles column
-            row.append(min(cycles_ours))
-            row.append(max(cycles_ours))
+            row.append(round(min(cycles_ours)/1000, 1))
+            row.append(round(max(cycles_ours)/1000, 1))
             row.append(round(cycles_ours[0]/cycles_intel, 2))
             row.append(round(cycles_ours[1]/cycles_intel, 2))
-
+            
             # Frequency column
             area_intel = get_resource_report(f"{GIT_DIR}/FPT_benchmarks/intelHLS_reports/{kernel}")
             area_ours = get_resource_report(f"{GIT_DIR}/FPT_benchmarks/our_reports/{kernel}")

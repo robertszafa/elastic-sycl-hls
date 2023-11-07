@@ -3,19 +3,19 @@
   [
     {
       "name":"MainKernel"
-      , "id":206
+      , "id":117
       , "type":"kernel"
       , "children":
       [
         {
           "name":"On-chip Memory"
-          , "id":207
+          , "id":118
           , "type":"memtype"
           , "children":
           [
             {
               "name":"A"
-              , "id":208
+              , "id":119
               , "brief":"Implemented size:256 bytes = (64 words per bank) x (4 bytes per word) | Memory Usage:1 RAM | Number of banks:1 | Bank width (word size):4 bytes | Bank depth:64 words | Number of replicates:1 | Number of private copies:1 | RAM Mode:Simple dual-port | Pump configuration:Double-pumped"
               , "details":
               [
@@ -87,7 +87,7 @@
               [
                 {
                   "name":"Bank 0"
-                  , "id":215
+                  , "id":124
                   , "brief":"Memory Usage:1 RAM | Bank width:4 bytes | Bank depth:64 words | Implemented bank size:256 bytes = (64 words) x (4 bytes per word)"
                   , "details":
                   [
@@ -118,7 +118,7 @@
                   [
                     {
                       "name":"Replicate 0"
-                      , "id":216
+                      , "id":125
                       , "padding":"0"
                       , "depth":"64"
                       , "brief":"Implemented size:256 bytes = (64 words) x (4 bytes per word) | Memory Usage:1 RAM"
@@ -149,22 +149,22 @@
                       [
                         {
                           "name":"R"
-                          , "id":217
+                          , "id":126
                           , "type":"port"
                         }
                         , {
                           "name":"R"
-                          , "id":219
+                          , "id":127
                           , "type":"port"
                         }
                         , {
                           "name":"W"
-                          , "id":220
+                          , "id":128
                           , "type":"port"
                         }
                         , {
                           "name":"W"
-                          , "id":222
+                          , "id":129
                           , "type":"port"
                         }
                       ]
@@ -192,7 +192,7 @@
         }
         , {
           "name":"Load"
-          , "id":209
+          , "id":120
           , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:A | Start cycle:2 | Latency:4"
           , "details":
           [
@@ -251,7 +251,7 @@
         }
         , {
           "name":"Load"
-          , "id":210
+          , "id":121
           , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:A | Start cycle:2 | Latency:4"
           , "details":
           [
@@ -309,126 +309,8 @@
           , "type":"inst"
         }
         , {
-          "name":"Load"
-          , "id":211
-          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Loads from:A | Start cycle:2 | Latency:4"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Width":"32 bits"
-              , "Stall-free":"Yes"
-              , "Type":"Pipelined never-stall"
-              , "Loads from":"A"
-              , "Start cycle":"2"
-              , "Latency":"4"
-              , "Inlined Debug Locations":
-              [
-                {
-                  "type":"text"
-                  , "text":"%L > %L"
-                  , "links":
-                  [
-                    {
-                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
-                      , "line":"62"
-                    }
-                    , {
-                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
-                      , "line":"1166"
-                    }
-                  ]
-                }
-              ]
-              , "Reference":
-              [
-                {
-                  "type":"text"
-                  , "text":"See %L for more information"
-                  , "links":
-                  [
-                    {
-                      "guide":"Best Practices Guide : Load-Store Units"
-                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
-                , "line":62
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
           "name":"Store"
-          , "id":212
-          , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Stores to:A | Start cycle:8 | Latency:1"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Width":"32 bits"
-              , "Stall-free":"Yes"
-              , "Type":"Pipelined never-stall"
-              , "Stores to":"A"
-              , "Start cycle":"8"
-              , "Latency":"1"
-              , "Inlined Debug Locations":
-              [
-                {
-                  "type":"text"
-                  , "text":"%L > %L"
-                  , "links":
-                  [
-                    {
-                      "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
-                      , "line":"33"
-                    }
-                    , {
-                      "filename":"/glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/handler.hpp"
-                      , "line":"1166"
-                    }
-                  ]
-                }
-              ]
-              , "Reference":
-              [
-                {
-                  "type":"text"
-                  , "text":"See %L for more information"
-                  , "links":
-                  [
-                    {
-                      "guide":"Best Practices Guide : Load-Store Units"
-                      , "link":"file:////glob/development-tools/versions/oneapi/2023.1.1/oneapi/compiler/2023.1.0/linux/lib/oclfpga/aoc_help_pages/yeo1491314105959.html"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
-                , "line":33
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Store"
-          , "id":213
+          , "id":122
           , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Stores to:A | Start cycle:7 | Latency:1"
           , "details":
           [
@@ -487,7 +369,7 @@
         }
         , {
           "name":"Store"
-          , "id":214
+          , "id":123
           , "brief":"Width:32 bits | Stall-free:Yes | Type:Pipelined never-stall | Stores to:A | Start cycle:8 | Latency:1"
           , "details":
           [
@@ -544,66 +426,26 @@
           ]
           , "type":"inst"
         }
-        , {
-          "name":"SHARE"
-          , "id":218
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Additional Information":"Mutually exclusive accesses, no stalls"
-            }
-          ]
-          , "type":"arb"
-        }
-        , {
-          "name":"SHARE"
-          , "id":221
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Additional Information":"Mutually exclusive accesses, no stalls"
-            }
-          ]
-          , "type":"arb"
-        }
       ]
     }
   ]
   , "links":
   [
     {
-      "from":217
-      , "to":218
+      "from":126
+      , "to":120
     }
     , {
-      "from":218
-      , "to":209
+      "from":127
+      , "to":121
     }
     , {
-      "from":218
-      , "to":211
+      "from":122
+      , "to":128
     }
     , {
-      "from":219
-      , "to":210
-    }
-    , {
-      "from":221
-      , "to":220
-    }
-    , {
-      "from":212
-      , "to":221
-    }
-    , {
-      "from":213
-      , "to":221
-    }
-    , {
-      "from":214
-      , "to":222
+      "from":123
+      , "to":129
     }
   ]
 }

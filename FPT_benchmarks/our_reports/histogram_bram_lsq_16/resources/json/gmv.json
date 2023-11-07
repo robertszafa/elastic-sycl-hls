@@ -3,7 +3,7 @@
   [
     {
       "name":"DDR"
-      , "id":568
+      , "id":602
       , "details":
       [
         {
@@ -20,7 +20,7 @@
       [
         {
           "name":"channel 0"
-          , "id":570
+          , "id":604
           , "details":
           [
             {
@@ -38,7 +38,7 @@
         }
         , {
           "name":"channel 1"
-          , "id":571
+          , "id":605
           , "details":
           [
             {
@@ -58,8 +58,8 @@
     }
     , {
       "name":"Memory Controller"
-      , "id":569
-      , "parent":"568"
+      , "id":603
+      , "parent":"602"
       , "bw":"34133.00"
       , "num_channels":"2"
       , "interleave":"1"
@@ -74,19 +74,19 @@
     }
     , {
       "name":"Global Memory Interconnect"
-      , "id":572
-      , "parent":"568"
+      , "id":606
+      , "parent":"602"
       , "type":"bb"
       , "children":
       [
         {
           "name":"SHARE"
-          , "id":573
+          , "id":607
           , "type":"arb"
         }
         , {
           "name":"Read Interconnect"
-          , "id":574
+          , "id":608
           , "details":
           [
             {
@@ -100,7 +100,7 @@
         }
         , {
           "name":"Read Interconnect Router"
-          , "id":575
+          , "id":609
           , "details":
           [
             {
@@ -113,12 +113,12 @@
           [
             {
               "name":"Bus 0"
-              , "id":578
+              , "id":612
               , "type":"memsys"
             }
             , {
               "name":"Bus 1"
-              , "id":579
+              , "id":613
               , "type":"memsys"
             }
           ]
@@ -127,14 +127,14 @@
     }
     , {
       "name":"Global Memory Loads"
-      , "id":576
-      , "parent":"568"
+      , "id":610
+      , "parent":"602"
       , "type":"bb"
       , "children":
       [
         {
           "name":"LD"
-          , "id":577
+          , "id":611
           , "kwidth":"32"
           , "mwidth":"512"
           , "details":
@@ -155,7 +155,7 @@
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/histogram_bram_elastic_pass_workdir/histogram_bram.ast.cpp"
-                , "line":729
+                , "line":801
               }
             ]
           ]
@@ -167,44 +167,44 @@
   , "links":
   [
     {
-      "from":570
-      , "to":569
+      "from":604
+      , "to":603
     }
     , {
-      "from":569
-      , "to":570
+      "from":603
+      , "to":604
     }
     , {
-      "from":571
-      , "to":569
+      "from":605
+      , "to":603
     }
     , {
-      "from":569
-      , "to":571
+      "from":603
+      , "to":605
     }
     , {
-      "from":574
-      , "to":573
+      "from":608
+      , "to":607
     }
     , {
-      "from":573
-      , "to":569
+      "from":607
+      , "to":603
     }
     , {
-      "from":577
-      , "to":574
+      "from":611
+      , "to":608
     }
     , {
-      "from":569
-      , "to":578
+      "from":603
+      , "to":612
     }
     , {
-      "from":569
-      , "to":579
+      "from":603
+      , "to":613
     }
     , {
-      "from":578
-      , "to":577
+      "from":612
+      , "to":611
       , "reverse":1
     }
   ]

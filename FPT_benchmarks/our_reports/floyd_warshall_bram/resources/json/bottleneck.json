@@ -3,9 +3,337 @@
   [
     {
       "name":"Feedback"
+      , "id":760
+      , "src":"162"
+      , "dst":"231"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":"LoadReqMux.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Loop: ":"_ZTSZ18LoadStoreQueueBRAMIiN10fpga_tools9PipeArrayIZ20floydWarshall_kernelRN4sycl3_V15queueERSt6vectorIiSaIiEES9_E20pipes_ld_req_0_class17ld_req_lsq_bram_tLm4EJLm3EEEENS1_IZ20floydWarshall_kernelS5_S9_S9_E20pipes_ld_val_0_classiLm4EJLm3EEEENS1_IZ20floydWarshall_kernelS5_S9_S9_E20pipes_st_req_0_class17st_req_lsq_bram_tLm4EJLm1EEEENS1_IZ20floydWarshall_kernelS5_S9_S9_E20pipes_st_val_0_class21tagged_val_lsq_bram_tIiELm4EJLm1EEEENS3_3ext5intel4pipeIZ20floydWarshall_kernelS5_S9_S9_E27pipe_end_lsq_signal_0_classbLi1EEELb1ELj100ELj3ELj1ELj4ELj16EENS3_5eventES5_E10LoadReqMux.B1"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                  , "line":"120"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                  , "line":"146"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                  , "line":"132"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                  , "line":"144"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                  , "line":"132"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                  , "line":"132"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                  , "line":"132"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Xor(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                  , "line":"146"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Zext(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                  , "line":"132"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Zext(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                  , "line":"146"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Feedback"
+          , "id":162
+          , "start":"3.00"
+          , "parent":"_ZTSZ18LoadStoreQueueBRAMIiN10fpga_tools9PipeArrayIZ20floydWarshall_kernelRN4sycl3_V15queueERSt6vectorIiSaIiEES9_E20pipes_ld_req_0_class17ld_req_lsq_bram_tLm4EJLm3EEEENS1_IZ20floydWarshall_kernelS5_S9_S9_E20pipes_ld_val_0_classiLm4EJLm3EEEENS1_IZ20floydWarshall_kernelS5_S9_S9_E20pipes_st_req_0_class17st_req_lsq_bram_tLm4EJLm1EEEENS1_IZ20floydWarshall_kernelS5_S9_S9_E20pipes_st_val_0_class21tagged_val_lsq_bram_tIiELm4EJLm1EEEENS3_3ext5intel4pipeIZ20floydWarshall_kernelS5_S9_S9_E27pipe_end_lsq_signal_0_classbLi1EEELb1ELj100ELj3ELj1ELj4ELj16EENS3_5eventES5_E10LoadReqMux.B1"
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":164
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                , "line":132
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":176
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                , "line":132
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Zext"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                , "line":132
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":201
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                , "line":132
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":227
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                , "line":132
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":228
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                , "line":144
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Xor"
+          , "id":229
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                , "line":146
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Zext"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                , "line":146
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":230
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                , "line":146
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":231
+          , "end":"3.00"
+          , "parent":"_ZTSZ18LoadStoreQueueBRAMIiN10fpga_tools9PipeArrayIZ20floydWarshall_kernelRN4sycl3_V15queueERSt6vectorIiSaIiEES9_E20pipes_ld_req_0_class17ld_req_lsq_bram_tLm4EJLm3EEEENS1_IZ20floydWarshall_kernelS5_S9_S9_E20pipes_ld_val_0_classiLm4EJLm3EEEENS1_IZ20floydWarshall_kernelS5_S9_S9_E20pipes_st_req_0_class17st_req_lsq_bram_tLm4EJLm1EEEENS1_IZ20floydWarshall_kernelS5_S9_S9_E20pipes_st_val_0_class21tagged_val_lsq_bram_tIiELm4EJLm1EEEENS3_3ext5intel4pipeIZ20floydWarshall_kernelS5_S9_S9_E27pipe_end_lsq_signal_0_classbLi1EEELb1ELj100ELj3ELj1ELj4ELj16EENS3_5eventES5_E10LoadReqMux.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                , "line":146
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":162
+          , "to":164
+        }
+        , {
+          "from":164
+          , "to":176
+        }
+        , {
+          "from":176
+          , "to":201
+        }
+        , {
+          "from":201
+          , "to":227
+        }
+        , {
+          "from":227
+          , "to":228
+        }
+        , {
+          "from":228
+          , "to":229
+        }
+        , {
+          "from":162
+          , "to":230
+        }
+        , {
+          "from":229
+          , "to":230
+        }
+        , {
+          "from":230
+          , "to":231
+        }
+        , {
+          "from":162
+          , "to":231
+          , "reverse":1
+        }
+      ]
+    }
+    , {
+      "name":"Feedback"
       , "id":761
-      , "src":"145"
-      , "dst":"698"
+      , "src":"234"
+      , "dst":"695"
       , "type":"fMAX/II"
       , "brief":"Data dependency"
       , "loop":">.B1"
@@ -23,7 +351,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                  , "line":"110"
+                  , "line":"202"
                 }
               ]
             }
@@ -45,23 +373,12 @@
             }
             , {
               "type":"text"
-              , "text":"Select(%L)"
-              , "links":
-              [
-                {
-                  "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
-                  , "line":"32"
-                }
-              ]
-            }
-            , {
-              "type":"text"
               , "text":"<<(%L)"
               , "links":
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                  , "line":"49"
+                  , "line":"51"
                 }
               ]
             }
@@ -72,7 +389,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                  , "line":"110"
+                  , "line":"202"
                 }
               ]
             }
@@ -83,7 +400,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                  , "line":"119"
+                  , "line":"211"
                 }
               ]
             }
@@ -94,7 +411,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                  , "line":"50"
+                  , "line":"52"
                 }
               ]
             }
@@ -105,7 +422,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                  , "line":"50"
+                  , "line":"52"
                 }
               ]
             }
@@ -127,29 +444,39 @@
       [
         {
           "name":"Feedback"
-          , "id":145
+          , "id":234
           , "start":"1.00"
           , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ20floydWarshall_kernelRNS1_5queueERSt6vectorIiSaIiEESA_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":251
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":243
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                , "line":312
+                , "line":211
               }
             ]
           ]
           , "type":"inst"
         }
         , {
-          "name":"LD"
-          , "id":154
+          "name":"Or"
+          , "id":252
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                , "line":119
+                , "line":52
               }
             ]
           ]
@@ -157,7 +484,21 @@
         }
         , {
           "name":"Select"
-          , "id":151
+          , "id":257
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":240
           , "debug":
           [
             [
@@ -171,13 +512,13 @@
         }
         , {
           "name":"<<"
-          , "id":158
+          , "id":247
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                , "line":49
+                , "line":51
               }
             ]
           ]
@@ -185,60 +526,13 @@
         }
         , {
           "name":"Compare"
-          , "id":162
-          , "type":"inst"
-        }
-        , {
-          "name":"Or"
-          , "id":163
+          , "id":649
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                , "line":50
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Select"
-          , "id":168
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                , "line":50
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Select"
-          , "id":172
-          , "debug":
-          [
-            [
-              {
-                "filename":"/glob/development-tools/versions/oneapi/2023.1.2/oneapi/compiler/2023.1.0/linux/bin-llvm/../include/sycl/ext/intel/pipes.hpp"
-                , "line":32
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Compare"
-          , "id":639
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                , "line":110
+                , "line":202
               }
             ]
           ]
@@ -246,7 +540,7 @@
         }
         , {
           "name":"Feedback"
-          , "id":698
+          , "id":695
           , "end":"2.00"
           , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ20floydWarshall_kernelRNS1_5queueERSt6vectorIiSaIiEESA_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
           , "debug":
@@ -254,7 +548,7 @@
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/floyd_warshall_bram_elastic_pass_workdir/floyd_warshall_bram.ast.cpp"
-                , "line":312
+                , "line":384
               }
             ]
           ]
@@ -264,32 +558,24 @@
       , "links":
       [
         {
-          "from":154
-          , "to":158
+          "from":251
+          , "to":252
         }
         , {
-          "from":158
-          , "to":162
+          "from":252
+          , "to":257
         }
         , {
-          "from":162
-          , "to":163
+          "from":243
+          , "to":247
         }
         , {
-          "from":163
-          , "to":168
+          "from":649
+          , "to":695
         }
         , {
-          "from":168
-          , "to":172
-        }
-        , {
-          "from":639
-          , "to":698
-        }
-        , {
-          "from":145
-          , "to":698
+          "from":234
+          , "to":695
           , "reverse":1
         }
       ]

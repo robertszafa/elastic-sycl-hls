@@ -3,9 +3,593 @@
   [
     {
       "name":"Feedback"
-      , "id":1092
-      , "src":"286"
-      , "dst":"842"
+      , "id":891
+      , "src":"172"
+      , "dst":"208"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":"StoreReqMux.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Loop: ":"_ZTSZ18LoadStoreQueueBRAMIiN10fpga_tools9PipeArrayIZ11sort_kernelRN4sycl3_V15queueERSt6vectorIiSaIiEEE20pipes_ld_req_0_class17ld_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_ld_val_0_classiLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_req_0_class17st_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_val_0_class21tagged_val_lsq_bram_tIiELm4EJLm2EEEENS3_3ext5intel4pipeIZ11sort_kernelS5_S9_E27pipe_end_lsq_signal_0_classbLi1EEELb1ELj64ELj2ELj2ELj4ELj16EENS3_5eventES5_E11StoreReqMux.B1"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"77"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"100"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"88"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"98"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"88"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"88"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Xor(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"100"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Zext(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"88"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Zext(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"100"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Feedback"
+          , "id":172
+          , "start":"3.00"
+          , "parent":"_ZTSZ18LoadStoreQueueBRAMIiN10fpga_tools9PipeArrayIZ11sort_kernelRN4sycl3_V15queueERSt6vectorIiSaIiEEE20pipes_ld_req_0_class17ld_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_ld_val_0_classiLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_req_0_class17st_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_val_0_class21tagged_val_lsq_bram_tIiELm4EJLm2EEEENS3_3ext5intel4pipeIZ11sort_kernelS5_S9_E27pipe_end_lsq_signal_0_classbLi1EEELb1ELj64ELj2ELj2ELj4ELj16EENS3_5eventES5_E11StoreReqMux.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":100
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":174
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":88
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":183
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":88
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Zext"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":88
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":204
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":88
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":205
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":98
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Xor"
+          , "id":206
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":100
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Zext"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":100
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":207
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":100
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":208
+          , "end":"3.00"
+          , "parent":"_ZTSZ18LoadStoreQueueBRAMIiN10fpga_tools9PipeArrayIZ11sort_kernelRN4sycl3_V15queueERSt6vectorIiSaIiEEE20pipes_ld_req_0_class17ld_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_ld_val_0_classiLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_req_0_class17st_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_val_0_class21tagged_val_lsq_bram_tIiELm4EJLm2EEEENS3_3ext5intel4pipeIZ11sort_kernelS5_S9_E27pipe_end_lsq_signal_0_classbLi1EEELb1ELj64ELj2ELj2ELj4ELj16EENS3_5eventES5_E11StoreReqMux.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":100
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":172
+          , "to":174
+        }
+        , {
+          "from":174
+          , "to":183
+        }
+        , {
+          "from":183
+          , "to":204
+        }
+        , {
+          "from":204
+          , "to":205
+        }
+        , {
+          "from":205
+          , "to":206
+        }
+        , {
+          "from":172
+          , "to":207
+        }
+        , {
+          "from":206
+          , "to":207
+        }
+        , {
+          "from":207
+          , "to":208
+        }
+        , {
+          "from":172
+          , "to":208
+          , "reverse":1
+        }
+      ]
+    }
+    , {
+      "name":"Feedback"
+      , "id":892
+      , "src":"218"
+      , "dst":"261"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":"LoadReqMux.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Loop: ":"_ZTSZ18LoadStoreQueueBRAMIiN10fpga_tools9PipeArrayIZ11sort_kernelRN4sycl3_V15queueERSt6vectorIiSaIiEEE20pipes_ld_req_0_class17ld_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_ld_val_0_classiLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_req_0_class17st_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_val_0_class21tagged_val_lsq_bram_tIiELm4EJLm2EEEENS3_3ext5intel4pipeIZ11sort_kernelS5_S9_E27pipe_end_lsq_signal_0_classbLi1EEELb1ELj64ELj2ELj2ELj4ELj16EENS3_5eventES5_E10LoadReqMux.B1"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"120"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"146"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"And(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"131"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"132"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"144"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"132"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Xor(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"146"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Zext(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"146"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"Feedback"
+          , "id":218
+          , "start":"3.00"
+          , "parent":"_ZTSZ18LoadStoreQueueBRAMIiN10fpga_tools9PipeArrayIZ11sort_kernelRN4sycl3_V15queueERSt6vectorIiSaIiEEE20pipes_ld_req_0_class17ld_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_ld_val_0_classiLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_req_0_class17st_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_val_0_class21tagged_val_lsq_bram_tIiELm4EJLm2EEEENS3_3ext5intel4pipeIZ11sort_kernelS5_S9_E27pipe_end_lsq_signal_0_classbLi1EEELb1ELj64ELj2ELj2ELj4ELj16EENS3_5eventES5_E10LoadReqMux.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":146
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Xor"
+          , "id":259
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":146
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Zext"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":146
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":260
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":146
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":239
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":132
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":258
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":144
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"And"
+          , "id":256
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":131
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":257
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":132
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":261
+          , "end":"3.00"
+          , "parent":"_ZTSZ18LoadStoreQueueBRAMIiN10fpga_tools9PipeArrayIZ11sort_kernelRN4sycl3_V15queueERSt6vectorIiSaIiEEE20pipes_ld_req_0_class17ld_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_ld_val_0_classiLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_req_0_class17st_req_lsq_bram_tLm4EJLm2EEEENS1_IZ11sort_kernelS5_S9_E20pipes_st_val_0_class21tagged_val_lsq_bram_tIiELm4EJLm2EEEENS3_3ext5intel4pipeIZ11sort_kernelS5_S9_E27pipe_end_lsq_signal_0_classbLi1EEELb1ELj64ELj2ELj2ELj4ELj16EENS3_5eventES5_E10LoadReqMux.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":146
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":218
+          , "to":260
+        }
+        , {
+          "from":259
+          , "to":260
+        }
+        , {
+          "from":218
+          , "to":239
+        }
+        , {
+          "from":239
+          , "to":256
+        }
+        , {
+          "from":256
+          , "to":257
+        }
+        , {
+          "from":260
+          , "to":261
+        }
+        , {
+          "from":218
+          , "to":261
+          , "reverse":1
+        }
+      ]
+    }
+    , {
+      "name":"Feedback"
+      , "id":893
+      , "src":"271"
+      , "dst":"718"
       , "type":"fMAX/II"
       , "brief":"Data dependency"
       , "loop":">.B1"
@@ -23,7 +607,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"110"
+                  , "line":"202"
                 }
               ]
             }
@@ -34,12 +618,23 @@
           [
             {
               "type":"text"
-              , "text":"Compare(%L)"
+              , "text":"<<(%L)"
               , "links":
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"50"
+                  , "line":"51"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"And(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                  , "line":"270"
                 }
               ]
             }
@@ -50,7 +645,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"239"
+                  , "line":"326"
                 }
               ]
             }
@@ -61,51 +656,18 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"243"
+                  , "line":"326"
                 }
               ]
             }
             , {
               "type":"text"
-              , "text":"Compare(%L)"
+              , "text":"LD(%L)"
               , "links":
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"243"
-                }
-              ]
-            }
-            , {
-              "type":"text"
-              , "text":"Compare(%L)"
-              , "links":
-              [
-                {
-                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"243"
-                }
-              ]
-            }
-            , {
-              "type":"text"
-              , "text":"Compare(%L)"
-              , "links":
-              [
-                {
-                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"243"
-                }
-              ]
-            }
-            , {
-              "type":"text"
-              , "text":"Compare(%L)"
-              , "links":
-              [
-                {
-                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"243"
+                  , "line":"211"
                 }
               ]
             }
@@ -116,7 +678,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"50"
+                  , "line":"52"
                 }
               ]
             }
@@ -127,7 +689,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"250"
+                  , "line":"333"
                 }
               ]
             }
@@ -138,7 +700,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"250"
+                  , "line":"333"
                 }
               ]
             }
@@ -149,7 +711,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"250"
+                  , "line":"333"
                 }
               ]
             }
@@ -160,7 +722,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"250"
+                  , "line":"333"
                 }
               ]
             }
@@ -171,7 +733,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"250"
+                  , "line":"333"
                 }
               ]
             }
@@ -182,7 +744,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"250"
+                  , "line":"333"
                 }
               ]
             }
@@ -193,40 +755,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"250"
-                }
-              ]
-            }
-            , {
-              "type":"text"
-              , "text":"Or(%L)"
-              , "links":
-              [
-                {
-                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"250"
-                }
-              ]
-            }
-            , {
-              "type":"text"
-              , "text":"Or(%L)"
-              , "links":
-              [
-                {
-                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"250"
-                }
-              ]
-            }
-            , {
-              "type":"text"
-              , "text":"Or(%L)"
-              , "links":
-              [
-                {
-                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"250"
+                  , "line":"333"
                 }
               ]
             }
@@ -237,7 +766,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"50"
+                  , "line":"52"
                 }
               ]
             }
@@ -248,7 +777,7 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"243"
+                  , "line":"326"
                 }
               ]
             }
@@ -259,51 +788,18 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"243"
+                  , "line":"326"
                 }
               ]
             }
             , {
               "type":"text"
-              , "text":"Select(%L)"
+              , "text":"Sext(%L)"
               , "links":
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"243"
-                }
-              ]
-            }
-            , {
-              "type":"text"
-              , "text":"Select(%L)"
-              , "links":
-              [
-                {
-                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"243"
-                }
-              ]
-            }
-            , {
-              "type":"text"
-              , "text":"Select(%L)"
-              , "links":
-              [
-                {
-                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"243"
-                }
-              ]
-            }
-            , {
-              "type":"text"
-              , "text":"Select(%L)"
-              , "links":
-              [
-                {
-                  "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"253"
+                  , "line":"211"
                 }
               ]
             }
@@ -314,13 +810,35 @@
               [
                 {
                   "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                  , "line":"50"
+                  , "line":"52"
                 }
               ]
             }
             , {
               "type":"text"
               , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Ptr. Comp.(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
               , "links":
               [
                 {
@@ -336,62 +854,80 @@
       [
         {
           "name":"Feedback"
-          , "id":286
-          , "start":"2.00"
+          , "id":271
+          , "start":"3.00"
           , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ11sort_kernelRNS1_5queueERSt6vectorIiSaIiEEE27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
           , "type":"inst"
         }
         , {
-          "name":"Compare"
-          , "id":331
+          "name":"LD"
+          , "id":273
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":50
+                , "line":211
               }
             ]
           ]
           , "type":"inst"
         }
         , {
-          "name":"Or"
-          , "id":333
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":50
-              }
-            ]
-          ]
+          "name":"Ptr. Comp."
+          , "id":272
           , "type":"inst"
         }
         , {
           "name":"Xor"
+          , "id":316
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":317
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":52
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"And"
           , "id":337
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":50
+                , "line":270
               }
             ]
           ]
           , "type":"inst"
         }
         , {
-          "name":"Select"
-          , "id":338
+          "name":"Sext"
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":50
+                , "line":211
               }
             ]
           ]
@@ -399,46 +935,32 @@
         }
         , {
           "name":"Compare"
-          , "id":373
+          , "id":311
           , "type":"inst"
         }
         , {
-          "name":"Compare"
-          , "id":468
+          "name":"Or"
+          , "id":312
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":239
+                , "line":52
               }
             ]
           ]
           , "type":"inst"
         }
         , {
-          "name":"Compare"
-          , "id":516
+          "name":"<<"
+          , "id":307
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":243
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Select"
-          , "id":519
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":243
+                , "line":51
               }
             ]
           ]
@@ -446,13 +968,13 @@
         }
         , {
           "name":"Compare"
-          , "id":536
+          , "id":437
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":243
+                , "line":326
               }
             ]
           ]
@@ -460,83 +982,13 @@
         }
         , {
           "name":"Select"
-          , "id":539
+          , "id":438
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":243
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Or"
-          , "id":551
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":250
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Or"
-          , "id":553
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":250
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Or"
-          , "id":558
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":250
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Or"
-          , "id":559
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":250
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Or"
-          , "id":562
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":250
+                , "line":326
               }
             ]
           ]
@@ -544,13 +996,13 @@
         }
         , {
           "name":"Compare"
-          , "id":585
+          , "id":447
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":243
+                , "line":326
               }
             ]
           ]
@@ -558,27 +1010,111 @@
         }
         , {
           "name":"Select"
-          , "id":586
+          , "id":448
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":243
+                , "line":326
               }
             ]
           ]
           , "type":"inst"
         }
         , {
-          "name":"Compare"
-          , "id":609
+          "name":"Or"
+          , "id":482
           , "debug":
           [
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":243
+                , "line":333
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":483
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":333
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":488
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":333
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":489
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":333
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":491
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":333
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":492
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":333
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Or"
+          , "id":493
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
+                , "line":333
               }
             ]
           ]
@@ -586,134 +1122,13 @@
         }
         , {
           "name":"Select"
-          , "id":610
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":243
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Compare"
-          , "id":618
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":243
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Select"
-          , "id":619
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":243
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Or"
-          , "id":620
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":250
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Or"
-          , "id":621
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":250
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Or"
-          , "id":625
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":250
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Or"
-          , "id":628
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":250
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Or"
-          , "id":630
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":250
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-        , {
-          "name":"Select"
-          , "id":638
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/bitonic_sort_bram_elastic_pass_workdir/bitonic_sort_bram.ast.cpp"
-                , "line":253
-              }
-            ]
-          ]
+          , "id":591
           , "type":"inst"
         }
         , {
           "name":"Feedback"
-          , "id":842
-          , "end":"3.00"
+          , "id":718
+          , "end":"4.00"
           , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ11sort_kernelRNS1_5queueERSt6vectorIiSaIiEEE27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
           , "type":"inst"
         }
@@ -721,96 +1136,68 @@
       , "links":
       [
         {
-          "from":331
-          , "to":333
+          "from":271
+          , "to":272
         }
         , {
-          "from":333
+          "from":316
+          , "to":317
+        }
+        , {
+          "from":317
           , "to":337
         }
         , {
-          "from":337
-          , "to":338
+          "from":311
+          , "to":312
         }
         , {
-          "from":286
-          , "to":516
+          "from":273
+          , "to":307
         }
         , {
-          "from":516
-          , "to":519
+          "from":437
+          , "to":438
         }
         , {
-          "from":286
-          , "to":536
+          "from":447
+          , "to":448
         }
         , {
-          "from":536
-          , "to":539
+          "from":448
+          , "to":482
         }
         , {
-          "from":539
-          , "to":551
+          "from":438
+          , "to":483
         }
         , {
-          "from":519
-          , "to":553
+          "from":482
+          , "to":488
         }
         , {
-          "from":551
-          , "to":558
+          "from":483
+          , "to":489
         }
         , {
-          "from":553
-          , "to":559
+          "from":488
+          , "to":491
         }
         , {
-          "from":558
-          , "to":562
+          "from":489
+          , "to":492
         }
         , {
-          "from":559
-          , "to":562
+          "from":491
+          , "to":493
         }
         , {
-          "from":585
-          , "to":586
+          "from":492
+          , "to":493
         }
         , {
-          "from":609
-          , "to":610
-        }
-        , {
-          "from":618
-          , "to":619
-        }
-        , {
-          "from":619
-          , "to":620
-        }
-        , {
-          "from":610
-          , "to":621
-        }
-        , {
-          "from":586
-          , "to":625
-        }
-        , {
-          "from":620
-          , "to":628
-        }
-        , {
-          "from":621
-          , "to":628
-        }
-        , {
-          "from":625
-          , "to":630
-        }
-        , {
-          "from":286
-          , "to":842
+          "from":271
+          , "to":718
           , "reverse":1
         }
       ]

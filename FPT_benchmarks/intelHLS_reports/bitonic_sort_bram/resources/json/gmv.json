@@ -3,7 +3,7 @@
   [
     {
       "name":"DDR"
-      , "id":223
+      , "id":130
       , "details":
       [
         {
@@ -20,7 +20,7 @@
       [
         {
           "name":"channel 0"
-          , "id":225
+          , "id":132
           , "details":
           [
             {
@@ -38,7 +38,7 @@
         }
         , {
           "name":"channel 1"
-          , "id":226
+          , "id":133
           , "details":
           [
             {
@@ -58,8 +58,8 @@
     }
     , {
       "name":"Memory Controller"
-      , "id":224
-      , "parent":"223"
+      , "id":131
+      , "parent":"130"
       , "bw":"34133.00"
       , "num_channels":"2"
       , "interleave":"1"
@@ -74,146 +74,15 @@
     }
     , {
       "name":"Global Memory Interconnect"
-      , "id":227
-      , "parent":"223"
+      , "id":134
+      , "parent":"130"
       , "type":"bb"
       , "children":
       [
         {
           "name":"SHARE"
-          , "id":228
+          , "id":135
           , "type":"arb"
-        }
-        , {
-          "name":"Write Interconnect"
-          , "id":231
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Name":"DDR"
-              , "Interconnect Style":"tree"
-              , "Writes":"1"
-              , "User specified force-single-store-ring flag":"False"
-              , "Store Rings":"2"
-            }
-          ]
-          , "type":"bb"
-        }
-        , {
-          "name":"Read Interconnect"
-          , "id":229
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Name":"DDR"
-              , "Interconnect Style":"tree"
-              , "Reads":"1"
-            }
-          ]
-          , "type":"bb"
-        }
-        , {
-          "name":"Read Interconnect Router"
-          , "id":230
-          , "details":
-          [
-            {
-              "type":"table"
-              , "User specified num-reorder flag":"Unset"
-            }
-          ]
-          , "type":"memsys"
-          , "children":
-          [
-            {
-              "name":"Bus 0"
-              , "id":236
-              , "type":"memsys"
-            }
-            , {
-              "name":"Bus 1"
-              , "id":237
-              , "type":"memsys"
-            }
-          ]
-        }
-      ]
-    }
-    , {
-      "name":"Global Memory Loads"
-      , "id":232
-      , "parent":"223"
-      , "type":"bb"
-      , "children":
-      [
-        {
-          "name":"LD"
-          , "id":233
-          , "kwidth":"32"
-          , "mwidth":"512"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Start Cycle":"5"
-              , "Latency":"2 cycles"
-              , "Width":"32 bits"
-              , "DDR Width":"512 bits"
-              , "Uses Caching":"No"
-              , "LSU Style":"PREFETCHING"
-              , "Kernel":"MainKernel"
-            }
-          ]
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
-                , "line":33
-              }
-            ]
-          ]
-          , "type":"inst"
-        }
-      ]
-    }
-    , {
-      "name":"Global Memory Stores"
-      , "id":234
-      , "parent":"223"
-      , "type":"bb"
-      , "children":
-      [
-        {
-          "name":"ST"
-          , "id":235
-          , "kwidth":"32"
-          , "mwidth":"512"
-          , "details":
-          [
-            {
-              "type":"table"
-              , "Start Cycle":"10"
-              , "Latency":"2 cycles"
-              , "Width":"32 bits"
-              , "DDR Width":"512 bits"
-              , "Uses Write Ack":"No"
-              , "LSU Style":"BURST-COALESCED"
-              , "Kernel":"MainKernel"
-            }
-          ]
-          , "debug":
-          [
-            [
-              {
-                "filename":"/home/u119070/git/elastic-sycl-hls/experiments/bitonic_sort_bram.cpp"
-                , "line":62
-              }
-            ]
-          ]
-          , "type":"inst"
         }
       ]
     }
@@ -221,53 +90,24 @@
   , "links":
   [
     {
-      "from":225
-      , "to":224
+      "from":132
+      , "to":131
     }
     , {
-      "from":224
-      , "to":225
+      "from":131
+      , "to":132
     }
     , {
-      "from":226
-      , "to":224
+      "from":133
+      , "to":131
     }
     , {
-      "from":224
-      , "to":226
+      "from":131
+      , "to":133
     }
     , {
-      "from":229
-      , "to":228
-    }
-    , {
-      "from":231
-      , "to":228
-    }
-    , {
-      "from":228
-      , "to":224
-    }
-    , {
-      "from":233
-      , "to":229
-    }
-    , {
-      "from":235
-      , "to":231
-    }
-    , {
-      "from":224
-      , "to":236
-    }
-    , {
-      "from":224
-      , "to":237
-    }
-    , {
-      "from":236
-      , "to":233
-      , "reverse":1
+      "from":135
+      , "to":131
     }
   ]
 }

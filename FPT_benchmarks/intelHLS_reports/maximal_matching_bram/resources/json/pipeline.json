@@ -1,11 +1,11 @@
 {
-  "17":
+  "19":
   {
     "nodes":
     [
       {
         "name":"Exit"
-        , "id":26
+        , "id":28
         , "subtype":"exit"
         , "start":"7.00"
         , "end":"10.00"
@@ -25,7 +25,7 @@
       }
       , {
         "name":"Entry"
-        , "id":27
+        , "id":29
         , "subtype":"entry"
         , "details":
         [
@@ -41,7 +41,7 @@
       }
       , {
         "name":"Loop Orch"
-        , "id":28
+        , "id":30
         , "subtype":"pop"
         , "start":"7.00"
         , "end":"7.00"
@@ -57,7 +57,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
+              , "line":46
             }
           ]
         ]
@@ -65,7 +65,7 @@
       }
       , {
         "name":"Xor"
-        , "id":29
+        , "id":31
         , "subtype":"default"
         , "start":"7.00"
         , "end":"7.00"
@@ -85,55 +85,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
-            }
-          ]
-        ]
-        , "type":"inst"
-      }
-      , {
-        "name":"Loop Orch"
-        , "id":30
-        , "subtype":"default"
-        , "start":"7.00"
-        , "end":"7.00"
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Instruction":"Loop Orchestration Logic"
-          }
-        ]
-        , "debug":
-        [
-          [
-            {
-              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
-            }
-          ]
-        ]
-        , "type":"inst"
-      }
-      , {
-        "name":"Loop Orch"
-        , "id":31
-        , "subtype":"pop"
-        , "start":"7.00"
-        , "end":"7.00"
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Instruction":"Loop Orchestration Logic"
-          }
-        ]
-        , "debug":
-        [
-          [
-            {
-              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
+              , "line":46
             }
           ]
         ]
@@ -157,58 +109,47 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
+              , "line":46
             }
           ]
         ]
         , "type":"inst"
       }
       , {
-        "name":"FFwd Dest"
+        "name":"Loop Orch"
+        , "id":33
+        , "subtype":"pop"
+        , "start":"7.00"
+        , "end":"7.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+              , "line":46
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
         , "id":34
-        , "subtype":"ffwdDest"
+        , "subtype":"default"
         , "start":"7.00"
         , "end":"7.00"
         , "details":
         [
           {
             "type":"table"
-            , "Instruction":"FFwd Destination"
-            , "FFwd Src In":"MainKernel.B0"
-            , "Max Fanout":"1"
-            , "Start Cycle":"7"
-            , "Latency":"0"
-          }
-        ]
-        , "ffwdLinkID":
-        [
-          "15"
-        ]
-        , "debug":
-        [
-          [
-            {
-              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
-            }
-          ]
-        ]
-        , "type":"inst"
-      }
-      , {
-        "name":"Select"
-        , "id":35
-        , "subtype":"select"
-        , "start":"7.00"
-        , "end":"7.00"
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Instruction":"33-bit Select"
-            , "Max Fanout":"2"
-            , "Start Cycle":"7"
-            , "Latency":"0"
+            , "Instruction":"Loop Orchestration Logic"
           }
         ]
         , "debug":
@@ -216,7 +157,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":39
+              , "line":46
             }
           ]
         ]
@@ -241,14 +182,73 @@
         ]
         , "ffwdLinkID":
         [
-          "14"
+          "17"
         ]
         , "debug":
         [
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
+              , "line":46
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":37
+        , "subtype":"select"
+        , "start":"7.00"
+        , "end":"7.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"33-bit Select"
+            , "Max Fanout":"2"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+              , "line":43
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"FFwd Dest"
+        , "id":38
+        , "subtype":"ffwdDest"
+        , "start":"7.00"
+        , "end":"7.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"FFwd Destination"
+            , "FFwd Src In":"MainKernel.B0"
+            , "Max Fanout":"1"
+            , "Start Cycle":"7"
+            , "Latency":"0"
+          }
+        ]
+        , "ffwdLinkID":
+        [
+          "16"
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+              , "line":46
             }
           ]
         ]
@@ -256,7 +256,7 @@
       }
       , {
         "name":"Xor"
-        , "id":37
+        , "id":39
         , "subtype":"default"
         , "start":"7.00"
         , "end":"7.00"
@@ -276,7 +276,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
+              , "line":46
             }
           ]
         ]
@@ -284,7 +284,7 @@
       }
       , {
         "name":"Global variable"
-        , "id":38
+        , "id":40
         , "subtype":"pop"
         , "start":"7.00"
         , "end":"7.00"
@@ -304,34 +304,6 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":39
-            }
-          ]
-        ]
-        , "type":"inst"
-      }
-      , {
-        "name":"<<"
-        , "id":39
-        , "subtype":"default"
-        , "start":"7.00"
-        , "end":"7.00"
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Instruction":"32-bit Left Shift"
-            , "Constant Operand":"1 (0x1)"
-            , "Max Fanout":"1"
-            , "Start Cycle":"7"
-            , "Latency":"0"
-          }
-        ]
-        , "debug":
-        [
-          [
-            {
-              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
               , "line":43
             }
           ]
@@ -340,7 +312,7 @@
       }
       , {
         "name":"arg_edges"
-        , "id":40
+        , "id":41
         , "subtype":"default"
         , "start":"0.00"
         , "end":"7.00"
@@ -358,7 +330,7 @@
       }
       , {
         "name":"Ptr. Comp."
-        , "id":41
+        , "id":42
         , "subtype":"default"
         , "start":"7.00"
         , "end":"7.00"
@@ -367,7 +339,7 @@
           {
             "type":"table"
             , "Instruction":"Pointer Computation"
-            , "Max Fanout":"1"
+            , "Max Fanout":"3"
             , "Start Cycle":"7"
             , "Latency":"0"
           }
@@ -376,7 +348,7 @@
       }
       , {
         "name":"Or"
-        , "id":42
+        , "id":43
         , "subtype":"default"
         , "start":"7.00"
         , "end":"7.00"
@@ -395,7 +367,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
+              , "line":46
             }
           ]
         ]
@@ -403,7 +375,7 @@
       }
       , {
         "name":"+"
-        , "id":43
+        , "id":44
         , "subtype":"default"
         , "start":"7.00"
         , "end":"7.00"
@@ -412,7 +384,7 @@
           {
             "type":"table"
             , "Instruction":"32-bit Integer Add"
-            , "Constant Operand":"1 (0x1)"
+            , "Constant Operand":"2 (0x2)"
             , "Max Fanout":"1"
             , "Start Cycle":"7"
             , "Latency":"0"
@@ -423,7 +395,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":58
+              , "line":60
             }
           ]
         ]
@@ -431,7 +403,7 @@
       }
       , {
         "name":"FFwd Dest"
-        , "id":45
+        , "id":46
         , "subtype":"ffwdDest"
         , "start":"7.00"
         , "end":"7.00"
@@ -448,14 +420,14 @@
         ]
         , "ffwdLinkID":
         [
-          "14"
+          "16"
         ]
         , "debug":
         [
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
+              , "line":46
             }
           ]
         ]
@@ -463,7 +435,7 @@
       }
       , {
         "name":"And"
-        , "id":46
+        , "id":47
         , "subtype":"default"
         , "start":"7.00"
         , "end":"7.00"
@@ -482,31 +454,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
-            }
-          ]
-        ]
-        , "type":"inst"
-      }
-      , {
-        "name":"Loop Orch"
-        , "id":47
-        , "subtype":"default"
-        , "start":"7.00"
-        , "end":"7.00"
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Instruction":"Loop Orchestration Logic"
-          }
-        ]
-        , "debug":
-        [
-          [
-            {
-              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
+              , "line":46
             }
           ]
         ]
@@ -530,7 +478,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
+              , "line":46
             }
           ]
         ]
@@ -539,30 +487,6 @@
       , {
         "name":"Loop Orch"
         , "id":49
-        , "subtype":"select"
-        , "start":"7.00"
-        , "end":"7.00"
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Instruction":"Loop Orchestration Logic"
-          }
-        ]
-        , "debug":
-        [
-          [
-            {
-              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
-            }
-          ]
-        ]
-        , "type":"inst"
-      }
-      , {
-        "name":"Loop Orch"
-        , "id":51
         , "subtype":"default"
         , "start":"7.00"
         , "end":"7.00"
@@ -578,7 +502,55 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
+              , "line":46
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":50
+        , "subtype":"select"
+        , "start":"7.00"
+        , "end":"7.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+              , "line":46
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Loop Orch"
+        , "id":52
+        , "subtype":"default"
+        , "start":"7.00"
+        , "end":"7.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"Loop Orchestration Logic"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+              , "line":46
             }
           ]
         ]
@@ -588,8 +560,8 @@
     , "links":
     [
       {
-        "from":27
-        , "to":35
+        "from":29
+        , "to":37
         , "details":
         [
           {
@@ -599,8 +571,8 @@
         ]
       }
       , {
-        "from":27
-        , "to":38
+        "from":29
+        , "to":40
         , "details":
         [
           {
@@ -610,8 +582,8 @@
         ]
       }
       , {
-        "from":27
-        , "to":31
+        "from":29
+        , "to":33
         , "details":
         [
           {
@@ -621,195 +593,63 @@
         ]
       }
       , {
-        "from":27
-        , "to":28
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"16"
-          }
-        ]
-      }
-      , {
-        "from":27
-        , "to":26
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"16"
-          }
-        ]
-      }
-      , {
-        "from":27
-        , "to":28
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"16"
-          }
-        ]
-      }
-      , {
-        "from":27
-        , "to":31
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"16"
-          }
-        ]
-      }
-      , {
-        "from":27
-        , "to":38
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"16"
-          }
-        ]
-      }
-      , {
-        "from":28
-        , "to":49
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"2"
-          }
-        ]
-      }
-      , {
-        "from":28
+        "from":29
         , "to":30
         , "details":
         [
           {
             "type":"table"
-            , "Width":"2"
+            , "Width":"16"
           }
         ]
       }
       , {
-        "from":28
-        , "to":51
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"2"
-          }
-        ]
-      }
-      , {
-        "from":28
-        , "to":29
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"2"
-          }
-        ]
-      }
-      , {
-        "from":28
+        "from":29
         , "to":28
         , "details":
         [
           {
             "type":"table"
-            , "Width":"2"
-          }
-        ]
-      }
-      , {
-        "from":28
-        , "to":31
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"2"
-          }
-        ]
-      }
-      , {
-        "from":28
-        , "to":38
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"2"
-          }
-        ]
-      }
-      , {
-        "from":28
-        , "to":35
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"2"
-          }
-        ]
-      }
-      , {
-        "from":28
-        , "to":26
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"2"
+            , "Width":"16"
           }
         ]
       }
       , {
         "from":29
-        , "to":42
+        , "to":30
         , "details":
         [
           {
             "type":"table"
-            , "Width":"1"
+            , "Width":"16"
           }
         ]
       }
       , {
         "from":29
-        , "to":48
+        , "to":33
         , "details":
         [
           {
             "type":"table"
-            , "Width":"1"
+            , "Width":"16"
           }
         ]
       }
       , {
         "from":29
-        , "to":26
+        , "to":40
         , "details":
         [
           {
             "type":"table"
-            , "Width":"1"
+            , "Width":"16"
           }
         ]
       }
       , {
         "from":30
-        , "to":49
+        , "to":50
         , "details":
         [
           {
@@ -819,7 +659,7 @@
         ]
       }
       , {
-        "from":31
+        "from":30
         , "to":32
         , "details":
         [
@@ -830,7 +670,18 @@
         ]
       }
       , {
-        "from":32
+        "from":30
+        , "to":52
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":30
         , "to":31
         , "details":
         [
@@ -841,7 +692,51 @@
         ]
       }
       , {
-        "from":32
+        "from":30
+        , "to":30
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":30
+        , "to":33
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":30
+        , "to":40
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":30
+        , "to":37
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":30
         , "to":28
         , "details":
         [
@@ -852,8 +747,41 @@
         ]
       }
       , {
+        "from":31
+        , "to":43
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":31
+        , "to":49
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":31
+        , "to":28
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
         "from":32
-        , "to":38
+        , "to":50
         , "details":
         [
           {
@@ -863,19 +791,8 @@
         ]
       }
       , {
-        "from":32
-        , "to":35
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"2"
-          }
-        ]
-      }
-      , {
-        "from":32
-        , "to":26
+        "from":33
+        , "to":34
         , "details":
         [
           {
@@ -886,34 +803,56 @@
       }
       , {
         "from":34
-        , "to":35
+        , "to":33
         , "details":
         [
           {
             "type":"table"
-            , "Width":"33"
+            , "Width":"2"
           }
         ]
       }
       , {
-        "from":35
-        , "to":46
+        "from":34
+        , "to":30
         , "details":
         [
           {
             "type":"table"
-            , "Width":"33"
+            , "Width":"2"
           }
         ]
       }
       , {
-        "from":35
-        , "to":35
+        "from":34
+        , "to":40
         , "details":
         [
           {
             "type":"table"
-            , "Width":"33"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":34
+        , "to":37
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
+          }
+        ]
+      }
+      , {
+        "from":34
+        , "to":28
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"2"
           }
         ]
       }
@@ -924,29 +863,29 @@
         [
           {
             "type":"table"
-            , "Width":"1"
+            , "Width":"33"
           }
         ]
       }
       , {
         "from":37
-        , "to":42
+        , "to":47
         , "details":
         [
           {
             "type":"table"
-            , "Width":"1"
+            , "Width":"33"
           }
         ]
       }
       , {
-        "from":38
-        , "to":43
+        "from":37
+        , "to":37
         , "details":
         [
           {
             "type":"table"
-            , "Width":"32"
+            , "Width":"33"
           }
         ]
       }
@@ -957,13 +896,24 @@
         [
           {
             "type":"table"
-            , "Width":"32"
+            , "Width":"1"
           }
         ]
       }
       , {
         "from":39
-        , "to":41
+        , "to":43
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":40
+        , "to":44
         , "details":
         [
           {
@@ -974,18 +924,18 @@
       }
       , {
         "from":40
-        , "to":41
+        , "to":42
         , "details":
         [
           {
             "type":"table"
-            , "Width":"64"
+            , "Width":"32"
           }
         ]
       }
       , {
         "from":41
-        , "to":26
+        , "to":42
         , "details":
         [
           {
@@ -996,7 +946,18 @@
       }
       , {
         "from":42
-        , "to":26
+        , "to":28
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"64"
+          }
+        ]
+      }
+      , {
+        "from":43
+        , "to":28
         , "details":
         [
           {
@@ -1006,8 +967,8 @@
         ]
       }
       , {
-        "from":43
-        , "to":38
+        "from":44
+        , "to":40
         , "reverse":1
         , "details":
         [
@@ -1020,17 +981,6 @@
             , "Max Fanout":"1"
             , "Start Cycle":"7"
             , "Latency":"0"
-          }
-        ]
-      }
-      , {
-        "from":45
-        , "to":46
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"1"
           }
         ]
       }
@@ -1046,8 +996,19 @@
         ]
       }
       , {
-        "from":46
-        , "to":28
+        "from":47
+        , "to":48
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":47
+        , "to":30
         , "reverse":1
         , "details":
         [
@@ -1058,8 +1019,8 @@
         ]
       }
       , {
-        "from":46
-        , "to":31
+        "from":47
+        , "to":33
         , "reverse":1
         , "details":
         [
@@ -1070,8 +1031,8 @@
         ]
       }
       , {
-        "from":46
-        , "to":38
+        "from":47
+        , "to":40
         , "reverse":1
         , "details":
         [
@@ -1088,19 +1049,8 @@
         ]
       }
       , {
-        "from":46
-        , "to":35
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"1"
-          }
-        ]
-      }
-      , {
-        "from":46
-        , "to":26
+        "from":47
+        , "to":37
         , "details":
         [
           {
@@ -1111,7 +1061,7 @@
       }
       , {
         "from":47
-        , "to":51
+        , "to":28
         , "details":
         [
           {
@@ -1121,8 +1071,8 @@
         ]
       }
       , {
-        "from":47
-        , "to":48
+        "from":48
+        , "to":52
         , "details":
         [
           {
@@ -1144,7 +1094,18 @@
       }
       , {
         "from":49
-        , "to":28
+        , "to":50
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Width":"1"
+          }
+        ]
+      }
+      , {
+        "from":50
+        , "to":30
         , "details":
         [
           {
@@ -1154,8 +1115,8 @@
         ]
       }
       , {
-        "from":51
-        , "to":26
+        "from":52
+        , "to":28
         , "details":
         [
           {
@@ -1166,7 +1127,7 @@
       }
     ]
   }
-  , "19":
+  , "21":
   {
     "nodes":
     [
@@ -1174,14 +1135,14 @@
         "name":"Exit"
         , "id":53
         , "subtype":"exit"
-        , "start":"21.00"
-        , "end":"24.00"
+        , "start":"209.00"
+        , "end":"212.00"
         , "details":
         [
           {
             "type":"table"
             , "Max Fanout":"2"
-            , "Start Cycle":"21"
+            , "Start Cycle":"209"
             , "Latency":"3"
             , "Exit FIFO Depth":"32"
             , "Exit FIFO Width":"8"
@@ -1200,7 +1161,7 @@
             "type":"table"
             , "Instruction":"Cluster Entry"
             , "Max Fanout":"0"
-            , "Start Cycle":"13"
+            , "Start Cycle":"201"
             , "Latency":"0"
           }
         ]
@@ -1210,16 +1171,16 @@
         "name":"Ptr. Comp."
         , "id":55
         , "subtype":"default"
-        , "start":"14.00"
-        , "end":"14.00"
+        , "start":"201.00"
+        , "end":"202.00"
         , "details":
         [
           {
             "type":"table"
             , "Instruction":"Pointer Computation"
             , "Max Fanout":"4"
-            , "Start Cycle":"14"
-            , "Latency":"0"
+            , "Start Cycle":"201"
+            , "Latency":"1"
           }
         ]
         , "type":"inst"
@@ -1228,8 +1189,8 @@
         "name":"vertices"
         , "id":56
         , "subtype":"pop"
-        , "start":"14.00"
-        , "end":"14.00"
+        , "start":"202.00"
+        , "end":"202.00"
         , "details":
         [
           {
@@ -1237,7 +1198,7 @@
             , "Instruction":"Feedback Read"
             , "Variable":"vertices"
             , "Max Fanout":"2"
-            , "Start Cycle":"14"
+            , "Start Cycle":"202"
             , "Latency":"0"
           }
         ]
@@ -1246,7 +1207,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":53
+              , "line":55
             }
           ]
         ]
@@ -1256,8 +1217,8 @@
         "name":"LD"
         , "id":57
         , "subtype":"load/store"
-        , "start":"14.00"
-        , "end":"19.00"
+        , "start":"202.00"
+        , "end":"207.00"
         , "details":
         [
           {
@@ -1268,7 +1229,7 @@
             , "Stall-free":"Yes"
             , "Global Memory":"No"
             , "Max Fanout":"1"
-            , "Start Cycle":"14"
+            , "Start Cycle":"202"
             , "Latency":"5"
           }
         ]
@@ -1277,7 +1238,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":48
+              , "line":50
             }
           ]
         ]
@@ -1287,16 +1248,16 @@
         "name":"Ptr. Comp."
         , "id":58
         , "subtype":"default"
-        , "start":"14.00"
-        , "end":"14.00"
+        , "start":"201.00"
+        , "end":"202.00"
         , "details":
         [
           {
             "type":"table"
             , "Instruction":"Pointer Computation"
             , "Max Fanout":"4"
-            , "Start Cycle":"14"
-            , "Latency":"0"
+            , "Start Cycle":"201"
+            , "Latency":"1"
           }
         ]
         , "type":"inst"
@@ -1305,8 +1266,8 @@
         "name":"LD"
         , "id":59
         , "subtype":"load/store"
-        , "start":"14.00"
-        , "end":"19.00"
+        , "start":"202.00"
+        , "end":"207.00"
         , "details":
         [
           {
@@ -1317,7 +1278,7 @@
             , "Stall-free":"Yes"
             , "Global Memory":"No"
             , "Max Fanout":"1"
-            , "Start Cycle":"14"
+            , "Start Cycle":"202"
             , "Latency":"5"
           }
         ]
@@ -1326,7 +1287,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":49
+              , "line":51
             }
           ]
         ]
@@ -1336,15 +1297,15 @@
         "name":"Compare"
         , "id":60
         , "subtype":"default"
-        , "start":"19.00"
-        , "end":"19.00"
+        , "start":"207.00"
+        , "end":"207.00"
         , "details":
         [
           {
             "type":"table"
             , "Instruction":"32-bit Integer Compare"
             , "Max Fanout":"1"
-            , "Start Cycle":"19"
+            , "Start Cycle":"207"
             , "Latency":"0"
           }
         ]
@@ -1353,7 +1314,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":51
+              , "line":52
             }
           ]
         ]
@@ -1363,33 +1324,15 @@
         "name":"Compare"
         , "id":61
         , "subtype":"default"
-        , "start":"19.00"
-        , "end":"19.00"
+        , "start":"207.00"
+        , "end":"207.00"
         , "details":
         [
           {
             "type":"table"
             , "Instruction":"32-bit Integer Compare"
             , "Max Fanout":"1"
-            , "Start Cycle":"19"
-            , "Latency":"0"
-          }
-        ]
-        , "type":"inst"
-      }
-      , {
-        "name":"Select"
-        , "id":62
-        , "subtype":"select"
-        , "start":"19.00"
-        , "end":"19.00"
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Instruction":"1-bit Select"
-            , "Max Fanout":"2"
-            , "Start Cycle":"19"
+            , "Start Cycle":"207"
             , "Latency":"0"
           }
         ]
@@ -1398,7 +1341,34 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":51
+              , "line":52
+            }
+          ]
+        ]
+        , "type":"inst"
+      }
+      , {
+        "name":"Select"
+        , "id":62
+        , "subtype":"select"
+        , "start":"207.00"
+        , "end":"207.00"
+        , "details":
+        [
+          {
+            "type":"table"
+            , "Instruction":"1-bit Select"
+            , "Max Fanout":"2"
+            , "Start Cycle":"207"
+            , "Latency":"0"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
+              , "line":52
             }
           ]
         ]
@@ -1408,8 +1378,8 @@
         "name":"FFwd Dest"
         , "id":63
         , "subtype":"ffwdDest"
-        , "start":"19.00"
-        , "end":"19.00"
+        , "start":"207.00"
+        , "end":"207.00"
         , "details":
         [
           {
@@ -1417,20 +1387,20 @@
             , "Instruction":"FFwd Destination"
             , "FFwd Src In":"MainKernel.B0"
             , "Max Fanout":"1"
-            , "Start Cycle":"19"
+            , "Start Cycle":"207"
             , "Latency":"0"
           }
         ]
         , "ffwdLinkID":
         [
-          "14"
+          "16"
         ]
         , "debug":
         [
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":42
+              , "line":46
             }
           ]
         ]
@@ -1440,15 +1410,15 @@
         "name":"And"
         , "id":64
         , "subtype":"default"
-        , "start":"19.00"
-        , "end":"19.00"
+        , "start":"207.00"
+        , "end":"207.00"
         , "details":
         [
           {
             "type":"table"
             , "Instruction":"1-bit And"
             , "Max Fanout":"1"
-            , "Start Cycle":"19"
+            , "Start Cycle":"207"
             , "Latency":"0"
           }
         ]
@@ -1457,7 +1427,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":52
+              , "line":54
             }
           ]
         ]
@@ -1467,8 +1437,8 @@
         "name":"Xor"
         , "id":65
         , "subtype":"default"
-        , "start":"19.00"
-        , "end":"19.00"
+        , "start":"207.00"
+        , "end":"207.00"
         , "details":
         [
           {
@@ -1476,7 +1446,7 @@
             , "Instruction":"1-bit Xor"
             , "Constant Operand":"1 (0x1)"
             , "Max Fanout":"1"
-            , "Start Cycle":"19"
+            , "Start Cycle":"207"
             , "Latency":"0"
           }
         ]
@@ -1485,7 +1455,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":52
+              , "line":54
             }
           ]
         ]
@@ -1495,15 +1465,15 @@
         "name":"Or"
         , "id":66
         , "subtype":"default"
-        , "start":"19.00"
-        , "end":"19.00"
+        , "start":"207.00"
+        , "end":"207.00"
         , "details":
         [
           {
             "type":"table"
             , "Instruction":"1-bit Or"
             , "Max Fanout":"2"
-            , "Start Cycle":"19"
+            , "Start Cycle":"207"
             , "Latency":"0"
           }
         ]
@@ -1512,7 +1482,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":52
+              , "line":54
             }
           ]
         ]
@@ -1522,8 +1492,8 @@
         "name":"ST"
         , "id":67
         , "subtype":"load/store"
-        , "start":"19.00"
-        , "end":"20.00"
+        , "start":"207.00"
+        , "end":"208.00"
         , "details":
         [
           {
@@ -1534,7 +1504,7 @@
             , "Stall-free":"Yes"
             , "Global Memory":"No"
             , "Max Fanout":"1"
-            , "Start Cycle":"19"
+            , "Start Cycle":"207"
             , "Latency":"1"
           }
         ]
@@ -1543,7 +1513,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":52
+              , "line":54
             }
           ]
         ]
@@ -1553,8 +1523,8 @@
         "name":"ST"
         , "id":68
         , "subtype":"load/store"
-        , "start":"20.00"
-        , "end":"21.00"
+        , "start":"208.00"
+        , "end":"209.00"
         , "details":
         [
           {
@@ -1565,7 +1535,7 @@
             , "Stall-free":"Yes"
             , "Global Memory":"No"
             , "Max Fanout":"1"
-            , "Start Cycle":"20"
+            , "Start Cycle":"208"
             , "Latency":"1"
           }
         ]
@@ -1574,7 +1544,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":53
+              , "line":55
             }
           ]
         ]
@@ -1584,8 +1554,8 @@
         "name":"'out_scalar'"
         , "id":70
         , "subtype":"pop"
-        , "start":"19.00"
-        , "end":"19.00"
+        , "start":"207.00"
+        , "end":"207.00"
         , "details":
         [
           {
@@ -1593,7 +1563,7 @@
             , "Instruction":"Feedback Read"
             , "Variable":"'out_scalar'"
             , "Max Fanout":"1"
-            , "Start Cycle":"19"
+            , "Start Cycle":"207"
             , "Latency":"0"
           }
         ]
@@ -1602,7 +1572,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":40
+              , "line":44
             }
           ]
         ]
@@ -1612,15 +1582,15 @@
         "name":"+"
         , "id":71
         , "subtype":"default"
-        , "start":"19.00"
-        , "end":"19.00"
+        , "start":"207.00"
+        , "end":"207.00"
         , "details":
         [
           {
             "type":"table"
             , "Instruction":"32-bit Integer Add"
             , "Max Fanout":"1"
-            , "Start Cycle":"19"
+            , "Start Cycle":"207"
             , "Latency":"0"
           }
         ]
@@ -1629,7 +1599,7 @@
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":40
+              , "line":44
             }
           ]
         ]
@@ -1640,7 +1610,7 @@
         , "id":73
         , "subtype":"ffwdSource"
         , "start":"0.00"
-        , "end":"19.00"
+        , "end":"207.00"
         , "details":
         [
           {
@@ -1649,19 +1619,19 @@
             , "FFwd Dest In":"MainKernel.B2"
             , "Max Fanout":"1"
             , "Start Cycle":"0"
-            , "Latency":"19"
+            , "Latency":"207"
           }
         ]
         , "ffwdLinkID":
         [
-          "21"
+          "23"
         ]
         , "debug":
         [
           [
             {
               "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-              , "line":40
+              , "line":44
             }
           ]
         ]
@@ -1750,28 +1720,6 @@
       , {
         "from":54
         , "to":70
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"104"
-          }
-        ]
-      }
-      , {
-        "from":54
-        , "to":68
-        , "details":
-        [
-          {
-            "type":"table"
-            , "Width":"104"
-          }
-        ]
-      }
-      , {
-        "from":54
-        , "to":67
         , "details":
         [
           {
@@ -2013,7 +1961,7 @@
             , "Feedback FIFO Depth":"1"
             , "Feedback FIFO Width":"1"
             , "Max Fanout":"1"
-            , "Start Cycle":"21"
+            , "Start Cycle":"209"
             , "Latency":"0"
           }
         ]
@@ -2042,7 +1990,7 @@
             , "Feedback FIFO Depth":"1"
             , "Feedback FIFO Width":"32"
             , "Max Fanout":"1"
-            , "Start Cycle":"19"
+            , "Start Cycle":"207"
             , "Latency":"0"
           }
         ]

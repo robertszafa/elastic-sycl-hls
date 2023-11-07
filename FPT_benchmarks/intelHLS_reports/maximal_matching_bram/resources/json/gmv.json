@@ -3,7 +3,7 @@
   [
     {
       "name":"DDR"
-      , "id":94
+      , "id":93
       , "details":
       [
         {
@@ -20,7 +20,7 @@
       [
         {
           "name":"channel 0"
-          , "id":96
+          , "id":95
           , "details":
           [
             {
@@ -38,7 +38,7 @@
         }
         , {
           "name":"channel 1"
-          , "id":97
+          , "id":96
           , "details":
           [
             {
@@ -58,8 +58,8 @@
     }
     , {
       "name":"Memory Controller"
-      , "id":95
-      , "parent":"94"
+      , "id":94
+      , "parent":"93"
       , "bw":"34133.00"
       , "num_channels":"2"
       , "interleave":"1"
@@ -74,19 +74,19 @@
     }
     , {
       "name":"Global Memory Interconnect"
-      , "id":98
-      , "parent":"94"
+      , "id":97
+      , "parent":"93"
       , "type":"bb"
       , "children":
       [
         {
           "name":"SHARE"
-          , "id":99
+          , "id":98
           , "type":"arb"
         }
         , {
           "name":"Write Interconnect"
-          , "id":102
+          , "id":101
           , "details":
           [
             {
@@ -102,7 +102,7 @@
         }
         , {
           "name":"Read Interconnect"
-          , "id":100
+          , "id":99
           , "details":
           [
             {
@@ -116,7 +116,7 @@
         }
         , {
           "name":"Read Interconnect Router"
-          , "id":101
+          , "id":100
           , "details":
           [
             {
@@ -129,12 +129,12 @@
           [
             {
               "name":"Bus 0"
-              , "id":107
+              , "id":106
               , "type":"memsys"
             }
             , {
               "name":"Bus 1"
-              , "id":108
+              , "id":107
               , "type":"memsys"
             }
           ]
@@ -143,14 +143,14 @@
     }
     , {
       "name":"Global Memory Loads"
-      , "id":103
-      , "parent":"94"
+      , "id":102
+      , "parent":"93"
       , "type":"bb"
       , "children":
       [
         {
           "name":"LD"
-          , "id":104
+          , "id":103
           , "kwidth":"64"
           , "mwidth":"512"
           , "details":
@@ -158,11 +158,11 @@
             {
               "type":"table"
               , "Start Cycle":"10"
-              , "Latency":"2 cycles"
+              , "Latency":"190 cycles"
               , "Width":"64 bits"
               , "DDR Width":"512 bits"
               , "Uses Caching":"No"
-              , "LSU Style":"PREFETCHING"
+              , "LSU Style":"BURST-COALESCED"
               , "Kernel":"MainKernel"
             }
           ]
@@ -171,7 +171,7 @@
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-                , "line":45
+                , "line":47
               }
             ]
           ]
@@ -181,14 +181,14 @@
     }
     , {
       "name":"Global Memory Stores"
-      , "id":105
-      , "parent":"94"
+      , "id":104
+      , "parent":"93"
       , "type":"bb"
       , "children":
       [
         {
           "name":"ST"
-          , "id":106
+          , "id":105
           , "kwidth":"32"
           , "mwidth":"512"
           , "details":
@@ -209,7 +209,7 @@
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/experiments/maximal_matching_bram.cpp"
-                , "line":61
+                , "line":63
               }
             ]
           ]
@@ -221,52 +221,52 @@
   , "links":
   [
     {
-      "from":96
+      "from":95
+      , "to":94
+    }
+    , {
+      "from":94
       , "to":95
     }
     , {
-      "from":95
+      "from":96
+      , "to":94
+    }
+    , {
+      "from":94
       , "to":96
     }
     , {
-      "from":97
-      , "to":95
-    }
-    , {
-      "from":95
-      , "to":97
-    }
-    , {
-      "from":100
-      , "to":99
-    }
-    , {
-      "from":102
-      , "to":99
-    }
-    , {
       "from":99
-      , "to":95
+      , "to":98
     }
     , {
-      "from":104
-      , "to":100
+      "from":101
+      , "to":98
     }
     , {
-      "from":106
-      , "to":102
+      "from":98
+      , "to":94
     }
     , {
-      "from":95
+      "from":103
+      , "to":99
+    }
+    , {
+      "from":105
+      , "to":101
+    }
+    , {
+      "from":94
+      , "to":106
+    }
+    , {
+      "from":94
       , "to":107
     }
     , {
-      "from":95
-      , "to":108
-    }
-    , {
-      "from":107
-      , "to":104
+      "from":106
+      , "to":103
       , "reverse":1
     }
   ]

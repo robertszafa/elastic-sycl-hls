@@ -3,7 +3,7 @@
   [
     {
       "name":"DDR"
-      , "id":2138
+      , "id":2150
       , "details":
       [
         {
@@ -20,7 +20,7 @@
       [
         {
           "name":"channel 0"
-          , "id":2140
+          , "id":2152
           , "details":
           [
             {
@@ -38,7 +38,7 @@
         }
         , {
           "name":"channel 1"
-          , "id":2141
+          , "id":2153
           , "details":
           [
             {
@@ -58,8 +58,8 @@
     }
     , {
       "name":"Memory Controller"
-      , "id":2139
-      , "parent":"2138"
+      , "id":2151
+      , "parent":"2150"
       , "bw":"34133.00"
       , "num_channels":"2"
       , "interleave":"1"
@@ -74,19 +74,19 @@
     }
     , {
       "name":"Global Memory Interconnect"
-      , "id":2142
-      , "parent":"2138"
+      , "id":2154
+      , "parent":"2150"
       , "type":"bb"
       , "children":
       [
         {
           "name":"SHARE"
-          , "id":2143
+          , "id":2155
           , "type":"arb"
         }
         , {
           "name":"Read Interconnect"
-          , "id":2144
+          , "id":2156
           , "details":
           [
             {
@@ -100,7 +100,7 @@
         }
         , {
           "name":"Read Interconnect Router"
-          , "id":2145
+          , "id":2157
           , "details":
           [
             {
@@ -113,12 +113,12 @@
           [
             {
               "name":"Bus 0"
-              , "id":2150
+              , "id":2162
               , "type":"memsys"
             }
             , {
               "name":"Bus 1"
-              , "id":2151
+              , "id":2163
               , "type":"memsys"
             }
           ]
@@ -127,14 +127,14 @@
     }
     , {
       "name":"Global Memory Loads"
-      , "id":2146
-      , "parent":"2138"
+      , "id":2158
+      , "parent":"2150"
       , "type":"bb"
       , "children":
       [
         {
           "name":"LD"
-          , "id":2147
+          , "id":2159
           , "kwidth":"32"
           , "mwidth":"512"
           , "details":
@@ -155,7 +155,7 @@
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
-                , "line":729
+                , "line":877
               }
             ]
           ]
@@ -163,7 +163,7 @@
         }
         , {
           "name":"LD"
-          , "id":2148
+          , "id":2160
           , "kwidth":"32"
           , "mwidth":"512"
           , "details":
@@ -184,7 +184,7 @@
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
-                , "line":729
+                , "line":877
               }
             ]
           ]
@@ -192,7 +192,7 @@
         }
         , {
           "name":"LD"
-          , "id":2149
+          , "id":2161
           , "kwidth":"64"
           , "mwidth":"512"
           , "details":
@@ -213,7 +213,7 @@
             [
               {
                 "filename":"/home/u119070/git/elastic-sycl-hls/scripts/compilation/example/experiments/chaos_ncg_bram_elastic_pass_workdir/chaos_ncg_bram.ast.cpp"
-                , "line":735
+                , "line":883
               }
             ]
           ]
@@ -225,62 +225,62 @@
   , "links":
   [
     {
-      "from":2140
-      , "to":2139
-    }
-    , {
-      "from":2139
-      , "to":2140
-    }
-    , {
-      "from":2141
-      , "to":2139
-    }
-    , {
-      "from":2139
-      , "to":2141
-    }
-    , {
-      "from":2144
-      , "to":2143
-    }
-    , {
-      "from":2143
-      , "to":2139
-    }
-    , {
-      "from":2147
-      , "to":2144
-    }
-    , {
-      "from":2148
-      , "to":2144
-    }
-    , {
-      "from":2149
-      , "to":2144
-    }
-    , {
-      "from":2139
-      , "to":2150
-    }
-    , {
-      "from":2139
+      "from":2152
       , "to":2151
     }
     , {
-      "from":2150
-      , "to":2147
-      , "reverse":1
+      "from":2151
+      , "to":2152
+    }
+    , {
+      "from":2153
+      , "to":2151
     }
     , {
       "from":2151
-      , "to":2148
+      , "to":2153
+    }
+    , {
+      "from":2156
+      , "to":2155
+    }
+    , {
+      "from":2155
+      , "to":2151
+    }
+    , {
+      "from":2159
+      , "to":2156
+    }
+    , {
+      "from":2160
+      , "to":2156
+    }
+    , {
+      "from":2161
+      , "to":2156
+    }
+    , {
+      "from":2151
+      , "to":2162
+    }
+    , {
+      "from":2151
+      , "to":2163
+    }
+    , {
+      "from":2162
+      , "to":2159
       , "reverse":1
     }
     , {
-      "from":2150
-      , "to":2149
+      "from":2163
+      , "to":2160
+      , "reverse":1
+    }
+    , {
+      "from":2162
+      , "to":2161
       , "reverse":1
     }
   ]

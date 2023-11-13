@@ -86,6 +86,13 @@ def parse_report(report_fname):
 
         if "mainKernelName" not in report:
             exit("Analysis report is empty.")
+        
+        if os.environ.get('LSQ_SIZE') is not None:
+            new_size = int(os.environ["LSQ_SIZE"])
+            print(f"LSQ allocationQueueSize overiden by env varirable LSQ_SIZE to {new_size}")
+            for _, lsq_info in enumerate(report['lsqArray']):
+                lsq_info['allocationQueueSize'] = new_size
+
         return report
     except Exception as e:
         exit("Error parsing analysis report " + report_fname)
@@ -136,14 +143,10 @@ def gen_all_pipe_declarations(report):
         st_req_type = 'st_req_lsq_bram_t' if lsq_info['isOnChipMem'] else 'req_lsq_dram_t'
         st_val_type = f'tagged_val_lsq_bram_t<{val_type}>' if lsq_info['isOnChipMem'] else f'tagged_val_lsq_dram_t<{val_type}>'
 
-        ld_pipe_depth = max(16, lsq_info['allocationQueueSize'])
-        st_pipe_depth = max(16, lsq_info['allocationQueueSize'])
-        
-        # Adjust pipe sizes going into the LSQ based on num lds/sts.
-        # LD pipes only need to be adjusted for BRAM LSQs, because DRAM has multiple ld ports.
-        if lsq_info['isOnChipMem']: 
-            ld_pipe_depth *= max(1, math.ceil(lsq_info['numLoadPipes']/lsq_info['numStorePipes']))
-        st_pipe_depth *= max(1, math.ceil(lsq_info['numStorePipes']/lsq_info['numLoadPipes']))
+        # ST pipes only need to be adjusted for BRAM LSQs, because DRAM has multiple ld ports.
+        st_pipe_mul = max(1, math.ceil(lsq_info['numStorePipes']/lsq_info['numLoadPipes'])) if lsq_info['isOnChipMem'] else 1
+        ld_pipe_depth = min(32, 4 * lsq_info['numLoadPipes'])
+        st_pipe_depth = min(32, 4 * lsq_info['numStorePipes'] * st_pipe_mul)
 
         res.append(f"using pipes_ld_req_{i_lsq} = \
             PipeArray<class pipes_ld_req_{i_lsq}_class, {ld_req_type}, \

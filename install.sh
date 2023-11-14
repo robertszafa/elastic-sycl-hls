@@ -29,3 +29,15 @@ mkdir -p $ELASTIC_SYCL_HLS_DIR/build && rm -rf $ELASTIC_SYCL_HLS_DIR/build/*
 cd $ELASTIC_SYCL_HLS_DIR/build && cmake .. && make -j $CORES_FOR_MAKE
 cd $ELASTIC_SYCL_HLS_DIR
 echo "Finished building elastic-sycl-hls."
+
+# Our compiler uses latency-insensitive channels and BRAM IPs provided by Altera. 
+# We change the channel write-to-read latency to 1 cycle, and we change the 
+# read-during-write behaviour of dual-port BRAM to return "old data", i.e. 
+# data before the store. The pipe change is purely for improved preformance, 
+# the BRAM change is needed to gurantee correctness of our BRAM LSQ.
+echo "Parameterizing Altera OpenCL IP (Pipes and BRAM)."
+mkdir -p $ELASTIC_SYCL_HLS_DIR/ip
+cp $INTELFPGAOCLSDKROOT/ip/acl_channel_fifo.v $ELASTIC_SYCL_HLS_DIR/ip
+cp $INTELFPGAOCLSDKROOT/ip/acl_mem1x.v $ELASTIC_SYCL_HLS_DIR/ip
+sed -i 's/RDW_MODE\s*==/"OLD_DATA"==/g;s/= RDW_MODE/= "OLD_DATA"/g' $ELASTIC_SYCL_HLS_DIR/ip/acl_mem1x.v
+sed -i 's/INTER_KERNEL_PIPELINING/0/g;s/0 = 0/INTER_KERNEL_PIPELINING = 0/g;s/(ALLOW_HIGH_SPEED_FIFO_USAGE ? "hs" : "ms")/("ll")/g' $ELASTIC_SYCL_HLS_DIR/ip/acl_channel_fifo.v

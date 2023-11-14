@@ -9,16 +9,17 @@ SRC_FILE="$2"
 set -e
 
 # Get hold of names for binaries and tmp files.
+TMP_DIR=${TMPDIR:-${TEMP:-${TMP:-/tmp}}}
 LLVM_BIN_DIR=$ELASTIC_SYCL_HLS_DIR/llvm/build/bin
 SRC_FILE_BASENAME_WITH_EXT=`basename "$SRC_FILE"`
 SRC_FILE_BASENAME=${SRC_FILE_BASENAME_WITH_EXT%.*}
 SRC_FILE_DIR=`dirname "$SRC_FILE"`
-PASS_WORKDIR="$SRC_FILE_DIR/${SRC_FILE_BASENAME}_elastic_pass_workdir"
+HASHED_FILENAME=${SRC_FILE_BASENAME}_$RANDOM
+PASS_WORKDIR="$TMP_DIR/${HASHED_FILENAME}_elastic_pass_workdir"
 SRC_FILE_WORKDIR=$PASS_WORKDIR/$SRC_FILE_BASENAME_WITH_EXT
 SRC_FILE_AST="$PASS_WORKDIR/$SRC_FILE_BASENAME.ast.cpp"
 ANALYSIS_REPORT="$PASS_WORKDIR/elastic_pass_report.json"
 FINAL_BINARY="$SRC_FILE_DIR/bin/${SRC_FILE_BASENAME}.elastic.fpga_$TARGET"
-TMP_DIR=${TMPDIR:-${TEMP:-${TMP:-/tmp}}}
 
 # Run the following passes to ensure canonical SSA form for analysis:
 # hoist-const-gep: Ensure SYCL global pointers are declared in function entry block.
@@ -55,9 +56,9 @@ change_ip() {
   fi
 
   # Wait for IP files to be coppied by the driver into TMP_DIR.
-  while [ ! `find $TMP_DIR/example-* -nowarn -name "acl_channel_fifo.v" 2>/dev/null` ]; do :; done
+  while [ ! `find $TMP_DIR/$HASHED_FILENAME* -nowarn -name "acl_channel_fifo.v" 2>/dev/null` ]; do :; done
   # Get exact dirname of IP files.
-  IP_DIR=$(dirname $TMP_DIR/example-*/ip/acl_channel_fifo.v)
+  IP_DIR=$(dirname $TMP_DIR/$HASHED_FILENAME-*/ip/acl_channel_fifo.v)
 
   # Copy the changed IPs into IP_DIR every time the compiler changes them.
   while [ ! -f $FINAL_BINARY ]; do # stop when full compile done
@@ -76,8 +77,6 @@ echo "---------------- Elastic passes start ----------------"
 mkdir -p $PASS_WORKDIR
 cp $SRC_FILE $PASS_WORKDIR
 mkdir -p "$SRC_FILE_DIR/bin"
-# Remove files from previous compilations.
-rm -rf $TMP_DIR/example-* $FINAL_BINARY
 
 ###
 ### STAGE 0: Ensure a canonical kernel call: queue.single_task<> submission on one line, no empty lines, no commnets.
@@ -89,7 +88,7 @@ $LLVM_BIN_DIR/clang-format --style="{ColumnLimit: 2000, MaxEmptyLinesToKeep: 0}"
 ###
 ### STAGE 1: Get IR of original source and prepare it analysis.
 ###
-$ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_to_bc.sh $TARGET $SRC_FILE_WORKDIR
+$ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_to_bc.sh $TARGET $SRC_FILE_WORKDIR $HASHED_FILENAME
 prepare_ir $SRC_FILE_WORKDIR.bc
 
 ###
@@ -112,7 +111,7 @@ python3 $ELASTIC_SYCL_HLS_DIR/scripts/compilation/ASTTransform.py $ANALYSIS_REPO
 ### STAGE 4: Fix IR inside kernels.
 ###
 echo "Info: Swapping instructions for pipe calls" 
-$ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_to_bc.sh $TARGET $SRC_FILE_AST
+$ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_to_bc.sh $TARGET $SRC_FILE_AST $HASHED_FILENAME
 prepare_ir $SRC_FILE_AST.bc
 $LLVM_BIN_DIR/opt -load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libElasticTransform.so \
                                    -passes=elastic-transform $SRC_FILE_AST.bc -o $SRC_FILE_AST.elastic.bc
@@ -126,10 +125,9 @@ echo "Info: Passing transformed IR to downstream HLS compiler"
 echo "---------------- Elastic passes end ----------------"
 echo "Compiling $FINAL_BINARY"
 change_ip & \
-$ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_from_bc.sh $TARGET $SRC_FILE_AST.elastic.bc $SRC_FILE_AST $FINAL_BINARY
+$ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_from_bc.sh $TARGET $SRC_FILE_AST.elastic.bc $SRC_FILE_AST $FINAL_BINARY $HASHED_FILENAME
 
-# Remove created temporaried, if the "-d" flag was not supplied.
-if [[ "$*" != *"-d"* ]] 
-then
-  rm -rf $PASS_WORKDIR
+# Remove created temporaries, if the "-d" flag was not supplied.
+if [[ "$*" != *"-d"* ]]; then 
+  rm -rf $TMP_DIR/${HASHED_FILENAME}* $TMP_DIR/**/${HASHED_FILENAME}* 
 fi

@@ -56,14 +56,16 @@ if __name__ == '__main__':
     COMPILE_TO_BC='''#!/bin/bash
 
     # $1 - emu / sim / hw
-    # $2 - filename to compile\n
+    # $2 - filename to compile
+    # $3 - hashed, unique file name\n
     '''
     COMPILE_FROM_BC='''#!/bin/bash
 
     # $1 - emu / sim / hw
     # $2 - bc file
     # $3 - original filename
-    # $4 - output binary filename\n
+    # $4 - output binary filename
+    # $5 - hashed, unique file name\n
     '''
 
     TARGET_LIST = args.targets.split(",")
@@ -93,6 +95,7 @@ if __name__ == '__main__':
 
         to_bc_cmd = re.sub(EXAMPLE_FNAME, '"$2"', to_bc_cmd)
         to_bc_cmd = re.sub(get_bc_fname(to_bc_cmd), '"$2.bc"', to_bc_cmd)
+        to_bc_cmd = re.sub("example", '$3', to_bc_cmd)
         to_bc_cmd = remove_verbose_flags(to_bc_cmd)
 
         integration_head = re.findall(r'-fsycl-int-header=(\S+) ', to_bc_cmd)[0]
@@ -104,6 +107,7 @@ if __name__ == '__main__':
         from_bc_cmd = re.sub(r"bin/example\.fpga_" + target, '"$4"', from_bc_cmd)
         from_bc_cmd = re.sub(r"bin/example\.dev\.o", '"$4".dev.o', from_bc_cmd)
         from_bc_cmd = re.sub(EXAMPLE_FNAME + r'[^\.]', '"$3" ', from_bc_cmd)
+        from_bc_cmd = re.sub("example", '$5', from_bc_cmd)
         from_bc_cmd = remove_verbose_flags(from_bc_cmd)
         COMPILE_FROM_BC += f'\nif [ "$1" == "{target}" ]; then\n\t{from_bc_cmd}\nexit\nfi\n'
 

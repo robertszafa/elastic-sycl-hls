@@ -15,22 +15,14 @@ This repository contains LLVM passes (under lib/) and a Load-Store Queue impleme
 - (Optional) To run in hardware, I used the Intel DevCloud for free to access the Altera Arria 10AX115S FPGA.
 
 **Installation:**
-The install script downloads the intel/llvm github repo and builds it. Then it builds the passes from this repo out-of-tree.
+
+The below install script downloads the intel/llvm github repo and builds it. Then it builds the passes from this repo out-of-tree.
 ```bash
 export ELASTIC_SYCL_HLS_DIR=path/to/elastic_sycl_hls 
 bash install.sh
 ```
 
-Our compiler uses latency-insensitive channels and BRAM IPs provided by Altera. We change the channel write-to-read latency to 1 cycle, and we change the read-during-write behaviour of dual-port BRAM to return "old data", i.e. data before the store. The pipe change is purely for improved preformance, the BRAM change is needed to gurantee correctness of our BRAM LSQ.
-```bash
-mkdir $ELASTIC_SYCL_HLS_DIR/ip
-cp $INTELFPGAOCLSDKROOT/ip/acl_channel_fifo.v $ELASTIC_SYCL_HLS_DIR/ip
-cp $INTELFPGAOCLSDKROOT/ip/acl_mem1x.v $ELASTIC_SYCL_HLS_DIR/ip
-sed -i 's/RDW_MODE\s*==/"OLD_DATA"==/g;s/= RDW_MODE/= "OLD_DATA"/g' $ELASTIC_SYCL_HLS_DIR/ip/acl_mem1x.v
-sed -i 's/INTER_KERNEL_PIPELINING/0/g;s/0 = 0/INTER_KERNEL_PIPELINING = 0/g;s/(ALLOW_HIGH_SPEED_FIFO_USAGE ? "hs" : "ms")/("ll")/g' $ELASTIC_SYCL_HLS_DIR/ip/acl_channel_fifo.v
-```
-
-This script generates generic `compile_to_bc.sh` and `compile_from_bc.sh` scripts used to inject our passes into the SYCL compiler pipeline.
+The below script generates generic `compile_to_bc.sh` and `compile_from_bc.sh` scripts used to inject our passes into the SYCL compiler pipeline.
 Remove undesired emu,sim,hw targets (the hw target takes a while).
 The SYCL compiler is multi-pass -- it consists of multiple sub-commands 
 to build a host and device binary. This script runs a full compilation in 
@@ -43,6 +35,14 @@ If you want to tun in hardware, then add the 'hw' target.
 ```bash
 ./scripts/compilation/gen_compile_scripts.py --targets=emu,sim,hw
 ```
+
+**Using this code in the DevCloud:**
+- Find free nodes with an Arria 10 FPGA: `pbsnodes :arria10 | grep "state = free" -B 1 -A 1`
+- Log into a selected node for 6 hrs (can choose up to 24): `qsub -I -l nodes=s001-n084:ppn=2 -l walltime=06:00:00 -d .`
+- Initialize tools: `source /glob/development-tools/versions/oneapi/2023.1.1/oneapi/setvars.sh --force > /dev/null 2>&1`
+- Install this repo: `install.sh`
+- No need to run `gen_compile_scripts.py` in the devcloud. We have provided `compile_to_bc.sh` and `compile_from_bc.sh` scripts for the devcloud in this repo.
+- Use `elastic_pass.sh hw <src-code>`
 
 ---
 

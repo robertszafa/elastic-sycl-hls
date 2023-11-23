@@ -29,19 +29,14 @@ using BurstCoalescedLSU =
                     // ext::intel::statically_coalesce<false>>;
 
 constexpr int kDramDelay = 1024;
+constexpr int kStoreFifoSize = 8;
 
-constexpr int LOOP_FINISHED_CODE = -2;
+struct addr_val_t { int addr; float val; };
+
+struct tagged_val_t { float val; bool reuse; };
 
 struct polly_schedule_t { 
   int t; int i; float val; 
-  
-  void increment(const int tMax, const int iMax) {
-    i = (i + 1);
-    if (i == iMax) {
-      t += 1;
-      i = 0;
-    }
-  }
 
   bool operator<(const polly_schedule_t &other) const {
     if (other.t == this->t) return this->i < other.i;
@@ -59,7 +54,6 @@ struct polly_schedule_t {
   }
 };
 
-struct tagged_val_t { float val; bool reuse; };
 
 
 [[clang::always_inline]] int accessSstB (const polly_schedule_t &sched) { 
@@ -84,42 +78,6 @@ struct tagged_val_t { float val; bool reuse; };
   return sched.i + 1; 
 }
 
-// template <typename T, typename StoreSchedulePipe, typename LoadValPipe>
-// event GatedStreamingLoad(queue &q, T *data, const int timeSteps, const int kN,
-//                          std::function<int(polly_schedule_t)> &accessStore, 
-//                          std::function<int(polly_schedule_t)> &accessLoad) {
-//   return q.single_task<LoadValPipe>([=]() [[intel::kernel_args_restrict]] {
-//     polly_schedule_t StoreSchedule = StoreSchedulePipe::read();
-//     polly_schedule_t LoadSchedule;
-
-//     for (int t = 0; t < timeSteps; t++) {
-//       int i = 1;
-//       while (i < kN - 1) {
-//         LoadSchedule = {t, i};
-
-//         bool safe = (LoadSchedule < StoreSchedule) |
-//                     (accessLoad(LoadSchedule) <= accessStore(StoreSchedule));
-//         bool reuse = (accessLoad(LoadSchedule) == accessStore(StoreSchedule));
-
-//         LoadSchedule.val = StoreSchedule.val;
-
-//         if (safe) {
-//           auto LoadAddr =
-//               sycl::ext::intel::device_ptr<T>(data + accessLoad(LoadSchedule));
-//           auto LoadVal =
-//               reuse ? StoreSchedule.val : BurstCoalescedLSU::load(LoadAddr);
-//           LoadValPipe::write(LoadVal);
-//           i++;
-//         } else {
-//           // bool succ = false;
-//           // auto tmp = StoreSchedulePipe::read(succ);
-//           // if (succ) schedSstB = tmp;
-//           StoreSchedule = StoreSchedulePipe::read();
-//         }
-//       }
-//     }
-//   });
-// }
 
 double jacobi1d_kernel(queue &q, std::vector<float> &h_A,
                        std::vector<float> &h_B, const int timeSteps) {
@@ -128,30 +86,30 @@ double jacobi1d_kernel(queue &q, std::vector<float> &h_A,
   auto *A = fpga_tools::toDevice(h_A, q);
   auto *B = fpga_tools::toDevice(h_B, q);
 
-  using pipe_done_B0 = pipe<class pipe_done_B_0_class, polly_schedule_t, 1024>;
-  using pipe_done_B1 = pipe<class pipe_done_B_1_class, polly_schedule_t, 1024>;
-  using pipe_done_B2 = pipe<class pipe_done_B_2_class, polly_schedule_t, 1024>;
-  using pipe_gate_B0 = pipe<class pipe_gate_B_0_class, tagged_val_t, 1024>;
-  using pipe_gate_B1 = pipe<class pipe_gate_B_1_class, tagged_val_t, 1024>;
-  using pipe_gate_B2 = pipe<class pipe_gate_B_2_class, tagged_val_t, 1024>;
+  using pipe_done_B0 = pipe<class pipe_done_B_0_class, polly_schedule_t, 64>;
+  using pipe_done_B1 = pipe<class pipe_done_B_1_class, polly_schedule_t, 64>;
+  using pipe_done_B2 = pipe<class pipe_done_B_2_class, polly_schedule_t, 64>;
+  using pipe_gate_B0 = pipe<class pipe_gate_B_0_class, tagged_val_t, 64>;
+  using pipe_gate_B1 = pipe<class pipe_gate_B_1_class, tagged_val_t, 64>;
+  using pipe_gate_B2 = pipe<class pipe_gate_B_2_class, tagged_val_t, 64>;
 
-  using pipe_done_A0 = pipe<class pipe_done_A_0_class, polly_schedule_t, 1024>;
-  using pipe_done_A1 = pipe<class pipe_done_A_1_class, polly_schedule_t, 1024>;
-  using pipe_done_A2 = pipe<class pipe_done_A_2_class, polly_schedule_t, 1024>;
-  using pipe_gate_A0 = pipe<class pipe_gate_A_0_class, tagged_val_t, 1024>;
-  using pipe_gate_A1 = pipe<class pipe_gate_A_1_class, tagged_val_t, 1024>;
-  using pipe_gate_A2 = pipe<class pipe_gate_A_2_class, tagged_val_t, 1024>;
+  using pipe_done_A0 = pipe<class pipe_done_A_0_class, polly_schedule_t, 64>;
+  using pipe_done_A1 = pipe<class pipe_done_A_1_class, polly_schedule_t, 64>;
+  using pipe_done_A2 = pipe<class pipe_done_A_2_class, polly_schedule_t, 64>;
+  using pipe_gate_A0 = pipe<class pipe_gate_A_0_class, tagged_val_t, 64>;
+  using pipe_gate_A1 = pipe<class pipe_gate_A_1_class, tagged_val_t, 64>;
+  using pipe_gate_A2 = pipe<class pipe_gate_A_2_class, tagged_val_t, 64>;
 
-  using pipe_B0 = pipe<class pipe_B_0_class, float, 1024>;
-  using pipe_B1 = pipe<class pipe_B_1_class, float, 1024>;
-  using pipe_B2 = pipe<class pipe_B_2_class, float, 1024>;
+  using pipe_B0 = pipe<class pipe_B_0_class, float, 64>;
+  using pipe_B1 = pipe<class pipe_B_1_class, float, 64>;
+  using pipe_B2 = pipe<class pipe_B_2_class, float, 64>;
 
-  using pipe_A0 = pipe<class pipe_A_0_class, float, 1024>;
-  using pipe_A1 = pipe<class pipe_A_1_class, float, 1024>;
-  using pipe_A2 = pipe<class pipe_A_2_class, float, 1024>;
+  using pipe_A0 = pipe<class pipe_A_0_class, float, 64>;
+  using pipe_A1 = pipe<class pipe_A_1_class, float, 64>;
+  using pipe_A2 = pipe<class pipe_A_2_class, float, 64>;
 
-  using pipe_B_store = pipe<class pipe_B_store_class, float, 1024>;
-  using pipe_A_store = pipe<class pipe_A_store_class, float, 1024>;
+  using pipe_B_store = pipe<class pipe_B_store_class, float, 64>;
+  using pipe_A_store = pipe<class pipe_A_store_class, float, 64>;
   
  /*
   Compute
@@ -226,29 +184,42 @@ double jacobi1d_kernel(queue &q, std::vector<float> &h_A,
     polly_schedule_t schedSstB = pipe_done_B0::read();
     polly_schedule_t schedSldB0;
 
+    [[intel::fpga_register]] addr_val_t storeFifo[kStoreFifoSize];
+    #pragma unroll
+    for (int iC = 0; iC < kStoreFifoSize; ++iC) storeFifo[iC] = {-1, 0};
+
     for (int t = 0; t < timeSteps; t++) {
       int i = 1;
       while (i < kN - 1) {
         schedSldB0 = {t, i};
 
-        bool safe = (schedSldB0 < schedSstB) |
+        bool safe = (schedSldB0.t < schedSstB.t) |
                     (accessSldB0(schedSldB0) <= accessSstB(schedSstB)); 
-        bool reuse = (accessSldB0(schedSldB0) == accessSstB(schedSstB));
 
-        schedSldB0.val = schedSstB.val;
+        tagged_val_t reuse = {0, 0};
+        #pragma unroll
+        for (int iC = 0; iC < kStoreFifoSize; ++iC) {
+          if (storeFifo[iC].addr == accessSldB0(schedSldB0))
+            reuse = {storeFifo[iC].val, 1};
+        }
 
         if (safe) {
           auto addrToLd =
               sycl::ext::intel::device_ptr<float>(B + accessSldB0(schedSldB0));
-          auto ld = reuse ? schedSstB.val : BurstCoalescedLSU::load(addrToLd);
+          auto ld = reuse.reuse ? reuse.val : BurstCoalescedLSU::load(addrToLd);
           pipe_B0::write(ld);
           i++;
-          // pipe_gate_B0::write({schedSldB0.val, reuse});
-        } else {
-          // bool succ = false;
-          // auto tmp = pipe_done_B0::read(succ);
-          // if (succ) schedSstB = tmp;
-          schedSstB = pipe_done_B0::read();
+        } 
+
+        bool succ = false;
+        auto tmp = pipe_done_B0::read(succ);
+        if (succ) {
+          schedSstB = tmp;
+          #pragma unroll
+          for (int iC = 0; iC < kStoreFifoSize - 1; ++iC)
+            storeFifo[iC] = storeFifo[iC + 1];
+          storeFifo[kStoreFifoSize - 1] = {accessSstB(schedSstB),
+                                           schedSstB.val};
         }
       }
     }
@@ -257,32 +228,43 @@ double jacobi1d_kernel(queue &q, std::vector<float> &h_A,
   auto sldB1 = q.single_task<class sldB1>([=]() [[intel::kernel_args_restrict]] {
     polly_schedule_t schedSstB = pipe_done_B1::read();
     polly_schedule_t schedSldB1;
-    
+
+    [[intel::fpga_register]] addr_val_t storeFifo[kStoreFifoSize];
+    #pragma unroll
+    for (int iC = 0; iC < kStoreFifoSize; ++iC) storeFifo[iC] = {-1, 0};
+
     for (int t = 0; t < timeSteps; t++) {
       int i = 1;
       while (i < kN - 1) {
         schedSldB1 = {t, i};
 
-        bool safe = (schedSldB1 < schedSstB) |
+        bool safe = (schedSldB1.t < schedSstB.t) |
                     (accessSldB1(schedSldB1) <= accessSstB(schedSstB)); 
-        bool reuse = (accessSldB1(schedSldB1) == accessSstB(schedSstB));
 
-        schedSldB1.val = schedSstB.val;
+        tagged_val_t reuse = {0, 0};
+        #pragma unroll
+        for (int iC = 0; iC < kStoreFifoSize; ++iC) {
+          if (storeFifo[iC].addr == accessSldB1(schedSldB1))
+            reuse = {storeFifo[iC].val, 1};
+        }
 
         if (safe) {
-          // pipe_gate_B1::write({schedSldB1.val, reuse});
-          // i++;
-
           auto addrToLd =
               sycl::ext::intel::device_ptr<float>(B + accessSldB1(schedSldB1));
-          auto ld = reuse ? schedSstB.val : BurstCoalescedLSU::load(addrToLd);
+          auto ld = reuse.reuse ? reuse.val : BurstCoalescedLSU::load(addrToLd);
           pipe_B1::write(ld);
           i++;
-        } else {
-          // bool succ = false;
-          // auto tmp = pipe_done_B1::read(succ);
-          // if (succ) schedSstB = tmp;
-          schedSstB = pipe_done_B1::read();
+        } 
+
+        bool succ = false;
+        auto tmp = pipe_done_B1::read(succ);
+        if (succ) {
+          schedSstB = tmp;
+          #pragma unroll
+          for (int iC = 0; iC < kStoreFifoSize - 1; ++iC)
+            storeFifo[iC] = storeFifo[iC + 1];
+          storeFifo[kStoreFifoSize - 1] = {accessSstB(schedSstB),
+                                           schedSstB.val};
         }
       }
     }
@@ -291,32 +273,43 @@ double jacobi1d_kernel(queue &q, std::vector<float> &h_A,
   auto sldB2 = q.single_task<class sldB2>([=]() [[intel::kernel_args_restrict]] {
     polly_schedule_t schedSstB = pipe_done_B2::read();
     polly_schedule_t schedSldB2;
-    
+
+    [[intel::fpga_register]] addr_val_t storeFifo[kStoreFifoSize];
+    #pragma unroll
+    for (int iC = 0; iC < kStoreFifoSize; ++iC) storeFifo[iC] = {-1, 0};
+
     for (int t = 0; t < timeSteps; t++) {
       int i = 1;
       while (i < kN - 1) {
         schedSldB2 = {t, i};
 
-        bool safe = (schedSldB2 < schedSstB) |
+        bool safe = (schedSldB2.t < schedSstB.t) |
                     (accessSldB2(schedSldB2) <= accessSstB(schedSstB)); 
-        bool reuse = (accessSldB2(schedSldB2) == accessSstB(schedSstB));
 
-        schedSldB2.val = schedSstB.val;
+        tagged_val_t reuse = {0, 0};
+        #pragma unroll
+        for (int iC = 0; iC < kStoreFifoSize; ++iC) {
+          if (storeFifo[iC].addr == accessSldB2(schedSldB2))
+            reuse = {storeFifo[iC].val, 1};
+        }
 
         if (safe) {
-          // pipe_gate_B2::write({schedSldB2.val, reuse});
-          // i++;
-
           auto addrToLd =
               sycl::ext::intel::device_ptr<float>(B + accessSldB2(schedSldB2));
-          auto ld = reuse ? schedSstB.val : BurstCoalescedLSU::load(addrToLd);
+          auto ld = reuse.reuse ? reuse.val : BurstCoalescedLSU::load(addrToLd);
           pipe_B2::write(ld);
           i++;
-        } else {
-          // bool succ = false;
-          // auto tmp = pipe_done_B2::read(succ);
-          // if (succ) schedSstB = tmp;
-          schedSstB = pipe_done_B2::read();
+        } 
+
+        bool succ = false;
+        auto tmp = pipe_done_B2::read(succ);
+        if (succ) {
+          schedSstB = tmp;
+          #pragma unroll
+          for (int iC = 0; iC < kStoreFifoSize - 1; ++iC)
+            storeFifo[iC] = storeFifo[iC + 1];
+          storeFifo[kStoreFifoSize - 1] = {accessSstB(schedSstB),
+                                           schedSstB.val};
         }
       }
     }

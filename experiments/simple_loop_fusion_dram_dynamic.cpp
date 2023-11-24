@@ -92,8 +92,8 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (int t = 0; t < timeSteps; t++) {
       for (int i = 0; i < kN; i++) {
-        // pipe_B_store::write(0.33333f * pipe_A0::read());
-        pipe_B_store::write(0.33333f * A[i]);
+        pipe_B_store::write(0.33333f * pipe_A0::read());
+        // pipe_B_store::write(0.33333f * A[i]);
       }
     }
   });
@@ -105,8 +105,9 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
     }
   });
   
+
   /*
-    Stores
+    B
   */
   auto sstB = q.single_task<class sstB>([=]() [[intel::kernel_args_restrict]] {
     bool signalSent = false;
@@ -124,13 +125,14 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
         B[i] = val;
 
         schedSstB = {t, i, val};
-        if (accessSldB0(schedSldB0) == accessSstB(schedSstB)) {
-          pipe_done_B0::write({val, 1});
+        bool reuse = accessSldB0(schedSldB0) == accessSstB(schedSstB);
+        bool safe = accessSldB0(schedSldB0) <= accessSstB(schedSstB);
+        if (safe) {
+          pipe_done_B0::write({val, reuse});
           schedSldB0.i++;
-        } else if (accessSldB0(schedSldB0) < accessSstB(schedSstB)) {
-          pipe_done_B0::write({0, 0});
-          schedSldB0.i++;
-        } // else (access_store < access_load), so wait for more stores
+        } 
+        // else (access_store < access_load), so wait for more stores
+
       }
     }
 
@@ -139,22 +141,7 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
       schedSldB0.i++;
     }
   });
-  auto sstA = q.single_task<class sstA>([=]() [[intel::kernel_args_restrict]] {
-    polly_schedule_t schedSstA;
-    for (int t = 0; t < timeSteps; t++) {
 
-      for (int i = 0; i < kN; i++) {
-        schedSstA = {t, i};
-        
-        schedSstA.val = pipe_A_store::read();
-        A[i] = schedSstA.val;
-      }
-    }
-  });
-
-  /*
-    Loads from B
-  */
   auto sldB0 = q.single_task<class sldB0>([=]() [[intel::kernel_args_restrict]] {
     for (int t = 0; t < timeSteps; t++) {
       for (int i = 0; i < kN; i++) {
@@ -169,21 +156,51 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
   });
 
   /*
-    Loads from A
+    A
   */
-  // auto sldA0 = q.single_task<class sldA0>([=]() [[intel::kernel_args_restrict]] {
-  //   for (int t = 0; t < timeSteps; t++) {
-  //     for (int i = 0; i < kN; i++) {
-  //       // auto reuse = pipe_done_A0::read();
-  //       tagged_val_t reuse = {0, 0};
+  auto sldA0 = q.single_task<class sldA0>([=]() [[intel::kernel_args_restrict]] {
+    polly_schedule_t schedSldA0;
+    polly_schedule_t schedSstA = {0, 0};
+    
+    for (int t = 0; t < timeSteps; t++) {
+      for (int i = 0; i < kN; i++) {
+        // auto reuse = pipe_done_A0::read();
+        tagged_val_t reuse = {0, 0};
 
-  //       auto addrToLd =
-  //           sycl::ext::intel::device_ptr<float>(A + i);
-  //       auto ld = reuse.reuse ? reuse.val : BurstCoalescedLSU::load(addrToLd);
-  //       pipe_A0::write(ld);
-  //     }
-  //   }
-  // });
+        auto addrToLd =
+            sycl::ext::intel::device_ptr<float>(A + i);
+        auto ld = reuse.reuse ? reuse.val : BurstCoalescedLSU::load(addrToLd);
+        pipe_A0::write(ld);
+
+        schedSldA0 = {t, i};
+        bool safe = accessSstA(schedSstA) <= accessSldA0(schedSldA0);
+        if (safe) {
+          pipe_loaded_A0::write({});
+          schedSstA.i++;
+        }
+      }
+    }
+
+    while (schedSstA.i < kN) {
+      pipe_loaded_A0::write({});
+      schedSstA.i++;
+    }
+  });
+
+  auto sstA = q.single_task<class sstA>([=]() [[intel::kernel_args_restrict]] {
+    polly_schedule_t schedSstA;
+
+    for (int t = 0; t < timeSteps; t++) {
+      for (int i = 0; i < kN; i++) {
+        auto _ = pipe_loaded_A0::read();
+
+        schedSstA = {t, i};
+        
+        schedSstA.val = pipe_A_store::read();
+        A[i] = schedSstA.val;
+      }
+    }
+  });
 
 
   event.wait();
@@ -193,7 +210,7 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
   sstA.wait();
 
   sldB0.wait();
-  // sldA0.wait();
+  sldA0.wait();
 
   q.copy(A, h_A.data(), h_A.size()).wait();
   q.copy(B, h_B.data(), h_B.size()).wait();

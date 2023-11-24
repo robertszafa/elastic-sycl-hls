@@ -21,6 +21,7 @@ using namespace sycl;
 
 // Forward declare kernel name.
 class MainKernel;
+class MainKernel2;
 
 using PipelinedLSU = sycl::ext::intel::lsu<>;
 using BurstCoalescedLSU =
@@ -36,7 +37,22 @@ struct addr_val_t { int addr; float val; };
 struct tagged_val_t { float val; bool reuse; };
 
 struct polly_schedule_t { 
-  int t; int i; float val; 
+  int t; int i; 
+  int tMax; int iMax;
+
+  void increment() {
+    auto iNew = i + 1;
+    if (iNew == iMax) {
+      i = 0;
+      t++;
+    } else {
+      i = iNew;
+    }
+  }
+
+  bool done() {
+    return t >= tMax;
+  }
 
   bool operator<(const polly_schedule_t &other) const {
     if (other.t == this->t) return this->i < other.i;
@@ -69,6 +85,39 @@ struct polly_schedule_t {
   return sched.i; 
 }
 
+template <typename SignalPipe, typename T>
+inline void
+StoreToLoadDependence(const int StoreAddr,
+                      const polly_schedule_t &StoreSchedule, const int LoadAddr,
+                      polly_schedule_t &LoadSchedule, const T StoreVal) {
+  bool reuse = StoreAddr == LoadAddr;
+  bool safe = StoreAddr >= LoadAddr;
+  if (safe) {
+    SignalPipe::write({StoreVal, reuse});
+    LoadSchedule.increment();
+  }
+}
+
+template <typename SignalPipe>
+inline void LoadToStoreDependence(const int LoadAddr,
+                                  const polly_schedule_t &LoadSchedule,
+                                  const int StoreAddr,
+                                  polly_schedule_t &StoreSchedule) {
+
+  bool safe = LoadAddr >= StoreAddr;
+  if (safe) {
+    SignalPipe::write({});
+    StoreSchedule.increment();
+  }
+}
+
+template <typename SignalPipe>
+inline void SignalUntilDone(polly_schedule_t &Schedule) {
+  while (!Schedule.done()) {
+    SignalPipe::write({});
+    Schedule.increment();
+  }
+}
 
 double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
                        std::vector<float> &h_B, const int timeSteps) {
@@ -77,14 +126,17 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
   auto *A = fpga_tools::toDevice(h_A, q);
   auto *B = fpga_tools::toDevice(h_B, q);
 
-  using pipe_done_B0 = pipe<class pipe_done_B_0_class, tagged_val_t, 64>;
-  using pipe_done_A0 = pipe<class pipe_done_A_0_class, polly_schedule_t, 64>;
-  using pipe_loaded_A0 = pipe<class pipe_loaded_A0_class, polly_schedule_t, 64>;
-  using pipe_B0 = pipe<class pipe_B_0_class, float, 64>;
-  using pipe_A0 = pipe<class pipe_A_0_class, float, 64>;
+  using signal_storeB0_loadB0 =
+      pipe<class pipe_done_B_0_class, tagged_val_t, 64>;
+  using signal_loadA0_storeA0 =
+      pipe<class pipe_loaded_A0_class, polly_schedule_t, 64>;
+  using signal_stA0_ldA0 = 
+      pipe<class pipe_done_A_0_class, polly_schedule_t, 64>;
 
-  using pipe_B_store = pipe<class pipe_B_store_class, float, 64>;
-  using pipe_A_store = pipe<class pipe_A_store_class, float, 64>;
+  using pipe_loadB0 = pipe<class pipe_B_0_class, float, 64>;
+  using pipe_loadA0 = pipe<class pipe_A_0_class, float, 64>;
+  using pipe_storeB0 = pipe<class pipe_B_store_class, float, 64>;
+  using pipe_storeA0 = pipe<class pipe_A_store_class, float, 64>;
   
  /*
   Compute
@@ -92,15 +144,14 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (int t = 0; t < timeSteps; t++) {
       for (int i = 0; i < kN; i++) {
-        pipe_B_store::write(0.33333f * pipe_A0::read());
-        // pipe_B_store::write(0.33333f * A[i]);
+        pipe_storeB0::write(0.33333f * pipe_loadA0::read());
       }
     }
   });
-  auto event2 = q.single_task<class MainKernel2>([=]() [[intel::kernel_args_restrict]] {
+  auto event2 = q.single_task<MainKernel2>([=]() [[intel::kernel_args_restrict]] {
     for (int t = 0; t < timeSteps; t++) {
       for (int i = 0; i < kN; i++) {
-        pipe_A_store::write(0.33333f * pipe_B0::read());
+        pipe_storeA0::write(0.33333f * pipe_loadB0::read());
       }
     }
   });
@@ -112,45 +163,34 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
   auto sstB = q.single_task<class sstB>([=]() [[intel::kernel_args_restrict]] {
     bool signalSent = false;
 
-    polly_schedule_t schedSstB;
-    polly_schedule_t schedSldB0 = {0, 0};
-
-    [[intel::fpga_register]] addr_val_t storeFifo[kStoreFifoSize];
-    #pragma unroll
-    for (int iC = 0; iC < kStoreFifoSize; ++iC) storeFifo[iC] = {-1, 0};
+    polly_schedule_t schedSstB = {0, 0, timeSteps, kN};
+    polly_schedule_t ScheduleLoadB0 = {0, 0, timeSteps, kN};
 
     for (int t = 0; t < timeSteps; t++) {
       for (int i = 0; i < kN; i++) {
-        auto val = pipe_B_store::read();
+        auto val = pipe_storeB0::read();
         B[i] = val;
 
-        schedSstB = {t, i, val};
-        bool reuse = accessSldB0(schedSldB0) == accessSstB(schedSstB);
-        bool safe = accessSldB0(schedSldB0) <= accessSstB(schedSstB);
-        if (safe) {
-          pipe_done_B0::write({val, reuse});
-          schedSldB0.i++;
-        } 
-        // else (access_store < access_load), so wait for more stores
-
+        schedSstB.t = t;
+        schedSstB.i = i;
+        StoreToLoadDependence<signal_storeB0_loadB0>(
+            accessSstB(schedSstB), schedSstB, accessSldB0(ScheduleLoadB0),
+            ScheduleLoadB0, val);
       }
     }
 
-    while (schedSldB0.i < kN) {
-      pipe_done_B0::write({0, 0});
-      schedSldB0.i++;
-    }
+    SignalUntilDone<signal_storeB0_loadB0>(ScheduleLoadB0);
   });
 
   auto sldB0 = q.single_task<class sldB0>([=]() [[intel::kernel_args_restrict]] {
     for (int t = 0; t < timeSteps; t++) {
       for (int i = 0; i < kN; i++) {
-        auto reuse = pipe_done_B0::read();
+        auto reuse = signal_storeB0_loadB0::read();
 
         auto addrToLd =
             sycl::ext::intel::device_ptr<float>(B + i);
         auto ld = reuse.reuse ? reuse.val : BurstCoalescedLSU::load(addrToLd);
-        pipe_B0::write(ld);
+        pipe_loadB0::write(ld);
       }
     }
   });
@@ -159,8 +199,8 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
     A
   */
   auto sldA0 = q.single_task<class sldA0>([=]() [[intel::kernel_args_restrict]] {
-    polly_schedule_t schedSldA0;
-    polly_schedule_t schedSstA = {0, 0};
+    polly_schedule_t ScheduleLoadA0 = {0, 0, timeSteps, kN};
+    polly_schedule_t ScheduleStoreA0 = {0, 0, timeSteps, kN};
     
     for (int t = 0; t < timeSteps; t++) {
       for (int i = 0; i < kN; i++) {
@@ -170,34 +210,30 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
         auto addrToLd =
             sycl::ext::intel::device_ptr<float>(A + i);
         auto ld = reuse.reuse ? reuse.val : BurstCoalescedLSU::load(addrToLd);
-        pipe_A0::write(ld);
+        pipe_loadA0::write(ld);
 
-        schedSldA0 = {t, i};
-        bool safe = accessSstA(schedSstA) <= accessSldA0(schedSldA0);
-        if (safe) {
-          pipe_loaded_A0::write({});
-          schedSstA.i++;
-        }
+        ScheduleLoadA0.t = t;
+        ScheduleLoadA0.i = i;
+        LoadToStoreDependence<signal_loadA0_storeA0>(
+            accessSldA0(ScheduleLoadA0), ScheduleLoadA0,
+            accessSstA(ScheduleStoreA0), ScheduleStoreA0);
       }
     }
 
-    while (schedSstA.i < kN) {
-      pipe_loaded_A0::write({});
-      schedSstA.i++;
-    }
+    SignalUntilDone<signal_loadA0_storeA0>(ScheduleStoreA0);
   });
 
   auto sstA = q.single_task<class sstA>([=]() [[intel::kernel_args_restrict]] {
-    polly_schedule_t schedSstA;
+    polly_schedule_t ScheduleStoreA0;
 
     for (int t = 0; t < timeSteps; t++) {
       for (int i = 0; i < kN; i++) {
-        auto _ = pipe_loaded_A0::read();
+        auto _ = signal_loadA0_storeA0::read();
 
-        schedSstA = {t, i};
+        ScheduleStoreA0 = {t, i};
         
-        schedSstA.val = pipe_A_store::read();
-        A[i] = schedSstA.val;
+        auto val = pipe_storeA0::read();
+        A[i] = val;
       }
     }
   });

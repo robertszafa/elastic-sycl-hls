@@ -162,6 +162,7 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
   /*
     B
   */
+  
   auto sldB0 = q.single_task<class sldB0>([=]() [[intel::kernel_args_restrict]] {
     for (int t = 0; t < timeSteps; t++) {
       for (int i = 0; i < kN; i++) {
@@ -172,6 +173,11 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
         auto ld = reuse.reuse ? reuse.val : BurstCoalescedLSU::load(addrToLd);
         pipe_loadB0::write(ld);
       }
+
+      if (timeSteps > 1) {
+        for (int i = 0; i < kDramDelay; ++i) 
+          signal_loadB0_storeB0::write({});
+      }
     }
   });
   auto sstB = q.single_task<class sstB>([=]() [[intel::kernel_args_restrict]] {
@@ -181,6 +187,11 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
     polly_schedule_t ScheduleLoadB0 = {0, 0, timeSteps, kN};
 
     for (int t = 0; t < timeSteps; t++) {
+      if (t > 0) {
+        for (int i = 0; i < kDramDelay; ++i) 
+          signal_loadB0_storeB0::read();
+      }
+
       for (int i = 0; i < kN; i++) {
         auto val = pipe_storeB0::read();
         B[i] = val;
@@ -204,6 +215,11 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
     polly_schedule_t ScheduleStoreA0 = {0, 0, timeSteps, kN};
     
     for (int t = 0; t < timeSteps; t++) {
+      if (t > 0) {
+        for (int i = 0; i < kDramDelay; ++i) 
+          signal_storeA0_loadA0::read();
+      }
+
       for (int i = 0; i < kN; i++) {
         // auto reuse = pipe_done_A0::read();
         tagged_val_t reuse = {0, 0};
@@ -234,6 +250,11 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
         
         auto val = pipe_storeA0::read();
         A[i] = val;
+      }
+
+      if (timeSteps > 1) {
+        for (int i = 0; i < kDramDelay; ++i) 
+          signal_storeA0_loadA0::write({});
       }
     }
   });

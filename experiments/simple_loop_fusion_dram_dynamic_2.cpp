@@ -33,8 +33,8 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
   auto *A = fpga_tools::toDevice(h_A, q);
   auto *B = fpga_tools::toDevice(h_B, q);
 
-  using signal_B = pipe<class pipe_done_B_0_class, addr_val_t<float>, 64>;
-  using signal_A = pipe<class pipe_loaded_A0_class, addr_val_t<float>, 64>;
+  using signal_B = pipe<class pipe_done_B_0_class, addr_val_sched_t<float>, 64>;
+  using signal_A = pipe<class pipe_loaded_A0_class, addr_val_sched_t<float>, 64>;
 
   using pipe_loadB0 = pipe<class pipe_B_0_class, float, 64>;
   using pipe_storeB0 = pipe<class pipe_B_store_class, float, 64>;
@@ -66,8 +66,8 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
     }
     StoreAddrB::write({-1});
   });
-  auto sstB = SignalingStreamingStore<StoreAddrB, pipe_storeB0, signal_B>(q, B);
-  auto sldB0 = GatedStreamingLoad<LoadAddrB, pipe_loadB0, signal_B>(q, B);
+  auto sstB = StreamingStore<StoreAddrB, pipe_storeB0, signal_B, NoPipe>(q, B);
+  auto sldB0 = StreamingLoad<LoadAddrB, pipe_loadB0, NoPipe, signal_B>(q, B);
 
   /*
     A
@@ -88,8 +88,8 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
     }
     StoreAddrA::write({-1});
   });
-  auto sldA = SignalingStreamingLoad<LoadAddrA, pipe_loadA0, signal_A>(q, A);
-  auto sstA = GatedStreamingStore<StoreAddrA, pipe_storeA0, signal_A>(q, A);
+  auto sldA = StreamingLoad<LoadAddrA, pipe_loadA0, signal_A, NoPipe>(q, A);
+  auto sstA = StreamingStore<StoreAddrA, pipe_storeA0, NoPipe, signal_A>(q, A);
 
   
  /*

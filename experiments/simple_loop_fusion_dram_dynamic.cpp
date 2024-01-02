@@ -146,14 +146,16 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (int t = 0; t < timeSteps; t++) {
       for (int i = 0; i < kN; i++) {
-        pipe_storeB0::write(0.33333f * pipe_loadA0::read());
+        // pipe_storeB0::write(0.33333f * pipe_loadA0::read());
+        pipe_storeB0::write(0.33333f * A[i]);
       }
     }
   });
   auto event2 = q.single_task<MainKernel2>([=]() [[intel::kernel_args_restrict]] {
     for (int t = 0; t < timeSteps; t++) {
       for (int i = 0; i < kN; i++) {
-        pipe_storeA0::write(0.33333f * pipe_loadB0::read());
+        // pipe_storeA0::write(0.33333f * pipe_loadB0::read());
+        A[i] = 0.33333f * pipe_loadB0::read();
       }
     }
   });
@@ -199,54 +201,54 @@ double simple_loop_fusion_kernel(queue &q, std::vector<float> &h_A,
   /*
     A
   */
-  auto sldA0 = q.single_task<class sldA0>([=]() [[intel::kernel_args_restrict]] {
-    polly_schedule_t ScheduleLoadA0 = {0, 0, timeSteps, kN};
-    polly_schedule_t ScheduleStoreA0 = {0, 0, timeSteps, kN};
+  // auto sldA0 = q.single_task<class sldA0>([=]() [[intel::kernel_args_restrict]] {
+  //   polly_schedule_t ScheduleLoadA0 = {0, 0, timeSteps, kN};
+  //   polly_schedule_t ScheduleStoreA0 = {0, 0, timeSteps, kN};
     
-    for (int t = 0; t < timeSteps; t++) {
-      for (int i = 0; i < kN; i++) {
-        // auto reuse = pipe_done_A0::read();
-        tagged_val_t reuse = {0, 0};
+  //   for (int t = 0; t < timeSteps; t++) {
+  //     for (int i = 0; i < kN; i++) {
+  //       // auto reuse = pipe_done_A0::read();
+  //       tagged_val_t reuse = {0, 0};
 
-        auto addrToLd =
-            sycl::ext::intel::device_ptr<float>(A + i);
-        auto ld = reuse.reuse ? reuse.val : BurstCoalescedLSU::load(addrToLd);
-        pipe_loadA0::write(ld);
+  //       auto addrToLd =
+  //           sycl::ext::intel::device_ptr<float>(A + i);
+  //       auto ld = reuse.reuse ? reuse.val : BurstCoalescedLSU::load(addrToLd);
+  //       pipe_loadA0::write(ld);
 
-        ScheduleLoadA0.t = t;
-        ScheduleLoadA0.i = i;
-        LoadToStoreDependence<signal_loadA0_storeA0>(
-            accessSldA0(ScheduleLoadA0), ScheduleLoadA0,
-            accessSstA(ScheduleStoreA0), ScheduleStoreA0);
-      }
-    }
+  //       ScheduleLoadA0.t = t;
+  //       ScheduleLoadA0.i = i;
+  //       LoadToStoreDependence<signal_loadA0_storeA0>(
+  //           accessSldA0(ScheduleLoadA0), ScheduleLoadA0,
+  //           accessSstA(ScheduleStoreA0), ScheduleStoreA0);
+  //     }
+  //   }
 
-    SignalUntilDone<signal_loadA0_storeA0>(ScheduleStoreA0);
-  });
-  auto sstA = q.single_task<class sstA>([=]() [[intel::kernel_args_restrict]] {
-    polly_schedule_t ScheduleStoreA0;
+  //   SignalUntilDone<signal_loadA0_storeA0>(ScheduleStoreA0);
+  // });
+  // auto sstA = q.single_task<class sstA>([=]() [[intel::kernel_args_restrict]] {
+  //   polly_schedule_t ScheduleStoreA0;
 
-    for (int t = 0; t < timeSteps; t++) {
-      for (int i = 0; i < kN; i++) {
-        auto _ = signal_loadA0_storeA0::read();
+  //   for (int t = 0; t < timeSteps; t++) {
+  //     for (int i = 0; i < kN; i++) {
+  //       auto _ = signal_loadA0_storeA0::read();
 
-        ScheduleStoreA0 = {t, i};
+  //       ScheduleStoreA0 = {t, i};
         
-        auto val = pipe_storeA0::read();
-        A[i] = val;
-      }
-    }
-  });
+  //       auto val = pipe_storeA0::read();
+  //       A[i] = val;
+  //     }
+  //   }
+  // });
 
 
   event.wait();
   event2.wait();
 
-  sstB.wait();
-  sstA.wait();
-
   sldB0.wait();
-  sldA0.wait();
+  sstB.wait();
+
+  // sstA.wait();
+  // sldA0.wait();
 
   q.copy(A, h_A.data(), h_A.size()).wait();
   q.copy(B, h_B.data(), h_B.size()).wait();

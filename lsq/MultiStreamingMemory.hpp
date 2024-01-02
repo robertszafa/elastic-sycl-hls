@@ -3,12 +3,17 @@
 #include <type_traits>
 
 #include "pipe_utils.hpp"
+#include "tuple.hpp"
+#include "unrolled_loop.hpp"
+#include "data_bundle.hpp"
 
 using namespace sycl;
+using namespace fpga_tools;
 
 using BurstCoalescedLSU = ext::intel::lsu<ext::intel::burst_coalesce<true>,
+                                          ext::intel::cache<0>,
+                                          ext::intel::statically_coalesce<false>,
                                           ext::intel::prefetch<false>>;
-// ext::intel::statically_coalesce<false>>;
 
 constexpr int kStoreFifoSize = 8;
 
@@ -20,11 +25,6 @@ struct addr_sched_t {
 template <typename T> struct addr_val_sched_t {
   int addr;
   int sched;
-  T val;
-};
-
-template <typename T> struct addr_val_t {
-  int addr;
   T val;
 };
 
@@ -51,17 +51,20 @@ class NoPipe;
 ///   This load (or memory operations from SendSignalPipe/GateSignalPipe) are
 ///   executed in a loop, so we need the *schedule* of the loop (cuurent iter)
 ///   to determine safety during gating.
-template <typename LoadAddrPipe, typename LoadValPipe, 
+template <int NumLoads, typename LoadAddrPipes, typename LoadValPipes, 
           typename SendSignalPipe=NoPipe, typename GateSignalPipe=NoPipe, 
           typename T>
 event StreamingLoad(queue &q, T *data) {
 
-  using KernelID = StreamingLoadKernel<LoadAddrPipe>;
+  using KernelID = StreamingLoadKernel<LoadAddrPipes>;
 
   constexpr bool IsGated = !std::is_same<GateSignalPipe, NoPipe>::value;
   constexpr bool IsSignaling = !std::is_same<SendSignalPipe, NoPipe>::value;
-  using AddrType = decltype(LoadAddrPipe::read());
+  using AddrType = decltype(LoadAddrPipes:: template PipeAt<0>::read());
   constexpr bool UseSchedule = std::is_same<AddrType, addr_sched_t>::value;
+
+  // // LoadAddrPipes
+  // constexpr int NumLoads = LoadAddrPipes::template GetDimSize<0>();
 
   return q.single_task<KernelID>([=]() [[intel::kernel_args_restrict]] {
     int storeFifoAddr[kStoreFifoSize];
@@ -83,19 +86,25 @@ event StreamingLoad(queue &q, T *data) {
         GateSignalSched = signal.sched;
     }
 
-    int LoadAddr = 0, LoadSched = 0;
+    // int LoadAddr = 0, LoadSched = 0;
+    // bool LoadAddrDone = true;
+    // DataBundle<int, NumLoads> LoadAddr, LoadSched;
+    NTuple<int, NumLoads> LoadAddrTp, LoadSchedTp;
     bool LoadAddrDone = true;
+
     while (true) {
       if (LoadAddrDone) {
-        auto LoadAddrRead = LoadAddrPipe::read();
-        if constexpr (UseSchedule) {
-          LoadAddr = LoadAddrRead.addr;
-          LoadSched = LoadAddrRead.sched;
-        } else {
-          LoadAddr = LoadAddrRead;
-        }
+        UnrolledLoop<NumLoads>([&](auto iLd) {
+          auto LoadAddrRead = LoadAddrPipes:: template PipeAt<iLd>::read();
+          if constexpr (UseSchedule) {
+            LoadAddrTp. template get<iLd>() = LoadAddrRead.addr;
+            LoadSchedTp. template get<iLd>() = LoadAddrRead.sched;
+          } else {
+            LoadAddrTp. template get<iLd>() = LoadAddrRead;
+          }
+        });
 
-        if (LoadAddr == INVALID_ADDR) break;
+        if (LoadAddrTp. template get<0>() == INVALID_ADDR) break;
       }
 
       if constexpr (IsGated) {
@@ -119,42 +128,74 @@ event StreamingLoad(queue &q, T *data) {
         }
       }
 
-      bool IsSafe = true;
+      auto& LoadSched = LoadSchedTp. template get<0>();
+      NTuple<bool, NumLoads> IsSafeTp;
+      UnrolledLoop<NumLoads>([&](auto iLd) {
+        auto& LoadAddr = LoadAddrTp. template get<iLd>();
+        auto& IsSafe = IsSafeTp. template get<iLd>();
+
+        IsSafe = true;
+        if constexpr (IsGated) {
+          if constexpr (UseSchedule) {
+            IsSafe = (LoadSched < GateSignalSched) ||
+                     (LoadSched == GateSignalSched && LoadAddr <= GateSignalAddr);
+          } else {
+            IsSafe = LoadAddr <= GateSignalAddr;
+          }
+        }
+      });
+
+      NTuple<bool, NumLoads> ReuseTp;
+      NTuple<T, NumLoads> ReuseValTp;
+      UnrolledLoop<NumLoads>(
+          [&](auto iLd) { ReuseTp.template get<iLd>() = false; });
+
       if constexpr (IsGated) {
-        if constexpr (UseSchedule) {
-          IsSafe = (LoadSched < GateSignalSched) ||
-                   (LoadSched == GateSignalSched && LoadAddr <= GateSignalAddr);
-        } else {
-          IsSafe = LoadAddr <= GateSignalAddr;
+        // CAM reuse FIFO
+        #pragma unroll
+        for (int i = 0; i < kStoreFifoSize; ++i) {
+          UnrolledLoop<NumLoads>([&](auto iLd) {
+            if (LoadAddrTp. template get<iLd>() == storeFifoAddr[i]) {
+              ReuseTp. template get<iLd>() = true;
+              ReuseValTp. template get<iLd>() = storeFifoVal[i];
+            }
+          });
         }
       }
 
-      if (IsSafe) {
-        bool reuse = false;
-        T reuseVal;
+      bool AllSafe = true;
+      UnrolledLoop<NumLoads>(
+          [&](auto iLd) { AllSafe &= IsSafeTp.template get<iLd>(); });
 
-        if constexpr (IsGated) {
+      int MinAddr = MAX_INT;
+      T LoadValDep; // Signal only after LoadVal received.
+      if (AllSafe) {
+        if constexpr (IsGated) 
           LoadAddrDone = true;
 
-          // CAM reuse FIFO
-          #pragma unroll
-          for (int i = 0; i < kStoreFifoSize; ++i) {
-            if (LoadAddr == storeFifoAddr[i]) {
-              reuse = true;
-              reuseVal = storeFifoVal[i];
-            }
-          }
-        }
+        UnrolledLoop<NumLoads>([&](auto iLd) {
+          auto& LoadAddr = LoadAddrTp. template get<iLd>();
+          auto& LoadSched = LoadSchedTp. template get<iLd>();
+          auto& Reuse = ReuseTp. template get<iLd>();
+          auto& ReuseVal = ReuseValTp. template get<iLd>();
 
-        auto LoadPtr = ext::intel::device_ptr<T>(data + LoadAddr);
-        auto LoadVal = reuse ? reuseVal : BurstCoalescedLSU::load(LoadPtr);
-        LoadValPipe::write(LoadVal);
+          auto LoadPtr = ext::intel::device_ptr<T>(data + LoadAddr);
+          auto LoadVal = Reuse ? ReuseVal : BurstCoalescedLSU::load(LoadPtr);
+          LoadValPipes:: template PipeAt<iLd>::write(LoadVal);
+
+
+          if (LoadAddr < MinAddr) {
+            MinAddr = LoadAddr;
+            LoadValDep = LoadVal;
+          }
+        });
 
         if constexpr (IsSignaling) {
+          // All loads have same schedule.
           if constexpr (UseSchedule)
-            SendSignalPipe::write({LoadAddr, LoadSched, LoadVal});
+            SendSignalPipe::write({MinAddr, LoadSched, LoadValDep});
           else
-            SendSignalPipe::write({LoadAddr, LoadVal});
+            SendSignalPipe::write({MinAddr, LoadValDep});
         }
       }
     }

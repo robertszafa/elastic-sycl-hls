@@ -403,6 +403,12 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
         auto siPointerSE = SE.getSCEV(ptrOp);
         auto siPointerBase = getPointerBase(ptrOp);
 
+        // errs() << "\nStore:\n";
+        // si->print(errs());
+        // errs() << "\nStore SCEV:  ";
+        // siPointerSE->print(errs());
+        // errs() << "\n";
+
         bool hasSpecialCtrlDep = false;
         if (auto ctrlDepSrcBB = CDG.getControlDependencySource(si)) {
           for (auto li : loads) {
@@ -441,6 +447,14 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
             // Ignore loads of pointers.
             if (li->getType()->isPointerTy())
               continue;
+
+            // auto ptrOp = li->getPointerOperand();
+            // auto liPointerSE = SE.getSCEV(ptrOp);
+            // errs() << "\nLoad:\n";
+            // li->print(errs());
+            // errs() << "\nLoad SCEV:   ";
+            // liPointerSE->print(errs());
+            // errs() << "\n";
 
             auto pointerBaseInstr = getPointerBase(li->getPointerOperand());
             // We are only intersted in loads where there 

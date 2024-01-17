@@ -16,18 +16,11 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-constexpr int kN = 10;
-
-double lud_cmp_kernel(queue &q, std::vector<float> &h_A) {
-
+double lud_cmp_kernel(queue &q, std::vector<float> &h_A, const int kN) {
   float *A = fpga_tools::toDevice(h_A, q);
-
+  
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (int i = 0; i < kN; i++) {
-
-    // sycl::ext::intel::fpga_loop_fuse<2>([&] { // fusion fails becuase of some dependencies
-    // sycl::ext::intel::fpga_loop_fuse_independent<2>([&] { // forcing fusion gives wrong results AND is slower.
-
       for (int j1 = 0; j1 < i; j1++) {
         auto w = A[i * kN + j1];
         for (int k = 0; k < j1; k++) {
@@ -43,9 +36,6 @@ double lud_cmp_kernel(queue &q, std::vector<float> &h_A) {
         }
         A[i * kN + j2] = w;
       }
-
-    // });
-
     }
   });
 
@@ -61,25 +51,23 @@ double lud_cmp_kernel(queue &q, std::vector<float> &h_A) {
   return time_in_ms;
 }
 
-void lud_cmp_cpu(std::vector<float> &A) {
+void lud_cmp_cpu(std::vector<float> &A, const int kN) {
   for (int i = 0; i < kN; i++) {
-
-    for (int j = 0; j < i; j++) {
-      auto w = A[i * kN + j];
-      for (int k = 0; k < j; k++) {
-        w -= A[i * kN + k] * A[k * kN + j];
+    for (int j1 = 0; j1 < i; j1++) {
+      auto w = A[i * kN + j1];
+      for (int k = 0; k < j1; k++) {
+        w -= A[i * kN + k] * A[k * kN + j1];
       }
-      A[i * kN + j] = w / A[j * kN + j];
+      A[i * kN + j1] = w / A[j1 * kN + j1];
     }
 
-    for (int l = i; l < kN; l++) {
-      auto w = A[i * kN + l];
+    for (int j2 = i; j2 < kN; j2++) {
+      auto w = A[i * kN + j2];
       for (int m = 0; m < i; m++) {
-        w -= A[i * kN + m] * A[m * kN + l];
+        w -= A[i * kN + m] * A[m * kN + j2];
       }
-      A[i * kN + l] = w;
+      A[i * kN + j2] = w;
     }
-
   }
 }
 
@@ -92,17 +80,10 @@ inline bool almost_equal(const float x, const float y) {
 }
 
 int main(int argc, char *argv[]) {
-  int N = kN;
-  int PERCENTAGE = 0;
+  int N = 10;
   try {
     if (argc > 1) {
       N = int(atoi(argv[1]));
-    }
-    if (argc > 2) {
-      PERCENTAGE = int(atoi(argv[2]));
-      
-      if (PERCENTAGE < 0 || PERCENTAGE > 100)
-        throw std::invalid_argument("Invalid percentage.");
     }
   } catch (exception const &e) {
     std::cout << "Incorrect argv.\nUsage:\n"
@@ -130,28 +111,26 @@ int main(int argc, char *argv[]) {
     std::vector<float> A_cpu(N*N, 2.0f);
     // std::iota(A.begin(), A.end(), 1.0f);
     // std::iota(A_cpu.begin(), A_cpu.end(), 1.0f);
-    for (size_t i=0; i<kN*kN; ++i) {
+    for (size_t i=0; i<N*N; ++i) {
       A[i] = float(rand() % 100);
       A_cpu[i] = A[i];
     }
     
 
-    auto kernel_time = lud_cmp_kernel(q, A);
+    auto kernel_time = lud_cmp_kernel(q, A, N);
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    lud_cmp_cpu(A_cpu);
+    lud_cmp_cpu(A_cpu, N);
 
     if (std::equal(A.begin(), A.end(), A_cpu.begin(), almost_equal))
       std::cout << "Passed\n";
     else
       std::cout << "Failed\n";
-
     
-    for (size_t i=0; i<kN*kN; ++i) {
+    for (size_t i=0; i<N*N; ++i) {
       if (!almost_equal(A[i],A_cpu[i]))
         std::cout << i << ": " << A[i] << " != " << A_cpu[i] << "\n";
     }
-    
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

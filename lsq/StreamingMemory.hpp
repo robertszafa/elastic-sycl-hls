@@ -3,26 +3,33 @@
 #include <type_traits>
 
 #include "pipe_utils.hpp"
+#include "tuple.hpp"
+#include "unrolled_loop.hpp"
 
 using namespace sycl;
+using namespace fpga_tools;
 
 using BurstCoalescedLSU = ext::intel::lsu<ext::intel::burst_coalesce<true>,
                                           ext::intel::prefetch<false>>;
 // ext::intel::statically_coalesce<false>>;
 
-constexpr int kStoreFifoSize = 8;
+/// A gated StreamingLoad receives {addr, value, schedule} data on its gate,
+/// and stores {addr, value} in a shift-register FIFO for reuse.
+constexpr int kStoreFifoSize = 16;
 
+/// The below types are the possible types of a gate signal.
+struct addr_t {
+  int addr;
+};
 struct addr_sched_t {
   int addr;
   int sched;
 };
-
 template <typename T> struct addr_val_sched_t {
   int addr;
   int sched;
   T val;
 };
-
 template <typename T> struct addr_val_t {
   int addr;
   T val;
@@ -31,6 +38,7 @@ template <typename T> struct addr_val_t {
 constexpr int INVALID_ADDR = -1;
 constexpr int MAX_INT = 0x7FFFFFFF;
 
+/// Unique kernel name generators.
 template <typename ID> class StreamingLoadKernel;
 template <typename ID> class StreamingStoreKernel;
 
@@ -46,6 +54,7 @@ class NoPipe;
 /// Gated:
 ///   A load is only performed when the maximum address supplied by
 ///   {SignalAddrPipe} *is not lower* than the load address.
+///   Note that {SendSignalPipe} can be a PipeArray.
 ///
 /// UseSchedule:
 ///   This load (or memory operations from SendSignalPipe/GateSignalPipe) are
@@ -53,51 +62,60 @@ class NoPipe;
 ///   to determine safety during gating.
 template <typename LoadAddrPipe, typename LoadValPipe, 
           typename SendSignalPipe=NoPipe, typename GateSignalPipe=NoPipe, 
+          bool InterIteration=false,
           typename T>
 event StreamingLoad(queue &q, T *data) {
-
-  using KernelID = StreamingLoadKernel<LoadAddrPipe>;
-
   constexpr bool IsGated = !std::is_same<GateSignalPipe, NoPipe>::value;
   constexpr bool IsSignaling = !std::is_same<SendSignalPipe, NoPipe>::value;
   using AddrType = decltype(LoadAddrPipe::read());
   constexpr bool UseSchedule = std::is_same<AddrType, addr_sched_t>::value;
 
+  using KernelID = StreamingLoadKernel<LoadAddrPipe>;
   return q.single_task<KernelID>([=]() [[intel::kernel_args_restrict]] {
     int storeFifoAddr[kStoreFifoSize];
     T storeFifoVal[kStoreFifoSize];
-    int GateSignalAddr, GateSignalSched;
+    // The latest gate signal value.
+    // NOTE: Assuming max one gate!
+    int GateSignalAddr = -1, GateSignalSched = 0;
 
+    // If this load is gated, then wait for the gate signal before starting.
+    // Unless the gate is {InterIteration}, in which case we wiil have to only
+    // gate on {schedule > 0}.
     if constexpr (IsGated) {
       #pragma unroll
-      for (int i = 0; i < kStoreFifoSize-1; ++i) {
+      for (int i = 0; i < kStoreFifoSize; ++i) {
         storeFifoAddr[i] = INVALID_ADDR;
         storeFifoVal[i] = 0;
       }
 
-      auto signal = GateSignalPipe::read();
-      storeFifoAddr[kStoreFifoSize - 1] = signal.addr;
-      storeFifoVal[kStoreFifoSize - 1] = signal.val;
-      GateSignalAddr = signal.addr;
-      if constexpr (UseSchedule)
-        GateSignalSched = signal.sched;
+      if constexpr (!InterIteration) {
+        auto signal = GateSignalPipe::read();
+        // Gate {addr, value} are shifted in at at end of the store reuse FIFOs.
+        storeFifoAddr[kStoreFifoSize - 1] = signal.addr;
+        storeFifoVal[kStoreFifoSize - 1] = signal.val;
+        GateSignalAddr = signal.addr;
+        if constexpr (UseSchedule)
+          GateSignalSched = signal.sched;
+      }
     }
 
+    // Execute the load until an INVALID_ADDR arrives.
     int LoadAddr = 0, LoadSched = 0;
     bool LoadAddrDone = true;
     while (true) {
+      // Only read new load address and value if the previous load is done.
       if (LoadAddrDone) {
         auto LoadAddrRead = LoadAddrPipe::read();
+        LoadAddr = LoadAddrRead.addr;
         if constexpr (UseSchedule) {
-          LoadAddr = LoadAddrRead.addr;
           LoadSched = LoadAddrRead.sched;
-        } else {
-          LoadAddr = LoadAddrRead;
-        }
+        } 
 
         if (LoadAddr == INVALID_ADDR) break;
       }
 
+      // If gated, try reading latest gate. If read successfully, shift in at
+      // the end of store reuse FIFOs.
       if constexpr (IsGated) {
         LoadAddrDone = false;
       
@@ -119,24 +137,31 @@ event StreamingLoad(queue &q, T *data) {
         }
       }
 
+      // If gated, then check if the load is safe to do.
       bool IsSafe = true;
       if constexpr (IsGated) {
         if constexpr (UseSchedule) {
-          IsSafe = (LoadSched < GateSignalSched) ||
-                   (LoadSched == GateSignalSched && LoadAddr <= GateSignalAddr);
-        } else {
+          if constexpr (!InterIteration) {
+            IsSafe = (LoadSched < GateSignalSched) ||
+                     (LoadSched == GateSignalSched && LoadAddr <= GateSignalAddr);
+          } else {
+            IsSafe = (LoadSched == GateSignalSched) ||
+                     (LoadSched > GateSignalSched && LoadAddr <= GateSignalAddr);
+          }
+        } else { // NoSchedule
           IsSafe = LoadAddr <= GateSignalAddr;
         }
       }
 
+      // Do the load and return value, if safe.
       if (IsSafe) {
         bool reuse = false;
         T reuseVal;
-
+        // Check if we can reuse a value from the store reuse FIFO.
         if constexpr (IsGated) {
           LoadAddrDone = true;
 
-          // CAM reuse FIFO
+          // Youngest store wins.
           #pragma unroll
           for (int i = 0; i < kStoreFifoSize; ++i) {
             if (LoadAddr == storeFifoAddr[i]) {
@@ -144,12 +169,18 @@ event StreamingLoad(queue &q, T *data) {
               reuseVal = storeFifoVal[i];
             }
           }
+
+          // If the gate is {InterIteration}, then we can only reuse values
+          // from earlier iteration.
+          if constexpr (InterIteration) 
+            reuse &= (LoadSched > GateSignalSched);
         }
 
         auto LoadPtr = ext::intel::device_ptr<T>(data + LoadAddr);
         auto LoadVal = reuse ? reuseVal : BurstCoalescedLSU::load(LoadPtr);
         LoadValPipe::write(LoadVal);
 
+        // Use LoadVal here to ensure load has returned a value.
         if constexpr (IsSignaling) {
           if constexpr (UseSchedule)
             SendSignalPipe::write({LoadAddr, LoadSched, LoadVal});
@@ -159,9 +190,10 @@ event StreamingLoad(queue &q, T *data) {
       }
     }
 
+    // If signaling, write out MAXI_INT for schedule/address.
     if constexpr (IsSignaling) {
       if constexpr (UseSchedule)
-        SendSignalPipe::write({-1, MAX_INT});
+        SendSignalPipe::write({MAX_INT, MAX_INT});
       else
         SendSignalPipe::write({MAX_INT});
     }
@@ -185,67 +217,97 @@ event StreamingLoad(queue &q, T *data) {
 ///   executed in a loop, so we need the *schedule* of the loop (cuurent iter)
 ///   to determine safety during gating.
 template <typename StoreAddrPipe, typename StoreValPipe, 
-          typename SendSignalPipe=NoPipe, typename GateSignalPipe=NoPipe, 
-          typename T>
+          typename SendSignalPipe=NoPipe, typename GateSignalPipes=NoPipe, 
+          int NumGateSignals=0, bool InterIteration=false, typename T>
 event StreamingStore(queue &q, T *data) {
-
-  using KernelID = StreamingStoreKernel<StoreAddrPipe>;
-
-  constexpr bool IsGated = !std::is_same<GateSignalPipe, NoPipe>::value;
+  constexpr bool IsGated = !std::is_same<GateSignalPipes, NoPipe>::value;
   constexpr bool IsSignaling = !std::is_same<SendSignalPipe, NoPipe>::value;
   using AddrType = decltype(StoreAddrPipe::read());
   constexpr bool UseSchedule = std::is_same<AddrType, addr_sched_t>::value;
 
-  return q.single_task<KernelID>([=]() [[intel::kernel_args_restrict]] {
-    int GateSignalAddr, GateSignalSched;
+  assert(!(IsGated && NumGateSignals == 0) && "Incorrect NumGateSignals.");
+  // constexpr int NumGateSignals =
+  //     IsGated ? GateSignalPipes::template GetDimSize<0>() : 0;
 
+  using KernelID = StreamingStoreKernel<StoreAddrPipe>;
+  return q.single_task<KernelID>([=]() [[intel::kernel_args_restrict]] {
+    // Can't have zero sized arrays.
+    int GateSignalAddr[std::max(NumGateSignals, 1)]; 
+    int GateSignalSched[std::max(NumGateSignals, 1)];
+
+    // If this store is gated, then wait for the gate signal before starting.
+    // Unless the gate is {InterIteration}, in which case we wiil have to only
+    // gate on {schedule > 0}.
     if constexpr (IsGated) {
-      auto signal = GateSignalPipe::read();
-      GateSignalAddr = signal.addr;
-      if constexpr (UseSchedule)
-        GateSignalSched = signal.sched;
+      UnrolledLoop<NumGateSignals>([&](auto k) {
+        GateSignalAddr[k] = -1;
+        if constexpr (UseSchedule)
+          GateSignalSched[k] = 0;
+        
+        if constexpr (!InterIteration) {
+          auto signal = GateSignalPipes:: template PipeAt<k>::read();
+          GateSignalAddr[k] = signal.addr;
+          if constexpr (UseSchedule)
+            GateSignalSched[k] = signal.sched;
+        }
+      });
     }
 
+    // Execute the store until an INVALID_ADDR arrives.
+    // StoreAddr and StoreVal arrive on separate pipes.
     int StoreAddr = 0, StoreSched = 0;
     T StoreVal;
     bool StoreAddrDone = true;
     while (true) {
+      // Only read new store address and value if the previous store is done.
       if (StoreAddrDone) {
-        auto LoadAddrRead = StoreAddrPipe::read();
+        auto StoreAddrRead = StoreAddrPipe::read();
+        StoreAddr = StoreAddrRead.addr;
         if constexpr (UseSchedule) {
-          StoreAddr = LoadAddrRead.addr;
-          StoreSched = LoadAddrRead.sched;
-        } else {
-          StoreAddr = LoadAddrRead;
-        }
+          StoreSched = StoreAddrRead.sched;
+        } 
 
         if (StoreAddr == INVALID_ADDR) break;
 
         StoreVal = StoreValPipe::read();
       }
 
-      if constexpr (IsGated) {
-        StoreAddrDone = false;
-      
-        bool succ = false;
-        auto signal = GateSignalPipe::read(succ);
-        if (succ) {
-          GateSignalAddr = signal.addr;
-          if constexpr (UseSchedule) 
-            GateSignalSched = signal.sched;
-        }
-      }
-
+      // If the store is gated, then we need to check for safety.
       bool IsSafe = true;
       if constexpr (IsGated) {
-        if constexpr (UseSchedule) {
-          IsSafe = (StoreSched < GateSignalSched) ||
-                   (StoreSched == GateSignalSched && StoreAddr <= GateSignalAddr);
-        } else {
-          IsSafe = StoreAddr <= GateSignalAddr;
-        }
+        // If gated, this store address might not be stored this iteration.
+        StoreAddrDone = false;
+
+        // Try to get the latest gate signal.
+        UnrolledLoop<NumGateSignals>([&](auto k) {
+          bool succ = false;
+          auto signal = GateSignalPipes:: template PipeAt<k>::read(succ);
+          if (succ) {
+            GateSignalAddr[k] = signal.addr;
+            if constexpr (UseSchedule)
+              GateSignalSched[k] = signal.sched;
+          }
+        });
+
+        // Check all gates for safety.
+        UnrolledLoop<NumGateSignals>([&](auto k) {
+          if constexpr (UseSchedule) {
+            if constexpr (!InterIteration) {
+              IsSafe &= (StoreSched < GateSignalSched[k]) ||
+                        (StoreSched == GateSignalSched[k] &&
+                        StoreAddr <= GateSignalAddr[k]);
+            } else {
+              IsSafe &= (StoreSched == GateSignalSched[k]) ||
+                        (StoreSched > GateSignalSched[k] &&
+                        StoreAddr <= GateSignalAddr[k]);
+            }
+          } else { // No Schedule
+            IsSafe &= StoreAddr <= GateSignalAddr[k];
+          }
+        });
       }
 
+      // Execute store, if safe.
       if (IsSafe) {
         if constexpr (IsGated) 
           StoreAddrDone = true;
@@ -253,6 +315,8 @@ event StreamingStore(queue &q, T *data) {
         auto StorePtr = ext::intel::device_ptr<T>(data + StoreAddr);
         BurstCoalescedLSU::store(StorePtr, StoreVal);
 
+        // Optional signal. Note that {SendSignalPipe} can be an array of pipes
+        // and this write will stall untill all writes complete.
         if constexpr (IsSignaling) {
           if constexpr (UseSchedule)
             SendSignalPipe::write({StoreAddr, StoreSched, StoreVal});
@@ -262,9 +326,10 @@ event StreamingStore(queue &q, T *data) {
       }
     }
 
+    // If signaling, write out MAXI_INT for schedule/address.
     if constexpr (IsSignaling) {
       if constexpr (UseSchedule)
-        SendSignalPipe::write({-1, MAX_INT});
+        SendSignalPipe::write({MAX_INT, MAX_INT});
       else
         SendSignalPipe::write({MAX_INT});
     }

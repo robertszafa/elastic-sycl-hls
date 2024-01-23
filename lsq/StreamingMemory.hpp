@@ -6,6 +6,8 @@
 #include "tuple.hpp"
 #include "unrolled_loop.hpp"
 
+#include "device_print.hpp"
+
 using namespace sycl;
 using namespace fpga_tools;
 
@@ -25,7 +27,7 @@ struct addr_sched_t {
   int addr;
   int sched;
 };
-template <typename T> struct addr_val_sched_t {
+template <typename T> struct addr_sched_val_t {
   int addr;
   int sched;
   T val;
@@ -39,8 +41,8 @@ constexpr int INVALID_ADDR = -1;
 constexpr int MAX_INT = 0x7FFFFFFF;
 
 /// Unique kernel name generators.
-template <typename ID> class StreamingLoadKernel;
-template <typename ID> class StreamingStoreKernel;
+template <int ID> class StreamingLoadKernel;
+template <int ID> class StreamingStoreKernel;
 
 class NoPipe;
 
@@ -60,17 +62,16 @@ class NoPipe;
 ///   This load (or memory operations from SendSignalPipe/GateSignalPipe) are
 ///   executed in a loop, so we need the *schedule* of the loop (cuurent iter)
 ///   to determine safety during gating.
-template <typename LoadAddrPipe, typename LoadValPipe, 
+template <int id, typename LoadAddrPipe, typename LoadValPipe, 
           typename SendSignalPipe=NoPipe, typename GateSignalPipe=NoPipe, 
-          bool InterIteration=false,
-          typename T>
+          bool InterIteration=false, typename T>
 event StreamingLoad(queue &q, T *data) {
   constexpr bool IsGated = !std::is_same<GateSignalPipe, NoPipe>::value;
   constexpr bool IsSignaling = !std::is_same<SendSignalPipe, NoPipe>::value;
   using AddrType = decltype(LoadAddrPipe::read());
   constexpr bool UseSchedule = std::is_same<AddrType, addr_sched_t>::value;
 
-  using KernelID = StreamingLoadKernel<LoadAddrPipe>;
+  using KernelID = StreamingLoadKernel<id>;
   return q.single_task<KernelID>([=]() [[intel::kernel_args_restrict]] {
     int storeFifoAddr[kStoreFifoSize];
     T storeFifoVal[kStoreFifoSize];
@@ -125,7 +126,7 @@ event StreamingLoad(queue &q, T *data) {
           GateSignalAddr = signal.addr;
           if constexpr (UseSchedule) 
             GateSignalSched = signal.sched;
-
+          
           // Shift
           #pragma unroll
           for (int i = 0; i < kStoreFifoSize - 1; ++i) {
@@ -143,15 +144,15 @@ event StreamingLoad(queue &q, T *data) {
         if constexpr (UseSchedule) {
           if constexpr (!InterIteration) {
             IsSafe = (LoadSched < GateSignalSched) ||
-                     (LoadSched == GateSignalSched && LoadAddr <= GateSignalAddr);
-          } else {
-            IsSafe = (LoadSched == GateSignalSched) ||
+                     (LoadSched >= GateSignalSched && LoadAddr <= GateSignalAddr);
+          } else { 
+            IsSafe = (LoadSched <= GateSignalSched) ||
                      (LoadSched > GateSignalSched && LoadAddr <= GateSignalAddr);
           }
-        } else { // NoSchedule
+        } else { // NoSchedule, only check address.
           IsSafe = LoadAddr <= GateSignalAddr;
         }
-      }
+      } // else if not gated then IsSafe.
 
       // Do the load and return value, if safe.
       if (IsSafe) {
@@ -161,6 +162,7 @@ event StreamingLoad(queue &q, T *data) {
         if constexpr (IsGated) {
           LoadAddrDone = true;
 
+          // TODO: Just use storeFifoVal[(GateSignalAddr - LoadAddr) / step];
           // Youngest store wins.
           #pragma unroll
           for (int i = 0; i < kStoreFifoSize; ++i) {
@@ -197,6 +199,16 @@ event StreamingLoad(queue &q, T *data) {
       else
         SendSignalPipe::write({MAX_INT});
     }
+
+    // Drain gate signals.
+    if constexpr (IsGated) {
+      while (GateSignalAddr != MAX_INT) {
+        auto signal = GateSignalPipe::read();
+        GateSignalAddr = signal.addr;
+      }
+    }
+
+    PRINTF("Done sld %d\n", id);
   });
 }
 
@@ -216,7 +228,7 @@ event StreamingLoad(queue &q, T *data) {
 ///   This store (or memory operations from SendSignalPipe/GateSignalPipe) are
 ///   executed in a loop, so we need the *schedule* of the loop (cuurent iter)
 ///   to determine safety during gating.
-template <typename StoreAddrPipe, typename StoreValPipe, 
+template <int id, typename StoreAddrPipe, typename StoreValPipe, 
           typename SendSignalPipe=NoPipe, typename GateSignalPipes=NoPipe, 
           int NumGateSignals=0, bool InterIteration=false, typename T>
 event StreamingStore(queue &q, T *data) {
@@ -225,11 +237,11 @@ event StreamingStore(queue &q, T *data) {
   using AddrType = decltype(StoreAddrPipe::read());
   constexpr bool UseSchedule = std::is_same<AddrType, addr_sched_t>::value;
 
-  assert(!(IsGated && NumGateSignals == 0) && "Incorrect NumGateSignals.");
-  // constexpr int NumGateSignals =
-  //     IsGated ? GateSignalPipes::template GetDimSize<0>() : 0;
+  assert(
+      ((!IsGated && NumGateSignals == 0) || (IsGated && NumGateSignals > 0)) &&
+      "Incorrect NumGateSignals.");
 
-  using KernelID = StreamingStoreKernel<StoreAddrPipe>;
+  using KernelID = StreamingStoreKernel<id>;
   return q.single_task<KernelID>([=]() [[intel::kernel_args_restrict]] {
     // Can't have zero sized arrays.
     int GateSignalAddr[std::max(NumGateSignals, 1)]; 
@@ -333,5 +345,26 @@ event StreamingStore(queue &q, T *data) {
       else
         SendSignalPipe::write({MAX_INT});
     }
+    
+    // PRINTF("Sst draining\n");
+    // Drain gate signals.
+    if constexpr (IsGated) {
+      bool any_left_to_drain = true;
+      while (any_left_to_drain) {
+        any_left_to_drain = false;
+        UnrolledLoop<NumGateSignals>([&](auto k) {
+          if (GateSignalAddr[k] != MAX_INT) {
+            any_left_to_drain = false;
+
+            bool succ = false;
+            auto signal = GateSignalPipes:: template PipeAt<k>::read(succ);
+            if (succ) 
+              GateSignalAddr[k] = signal.addr;
+          }
+        });
+      }
+    }
+    
+    PRINTF("Done sst %d\n", id);
   });
 }

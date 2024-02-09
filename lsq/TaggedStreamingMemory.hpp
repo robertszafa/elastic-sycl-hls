@@ -51,13 +51,28 @@ template <int id> class MuxInStoreOrder;
 
 class NoPipe;
 
-
+/// Given a {LoadAddrPipe} sequence, return loads from data[addr] on the
+/// {LoadValPipe}. Stop when INVALID_ADDR is received on {LoadAddrPipe}.
+///
+/// Signaling:
+///   For each load, send a signal on the SignalPipe with the loaded address,
+///   and (optional) schedule. On termination, send one final {MAX_ADDR} signal.
+///
+/// Gated:
+///   A load is only performed when the maximum address supplied by
+///   {SignalAddrPipe} *is not lower* than the load address.
+///   Note that {SendSignalPipe} can be a PipeArray.
+///
+/// UseSchedule:
+///   This load (or memory operations from SendSignalPipe/GateSignalPipe) are
+///   executed in a loop, so we need the *schedule* of the loop (cuurent iter)
+///   to determine safety during gating.
 template <int id, typename AddrPipe, typename ValPipe,
           typename InOrders = NoPipe, int NumInOrder = 0,
           typename OutOrder = NoPipe, int NumOutOrder = 0,
           typename T>
 event StreamingLoad(queue &q, T *data, int diff=0) {
-  using InOrder = pipe<MuxInLoadOrder<id>, addr_tag_val_t<T>, 4*NumInOrder>;
+  using InOrder = pipe<MuxInLoadOrder<id>, addr_tag_val_t<float>, 32>;
   if constexpr (NumInOrder >= 2) {
     q.single_task<MuxStreamingLoadKernel<id>>([=]() [[intel::kernel_args_restrict]] {
       // The expected next tag, always increasing by one.
@@ -102,13 +117,11 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
 
         if (valid) {
           InOrder::write(winner);
-          // PRINTF("Winner of MUX with tag %d, addr %d\n", winner.tag, winner.addr);
           next_tag++;
         }
       }
 
       InOrder::write({MAX_INT, MAX_INT});
-      PRINTF("Done MUX\n");
     });
   }
 
@@ -123,25 +136,25 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
 
     int CurrAddr = 0;
     int CurrTag = 0;
-    bool CurrAddrValid = false;
+    bool LoadAddrDone = true;
 
-    [[intel::ivdep]]
-    [[intel::initiation_interval(1)]] 
-    // [[intel::speculated_iterations(0)]]
     while (true) {
-      /** Read Addr */
-      if (!CurrAddrValid) {
-        auto AddrTag = AddrPipe::read(CurrAddrValid);
-        if (CurrAddrValid) {
-          CurrAddr = AddrTag.addr;
-          CurrTag = AddrTag.tag;
-          if (CurrAddr == INVALID_ADDR) break;
-        }
-      }  
-      /** End Read Addr */
+      // Only read new load address and value if the previous load is done.
+      if (LoadAddrDone) {
+        auto AddrTag = AddrPipe::read();
+        CurrAddr = AddrTag.addr;
+        CurrTag = AddrTag.tag;
+        if (CurrAddr == INVALID_ADDR) break;
+      }
 
-      /** Read InOrder */
+      // If gated, try reading latest gate. If read successfully, shift in at
+      // the end of store reuse FIFOs.
+      bool IsSafe = true;
+      bool reuse = false;
+      T reuseVal {};
       if constexpr (NumInOrder > 0) {
+        LoadAddrDone = false;
+
         bool succ = false;
         addr_tag_val_t<T> in;
         if constexpr (NumInOrder == 1) {
@@ -149,7 +162,13 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
         } else {
           in = InOrder::read(succ);
         }
+
         if (succ) {
+          InOrderTag = in.tag;
+          InOrderAddr = in.addr;
+          // PRINTF("In sld%d got (tag=%d, addr=%d)\nCurrently loading (tag=%d, addr=%d)\n\n", id, in.tag, in.addr, CurrTag, CurrAddr);
+
+          // Shift
           #pragma unroll
           for (int i = 0; i < kStoreFifoSize - 1; ++i) {
             storeFifoAddr[i] = storeFifoAddr[i + 1];
@@ -157,51 +176,35 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
           }
           storeFifoAddr[kStoreFifoSize - 1] = in.addr;
           storeFifoVal[kStoreFifoSize - 1] = in.val;
-          InOrderTag = in.tag;
-          InOrderAddr = in.addr;
-          // PRINTF("In sld%d got (tag=%d, addr=%d)\nCurrently loading (tag=%d, addr=%d)\n\n", 
-          //         id, in.tag, in.addr, CurrTag, CurrAddr);
+        }
+
+        // TODO: Maybe move the below before the pipe read.
+        IsSafe =
+            (CurrTag - diff <= InOrderTag && CurrAddr <= InOrderAddr);
+            // (CurrTag - TagDifference[CurrInTagIdx] <= InOrderTag && InOrderAddr >= CurrAddr);
+
+        #pragma unroll
+        for (int i = 0; i < kStoreFifoSize; ++i) {
+          if (CurrAddr == storeFifoAddr[i]) {
+            reuse = true;
+            reuseVal = storeFifoVal[i];
+          }
         }
       }
-      /** End Read InOrder */
 
-      /** Check Safety */
-      bool IsSafe = true;
-      if constexpr (NumInOrder > 0) {
-        IsSafe = (CurrTag == InOrderTag) || (CurrTag - diff <= InOrderTag && CurrAddr <= InOrderAddr);
-      }
-      /** End Check Safety */
+      // Do the load and return value, if safe.
+      if (IsSafe) {
+        LoadAddrDone = true;
 
-      /** Get reuse value */
-      bool reuse = false;
-      T reuseVal;
-      #pragma unroll
-      for (int i = 0; i < kStoreFifoSize; ++i) {
-        if (CurrAddr == storeFifoAddr[i]) {
-          reuse = true;
-          reuseVal = storeFifoVal[i];
-        }
-      }
-      /** End Get reuse value */
-
-      /** Execute load */
-      if (IsSafe && CurrAddrValid) {
-        CurrAddrValid = false;
         auto LoadPtr = ext::intel::device_ptr<T>(data + CurrAddr);
         auto LoadVal = reuse ? reuseVal : BurstCoalescedLSU::load(LoadPtr);
         ValPipe::write(LoadVal);
-        if (id == 1) {
-          // PRINTF("Loaded and returned (tag=%d, addr=%d)\n\n", 
-          //         CurrTag, CurrAddr);
-        }
 
         // Use LoadVal here to ensure load has returned a value.
         if constexpr (NumOutOrder > 0)
           OutOrder::write({CurrAddr, CurrTag, LoadVal});
       }
-      /** End Execute load */
-
-    } // End While Loop
+    }
 
     // If signaling, write out MAXI_INT for schedule/address.
     if constexpr (NumOutOrder > 0)
@@ -225,13 +228,28 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
   });
 }
 
-
+/// Given a {StoreAddrPipe} and {StoreValPipe} sequence, store to data.
+/// Stop when INVALID_ADDR is received on {LoadAddrPipe}.
+///
+/// Signaling:
+///   For each store, send a signal on the SignalPipe with the stored address,
+///   value, and (optional) schedule. On termination, send one final {MAX_ADDR}
+///   signal
+///
+/// Gated:
+///   A store is only performed when the maximum address supplied by
+///   {SignalAddrPipe} *is not lower* than the store address.
+///
+/// UseSchedule:
+///   This store (or memory operations from SendSignalPipe/GateSignalPipe) are
+///   executed in a loop, so we need the *schedule* of the loop (cuurent iter)
+///   to determine safety during gating.
 template <int id, typename AddrPipe, typename ValPipe,
           typename InOrders=NoPipe, int NumInOrder=0,
           typename OutOrder=NoPipe, int NumOutOrder=0,
           typename T>
 event StreamingStore(queue &q, T *data, int diff=0) {
-  using InOrder = pipe<MuxInStoreOrder<id>, addr_tag_val_t<T>, 4*NumInOrder>;
+  using InOrder = pipe<MuxInStoreOrder<id>, addr_tag_val_t<float>, 32>;
   if constexpr (NumInOrder >= 2) {
     q.single_task<MuxStreamingStoreKernel<id>>([=]() [[intel::kernel_args_restrict]] {
       // The expected next tag, always increasing by one.
@@ -283,7 +301,6 @@ event StreamingStore(queue &q, T *data, int diff=0) {
       }
 
       InOrder::write({MAX_INT, MAX_INT});
-      PRINTF("Done MUX\n");
     });
   }
 
@@ -291,29 +308,36 @@ event StreamingStore(queue &q, T *data, int diff=0) {
     int InOrderAddr = -1;
     int InOrderTag = 0;
 
+    // constexpr int ACK_BUF_SIZE = 1;
+    // addr_tag_val_t<T> ack[ACK_BUF_SIZE];
+    // bool ack_valid[ACK_BUF_SIZE];
+    // #pragma unroll
+    // for (int i = 0; i < ACK_BUF_SIZE; ++i) 
+    //   ack_valid[i] = false;
+
+    // Execute the store until an INVALID_ADDR arrives.
+    // StoreAddr and StoreVal arrive on separate pipes.
     int CurrAddr = 0;
     int CurrTag = 0;
-    bool CurrValid = false;
-    T CurrVal;
+    T StoreVal;
+    bool StoreAddrDone = true;
 
-    [[intel::ivdep]]
-    [[intel::initiation_interval(1)]] 
-    [[intel::speculated_iterations(0)]]
     while (true) {
-      /** Read Addr */
-      if (!CurrValid) {
-        auto AddrTag = AddrPipe::read(CurrValid);
-        if (CurrValid) {
-          CurrAddr = AddrTag.addr;
-          CurrTag = AddrTag.tag;
-          if (CurrAddr == INVALID_ADDR) break;
-          CurrVal = ValPipe::read();
-        }
-      }  
-      /** End Read Addr */
+      // Only read new store address and value if the previous store is done.
+      if (StoreAddrDone) {
+        auto AddrTag = AddrPipe::read();
+        CurrAddr = AddrTag.addr;
+        CurrTag = AddrTag.tag;
+        if (CurrAddr == INVALID_ADDR) break;
+        StoreVal = ValPipe::read();
+      }
 
-      /** Read InOrder */
+      // If the store is gated, then we need to check for safety.
+      bool IsSafe = true;
       if constexpr (NumInOrder > 0) {
+        // If gated, this store address might not be stored this iteration.
+        StoreAddrDone = false;
+
         bool succ = false;
         addr_tag_val_t<T> in;
         if constexpr (NumInOrder == 1) {
@@ -325,28 +349,21 @@ event StreamingStore(queue &q, T *data, int diff=0) {
           InOrderTag = in.tag;
           InOrderAddr = in.addr;
         }
-      }
-      /** End Read InOrder */
 
-      /** Check Safety */
-      bool IsSafe = true;
-      if constexpr (NumInOrder > 0) {
+        // TODO: Maybe move the below before the pipe read.
         IsSafe = (CurrTag - diff <= InOrderTag && CurrAddr <= InOrderAddr);
       }
-      /** End Check Safety */
 
-      /** Execute store */
-      if (IsSafe && CurrValid) {
-        CurrValid = false;
+      // Execute store, if safe.
+      if (IsSafe) {
+        StoreAddrDone = true;
+
         auto StorePtr = ext::intel::device_ptr<T>(data + CurrAddr);
-        BurstCoalescedLSU::store(StorePtr, CurrVal);
+        BurstCoalescedLSU::store(StorePtr, StoreVal);
 
-        if constexpr (NumOutOrder > 0) {
-          OutOrder::write({CurrAddr, CurrTag, CurrVal});
-        }
+        if constexpr (NumOutOrder > 0)
+          OutOrder::write({CurrAddr, CurrTag, StoreVal});
       }
-      /** End Execute store */
-
     }
 
     // If signaling, write out MAXI_INT for schedule/address.

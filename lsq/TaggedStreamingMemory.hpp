@@ -16,7 +16,8 @@ using BurstCoalescedLSU = ext::intel::lsu<ext::intel::burst_coalesce<true>,
 
 /// A gated StreamingLoad receives {addr, value, schedule} data on its gate,
 /// and stores {addr, value} in a shift-register FIFO for reuse.
-constexpr int kStoreFifoSize = 16;
+constexpr int kStoreFifoSize = 64;
+constexpr int kStoreFifoSizeSST = 64;
 
 struct addr_t {
   int addr;
@@ -126,13 +127,16 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
   }
 
   return q.single_task<StreamingLoadKernel<id>>([=]() [[intel::kernel_args_restrict]] {
-    int storeFifoAddr[kStoreFifoSize];
-    T storeFifoVal[kStoreFifoSize];
+    addr_tag_val_t<T> storeFifo[kStoreFifoSize];
+    bool storeFifoValid[kStoreFifoSize];
     #pragma unroll
-    for (int i = 0; i < kStoreFifoSize; ++i) storeFifoAddr[i] = INVALID_ADDR;
+    for (int i = 0; i < kStoreFifoSize; ++i) {
+      storeFifoValid[i] = false;
+    }
 
     int InOrderAddr = -1;
     int InOrderTag = 0;
+    T InOrderVal = {};
 
     int CurrAddr = 0;
     int CurrTag = 0;
@@ -155,41 +159,33 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
       if constexpr (NumInOrder > 0) {
         LoadAddrDone = false;
 
-        bool succ = false;
-        addr_tag_val_t<T> in;
+        bool NewInOrderValid = false;
+        addr_tag_val_t<T> NewInOrder;
         if constexpr (NumInOrder == 1) {
-          in = InOrders:: template PipeAt<0>::read(succ);
+          NewInOrder = InOrders:: template PipeAt<0>::read(NewInOrderValid);
         } else {
-          in = InOrder::read(succ);
+          NewInOrder = InOrder::read(NewInOrderValid);
         }
 
-        if (succ) {
-          InOrderTag = in.tag;
-          InOrderAddr = in.addr;
-          // PRINTF("In sld%d got (tag=%d, addr=%d)\nCurrently loading (tag=%d, addr=%d)\n\n", id, in.tag, in.addr, CurrTag, CurrAddr);
-
-          // Shift
-          #pragma unroll
-          for (int i = 0; i < kStoreFifoSize - 1; ++i) {
-            storeFifoAddr[i] = storeFifoAddr[i + 1];
-            storeFifoVal[i] = storeFifoVal[i + 1];
-          }
-          storeFifoAddr[kStoreFifoSize - 1] = in.addr;
-          storeFifoVal[kStoreFifoSize - 1] = in.val;
+        if (storeFifoValid[0]) {
+          InOrderAddr = storeFifo[0].addr;
+          InOrderTag = storeFifo[0].tag;
+          InOrderVal = storeFifo[0].val;
         }
-
-        // TODO: Maybe move the below before the pipe read.
-        IsSafe =
-            (CurrTag - diff <= InOrderTag && CurrAddr <= InOrderAddr);
-            // (CurrTag - TagDifference[CurrInTagIdx] <= InOrderTag && InOrderAddr >= CurrAddr);
 
         #pragma unroll
-        for (int i = 0; i < kStoreFifoSize; ++i) {
-          if (CurrAddr == storeFifoAddr[i]) {
-            reuse = true;
-            reuseVal = storeFifoVal[i];
-          }
+        for (int i = 0; i < kStoreFifoSize - 1; ++i) {
+          storeFifo[i] = storeFifo[i + 1];
+          storeFifoValid[i] = storeFifoValid[i + 1];
         }
+        storeFifo[kStoreFifoSize - 1] = NewInOrder;
+        storeFifoValid[kStoreFifoSize - 1] = NewInOrderValid;
+
+        // TODO: Maybe move the below before the pipe read.
+        IsSafe = (CurrTag - diff <= InOrderTag && CurrAddr <= InOrderAddr);
+
+        reuse = CurrAddr == InOrderAddr;
+        reuseVal = InOrderVal;
       }
 
       // Do the load and return value, if safe.
@@ -308,58 +304,68 @@ event StreamingStore(queue &q, T *data, int diff=0) {
     int InOrderAddr = -1;
     int InOrderTag = 0;
 
-    // constexpr int ACK_BUF_SIZE = 1;
-    // addr_tag_val_t<T> ack[ACK_BUF_SIZE];
-    // bool ack_valid[ACK_BUF_SIZE];
-    // #pragma unroll
-    // for (int i = 0; i < ACK_BUF_SIZE; ++i) 
-    //   ack_valid[i] = false;
+    addr_tag_val_t<T> InOrderBuffer[kStoreFifoSizeSST];
+    bool InOrderBufferValid[kStoreFifoSizeSST];
+    #pragma unroll
+    for (int i = 0; i < kStoreFifoSizeSST; ++i) 
+      InOrderBufferValid[i] = false;
 
-    // Execute the store until an INVALID_ADDR arrives.
-    // StoreAddr and StoreVal arrive on separate pipes.
     int CurrAddr = 0;
     int CurrTag = 0;
     T StoreVal;
-    bool StoreAddrDone = true;
+    bool StoreValValid = false;
+    bool StoreAddrValid = false;
 
     while (true) {
-      // Only read new store address and value if the previous store is done.
-      if (StoreAddrDone) {
-        auto AddrTag = AddrPipe::read();
-        CurrAddr = AddrTag.addr;
-        CurrTag = AddrTag.tag;
-        if (CurrAddr == INVALID_ADDR) break;
-        StoreVal = ValPipe::read();
+      if (!StoreAddrValid) {
+        auto AddrTag = AddrPipe::read(StoreAddrValid);
+        if (StoreAddrValid) {
+          CurrAddr = AddrTag.addr;
+          CurrTag = AddrTag.tag;
+        }
+      }
+
+      if (CurrAddr == INVALID_ADDR) break;
+
+      if (!StoreValValid) {
+        auto tmpVal = ValPipe::read(StoreValValid);
+        if (StoreValValid)
+          StoreVal = tmpVal;
       }
 
       // If the store is gated, then we need to check for safety.
-      bool IsSafe = true;
+      bool IsSafe = StoreAddrValid & StoreValValid;
       if constexpr (NumInOrder > 0) {
-        // If gated, this store address might not be stored this iteration.
-        StoreAddrDone = false;
-
-        bool succ = false;
-        addr_tag_val_t<T> in;
+        bool NewInOrderValid = false;
+        addr_tag_val_t<T> NewInOrder;
         if constexpr (NumInOrder == 1) {
-          in = InOrders:: template PipeAt<0>::read(succ);
+          NewInOrder = InOrders:: template PipeAt<0>::read(NewInOrderValid);
         } else {
-          in = InOrder::read(succ);
+          NewInOrder = InOrder::read(NewInOrderValid);
         }
-        if (succ) {
-          InOrderTag = in.tag;
-          InOrderAddr = in.addr;
+        
+        // Shift on every clock.
+        if (InOrderBufferValid[0]) {
+          InOrderTag = InOrderBuffer[0].tag;
+          InOrderAddr = InOrderBuffer[0].addr;
         }
+        #pragma unroll
+        for (int i = 0; i < kStoreFifoSizeSST - 1; ++i) {
+          InOrderBufferValid[i] = InOrderBufferValid[i + 1];
+          InOrderBuffer[i] = InOrderBuffer[i + 1];
+        }
+        InOrderBuffer[kStoreFifoSizeSST - 1] = NewInOrder;
+        InOrderBufferValid[kStoreFifoSizeSST - 1] = NewInOrderValid;
 
-        // TODO: Maybe move the below before the pipe read.
-        IsSafe = (CurrTag - diff <= InOrderTag && CurrAddr <= InOrderAddr);
+        IsSafe &= (CurrTag - diff <= InOrderTag && CurrAddr <= InOrderAddr);
       }
 
       // Execute store, if safe.
       if (IsSafe) {
-        StoreAddrDone = true;
-
         auto StorePtr = ext::intel::device_ptr<T>(data + CurrAddr);
         BurstCoalescedLSU::store(StorePtr, StoreVal);
+        StoreAddrValid = false;
+        StoreValValid = false;
 
         if constexpr (NumOutOrder > 0)
           OutOrder::write({CurrAddr, CurrTag, StoreVal});
@@ -367,8 +373,9 @@ event StreamingStore(queue &q, T *data, int diff=0) {
     }
 
     // If signaling, write out MAXI_INT for schedule/address.
-    if constexpr (NumOutOrder > 0)
+    if constexpr (NumOutOrder > 0) {
       OutOrder::write({MAX_INT, MAX_INT});
+    }
 
     if constexpr (NumInOrder > 0) {
       while (InOrderAddr != MAX_INT) {

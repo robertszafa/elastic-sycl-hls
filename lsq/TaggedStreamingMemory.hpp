@@ -13,11 +13,11 @@ using namespace fpga_tools;
 using BurstCoalescedLSU = ext::intel::lsu<ext::intel::burst_coalesce<true>,
                                           ext::intel::prefetch<false>>;
 // ext::intel::statically_coalesce<false>>;
+using PipelinedLSU = sycl::ext::intel::lsu<>;
 
 /// A gated StreamingLoad receives {addr, value, schedule} data on its gate,
 /// and stores {addr, value} in a shift-register FIFO for reuse.
 constexpr int kStoreFifoSize = 64;
-constexpr int kStoreFifoSizeSST = 64;
 
 struct addr_t {
   int addr;
@@ -40,7 +40,7 @@ template <typename T> struct addr_tag_val_t {
 };
 
 constexpr int INVALID_ADDR = -1;
-constexpr int MAX_INT = 0x7FFFFFFF;
+constexpr int MAX_INT = (1<<31);
 
 /// Unique kernel name generators.
 template <int id> class StreamingLoadKernel;
@@ -52,28 +52,12 @@ template <int id> class MuxInStoreOrder;
 
 class NoPipe;
 
-/// Given a {LoadAddrPipe} sequence, return loads from data[addr] on the
-/// {LoadValPipe}. Stop when INVALID_ADDR is received on {LoadAddrPipe}.
-///
-/// Signaling:
-///   For each load, send a signal on the SignalPipe with the loaded address,
-///   and (optional) schedule. On termination, send one final {MAX_ADDR} signal.
-///
-/// Gated:
-///   A load is only performed when the maximum address supplied by
-///   {SignalAddrPipe} *is not lower* than the load address.
-///   Note that {SendSignalPipe} can be a PipeArray.
-///
-/// UseSchedule:
-///   This load (or memory operations from SendSignalPipe/GateSignalPipe) are
-///   executed in a loop, so we need the *schedule* of the loop (cuurent iter)
-///   to determine safety during gating.
 template <int id, typename AddrPipe, typename ValPipe,
-          typename InOrders = NoPipe, int NumInOrder = 0,
+          typename InOrder = NoPipe, int NumInOrder = 0,
           typename OutOrder = NoPipe, int NumOutOrder = 0,
           typename T>
 event StreamingLoad(queue &q, T *data, int diff=0) {
-  using InOrder = pipe<MuxInLoadOrder<id>, addr_tag_val_t<float>, 32>;
+  using InOrderMuxed = pipe<MuxInLoadOrder<id>, addr_tag_val_t<T>, 32>;
   if constexpr (NumInOrder >= 2) {
     q.single_task<MuxStreamingLoadKernel<id>>([=]() [[intel::kernel_args_restrict]] {
       // The expected next tag, always increasing by one.
@@ -108,7 +92,7 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
             }
           } else {
             bool tmpSucc = false;
-            auto tmp = InOrders:: template PipeAt<k>::read(tmpSucc);
+            auto tmp = InOrder:: template PipeAt<k>::read(tmpSucc);
             if (tmpSucc) {
               in[k] = tmp;
               succ[k] = true;
@@ -117,22 +101,20 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
         });
 
         if (valid) {
-          InOrder::write(winner);
+          InOrderMuxed::write(winner);
           next_tag++;
         }
       }
 
-      InOrder::write({MAX_INT, MAX_INT});
+      InOrderMuxed::write({MAX_INT, MAX_INT});
     });
   }
 
   return q.single_task<StreamingLoadKernel<id>>([=]() [[intel::kernel_args_restrict]] {
-    addr_tag_val_t<T> storeFifo[kStoreFifoSize];
-    bool storeFifoValid[kStoreFifoSize];
+    T storeFifoVal[kStoreFifoSize];
+    int storeFifoAddr[kStoreFifoSize];
     #pragma unroll
-    for (int i = 0; i < kStoreFifoSize; ++i) {
-      storeFifoValid[i] = false;
-    }
+    for (int i = 0; i < kStoreFifoSize; ++i) storeFifoAddr[i] = INVALID_ADDR;
 
     int InOrderAddr = -1;
     int InOrderTag = 0;
@@ -141,6 +123,9 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
     int CurrAddr = 0;
     int CurrTag = 0;
     bool LoadAddrDone = true;
+
+    int NumTotal = 0;
+    int NumReused = 0;
 
     while (true) {
       // Only read new load address and value if the previous load is done.
@@ -162,35 +147,50 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
         bool NewInOrderValid = false;
         addr_tag_val_t<T> NewInOrder;
         if constexpr (NumInOrder == 1) {
-          NewInOrder = InOrders:: template PipeAt<0>::read(NewInOrderValid);
+          NewInOrder = InOrder:: template PipeAt<0>::read(NewInOrderValid);
         } else {
-          NewInOrder = InOrder::read(NewInOrderValid);
+          NewInOrder = InOrderMuxed::read(NewInOrderValid);
         }
 
-        if (storeFifoValid[0]) {
-          InOrderAddr = storeFifo[0].addr;
-          InOrderTag = storeFifo[0].tag;
-          InOrderVal = storeFifo[0].val;
-        }
+        if (NewInOrderValid) {
+          InOrderAddr = NewInOrder.addr;
+          InOrderTag = NewInOrder.tag;
+          InOrderVal = NewInOrder.val;
 
-        #pragma unroll
-        for (int i = 0; i < kStoreFifoSize - 1; ++i) {
-          storeFifo[i] = storeFifo[i + 1];
-          storeFifoValid[i] = storeFifoValid[i + 1];
+          #pragma unroll
+          for (int i = 0; i < kStoreFifoSize - 1; ++i) {
+            storeFifoAddr[i] = storeFifoAddr[i + 1];
+            storeFifoVal[i] = storeFifoVal[i + 1];
+          }
+          storeFifoAddr[kStoreFifoSize - 1] = InOrderAddr;
+          storeFifoVal[kStoreFifoSize - 1] = InOrderVal;
         }
-        storeFifo[kStoreFifoSize - 1] = NewInOrder;
-        storeFifoValid[kStoreFifoSize - 1] = NewInOrderValid;
 
         // TODO: Maybe move the below before the pipe read.
-        IsSafe = (CurrTag - diff <= InOrderTag && CurrAddr <= InOrderAddr);
+        IsSafe = (CurrTag - diff <= 0) || 
+                 (CurrTag - diff == InOrderTag) ||
+                 (CurrTag - diff < InOrderTag && CurrAddr <= InOrderAddr);
 
-        reuse = CurrAddr == InOrderAddr;
-        reuseVal = InOrderVal;
+        // #pragma unroll
+        // for (int i = 0; i < kStoreFifoSize; ++i) {
+        UnrolledLoop<kStoreFifoSize>([&](auto i) {
+          // TODO: No need for tag comparison.
+          if (storeFifoAddr[i] == CurrAddr) {
+            reuse = true;
+            reuseVal = storeFifoVal[i];
+          }
+        }
+        );
+
       }
 
       // Do the load and return value, if safe.
       if (IsSafe) {
         LoadAddrDone = true;
+
+        NumTotal++;
+        if (reuse)
+          NumReused++;
 
         auto LoadPtr = ext::intel::device_ptr<T>(data + CurrAddr);
         auto LoadVal = reuse ? reuseVal : BurstCoalescedLSU::load(LoadPtr);
@@ -209,43 +209,26 @@ event StreamingLoad(queue &q, T *data, int diff=0) {
     if constexpr (NumInOrder > 0) {
       while (InOrderAddr != MAX_INT) {
         addr_tag_val_t<T> in;
-        bool succ = false;
         if constexpr (NumInOrder == 1) {
-          in = InOrders::template PipeAt<0>::read(succ);
+          in = InOrder::template PipeAt<0>::read();
         } else {
-          in = InOrder::read(succ);
+          in = InOrderMuxed::read();
         }
         InOrderAddr = in.addr;
       }
     }
 
-    PRINTF("Done sld %d\n", id);
+    PRINTF("Done sld %d\tReused %d/%d\n", id, NumReused, NumTotal);
 
   });
 }
 
-/// Given a {StoreAddrPipe} and {StoreValPipe} sequence, store to data.
-/// Stop when INVALID_ADDR is received on {LoadAddrPipe}.
-///
-/// Signaling:
-///   For each store, send a signal on the SignalPipe with the stored address,
-///   value, and (optional) schedule. On termination, send one final {MAX_ADDR}
-///   signal
-///
-/// Gated:
-///   A store is only performed when the maximum address supplied by
-///   {SignalAddrPipe} *is not lower* than the store address.
-///
-/// UseSchedule:
-///   This store (or memory operations from SendSignalPipe/GateSignalPipe) are
-///   executed in a loop, so we need the *schedule* of the loop (cuurent iter)
-///   to determine safety during gating.
 template <int id, typename AddrPipe, typename ValPipe,
-          typename InOrders=NoPipe, int NumInOrder=0,
+          typename InOrder=NoPipe, int NumInOrder=0,
           typename OutOrder=NoPipe, int NumOutOrder=0,
           typename T>
 event StreamingStore(queue &q, T *data, int diff=0) {
-  using InOrder = pipe<MuxInStoreOrder<id>, addr_tag_val_t<float>, 32>;
+  using InOrderMuxed = pipe<MuxInStoreOrder<id>, addr_tag_val_t<T>, 32>;
   if constexpr (NumInOrder >= 2) {
     q.single_task<MuxStreamingStoreKernel<id>>([=]() [[intel::kernel_args_restrict]] {
       // The expected next tag, always increasing by one.
@@ -282,7 +265,7 @@ event StreamingStore(queue &q, T *data, int diff=0) {
             }
           } else {
             bool tmpSucc = false;
-            auto tmp = InOrders:: template PipeAt<k>::read(tmpSucc);
+            auto tmp = InOrder:: template PipeAt<k>::read(tmpSucc);
             if (tmpSucc) {
               in[k] = tmp;
               succ[k] = true;
@@ -291,12 +274,12 @@ event StreamingStore(queue &q, T *data, int diff=0) {
         });
 
         if (valid) {
-          InOrder::write(winner);
+          InOrderMuxed::write(winner);
           curr_tag = winner.tag;
         }
       }
 
-      InOrder::write({MAX_INT, MAX_INT});
+      InOrderMuxed::write({MAX_INT, MAX_INT});
     });
   }
 
@@ -304,10 +287,11 @@ event StreamingStore(queue &q, T *data, int diff=0) {
     int InOrderAddr = -1;
     int InOrderTag = 0;
 
-    addr_tag_val_t<T> InOrderBuffer[kStoreFifoSizeSST];
-    bool InOrderBufferValid[kStoreFifoSizeSST];
+    // TODO: Remove InOrder buffer?
+    addr_tag_val_t<T> InOrderBuffer[kStoreFifoSize];
+    bool InOrderBufferValid[kStoreFifoSize];
     #pragma unroll
-    for (int i = 0; i < kStoreFifoSizeSST; ++i) 
+    for (int i = 0; i < kStoreFifoSize; ++i) 
       InOrderBufferValid[i] = false;
 
     int CurrAddr = 0;
@@ -339,9 +323,9 @@ event StreamingStore(queue &q, T *data, int diff=0) {
         bool NewInOrderValid = false;
         addr_tag_val_t<T> NewInOrder;
         if constexpr (NumInOrder == 1) {
-          NewInOrder = InOrders:: template PipeAt<0>::read(NewInOrderValid);
+          NewInOrder = InOrder:: template PipeAt<0>::read(NewInOrderValid);
         } else {
-          NewInOrder = InOrder::read(NewInOrderValid);
+          NewInOrder = InOrderMuxed::read(NewInOrderValid);
         }
         
         // Shift on every clock.
@@ -350,20 +334,25 @@ event StreamingStore(queue &q, T *data, int diff=0) {
           InOrderAddr = InOrderBuffer[0].addr;
         }
         #pragma unroll
-        for (int i = 0; i < kStoreFifoSizeSST - 1; ++i) {
+        for (int i = 0; i < kStoreFifoSize - 1; ++i) {
           InOrderBufferValid[i] = InOrderBufferValid[i + 1];
           InOrderBuffer[i] = InOrderBuffer[i + 1];
         }
-        InOrderBuffer[kStoreFifoSizeSST - 1] = NewInOrder;
-        InOrderBufferValid[kStoreFifoSizeSST - 1] = NewInOrderValid;
+        InOrderBuffer[kStoreFifoSize - 1] = NewInOrder;
+        InOrderBufferValid[kStoreFifoSize - 1] = NewInOrderValid;
 
-        IsSafe &= (CurrTag - diff <= InOrderTag && CurrAddr <= InOrderAddr);
+        // IsSafe &= (CurrTag - diff <= InOrderTag && CurrAddr <= InOrderAddr);
+        IsSafe = (CurrTag - diff <= 0) || 
+                 (CurrTag - diff == InOrderTag) ||
+                 (CurrTag - diff < InOrderTag && CurrAddr <= InOrderAddr);
       }
 
       // Execute store, if safe.
       if (IsSafe) {
         auto StorePtr = ext::intel::device_ptr<T>(data + CurrAddr);
         BurstCoalescedLSU::store(StorePtr, StoreVal);
+        // PipelinedLSU::store(StorePtr, StoreVal);
+
         StoreAddrValid = false;
         StoreValValid = false;
 
@@ -371,20 +360,26 @@ event StreamingStore(queue &q, T *data, int diff=0) {
           OutOrder::write({CurrAddr, CurrTag, StoreVal});
       }
     }
-
+    
     // If signaling, write out MAXI_INT for schedule/address.
     if constexpr (NumOutOrder > 0) {
       OutOrder::write({MAX_INT, MAX_INT});
     }
 
+    // PRINTF("InOrderAddr=%d in sst %d\n", InOrderAddr, id);
+    for (int i = 0; i < kStoreFifoSize; ++i) {
+      if (InOrderBufferValid[i]) {
+        InOrderAddr = InOrderBuffer[i].addr;
+      }
+    }
+
     if constexpr (NumInOrder > 0) {
       while (InOrderAddr != MAX_INT) {
         addr_tag_val_t<T> in;
-        bool succ = false;
         if constexpr (NumInOrder == 1) {
-          in = InOrders::template PipeAt<0>::read(succ);
+          in = InOrder::template PipeAt<0>::read();
         } else {
-          in = InOrder::read(succ);
+          in = InOrderMuxed::read();
         }
         InOrderAddr = in.addr;
       }

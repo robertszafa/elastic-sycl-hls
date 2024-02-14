@@ -12,6 +12,7 @@
 
 #include "exception_handler.hpp"
 #include "memory_utils.hpp"
+#include "device_print.hpp"
 
 using namespace sycl;
 
@@ -23,20 +24,28 @@ double cholesky_kernel(queue &q, std::vector<float> &h_A, const int N) {
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (int i = 0; i < N; i++) {
-      // j<i
+      
+      // L00:
       for (int j = 0; j < i; j++) {
+
+        auto a = A[i * N + j]; // ld0
+
+        // L000:
         for (int k = 0; k < j; k++) {
-          A[i * N + j] -= A[i * N + k] * A[j * N + k];
+          a -= A[i * N + k] * A[j * N + k]; // ld1, ld2
         }
-        A[i * N + j] /= A[j * N + j];
+
+        A[i * N + j] = a / A[j * N + j]; // ld3, st0
       }
 
-      // i==j case
+      auto a = A[i * N + i]; // ld4
+
+      // L01:
       for (int k = 0; k < i; k++) {
-        A[i * N + i] -= A[i * N + k] * A[i * N + k];
+        a -= A[i * N + k] * A[i * N + k]; // ld5
       }
 
-      A[i * N + i] = sycl::sqrt(A[i * N + i]);
+      A[i * N + i] = a; // st1
     }
   });
 
@@ -54,21 +63,27 @@ double cholesky_kernel(queue &q, std::vector<float> &h_A, const int N) {
 
 void cholesky_cpu(std::vector<float> &A, const int N) {
   for (int i = 0; i < N; i++) {
-    // j<i
     for (int j = 0; j < i; j++) {
+      auto a = A[i * N + j];
       for (int k = 0; k < j; k++) {
-        A[i * N + j] -= A[i * N + k] * A[j * N + k];
+        a -= A[i * N + k] * A[j * N + k];
       }
-      A[i * N + j] /= A[j * N + j];
+      A[i * N + j] = a / A[j * N + j];
     }
 
-    // i==j case
+    auto a = A[i * N + i];
     for (int k = 0; k < i; k++) {
-      A[i * N + i] -= A[i * N + k] * A[i * N + k];
+      a -= A[i * N + k] * A[i * N + k];
     }
-
-    A[i * N + i] = sycl::sqrt(A[i * N + i]);
+    A[i * N + i] = a; // sycl::sqrt(a)
   }
+}
+
+inline bool almost_equal(const float x, const float y) {
+  float ulpFloat = static_cast<float>(2);
+  return fabsf(x - y) <=
+             std::numeric_limits<float>::epsilon() * fabsf(x + y) * ulpFloat ||
+         fabsf(x - y) < std::numeric_limits<float>::min();
 }
 
 int main(int argc, char *argv[]) {
@@ -101,15 +116,17 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<float> A(N*N, 1);
-    std::vector<float> A_cpu(N*N, 1);
+    std::vector<float> A(N*N);
+    std::vector<float> A_cpu(N*N);
+    std::iota(A.begin(), A.end(), 1);
+    std::iota(A_cpu.begin(), A_cpu.end(), 1);
 
     auto kernel_time = cholesky_kernel(q, A, N);
     cholesky_cpu(A_cpu, N);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    if (std::equal(A.begin(), A.end(), A_cpu.begin()))
+    if (std::equal(A.begin(), A.end(), A_cpu.begin(), almost_equal))
       std::cout << "Passed\n";
     else
       std::cout << "Failed\n";

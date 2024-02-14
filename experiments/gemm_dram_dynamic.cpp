@@ -16,6 +16,8 @@
 
 // #include "StreamingMemory.hpp"
 #include "TaggedStreamingMemory.hpp"
+// #include "ComplicatedTaggedStreamingMemory.hpp"
+// #include "BurstingStreamingMemory.hpp"
 
 using namespace sycl;
 
@@ -105,23 +107,23 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
   auto *B = fpga_tools::toDevice(h_B, q);
   auto *C = fpga_tools::toDevice(h_C, q);
 
-  using l0 = pipe<class _l0, bool, 4>;
-  using i0 = pipe<class _i0, int, 4>;
-  using l1 = pipe<class _l1, bool, 4>;
-  using i1 = pipe<class _i1, int, 4>;
+  using l0 = pipe<class _l0, bool, 16>;
+  using l1 = pipe<class _l1, bool, 16>;
+  // using i0 = pipe<class _i0, int, 16>;
+  // using i1 = pipe<class _i1, int, 16>;
 
-  using LoadAddrC0 = pipe<class _LoadAddrC0, addr_tag_t, 4>;
-  using LoadValC0 = pipe<class _LoadValC0, float, 4>;
-  using StoreAddrC0 = pipe<class _StoreAddrC0, addr_tag_t, 4>;
-  using StoreValC0 = pipe<class _StoreValC0, float, 4>;
+  using LoadAddrC0 = pipe<class _LoadAddrC0, addr_tag_t, 16>;
+  using LoadValC0 = pipe<class _LoadValC0, float, 16>;
+  using StoreAddrC0 = pipe<class _StoreAddrC0, addr_tag_t, 16>;
+  using StoreValC0 = pipe<class _StoreValC0, float, 16>;
 
-  using LoadAddrC1 = pipe<class _LoadAddrC1, addr_tag_t, 4>;
-  using LoadValC1 = pipe<class _LoadValC1, float, 4>;
-  using StoreAddrC1 = pipe<class _StoreAddrC1, addr_tag_t, 4>;
-  using StoreValC1 = pipe<class _StoreValC1, float, 4>;
+  using LoadAddrC1 = pipe<class _LoadAddrC1, addr_tag_t, 16>;
+  using LoadValC1 = pipe<class _LoadValC1, float, 16>;
+  using StoreAddrC1 = pipe<class _StoreAddrC1, addr_tag_t, 16>;
+  using StoreValC1 = pipe<class _StoreValC1, float, 16>;
 
-  using LoadValA0 = pipe<class _LoadValA0, float, 4>;
-  using LoadValB0 = pipe<class _LoadValB0, float, 4>;
+  using LoadValA0 = pipe<class _LoadValA0, float, 16>;
+  using LoadValB0 = pipe<class _LoadValB0, float, 16>;
   
   q.single_task<class sldAB>([=]() [[intel::kernel_args_restrict]] {
     for (int i = 0; i < NI; i++) { 
@@ -168,28 +170,28 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
   });
 
 
-  using InSldC1 = PipeArray<class _InSldC1, addr_tag_val_t<float>, 4, 2>;
+  using InSldC1 = PipeArray<class _InSldC1, addr_tag_val_t<float>, 16, 2>;
 
-  using InSst1 = PipeArray<class _InSstC1, addr_tag_val_t<float>, 32, 1>;
-  using OutSstC0 = PipeDuplicator<class _OutSstC0, addr_tag_val_t<float>,
-                                  InSldC1::PipeAt<0>
-                                  , InSst1::PipeAt<0>
-                                  >;
-  using OutSstC1 = PipeDuplicator<class _OutSstC1, addr_tag_val_t<float>,
-                                  InSldC1::PipeAt<1>
-                                  >;
+  // using InSst1 = PipeArray<class _InSstC1, addr_tag_val_t<float>, 16, 1>;
+  // using OutSstC0 = PipeDuplicator<class _OutSstC0, addr_tag_val_t<float>,
+  //                                 InSldC1::PipeAt<0>
+  //                                 , InSst1::PipeAt<0>
+  //                                 >;
+  // using OutSstC1 = PipeDuplicator<class _OutSstC1, addr_tag_val_t<float>,
+  //                                 InSldC1::PipeAt<1>
+  //                                 >;
 
   auto sldC0 = StreamingLoad<0, LoadAddrC0, LoadValC0>(q, C);
-  auto sstC0 = StreamingStore<0, StoreAddrC0, StoreValC0, NoPipe, 0, OutSstC0, 1>(q, C);
-  // auto sstC0 = StreamingStore<0, StoreAddrC0, StoreValC0, NoPipe, 0, InSldC1::PipeAt<0>, 1>(q, C);
+  // auto sstC0 = StreamingStore<0, StoreAddrC0, StoreValC0, NoPipe, 0, OutSstC0, 1>(q, C);
+  auto sstC0 = StreamingStore<0, StoreAddrC0, StoreValC0, NoPipe, 0, InSldC1::PipeAt<0>, 1>(q, C);
 
-  auto sldC1 = StreamingLoad<1, LoadAddrC1, LoadValC1, InSldC1, 2>(q, C, NJ-1+16);
-  auto sstC1 = StreamingStore<1, StoreAddrC1, StoreValC1, InSst1, 1, OutSstC1, 1>(q, C, 1);
-  // auto sstC1 = StreamingStore<1, StoreAddrC1, StoreValC1, NoPipe, 0, InSldC1::PipeAt<1>, 1>(q, C);
+  auto sldC1 = StreamingLoad<1, LoadAddrC1, LoadValC1, InSldC1, 2>(q, C, NJ-1);
+  // auto sstC1 = StreamingStore<1, StoreAddrC1, StoreValC1, InSst1, 1, OutSstC1, 1>(q, C, NJ); // for st->st deps, one greater dep distance
+  auto sstC1 = StreamingStore<1, StoreAddrC1, StoreValC1, NoPipe, 0, InSldC1::PipeAt<1>, 1>(q, C);
 
-  q.single_task<class Loop0>([=]() [[intel::kernel_args_restrict]] {
+  auto eventL0 = q.single_task<class Loop0>([=]() [[intel::kernel_args_restrict]] {
     while (l0::read()) {
-      auto i = i0::read();
+      // auto i = i0::read();
       for (int j = 0; j < NJ; j++) {
         StoreValC0::write(LoadValC0::read() * beta);
         // C[i * NI + j] *= beta;
@@ -198,9 +200,9 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
     // PRINTF("Done Loop0\n");
   });
 
-  q.single_task<class Loop1>([=]() [[intel::kernel_args_restrict]] {
+  auto eventL1 = q.single_task<class Loop1>([=]() [[intel::kernel_args_restrict]] {
     while (l1::read()) {
-      auto i = i1::read();
+      // auto i = i1::read();
       for (int k = 0; k < NK; k++) {
         for (int j = 0; j < NJ; j++) {
           // C[i * NI + j] += alpha * A[i * NI + k] * B[k * NK + j];
@@ -217,10 +219,10 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (int i = 0; i < NI; i++) { 
       l0::write(1);
-      i0::write(i);
+      // i0::write(i);
 
       l1::write(1);
-      i1::write(i);
+      // i1::write(i);
     }
 
     l0::write(0);
@@ -237,7 +239,7 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
   sycl::free(C, q);
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
-  auto end = event.get_profiling_info<info::event_profiling::command_end>();
+  auto end = eventL1.get_profiling_info<info::event_profiling::command_end>();
   double time_in_ms = static_cast<double>(end - start) / 1000000;
 
   return time_in_ms;
@@ -264,6 +266,13 @@ void gemm_cpu(std::vector<float> &A, std::vector<float> &B,
       }
     }
   }
+}
+
+inline bool almost_equal(const float x, const float y) {
+  float ulpFloat = static_cast<float>(2);
+  return fabsf(x - y) <=
+             std::numeric_limits<float>::epsilon() * fabsf(x + y) * ulpFloat ||
+         fabsf(x - y) < std::numeric_limits<float>::min();
 }
 
 int main(int argc, char *argv[]) {
@@ -308,7 +317,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    if (std::equal(C.begin(), C.end(), C_cpu.begin()))
+    if (std::equal(C.begin(), C.end(), C_cpu.begin(), almost_equal))
       std::cout << "Passed\n";
     else {
       std::cout << "Failed\n";

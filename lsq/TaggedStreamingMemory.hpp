@@ -1,23 +1,26 @@
 #include <sycl/ext/intel/fpga_extensions.hpp>
+#include <sycl/ext/intel/ac_types/ac_int.hpp>
 #include <sycl/sycl.hpp>
-#include <type_traits>
 
-#include "pipe_utils.hpp"
-#include "tuple.hpp"
 #include "unrolled_loop.hpp"
+#include "pipe_utils.hpp"
+#include "constexpr_math.hpp"
 #include "device_print.hpp"
+
 
 using namespace sycl;
 using namespace fpga_tools;
 
 using BurstCoalescedLSU = ext::intel::lsu<ext::intel::burst_coalesce<true>,
                                           ext::intel::prefetch<false>>;
-// ext::intel::statically_coalesce<false>>;
 using PipelinedLSU = sycl::ext::intel::lsu<>;
 
 /// A gated StreamingLoad receives {addr, value, schedule} data on its gate,
 /// and stores {addr, value} in a shift-register FIFO for reuse.
-constexpr int kStoreFifoSize = 64;
+#define KERNEL_PRAGMAS [[intel::kernel_args_restrict]] [[intel::max_global_work_dim(0)]] 
+
+constexpr uint STORE_FIFO_SIZE = 4;
+constexpr uint DRAM_BURST_BITS = 512;
 
 struct addr_t {
   int addr;
@@ -26,6 +29,12 @@ struct addr_t {
 struct addr_tag_t {
   int addr;
   int tag;
+};
+
+struct addr_tags_t {
+  int addr;
+  int globalTag;
+  int localTag;
 };
 
 template <typename T> struct addr_val_t {
@@ -39,353 +48,295 @@ template <typename T> struct addr_tag_val_t {
   T val;
 };
 
+struct load_command_t {
+  bool reuseStoreVal;
+  // Wait for storeValTag if reuse, else wait for store ack.
+  int waitForStoreValOrAck; 
+}
+
+
 constexpr int INVALID_ADDR = -1;
-constexpr int MAX_INT = (1<<31);
+constexpr int MAX_INT = (1<<30);
 
 /// Unique kernel name generators.
 template <int id> class StreamingLoadKernel;
+template <int id> class AddressComparisonKernel;
 template <int id> class StreamingStoreKernel;
-template <int id> class MuxStreamingLoadKernel;
-template <int id> class MuxStreamingStoreKernel;
-template <int id> class MuxInLoadOrder;
-template <int id> class MuxInStoreOrder;
+template <int id> class LoadPortKernel;
+template <int id> class LoadValMuxKernel;
 
-class NoPipe;
+template <int id, typename LoadAddrPipe, typename LoadValPipe,
+          typename StoreAddrPipe, typename StoreValPipe, typename StoreAckPipe,
+          int kBitWidth = 32, typename T>
+event StreamingLoad(queue &q, T *data) {
+  assert(sizeof(T) * 8 == kBitWidth && "Incorrect kBitWidth.");
+  constexpr uint kNumBurstValues = (DRAM_BURST_BITS + kBitWidth - 1) / kBitWidth;
 
-template <int id, typename AddrPipe, typename ValPipe,
-          typename InOrder = NoPipe, int NumInOrder = 0,
-          typename OutOrder = NoPipe, int NumOutOrder = 0,
-          typename T>
-event StreamingLoad(queue &q, T *data, int diff=0) {
-  using InOrderMuxed = pipe<MuxInLoadOrder<id>, addr_tag_val_t<T>, 32>;
-  if constexpr (NumInOrder >= 2) {
-    q.single_task<MuxStreamingLoadKernel<id>>([=]() [[intel::kernel_args_restrict]] {
-      // The expected next tag, always increasing by one.
-      uint next_tag = 1;
-
-      addr_tag_val_t<T> in[NumInOrder];
-      bool succ[NumInOrder];
-      UnrolledLoop<NumInOrder>([&](auto k) {
-        succ[k] = false;
-        in[k] = {-1, 0};
-      });
-
-      [[intel::initiation_interval(1)]]
-      [[intel::speculated_iterations(0)]]
-      while (1) {
-        bool all_done = true;
-        UnrolledLoop<NumInOrder>([&](auto k) {
-          all_done &= (in[k].addr == MAX_INT);
-        });
-        if (all_done)
-          break;
-
-        // Choose one, based on tag.
-        bool valid = false;
-        addr_tag_val_t<T> winner;
-        UnrolledLoop<NumInOrder>([&](auto k) {
-          if (succ[k]) {
-            if (!valid && in[k].tag == next_tag) {
-              valid = true;
-              succ[k] = false;
-              winner = in[k];
-            }
-          } else {
-            bool tmpSucc = false;
-            auto tmp = InOrder:: template PipeAt<k>::read(tmpSucc);
-            if (tmpSucc) {
-              in[k] = tmp;
-              succ[k] = true;
-            }
-          }
-        });
-
-        if (valid) {
-          InOrderMuxed::write(winner);
-          next_tag++;
-        }
+  using LoadPortAddr = pipe<class _LoadAddr, int, kNumBurstValues>;
+  using LoadPortPred = pipe<class _LoadPortPred, bool, kNumBurstValues>;
+  using LoadMuxIsReuse = pipe<class _LoadMuxSelector, bool, kNumBurstValues>;
+  using LoadMuxPred = pipe<class _LoadMuxPred, bool, kNumBurstValues>;
+  using LoadMuxMemoryVal = pipe<class _LoadMuxMemoryVal, T, kNumBurstValues>;
+  using LoadMuxReuseVal = pipe<class _LoadMuxBypassVal, T, kNumBurstValues>;
+  q.single_task<LoadPortKernel<id>>([=]() KERNEL_PRAGMAS {
+    while (LoadPortPred::read()) {
+      int Addr = LoadPortAddr::read();
+      auto LoadPtr = ext::intel::device_ptr<T>(data + Addr);
+      auto Val = BurstCoalescedLSU::load(LoadPtr);
+      LoadMuxMemoryVal::write(Val);
+    }
+  });
+  q.single_task<LoadValMuxKernel<id>>([=]() KERNEL_PRAGMAS {
+    while (LoadMuxPred::read()) {
+      T val;
+      if (LoadMuxIsReuse::read()) {
+        val = LoadMuxReuseVal::read();
+      } else {
+        val = LoadMuxMemoryVal::read();
       }
+      LoadValPipe::write(val);
+    }
+  });
 
-      InOrderMuxed::write({MAX_INT, MAX_INT});
-    });
-  }
 
-  return q.single_task<StreamingLoadKernel<id>>([=]() [[intel::kernel_args_restrict]] {
-    T storeFifoVal[kStoreFifoSize];
-    int storeFifoAddr[kStoreFifoSize];
-    #pragma unroll
-    for (int i = 0; i < kStoreFifoSize; ++i) storeFifoAddr[i] = INVALID_ADDR;
+  // using LoadGatePipe = pipe<class _LoadGatePipe, load_command_t, 16>;
+  // return q.single_task<AddressComparisonKernel<id>>([=]() KERNEL_PRAGMAS {
+  //   uint8_t CountStoreAddr = 0;
 
-    int InOrderAddr = -1;
-    int InOrderTag = 0;
-    T InOrderVal = {};
+  //   int StoreAddr = -1;
+  //   int StoreTag = 0;
+    
+  //   int LoadAddr = {};
+  //   int LoadTag = {};
+  //   bool LoadAddrValid = false;
 
-    int CurrAddr = 0;
-    int CurrTag = 0;
-    bool LoadAddrDone = true;
+  //   constexpr int MAX_STORE_ADDR_DELAY = 8; 
+
+  //   [[intel::ivdep]]
+  //   [[intel::initiation_interval(1)]]
+  //   [[intel::speculated_iterations(0)]]
+  //   while (true) {
+  //     if (LoadAddr == INVALID_ADDR && StoreAddr == MAX_INT) break;
+
+  //     if (!LoadAddrValid) {
+  //       auto LoadReq = LoadAddrPipe::read(LoadAddrValid);
+  //       LoadAddr = LoadReq.addr;
+  //       LoadTag = LoadReq.tag;
+  //     }
+
+  //     bool Safe = (LoadTag <= StoreTag) || (LoadAddr <= StoreAddr);
+  //     bool Reuse = (LoadAddr == StoreAddr);
+  //       // if (LoadAddr[0] < StoreAddr) {
+  //       //   LoadWaitingForAckNum[0] = CountStoreAddr;
+  //       // }
+    
+  //     if (Safe && LoadAddr != INVALID_ADDR) {
+  //       int WaitForStoreNum = (LoadTag < StoreTag) ? 0 : CountStoreAddr;
+  //       LoadGatePipe::write({Reuse, WaitForStoreNum});
+
+  //       if (!Reuse)
+  //         LoadPortAddr::write(LoadAddr);
+  //     } 
+      
+  //     // TODO: Better delay control
+  //     if (!(Safe && LoadAddr < StoreAddr-MAX_STORE_ADDR_DELAY)) {
+  //       bool succ = false;
+  //       auto StoreReq = StoreAddrPipe::read(succ);
+  //       if (succ) {
+  //         CountStoreAddr++;
+  //         StoreAddr = StoreReq.addr;
+  //         StoreTag = StoreReq.tag;
+  //       }
+  //     }
+  //   } // end while
+  // });
+
+  return q.single_task<StreamingLoadKernel<id>>([=]() KERNEL_PRAGMAS {
+    uint8_t CountStoreAddr = 0;
+    uint8_t CountStoreVal = 0;
+    uint8_t CountStoreAck = 0;
+
+    int StoreAddr = -1;
+    int StoreTag = 0;
+    T StoreVal = {};
+    // bool StoreAddrValid = false;
+    // bool StoreValValid = false;
+
+    constexpr int kLoadFifoSize = 2;
+    int LoadAddr[kLoadFifoSize];
+    int LoadTag[kLoadFifoSize];
+    bool LoadAddrValid[kLoadFifoSize];
+    bool LoadSafe[kLoadFifoSize];
+    bool LoadReuse[kLoadFifoSize];
+    bool LoadWaitingForAckNum[kLoadFifoSize];
+    bool LoadWaitingForValNum[kLoadFifoSize];
+    #pragma unroll 
+    for (int i = 0; i < kLoadFifoSize; ++i) {
+      LoadAddrValid[i] = false;
+      LoadAddr[i] = {};
+      LoadTag[i] = {};
+    }
 
     int NumTotal = 0;
     int NumReused = 0;
 
+    [[intel::ivdep]]
+    [[intel::initiation_interval(1)]]
+    [[intel::speculated_iterations(0)]]
     while (true) {
-      // Only read new load address and value if the previous load is done.
-      if (LoadAddrDone) {
-        auto AddrTag = AddrPipe::read();
-        CurrAddr = AddrTag.addr;
-        CurrTag = AddrTag.tag;
-        if (CurrAddr == INVALID_ADDR) break;
+      bool succAck = false;
+      StoreAckPipe::read(succAck);
+      if (succAck) {
+        CountStoreAck++;
+        if constexpr (id == 1)
+          PRINTF("Load 1 got ack num %d\n", CountStoreAck);
       }
 
-      // If gated, try reading latest gate. If read successfully, shift in at
-      // the end of store reuse FIFOs.
-      bool IsSafe = true;
-      bool reuse = false;
-      T reuseVal {};
-      if constexpr (NumInOrder > 0) {
-        LoadAddrDone = false;
-
-        bool NewInOrderValid = false;
-        addr_tag_val_t<T> NewInOrder;
-        if constexpr (NumInOrder == 1) {
-          NewInOrder = InOrder:: template PipeAt<0>::read(NewInOrderValid);
-        } else {
-          NewInOrder = InOrderMuxed::read(NewInOrderValid);
-        }
-
-        if (NewInOrderValid) {
-          InOrderAddr = NewInOrder.addr;
-          InOrderTag = NewInOrder.tag;
-          InOrderVal = NewInOrder.val;
-
-          #pragma unroll
-          for (int i = 0; i < kStoreFifoSize - 1; ++i) {
-            storeFifoAddr[i] = storeFifoAddr[i + 1];
-            storeFifoVal[i] = storeFifoVal[i + 1];
-          }
-          storeFifoAddr[kStoreFifoSize - 1] = InOrderAddr;
-          storeFifoVal[kStoreFifoSize - 1] = InOrderVal;
-        }
-
-        // TODO: Maybe move the below before the pipe read.
-        IsSafe = (CurrTag - diff <= 0) || 
-                 (CurrTag - diff == InOrderTag) ||
-                 (CurrTag - diff < InOrderTag && CurrAddr <= InOrderAddr);
-
-        // #pragma unroll
-        // for (int i = 0; i < kStoreFifoSize; ++i) {
-        UnrolledLoop<kStoreFifoSize>([&](auto i) {
-          // TODO: No need for tag comparison.
-          if (storeFifoAddr[i] == CurrAddr) {
-            reuse = true;
-            reuseVal = storeFifoVal[i];
-          }
-        }
-        );
-
+      if (!LoadAddrValid[kLoadFifoSize - 1]) {
+        auto LoadReq = LoadAddrPipe::read(LoadAddrValid[kLoadFifoSize - 1]);
+        LoadAddr[kLoadFifoSize - 1] = LoadReq.addr;
+        LoadTag[kLoadFifoSize - 1] = LoadReq.tag;
       }
 
-      // Do the load and return value, if safe.
-      if (IsSafe) {
-        LoadAddrDone = true;
+      if (!LoadAddrValid[0]) {
+        #pragma unroll
+        for (int i = 0; i < kLoadFifoSize - 1; ++i) {
+          LoadAddrValid[i] = LoadAddrValid[i + 1];
+          LoadAddr[i] = LoadAddr[i + 1];
+          LoadTag[i] = LoadTag[i + 1];
+          LoadSafe[i] = LoadSafe[i + 1];
+          LoadReuse[i] = LoadReuse[i + 1];
+          LoadWaitingForAckNum[i] = LoadWaitingForAckNum[i + 1];
+          LoadWaitingForValNum[i] = LoadWaitingForValNum[i + 1];
+        }
+        LoadAddr[kLoadFifoSize - 1] = {};
+        LoadTag[kLoadFifoSize - 1] = {};
+        LoadAddrValid[kLoadFifoSize - 1] = false;
+        LoadSafe[kLoadFifoSize - 1] = false;
+        LoadReuse[kLoadFifoSize - 1] = false;
+        LoadWaitingForAckNum[kLoadFifoSize - 1] = 0;
+        LoadWaitingForValNum[kLoadFifoSize - 1] = 0;
+      }
 
-        NumTotal++;
-        if (reuse)
+      // if (LoadAddr[0] == INVALID_ADDR) break;
+
+      if (!LoadSafe[0]) {
+        if (LoadTag[0] <= StoreTag) {
+          LoadSafe[0] = true;
+        } else if (LoadAddr[0] <= StoreAddr) {
+          LoadSafe[0] = true;
+        } 
+
+        if (LoadAddr[0] == StoreAddr) {
+          LoadReuse[0] = true;
+          LoadWaitingForValNum[0] = CountStoreAddr;
+        } else if (LoadAddr[0] < StoreAddr) {
+          LoadWaitingForAckNum[0] = CountStoreAddr;
+        }
+        // if constexpr (id == 1)
+        //   PRINTF("Load 1 checking addr = %d (safe = %d, reuse = %d, WaitingForVal = %d, WaitingForAck = %d)\tStCounts (%d, %d, %d)\n", LoadAddr[0], LoadSafe[0], LoadReuse[0], LoadWaitingForValNum[0], LoadWaitingForAckNum[0], CountStoreAddr, CountStoreVal, CountStoreAck);
+      }
+
+      bool DoLoad = true;
+      if constexpr (id == 1) {
+        DoLoad = LoadSafe[0] && 
+                      (CountStoreVal >= LoadWaitingForValNum[0]) &&
+                      (CountStoreAck >= LoadWaitingForAckNum[0]);
+      }
+      if (DoLoad && (LoadAddr[0] != INVALID_ADDR)) {
+        LoadAddrValid[0] = false;
+        // if constexpr (id == 1)
+        //   PRINTF("Load %d read addr = %d (reuse = %d)\tStCounts (%d, %d, %d)\n", id, LoadAddr[0], LoadReuse[0], CountStoreAddr, CountStoreVal, CountStoreAck);
+
+        LoadMuxPred::write(1);
+        LoadMuxIsReuse::write(LoadReuse[0]);
+        if (LoadReuse[0]) {
+          LoadMuxReuseVal::write(StoreVal);
           NumReused++;
-
-        auto LoadPtr = ext::intel::device_ptr<T>(data + CurrAddr);
-        auto LoadVal = reuse ? reuseVal : BurstCoalescedLSU::load(LoadPtr);
-        ValPipe::write(LoadVal);
-
-        // Use LoadVal here to ensure load has returned a value.
-        if constexpr (NumOutOrder > 0)
-          OutOrder::write({CurrAddr, CurrTag, LoadVal});
-      }
-    }
-
-    // If signaling, write out MAXI_INT for schedule/address.
-    if constexpr (NumOutOrder > 0)
-      OutOrder::write({MAX_INT, MAX_INT});
-
-    if constexpr (NumInOrder > 0) {
-      while (InOrderAddr != MAX_INT) {
-        addr_tag_val_t<T> in;
-        if constexpr (NumInOrder == 1) {
-          in = InOrder::template PipeAt<0>::read();
         } else {
-          in = InOrderMuxed::read();
+          LoadPortPred::write(1);
+          LoadPortAddr::write(LoadAddr[0]);
         }
-        InOrderAddr = in.addr;
+        NumTotal++;
       }
-    }
 
-    PRINTF("Done sld %d\tReused %d/%d\n", id, NumReused, NumTotal);
+      if (CountStoreVal < CountStoreAddr) {
+        bool succ = false;
+        auto tryStoreVal = StoreValPipe::read(succ);
+        if (succ) {
+          StoreVal = tryStoreVal;
+          CountStoreVal++;
+          // if constexpr (id == 1) 
+          //   PRINTF("Load 1 has stVal num  %d\n", CountStoreVal);
+        }
+      }
+      
+      if ((LoadAddrValid[0] && !LoadSafe[0]) || (DoLoad && StoreAddr <= LoadAddr[0]) || LoadAddr[0] == INVALID_ADDR) {
+        bool succ = false;
+        auto tryStoreAddr = StoreAddrPipe::read(succ);
+        if (succ) {
+          StoreAddr = tryStoreAddr.addr;
+          StoreTag = tryStoreAddr.tag;
+          CountStoreAddr++;
+          // if constexpr (id == 1) 
+          //   PRINTF("Load 1 got stAddr = %d\tTrying to load addr, tag = %d, %d\n", StoreAddr, LoadAddr[0], LoadTag[0]);
+        }
+      }
 
+      if (LoadAddr[0] == INVALID_ADDR && StoreAddr == MAX_INT && CountStoreAck == CountStoreAddr)
+        break;
+    } // end while
+
+    // Terminates all st/ld ports and ld muxes. 
+    LoadPortPred::write(0);
+    LoadMuxPred::write(0);
+
+    PRINTF("Load %d reused %d/%d\n", id, NumReused, NumTotal);
+    // PRINTF("sld %d done\n", id);
   });
 }
 
-template <int id, typename AddrPipe, typename ValPipe,
-          typename InOrder=NoPipe, int NumInOrder=0,
-          typename OutOrder=NoPipe, int NumOutOrder=0,
+template <int id, typename AddrValPipe, typename AckPipes, int BIT_WIDTH = 32,
           typename T>
-event StreamingStore(queue &q, T *data, int diff=0) {
-  using InOrderMuxed = pipe<MuxInStoreOrder<id>, addr_tag_val_t<T>, 32>;
-  if constexpr (NumInOrder >= 2) {
-    q.single_task<MuxStreamingStoreKernel<id>>([=]() [[intel::kernel_args_restrict]] {
-      // The expected next tag, always increasing by one.
-      uint curr_tag = 0;
+event StreamingStore(queue &q, T *data) {
+  assert(sizeof(T) * 8 == BIT_WIDTH && "Incorrect kBitWidth.");
+  constexpr uint NUM_BURST_VALS = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
+  // constexpr uint NUM_BURST_VALS = 2;
+  // using t_burst_count = ac_int<BitsForMaxValue<kNumBurstValues>(), false>;
 
-      addr_tag_val_t<T> in[NumInOrder];
-      bool succ[NumInOrder];
-      UnrolledLoop<NumInOrder>([&](auto k) {
-        succ[k] = false;
-        in[k] = {-1, 0};
-      });
+  return q.single_task<StreamingStoreKernel<id>>([=]() KERNEL_PRAGMAS {
+    // bool Ack[NUM_BURST_VALS];
+    // #pragma unroll
+    // for (int i = 0; i < NUM_BURST_VALS; ++i) Ack[i] = false;
 
-      [[intel::initiation_interval(1)]]
-      [[intel::speculated_iterations(0)]]
-      while (1) {
-        bool all_done = true;
-        UnrolledLoop<NumInOrder>([&](auto k) {
-          all_done &= (in[k].addr == MAX_INT);
-        });
-        if (all_done)
-          break;
-
-        // Choose one, based on tag.
-        bool valid = false;
-        addr_tag_val_t<T> winner;
-        UnrolledLoop<NumInOrder>([&](auto k) {
-          if (succ[k]) {
-            if (!valid && in[k].tag > curr_tag) {
-              valid = true;
-              succ[k] = false;
-              winner = in[k];
-            } else if (in.tag <= curr_tag) {
-              succ[k] = false; // Lower tag gets ignored
-            }
-          } else {
-            bool tmpSucc = false;
-            auto tmp = InOrder:: template PipeAt<k>::read(tmpSucc);
-            if (tmpSucc) {
-              in[k] = tmp;
-              succ[k] = true;
-            }
-          }
-        });
-
-        if (valid) {
-          InOrderMuxed::write(winner);
-          curr_tag = winner.tag;
-        }
-      }
-
-      InOrderMuxed::write({MAX_INT, MAX_INT});
-    });
-  }
-
-  return q.single_task<StreamingStoreKernel<id>>([=]() [[intel::kernel_args_restrict]] {
-    int InOrderAddr = -1;
-    int InOrderTag = 0;
-
-    // TODO: Remove InOrder buffer?
-    addr_tag_val_t<T> InOrderBuffer[kStoreFifoSize];
-    bool InOrderBufferValid[kStoreFifoSize];
-    #pragma unroll
-    for (int i = 0; i < kStoreFifoSize; ++i) 
-      InOrderBufferValid[i] = false;
-
-    int CurrAddr = 0;
-    int CurrTag = 0;
-    T StoreVal;
-    bool StoreValValid = false;
-    bool StoreAddrValid = false;
-
+    int numAck = 0;
     while (true) {
-      if (!StoreAddrValid) {
-        auto AddrTag = AddrPipe::read(StoreAddrValid);
-        if (StoreAddrValid) {
-          CurrAddr = AddrTag.addr;
-          CurrTag = AddrTag.tag;
-        }
-      }
+      auto AddrVal = AddrValPipe::read();
+      if (AddrVal.addr == INVALID_ADDR)
+        break;
 
-      if (CurrAddr == INVALID_ADDR) break;
+      auto StorePtr = ext::intel::device_ptr<T>(data + AddrVal.addr);
+      BurstCoalescedLSU::store(StorePtr, AddrVal.val);
+      PRINTF("Stored addr = %d\n", AddrVal.addr);
 
-      if (!StoreValValid) {
-        auto tmpVal = ValPipe::read(StoreValValid);
-        if (StoreValValid)
-          StoreVal = tmpVal;
-      }
+      // if (Ack[0]) {
+        AckPipes::write(true);
+      //   numAck++;
+      //   PRINTF("Store wrote ack num %d\n", numAck);
+      // }
 
-      // If the store is gated, then we need to check for safety.
-      bool IsSafe = StoreAddrValid & StoreValValid;
-      if constexpr (NumInOrder > 0) {
-        bool NewInOrderValid = false;
-        addr_tag_val_t<T> NewInOrder;
-        if constexpr (NumInOrder == 1) {
-          NewInOrder = InOrder:: template PipeAt<0>::read(NewInOrderValid);
-        } else {
-          NewInOrder = InOrderMuxed::read(NewInOrderValid);
-        }
-        
-        // Shift on every clock.
-        if (InOrderBufferValid[0]) {
-          InOrderTag = InOrderBuffer[0].tag;
-          InOrderAddr = InOrderBuffer[0].addr;
-        }
-        #pragma unroll
-        for (int i = 0; i < kStoreFifoSize - 1; ++i) {
-          InOrderBufferValid[i] = InOrderBufferValid[i + 1];
-          InOrderBuffer[i] = InOrderBuffer[i + 1];
-        }
-        InOrderBuffer[kStoreFifoSize - 1] = NewInOrder;
-        InOrderBufferValid[kStoreFifoSize - 1] = NewInOrderValid;
-
-        // IsSafe &= (CurrTag - diff <= InOrderTag && CurrAddr <= InOrderAddr);
-        IsSafe = (CurrTag - diff <= 0) || 
-                 (CurrTag - diff == InOrderTag) ||
-                 (CurrTag - diff < InOrderTag && CurrAddr <= InOrderAddr);
-      }
-
-      // Execute store, if safe.
-      if (IsSafe) {
-        auto StorePtr = ext::intel::device_ptr<T>(data + CurrAddr);
-        BurstCoalescedLSU::store(StorePtr, StoreVal);
-        // PipelinedLSU::store(StorePtr, StoreVal);
-
-        StoreAddrValid = false;
-        StoreValValid = false;
-
-        if constexpr (NumOutOrder > 0)
-          OutOrder::write({CurrAddr, CurrTag, StoreVal});
-      }
-    }
-    
-    // If signaling, write out MAXI_INT for schedule/address.
-    if constexpr (NumOutOrder > 0) {
-      OutOrder::write({MAX_INT, MAX_INT});
+      // #pragma unroll
+      // for (int i = 0; i < NUM_BURST_VALS - 1; ++i) Ack[i] = Ack[i + 1];
+      // Ack[NUM_BURST_VALS - 1] = true;
     }
 
-    // PRINTF("InOrderAddr=%d in sst %d\n", InOrderAddr, id);
-    for (int i = 0; i < kStoreFifoSize; ++i) {
-      if (InOrderBufferValid[i]) {
-        InOrderAddr = InOrderBuffer[i].addr;
-      }
-    }
+    // Drain acks
+    // for (int i = 0; i < NUM_BURST_VALS; ++i) {
+    //   if (Ack[i]) {
+    //     AckPipes::write(true);
+    //   }
+    // }
 
-    if constexpr (NumInOrder > 0) {
-      while (InOrderAddr != MAX_INT) {
-        addr_tag_val_t<T> in;
-        if constexpr (NumInOrder == 1) {
-          in = InOrder::template PipeAt<0>::read();
-        } else {
-          in = InOrderMuxed::read();
-        }
-        InOrderAddr = in.addr;
-      }
-    }
-
-    PRINTF("Done sst %d\n", id);
-
+    PRINTF("sst %d done\n", id);
   });
 }

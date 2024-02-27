@@ -54,16 +54,13 @@ template <typename T> struct addr_tag_val_t {
   T val;
 };
 
-enum LOAD_SAFETY {
-  UNSAFE,
-  SAFE_LOAD_NOW,
-  SAFE_LOAD_AFTER_TAG,
-  REUSE_AFTER_TAG
+struct load_command_t {
+  bool safeNow;
+  bool safeAfterTag;
+  bool reuse;
+  int tag; 
 };
-struct gate_action_t {
-  LOAD_SAFETY loadSafety;
-  int tag;
-};
+
 
 // constexpr int INVALID_ADDR = -1;
 constexpr int MAX_INT = (1<<30);
@@ -96,7 +93,7 @@ event StreamingLoad(queue &q, T *data) {
       auto Val = BurstCoalescedLSU::load(LoadPtr);
       LoadMuxMemoryVal::write(Val);
     }
-    PRINTF("DONE load port %d\n", id);
+    // PRINTF("DONE load port %d\n", id);
   });
   q.single_task<LoadValMuxKernel<id>>([=]() KERNEL_PRAGMAS {
     int NumTotal = 0;
@@ -116,7 +113,7 @@ event StreamingLoad(queue &q, T *data) {
   });
 
 
-  using LoadGatePipe = pipe<class _LoadGatePipe, gate_action_t, 16>;
+  using LoadGatePipe = pipe<class _LoadGatePipe, load_command_t, 16>;
   q.single_task<StreamingLoadKernel<id>>([=]() KERNEL_PRAGMAS {
     auto StoreReq = StoreAddrPipe::read();
     int StoreAddr = StoreReq.addr;
@@ -134,31 +131,24 @@ event StreamingLoad(queue &q, T *data) {
       if (!LoadAddrValid) {
         auto LoadReq = LoadAddrPipe::read(LoadAddrValid);
         if (LoadAddrValid) {
-          // LoadAddrValid = (LoadReq.addr != INVALID_ADDR);
           LoadAddr = LoadReq.addr;
           LoadTag = LoadReq.tag;
         }
       }
       if (LoadAddr == MAX_INT) break;
 
-      const bool SafeNow =
-          (LoadTag < StoreTag) || (LoadTag == StoreTag && LoadAddr > StoreAddr);
+      const bool SafeNow = (LoadTag < StoreTag) ||
+                           (LoadTag == StoreTag && LoadAddr > StoreAddr);
       const bool SafeAfterTag = (LoadTag == StoreTag) ||
                                 (LoadTag > StoreTag && LoadAddr <= StoreAddr);
       const bool Reuse = (LoadTag >= StoreTag) && (LoadAddr == StoreAddr);
 
-      LOAD_SAFETY safety = UNSAFE;
-      if (SafeNow) safety = SAFE_LOAD_NOW;
-      else if (Reuse) safety = REUSE_AFTER_TAG;
-      else if (SafeAfterTag) safety = SAFE_LOAD_AFTER_TAG;
-
-      const bool AnySafe = (safety > UNSAFE);
+      const bool AnySafe = (SafeNow || SafeAfterTag);
 
       if (LoadAddrValid && AnySafe) {
-        // if constexpr (id == 1)
-        //   PRINTF("SAFE: sld %d  addr %d (SafeNow=%d, SafeAfterTag=%d, reuse=%d)\t StoreAddr=%d, StoreTag=%d\n", id, LoadAddr, SafeNow, SafeAfterTag, Reuse, StoreAddr, StoreTag);
+        // PRINTF("SAFE: sld %d  addr %d (SafeNow=%d, SafeAfterTag=%d, reuse=%d)\t StoreAddr=%d, StoreTag=%d\n", id, LoadAddr, SafeNow, SafeAfterTag, Reuse, StoreAddr, StoreTag);
         LoadAddrValid = false;
-        LoadGatePipe::write({safety, StoreTag});
+        LoadGatePipe::write({SafeNow, SafeAfterTag, Reuse, StoreTag});
 
         LoadMuxPred::write(1);
         LoadMuxIsReuse::write(Reuse);
@@ -175,21 +165,21 @@ event StreamingLoad(queue &q, T *data) {
         if (succ) {
           StoreAddr = StoreReq.addr;
           StoreTag = StoreReq.tag;
-          // if constexpr (id == 1)
-          //   PRINTF("sld %d got st req (%d, %d)   Curr load (%d, %d)\n", id, StoreAddr, StoreTag, LoadAddr, LoadTag);
+          // PRINTF("sld %d got st req (%d, %d)   Curr load (%d, %d)\n", id, StoreAddr, StoreTag, LoadAddr, LoadTag);
         }
       }
       /** End Rule */
 
     } // end while
 
+    // Drain store addresses.
     while (StoreAddr != MAX_INT) {
       auto StoreReq = StoreAddrPipe::read();
       StoreAddr = StoreReq.addr;
     }
 
     LoadMuxPred::write(0);
-    LoadGatePipe::write({UNSAFE, MAX_INT});
+    LoadGatePipe::write({false, false, false, MAX_INT});
 
     PRINTF("DONE sld %d\n", id);
   });
@@ -200,7 +190,7 @@ event StreamingLoad(queue &q, T *data) {
     int LastStoreAckTag = 0;
     int LastStoreAddrTag = 0;
 
-    gate_action_t LoadCmd = {};
+    load_command_t LoadCmd = {};
 
     bool LoadCmdValid = false;
     
@@ -233,20 +223,19 @@ event StreamingLoad(queue &q, T *data) {
         if (LoadCmdValid) {
           LoadCmd = tryLoadCmd;
           LastStoreAddrTag = LoadCmd.tag;
-          // PRINTF("Load %d LastStoreAddrTag = %d\n", id, LastStoreAddrTag);
         }
       }
       /** End Rule*/
       if (LastStoreAddrTag == MAX_INT) break;
 
       if (LoadCmdValid) {
-        if (LoadCmd.loadSafety == REUSE_AFTER_TAG &&
-            LastStoreAddrTag == LastStoreValTag) {
-          LoadMuxReuseVal::write(StoreVal);
-          LoadCmdValid = false;
-        } else if (LoadCmd.loadSafety == SAFE_LOAD_NOW ||
-                   (LoadCmd.loadSafety == SAFE_LOAD_AFTER_TAG &&
-                    LastStoreAddrTag <= LastStoreAckTag)) {
+        if (LoadCmd.safeAfterTag && LoadCmd.reuse) {
+          if (LastStoreAddrTag == LastStoreValTag) {
+            LoadMuxReuseVal::write(StoreVal);
+            LoadCmdValid = false;
+          }
+        } else if (LoadCmd.safeNow || (LoadCmd.safeAfterTag &&
+                                       LastStoreAddrTag <= LastStoreAckTag)) {
           LoadPortPred::write(1);
           LoadCmdValid = false;
         }

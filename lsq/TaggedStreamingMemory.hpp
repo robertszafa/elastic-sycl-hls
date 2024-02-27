@@ -62,7 +62,7 @@ struct load_command_t {
 };
 
 
-constexpr int INVALID_ADDR = -1;
+// constexpr int INVALID_ADDR = -1;
 constexpr int MAX_INT = (1<<30);
 
 /// Unique kernel name generators.
@@ -136,19 +136,19 @@ event StreamingLoad(queue &q, T *data) {
           LoadTag = LoadReq.tag;
         }
       }
-      if (LoadAddr == INVALID_ADDR) break;
+      if (LoadAddr == MAX_INT) break;
 
-      const bool SafeNow =
-          (LoadTag < StoreTag || (LoadTag == StoreTag && LoadAddr > StoreAddr));
+      const bool SafeNow = (LoadTag < StoreTag) ||
+                           (LoadTag == StoreTag && LoadAddr > StoreAddr);
       const bool SafeAfterTag = (LoadTag == StoreTag) ||
                                 (LoadTag > StoreTag && LoadAddr <= StoreAddr);
-      const bool Reuse = (LoadTag >= StoreTag && LoadAddr == StoreAddr);
+      const bool Reuse = (LoadTag >= StoreTag) && (LoadAddr == StoreAddr);
 
       const bool AnySafe = (SafeNow || SafeAfterTag);
 
       if (LoadAddrValid && AnySafe) {
-        // if constexpr (id == 1)
-          // PRINTF("SAFE: sld %d  addr %d (SafeNow=%d, SafeAfterTag=%d, reuse=%d)\t StoreAddr=%d, StoreTag=%d\n", id, LoadAddr, SafeNow, SafeAfterTag, Reuse, StoreAddr, StoreTag);
+        if constexpr (id == 1)
+          PRINTF("SAFE: sld %d  addr %d (SafeNow=%d, SafeAfterTag=%d, reuse=%d)\t StoreAddr=%d, StoreTag=%d\n", id, LoadAddr, SafeNow, SafeAfterTag, Reuse, StoreAddr, StoreTag);
         LoadAddrValid = false;
         LoadGatePipe::write({SafeNow, SafeAfterTag, Reuse, StoreTag});
 
@@ -175,7 +175,7 @@ event StreamingLoad(queue &q, T *data) {
 
     } // end while
 
-    while (StoreAddr != INVALID_ADDR) {
+    while (StoreAddr != MAX_INT) {
       auto StoreReq = StoreAddrPipe::read();
       StoreAddr = StoreReq.addr;
     }
@@ -232,12 +232,17 @@ event StreamingLoad(queue &q, T *data) {
       if (LastStoreAddrTag == MAX_INT) break;
 
       if (LoadCmdValid) {
-        if (LoadCmd.safeAfterTag && LoadCmd.reuse &&
-            LastStoreAddrTag == LastStoreValTag) {
-          LoadMuxReuseVal::write(StoreVal);
-          LoadCmdValid = false;
+        if (LoadCmd.safeAfterTag && LoadCmd.reuse) {
+          if (LastStoreAddrTag == LastStoreValTag) {
+            if constexpr (id == 1)
+              PRINTF("Load 1 wrote reuseVal\n");
+            LoadMuxReuseVal::write(StoreVal);
+            LoadCmdValid = false;
+          }
         } else if (LoadCmd.safeNow || (LoadCmd.safeAfterTag &&
-                                      LastStoreAddrTag <= LastStoreAckTag)) {
+                                       LastStoreAddrTag <= LastStoreAckTag)) {
+          if constexpr (id == 1)
+            PRINTF("Load 1 wrote LoadPortPred\n");
           LoadPortPred::write(1);
           LoadCmdValid = false;
         }
@@ -280,7 +285,7 @@ event StreamingStore(queue &q, T *data) {
     [[intel::ivdep]]
     while (true) {
       auto AddrTag = AddrTagPipe::read();
-      if (AddrTag.addr == INVALID_ADDR)
+      if (AddrTag.addr == MAX_INT)
         break;
       auto Val = ValPipe::read();
 

@@ -20,38 +20,30 @@ using PipelinedLSU = sycl::ext::intel::lsu<>;
 #define KERNEL_PRAGMAS [[intel::kernel_args_restrict]] [[intel::max_global_work_dim(0)]] 
 
 constexpr uint DRAM_BURST_BITS = 512;
-// constexpr int INVALID_ADDR = -1;
-constexpr int MAX_INT = (1<<30);
+constexpr uint MAX_INT = (1<<30);
 
 struct addr_t {
-  int addr;
+  uint addr;
 };
 
 struct addr_tag_t {
-  int addr;
-  int tag;
-};
-
-
-struct addr_tags_t {
-  int addr;
-  int globalTag;
-  int localTag;
+  uint addr;
+  uint tag;
 };
 
 template <typename T> struct addr_val_t {
-  int addr;
+  uint addr;
   T val;
 };
 
 template <typename T> struct tag_val_t {
-  int tag;
+  uint tag;
   T val;
 };
 
 template <typename T> struct addr_tag_val_t {
-  int addr;
-  int tag;
+  uint addr;
+  uint tag;
   T val;
 };
 
@@ -59,7 +51,7 @@ struct load_command_t {
   bool safeNow;
   bool safeAfterTag;
   bool reuse;
-  int tag; 
+  uint tag; 
 };
 
 
@@ -73,19 +65,21 @@ template <int id> class LoadValMuxKernel;
 
 template <int id, typename LoadAddrPipe, typename LoadValPipe,
           typename StoreAddrPipe, typename StoreValPipe, typename StoreAckPipe,
-          int kBitWidth = 32, typename T>
+          uint BIT_WIDTH = 32, typename T>
 event StreamingLoad(queue &q, T *data) {
-  assert(sizeof(T) * 8 == kBitWidth && "Incorrect kBitWidth.");
-  constexpr uint kNumBurstValues = (DRAM_BURST_BITS + kBitWidth - 1) / kBitWidth;
+  assert(sizeof(T) * 8 == BIT_WIDTH && "Incorrect kBitWidth.");
+  constexpr uint NUM_BURST_VALS = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
 
-  using LoadPortAddr = pipe<class _LoadAddr, int, kNumBurstValues>;
-  using LoadPortPred = pipe<class _LoadPortPred, bool, kNumBurstValues>;
-  using LoadMuxIsReuse = pipe<class _LoadMuxIsReuse, bool, kNumBurstValues>;
-  using LoadMuxPred = pipe<class _LoadMuxPred, bool, kNumBurstValues>;
-  using LoadMuxMemoryVal = pipe<class _LoadMuxMemoryVal, T, kNumBurstValues>;
-  using LoadMuxReuseVal = pipe<class _LoadMuxReuseVal, T, kNumBurstValues>;
+  using LoadPortAddr = pipe<class _LoadAddr, int, NUM_BURST_VALS>;
+  using LoadPortPred = pipe<class _LoadPortPred, bool, NUM_BURST_VALS>;
+  using LoadMuxIsReuse = pipe<class _LoadMuxIsReuse, bool, NUM_BURST_VALS>;
+  using LoadMuxPred = pipe<class _LoadMuxPred, bool, NUM_BURST_VALS>;
+  using LoadMuxMemoryVal = pipe<class _LoadMuxMemoryVal, T, NUM_BURST_VALS>;
+  using LoadMuxReuseVal = pipe<class _LoadMuxReuseVal, T, NUM_BURST_VALS>;
   q.single_task<LoadPortKernel<id>>([=]() KERNEL_PRAGMAS {
     [[intel::ivdep]]
+    [[intel::initiation_interval(1)]]
+    [[intel::speculated_iterations(0)]]
     while (LoadPortPred::read()) {
       int Addr = LoadPortAddr::read();
       auto LoadPtr = ext::intel::device_ptr<T>(data + Addr);
@@ -115,12 +109,12 @@ event StreamingLoad(queue &q, T *data) {
   using LoadGatePipe = pipe<class _LoadGatePipe, load_command_t, 16>;
   q.single_task<StreamingLoadKernel<id>>([=]() KERNEL_PRAGMAS {
     auto StoreReq = StoreAddrPipe::read();
-    int StoreAddr = StoreReq.addr;
-    int StoreTag = StoreReq.tag;
+    uint StoreAddr = StoreReq.addr;
+    uint StoreTag = StoreReq.tag;
     
     auto LoadReq = LoadAddrPipe::read();
-    int LoadAddr = LoadReq.addr;
-    int LoadTag = LoadReq.tag;
+    uint LoadAddr = LoadReq.addr;
+    uint LoadTag = LoadReq.tag;
     bool LoadAddrValid = true;
 
     [[intel::ivdep]]
@@ -183,9 +177,9 @@ event StreamingLoad(queue &q, T *data) {
 
   return q.single_task<GateKernel<id>>([=]() KERNEL_PRAGMAS {
     T StoreVal = {};
-    int LastStoreValTag = 0;
-    int LastStoreAckTag = 0;
-    int LastStoreAddrTag = 0;
+    uint LastStoreValTag = 0;
+    uint LastStoreAckTag = 0;
+    uint LastStoreAddrTag = 0;
 
     load_command_t LoadCmd = {};
 
@@ -259,7 +253,7 @@ event StreamingLoad(queue &q, T *data) {
 }
 
 template <int id, typename AddrTagPipe, typename ValPipe, typename AckPipes,
-          typename OutValPipes, int BIT_WIDTH = 32, typename T>
+          typename OutValPipes, uint BIT_WIDTH = 32, typename T>
 event StreamingStore(queue &q, T *data) {
   assert(sizeof(T) * 8 == BIT_WIDTH && "Incorrect kBitWidth.");
   constexpr uint NUM_BURST_VALS = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
@@ -269,13 +263,16 @@ event StreamingStore(queue &q, T *data) {
   using StorePortReq = pipe<class _StorePortReq, addr_tag_val_t<T>, NUM_BURST_VALS>;
   auto event = q.single_task<StorePortKernel<id>>([=]() KERNEL_PRAGMAS {
     bool AckValid[NUM_BURST_VALS];
-    int AckTag[NUM_BURST_VALS];
+    uint AckTag[NUM_BURST_VALS];
     #pragma unroll
     for (int i = 0; i < NUM_BURST_VALS; ++i) {
       AckValid[i] = false;
       AckTag[i] = 0;
     }
 
+    [[intel::ivdep]]
+    [[intel::initiation_interval(1)]]
+    [[intel::speculated_iterations(0)]]
     while (StorePortPred::read()) {
       auto Req = StorePortReq::read();
       auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
@@ -309,6 +306,8 @@ event StreamingStore(queue &q, T *data) {
 
   return q.single_task<StreamingStoreKernel<id>>([=]() KERNEL_PRAGMAS {
     [[intel::ivdep]]
+    [[intel::initiation_interval(1)]]
+    [[intel::speculated_iterations(0)]]
     while (true) {
       auto AddrTag = AddrTagPipe::read();
       if (AddrTag.addr == MAX_INT)

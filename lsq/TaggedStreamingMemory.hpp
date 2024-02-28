@@ -19,8 +19,9 @@ using PipelinedLSU = sycl::ext::intel::lsu<>;
 /// and stores {addr, value} in a shift-register FIFO for reuse.
 #define KERNEL_PRAGMAS [[intel::kernel_args_restrict]] [[intel::max_global_work_dim(0)]] 
 
-constexpr uint STORE_FIFO_SIZE = 4;
 constexpr uint DRAM_BURST_BITS = 512;
+// constexpr int INVALID_ADDR = -1;
+constexpr int MAX_INT = (1<<30);
 
 struct addr_t {
   int addr;
@@ -62,14 +63,12 @@ struct load_command_t {
 };
 
 
-// constexpr int INVALID_ADDR = -1;
-constexpr int MAX_INT = (1<<30);
-
 /// Unique kernel name generators.
 template <int id> class GateKernel;
 template <int id> class StreamingLoadKernel;
 template <int id> class StreamingStoreKernel;
 template <int id> class LoadPortKernel;
+template <int id> class StorePortKernel;
 template <int id> class LoadValMuxKernel;
 
 template <int id, typename LoadAddrPipe, typename LoadValPipe,
@@ -146,7 +145,6 @@ event StreamingLoad(queue &q, T *data) {
       const bool AnySafe = (SafeNow || SafeAfterTag);
 
       if (LoadAddrValid && AnySafe) {
-        // PRINTF("SAFE: sld %d  addr %d (SafeNow=%d, SafeAfterTag=%d, reuse=%d)\t StoreAddr=%d, StoreTag=%d\n", id, LoadAddr, SafeNow, SafeAfterTag, Reuse, StoreAddr, StoreTag);
         LoadAddrValid = false;
         LoadGatePipe::write({SafeNow, SafeAfterTag, Reuse, StoreTag});
 
@@ -165,7 +163,6 @@ event StreamingLoad(queue &q, T *data) {
         if (succ) {
           StoreAddr = StoreReq.addr;
           StoreTag = StoreReq.tag;
-          // PRINTF("sld %d got st req (%d, %d)   Curr load (%d, %d)\n", id, StoreAddr, StoreTag, LoadAddr, LoadTag);
         }
       }
       /** End Rule */
@@ -181,7 +178,7 @@ event StreamingLoad(queue &q, T *data) {
     LoadMuxPred::write(0);
     LoadGatePipe::write({false, false, false, MAX_INT});
 
-    PRINTF("DONE sld %d\n", id);
+    // PRINTF("DONE sld %d\n", id);
   });
 
   return q.single_task<GateKernel<id>>([=]() KERNEL_PRAGMAS {
@@ -257,7 +254,7 @@ event StreamingLoad(queue &q, T *data) {
     }
 
     LoadPortPred::write(0);
-    PRINTF("DONE ld gate %d\n", id);
+    // PRINTF("DONE ld gate %d\n", id);
   });
 }
 
@@ -265,16 +262,52 @@ template <int id, typename AddrTagPipe, typename ValPipe, typename AckPipes,
           typename OutValPipes, int BIT_WIDTH = 32, typename T>
 event StreamingStore(queue &q, T *data) {
   assert(sizeof(T) * 8 == BIT_WIDTH && "Incorrect kBitWidth.");
-  // constexpr uint NUM_BURST_VALS = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
-  // constexpr uint NUM_BURST_VALS = 2;
+  constexpr uint NUM_BURST_VALS = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
   // using t_burst_count = ac_int<BitsForMaxValue<kNumBurstValues>(), false>;
 
-  return q.single_task<StreamingStoreKernel<id>>([=]() KERNEL_PRAGMAS {
-    // bool Ack[NUM_BURST_VALS];
-    // #pragma unroll
-    // for (int i = 0; i < NUM_BURST_VALS; ++i) Ack[i] = false;
+  using StorePortPred = pipe<class _StorePortPred, bool, NUM_BURST_VALS>;
+  using StorePortReq = pipe<class _StorePortReq, addr_tag_val_t<T>, NUM_BURST_VALS>;
+  auto event = q.single_task<StorePortKernel<id>>([=]() KERNEL_PRAGMAS {
+    bool AckValid[NUM_BURST_VALS];
+    int AckTag[NUM_BURST_VALS];
+    #pragma unroll
+    for (int i = 0; i < NUM_BURST_VALS; ++i) {
+      AckValid[i] = false;
+      AckTag[i] = 0;
+    }
 
-    // int numAck = 0;
+    while (StorePortPred::read()) {
+      auto Req = StorePortReq::read();
+      auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
+      BurstCoalescedLSU::store(StorePtr, Req.val);
+
+      if (AckValid[0]) {
+        AckPipes::write(AckTag[0]);
+      }
+
+      #pragma unroll
+      for (int i = 0; i < NUM_BURST_VALS - 1; ++i) {
+        AckValid[i] = AckValid[i + 1];
+        AckTag[i] = AckTag[i + 1];
+      }
+      AckValid[NUM_BURST_VALS - 1] = true;
+      AckTag[NUM_BURST_VALS - 1] = Req.tag;
+    }
+
+    // Ensure all stores commited before draining ACKs.
+    atomic_fence(memory_order_seq_cst, memory_scope_work_item);
+
+    // Drain acks
+    for (int i = 0; i < NUM_BURST_VALS; ++i) {
+      if (AckValid[i]) {
+        AckPipes::write(AckTag[i]);
+      }
+    }
+
+    AckPipes::write({MAX_INT});
+  });
+
+  return q.single_task<StreamingStoreKernel<id>>([=]() KERNEL_PRAGMAS {
     [[intel::ivdep]]
     while (true) {
       auto AddrTag = AddrTagPipe::read();
@@ -282,32 +315,15 @@ event StreamingStore(queue &q, T *data) {
         break;
       auto Val = ValPipe::read();
 
-      auto StorePtr = ext::intel::device_ptr<T>(data + AddrTag.addr);
-      BurstCoalescedLSU::store(StorePtr, Val);
-      // PRINTF("Stored addr = %d\n", AddrTag.addr);
+      OutValPipes::write({AddrTag.tag, Val});
 
-      // if (Ack[0]) {
-        OutValPipes::write({AddrTag.tag, Val});
-        AckPipes::write(AddrTag.tag);
-      //   numAck++;
-      //   PRINTF("Store wrote ack num %d\n", numAck);
-      // }
-
-      // #pragma unroll
-      // for (int i = 0; i < NUM_BURST_VALS - 1; ++i) Ack[i] = Ack[i + 1];
-      // Ack[NUM_BURST_VALS - 1] = true;
+      StorePortPred::write(1);
+      StorePortReq::write({AddrTag.addr, AddrTag.tag, Val});
     }
 
+    StorePortPred::write(0);
     OutValPipes::write({MAX_INT});
-    AckPipes::write(MAX_INT);
 
-    // Drain acks
-    // for (int i = 0; i < NUM_BURST_VALS; ++i) {
-    //   if (Ack[i]) {
-    //     AckPipes::write(true);
-    //   }
-    // }
-
-    PRINTF("DONE sst %d\n", id);
+    // PRINTF("DONE sst %d\n", id);
   });
 }

@@ -134,7 +134,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
     DataBundle<uint, NUM_BURST_VALS> CommitQueueAddr(uint(0));
     DataBundle<uint, NUM_BURST_VALS> CommitQueueTag(uint(0));
-    DataBundle<T, NUM_BURST_VALS> CommitQueueVal(T{});
 
     // auto LoadReq = LoadAddrPipe::read();
     uint LoadAddr = 0;
@@ -156,12 +155,12 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         if (LoadAddrValid) {
           LoadAddr = LoadReq.addr;
           LoadTag = LoadReq.tag;
-          // PRINTF("Load request (%d, %d)\n", LoadAddr, LoadTag);
-          // PRINTF("Curr store request (%d, %d)\n", StoreAddr, StoreTag);
+          // PRINTF("Curr load request (%d, %d)\n", LoadAddr, LoadTag);
         }
       }
       /** End Rule */
 
+      // TODO: How to delay this if (storeAddr > loadAddr) ?
       /** Rule for reading store {addr, tag} pairs. */
       if (!StoreAddrValid) {
         auto StoreReq = StoreAddrPipe::read(StoreAddrValid);
@@ -170,15 +169,18 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           StoreTag = StoreReq.tag;
           StoreAddrValid = (StoreAddr != MAX_INT);
           StorePortPredPipe::write(StoreAddr != MAX_INT);
+          // PRINTF("Curr store request (%d, %d)\t"
+          //        "Curr load request (%d, %d)\n",  StoreAddr, StoreTag, LoadAddr, LoadTag);
         }
       }
       /** End Rule */
 
-      /** Rule for reading store values. */
-      if (StoreAddrValid) {
+      /** Rule for reading store values and writing to store port. */
+      if (StoreAddrValid && !StoreValValid) {
         auto tryStoreValTag = StoreValPipe::read(StoreValValid);
         if (StoreValValid) {
           StoreVal = tryStoreValTag;
+          StorePortReqPipe::write({StoreAddr, StoreVal});
         }
       }
       /** End Rule */
@@ -186,7 +188,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       /** Rule for checking load safety and reuse. */
       const bool SafeNow = (LoadTag < StoreTag);
       const bool SafeAfterTag = (LoadTag == StoreAckTag) ||
-                                (LoadTag > StoreAckTag && LoadAddr < StoreAckAddr);
+                                (LoadTag > StoreAckTag && LoadAddr <= StoreAckAddr);
       const bool Reuse = (LoadTag >= StoreTag) && (LoadAddr == StoreAddr);
       if (LoadAddrValid) {
         if (Reuse) {
@@ -202,7 +204,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         } else if (SafeNow || SafeAfterTag) {
             // PRINTF("Load request (%d, %d) SafeNow=%d, SafeAfterTag=%d, Reuse=%d   "
             //        "StoreAlloc=(%d, %d), StoreAck=(%d, %d)\n",
-                // LoadAddr, LoadTag, SafeNow, SafeAfterTag, Reuse, StoreAddr, StoreTag, StoreAckAddr, StoreAckTag);
+            //     LoadAddr, LoadTag, SafeNow, SafeAfterTag, Reuse, StoreAddr, StoreTag, StoreAckAddr, StoreAckTag);
           LoadMuxPred::write(1);
           LoadMuxIsReuse::write(0);
           LoadPortPred::write(1);
@@ -212,20 +214,18 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       }
       /** End Rule */
 
-      /** Rule for writing to store port and shifting commit queue. */
-      if (StoreValValid || (StoreAddr == MAX_INT)) {
-        if (StoreValValid)
-          StorePortReqPipe::write({StoreAddr, StoreVal});
+      /** Rule for allowing to read from store addr/val pipes again. */
+      if (StoreValValid && (LoadAddr >= StoreAddr || LoadTag <= StoreTag)) {
         StoreValValid = false;
         StoreAddrValid = false;
-
-        StoreAckAddr = CommitQueueAddr[0];
-        StoreAckTag = CommitQueueTag[0];
-        CommitQueueAddr.Shift(StoreAddr);
-        CommitQueueTag.Shift(StoreTag);
-        CommitQueueVal.Shift(StoreVal);
       }
       /** End Rule */
+
+      StoreAckAddr = CommitQueueAddr[0];
+      StoreAckTag = CommitQueueTag[0];
+      CommitQueueAddr.Shift(StoreAddr);
+      CommitQueueTag.Shift(StoreTag);
+
 
     } // end while
 

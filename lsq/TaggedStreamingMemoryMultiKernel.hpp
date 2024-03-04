@@ -64,12 +64,12 @@ event StreamingLoad(queue &q, T *data) {
   assert(sizeof(T) * 8 == BIT_WIDTH && "Incorrect kBitWidth.");
   constexpr uint NUM_BURST_VALS = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
 
-  using LoadPortAddr = pipe<class _LoadAddr, int, NUM_BURST_VALS>;
-  using LoadPortPred = pipe<class _LoadPortPred, bool, NUM_BURST_VALS>;
-  using LoadMuxIsReuse = pipe<class _LoadMuxIsReuse, bool, NUM_BURST_VALS>;
-  using LoadMuxPred = pipe<class _LoadMuxPred, bool, NUM_BURST_VALS>;
-  using LoadMuxMemoryVal = pipe<class _LoadMuxMemoryVal, T, NUM_BURST_VALS>;
-  using LoadMuxReuseVal = pipe<class _LoadMuxReuseVal, T, NUM_BURST_VALS>;
+  using LoadPortAddr = pipe<class _LoadAddr, int, NUM_BURST_VALS * 4>;
+  using LoadPortPred = pipe<class _LoadPortPred, bool, NUM_BURST_VALS * 4>;
+  using LoadMuxIsReuse = pipe<class _LoadMuxIsReuse, bool, NUM_BURST_VALS * 4>;
+  using LoadMuxPred = pipe<class _LoadMuxPred, bool, NUM_BURST_VALS * 4>;
+  using LoadMuxMemoryVal = pipe<class _LoadMuxMemoryVal, T, NUM_BURST_VALS * 4>;
+  using LoadMuxReuseVal = pipe<class _LoadMuxReuseVal, T, NUM_BURST_VALS * 4>;
   q.single_task<LoadPortKernel<id>>([=]() KERNEL_PRAGMAS {
     [[intel::ivdep]]
     [[intel::initiation_interval(1)]]
@@ -156,17 +156,11 @@ event StreamingLoad(queue &q, T *data) {
       }
       /** End Rule */
 
-      /** Rule for shifting store allocation queue. */
-      if (!StoreAllocValid[0]) {
-        StoreAllocValid.Shift(bool{false});
-        StoreAllocTag.Shift(uint{0});
-      }
-      /** End Rule */
-
       // TODO: How to delay this if (storeAddr > loadAddr) ?
       /** Rule for reading store {addr, tag} pairs. */
       if (!StoreAllocValid[NUM_BURST_VALS - 1] &&
-          (LastStoreAllocAddr < LoadAddr[0] || LastStoreAllocTag > LoadTag[0])) {
+          (LastStoreAllocAddr <= LoadAddr[0] ||
+           LastStoreAllocTag >= LoadTag[0])) {
         bool succ = false;
         auto StoreReq = StoreAddrPipe::read(succ);
         if (succ) {
@@ -175,6 +169,13 @@ event StreamingLoad(queue &q, T *data) {
           StoreAllocValid[NUM_BURST_VALS - 1] = true;
           StoreAllocTag[NUM_BURST_VALS - 1] = LastStoreAllocTag;
         }
+      }
+      /** End Rule */
+
+      /** Rule for shifting store allocation queue. */
+      if (!StoreAllocValid[0]) {
+        StoreAllocValid.Shift(bool{false});
+        StoreAllocTag.Shift(uint{0});
       }
       /** End Rule */
 
@@ -228,11 +229,11 @@ event StreamingLoad(queue &q, T *data) {
       if (!LoadReuse[0] && !LoadSafeAfterTag[0]) {
         LoadSafeNow[0] = (LoadTag[0] < LastStoreAllocTag ||
                           (LoadTag[0] == LastStoreAllocTag &&
-                            LoadAddr[0] != LastStoreAllocAddr));
+                           LoadAddr[0] != LastStoreAllocAddr));
         LoadSafeAfterTag[0] = (LoadTag[0] >= LastStoreAllocTag &&
                                LoadAddr[0] < LastStoreAllocAddr);
         LoadReuse[0] = (LoadTag[0] >= LastStoreAllocTag) &&
-                      (LoadAddr[0] == LastStoreAllocAddr);
+                       (LoadAddr[0] == LastStoreAllocAddr);
         LoadWaitForTag[0] = LastStoreAllocTag;
       }
       /** End Rule */

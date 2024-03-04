@@ -112,29 +112,26 @@ event StreamingLoad(queue &q, T *data) {
 
     DataBundle<uint, NUM_BURST_VALS> StoreAllocTag(uint{0});
     DataBundle<bool, NUM_BURST_VALS> StoreAllocValid(bool{false});
-    StoreAllocTag[NUM_BURST_VALS-1] = LastStoreAllocTag;
-    StoreAllocValid[NUM_BURST_VALS-1] = true;
+    StoreAllocTag[NUM_BURST_VALS - 1] = LastStoreAllocTag;
+    StoreAllocValid[NUM_BURST_VALS - 1] = true;
 
-    // auto LoadReq = LoadAddrPipe::read();
-    constexpr uint LOAD_Q_SIZE = 4;
+    constexpr uint LOAD_Q_SIZE = 2;
     DataBundle<uint, LOAD_Q_SIZE> LoadAddr(uint{0});
-    DataBundle<uint, LOAD_Q_SIZE> LoadTag(uint{0});
+    DataBundle<uint, LOAD_Q_SIZE> LoadTag(uint{MAX_INT});
     DataBundle<bool, LOAD_Q_SIZE> LoadAddrValid(bool{false});
     DataBundle<bool, LOAD_Q_SIZE> LoadSafeNow(bool{false});
     DataBundle<bool, LOAD_Q_SIZE> LoadSafeAfterTag(bool{false});
     DataBundle<bool, LOAD_Q_SIZE> LoadReuse(bool{false});
     DataBundle<uint, LOAD_Q_SIZE> LoadWaitForTag(uint{0});
 
-    DataBundle<bool, LOAD_Q_SIZE> LoadPrinted(bool{false});
-
     bool EndSignal = false;
-    uint cycle = 0;
+    // uint cycle = 0;
 
     [[intel::ivdep]]
     [[intel::initiation_interval(1)]]
     [[intel::speculated_iterations(0)]]
     while (!EndSignal) {
-      cycle++;
+      // cycle++;
 
       // Listen for end signal.
       EndSignalPipe::read(EndSignal);
@@ -144,7 +141,6 @@ event StreamingLoad(queue &q, T *data) {
       auto tryAckAddrTag = StoreAckPipe::read(succ);
       if (succ) {
         StoreAckTag = tryAckAddrTag;
-        // PRINTF("@%d: StoreAck %d \n", cycle, StoreAckTag);
       }
       /** End Rule */
       
@@ -170,14 +166,14 @@ event StreamingLoad(queue &q, T *data) {
       // TODO: How to delay this if (storeAddr > loadAddr) ?
       /** Rule for reading store {addr, tag} pairs. */
       if (!StoreAllocValid[NUM_BURST_VALS - 1] &&
-          (LastStoreAllocAddr < LoadAddr[0])) {
+          (LastStoreAllocAddr < LoadAddr[0] || LastStoreAllocTag > LoadTag[0])) {
         bool succ = false;
         auto StoreReq = StoreAddrPipe::read(succ);
         if (succ) {
           LastStoreAllocAddr = StoreReq.addr;
           LastStoreAllocTag = StoreReq.tag;
-          StoreAllocValid[LOAD_Q_SIZE - 1] = true;
-          StoreAllocTag[LOAD_Q_SIZE - 1] = LastStoreAllocTag;
+          StoreAllocValid[NUM_BURST_VALS - 1] = true;
+          StoreAllocTag[NUM_BURST_VALS - 1] = LastStoreAllocTag;
         }
       }
       /** End Rule */
@@ -203,7 +199,6 @@ event StreamingLoad(queue &q, T *data) {
             LoadMuxReuseVal::write(StoreVal);
 
             LoadAddrValid[0] = false;
-            // PRINTF("@%d: returned (reused) %d\n", cycle, LoadAddr[0]);
           }
         } else if (LoadSafeNow[0] || (LoadSafeAfterTag[0] &&
                                       (LoadWaitForTag[0] <= StoreAckTag))) {
@@ -213,12 +208,7 @@ event StreamingLoad(queue &q, T *data) {
           LoadPortAddr::write(LoadAddr[0]);
 
           LoadAddrValid[0] = false;
-          // PRINTF("@%d: returned %d\n", cycle, LoadAddr[0]);
         } 
-        // else if (!LoadPrinted[0]){
-        //   LoadPrinted[0] = true;
-        //   PRINTF("@%d: load (%d, %d) waits for ack %d (curr rcvd ack %d) (reuse=%d, LoadSafeAfterTag=%d)\n", cycle, LoadAddr[0], LoadTag[0], LoadWaitForTag[0], StoreAckTag, LoadReuse[0], LoadSafeAfterTag[0]);
-        // }
       }
       /** End Rule */
 
@@ -231,9 +221,6 @@ event StreamingLoad(queue &q, T *data) {
         LoadSafeAfterTag.Shift(bool{false});
         LoadReuse.Shift(bool{false});
         LoadWaitForTag.Shift(uint{0});
-        // PRINTF("@%d: LoadAddr[0] = %d, LoadTag[0] = %d\n", cycle, LoadAddr[0], LoadTag[0]);
-
-        LoadPrinted.Shift(bool{false});
       }
       /** End Rule */
 
@@ -244,7 +231,6 @@ event StreamingLoad(queue &q, T *data) {
                             LoadAddr[0] != LastStoreAllocAddr));
         LoadSafeAfterTag[0] = (LoadTag[0] >= LastStoreAllocTag &&
                                LoadAddr[0] < LastStoreAllocAddr);
-        // (LoadTag[0] == LastStoreAllocTag) || // Covered by LoadReuse & Safe Now
         LoadReuse[0] = (LoadTag[0] >= LastStoreAllocTag) &&
                       (LoadAddr[0] == LastStoreAllocAddr);
         LoadWaitForTag[0] = LastStoreAllocTag;
@@ -290,7 +276,7 @@ event StreamingStore(queue &q, T *data) {
 
     // Drain acks
     for (int i = 0; i < NUM_BURST_VALS; ++i) AckPipes::write(AckTag[i]);
-    // AckPipes::write(MAX_INT);
+    AckPipes::write(MAX_INT);
 
     PRINTF("DONE Streaming Store %d\n", id);
   });

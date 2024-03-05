@@ -5,6 +5,7 @@
 #include "unrolled_loop.hpp"
 #include "pipe_utils.hpp"
 #include "constexpr_math.hpp"
+#include "tuple.hpp"
 #include "data_bundle.hpp"
 #include "device_print.hpp"
 
@@ -51,15 +52,33 @@ template <typename T> struct addr_tag_val_t {
 using uint2_t = ac_int<2, false>;
 enum LOAD_MUX_PRED { TERMINATE, REUSE, LOAD };
 
+template <typename T, uint SIZE> 
+inline void InitShiftReg(T (&ShiftReg)[SIZE], const T val) {
+  #pragma unroll
+  for (uint i = 0; i < SIZE; ++i) {
+    ShiftReg[i] = val;
+  }
+}
+
+template <typename T, uint SIZE> 
+inline void DoShiftReg(T (&ShiftReg)[SIZE], const T in) {
+  #pragma unroll
+  for (uint i = 0; i < SIZE - 1; ++i) {
+    ShiftReg[i] = ShiftReg[i + 1];
+  }
+  ShiftReg[SIZE - 1] = in;
+}
+
 /// Unique kernel name generators.
 template <int ID> class StreamingLoadKernel;
 template <int ID> class LoadPortKernel;
 template <int ID> class LoadValMuxKernel;
 template <int ID> class StreamingStoreKernel;
 
-template <int id, typename LoadAddrPipe, typename LoadValPipe, 
-          typename StoreAddrPipe, typename StoreValPipe, typename StoreAckPipe, 
-          typename EndSignalPipe, uint BIT_WIDTH = 32, typename T>
+template <int id, typename LoadAddrPipe, typename LoadValPipe,
+          typename StoreAddrPipes, typename StoreValPipes,
+          typename StoreAckPipes, typename EndSignalPipe,
+          uint NUM_STORES = 1, uint BIT_WIDTH = 32, typename T>
 event StreamingLoad(queue &q, T *data) {
   assert(sizeof(T) * 8 == BIT_WIDTH && "Incorrect kBitWidth.");
   constexpr uint NUM_BURST_VALS = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
@@ -105,27 +124,46 @@ event StreamingLoad(queue &q, T *data) {
   });
 
   return q.single_task<StreamingLoadKernel<id>>([=]() KERNEL_PRAGMAS {
-    auto StoreReq = StoreAddrPipe::read();
-    uint LastStoreAllocAddr = StoreReq.addr;
-    uint LastStoreAllocTag = StoreReq.tag;
+    [[intel::fpga_register]] uint LoadAddr[LOAD_Q_SIZE];
+    [[intel::fpga_register]] uint LoadTag[LOAD_Q_SIZE];
+    [[intel::fpga_register]] bool LoadAddrValid[LOAD_Q_SIZE];
+    InitShiftReg(LoadAddr, uint{0});
+    InitShiftReg(LoadTag, uint{MAX_INT});
+    InitShiftReg(LoadAddrValid, bool{false});
 
-    uint StoreAckTag = 0;
+    [[intel::fpga_register]] bool LoadSafeNow[NUM_STORES][LOAD_Q_SIZE];
+    [[intel::fpga_register]] bool LoadSafeAfterTag[NUM_STORES][LOAD_Q_SIZE];
+    [[intel::fpga_register]] bool LoadReuse[NUM_STORES][LOAD_Q_SIZE];
+    [[intel::fpga_register]] uint LoadWaitForTag[NUM_STORES][LOAD_Q_SIZE];
 
-    T StoreVal = {};
-    uint StoreValTag = 0;
+    [[intel::fpga_register]] uint StoreAllocTagQ[NUM_STORES][STORE_Q_SIZE];
+    [[intel::fpga_register]] bool StoreAllocValidQ[NUM_STORES][STORE_Q_SIZE];
 
-    DataBundle<uint, STORE_Q_SIZE> StoreAllocTag(uint{0});
-    DataBundle<bool, STORE_Q_SIZE> StoreAllocValid(bool{false});
-    StoreAllocTag[STORE_Q_SIZE - 1] = LastStoreAllocTag;
-    StoreAllocValid[STORE_Q_SIZE - 1] = true;
+    [[intel::fpga_register]] uint LastStoreAllocAddr[NUM_STORES];
+    [[intel::fpga_register]] uint LastStoreAllocTag[NUM_STORES];
+    [[intel::fpga_register]] uint StoreAckTag[NUM_STORES];
+    [[intel::fpga_register]] T StoreVal[NUM_STORES];
+    [[intel::fpga_register]] uint StoreValTag[NUM_STORES];
 
-    DataBundle<uint, LOAD_Q_SIZE> LoadAddr(uint{0});
-    DataBundle<uint, LOAD_Q_SIZE> LoadTag(uint{MAX_INT});
-    DataBundle<bool, LOAD_Q_SIZE> LoadAddrValid(bool{false});
-    DataBundle<bool, LOAD_Q_SIZE> LoadSafeNow(bool{false});
-    DataBundle<bool, LOAD_Q_SIZE> LoadSafeAfterTag(bool{false});
-    DataBundle<bool, LOAD_Q_SIZE> LoadReuse(bool{false});
-    DataBundle<uint, LOAD_Q_SIZE> LoadWaitForTag(uint{0});
+    UnrolledLoop<NUM_STORES>([&](auto iSt) {
+      auto StoreReq = StoreAddrPipes::template PipeAt<iSt>::read();
+
+      LastStoreAllocAddr[iSt] = StoreReq.addr;
+      LastStoreAllocTag[iSt] = StoreReq.tag;
+      StoreAckTag[iSt] = 0;
+      StoreVal[iSt] = T{};
+      StoreValTag[iSt] = 0;
+
+      InitShiftReg(StoreAllocTagQ[iSt], uint{0});
+      InitShiftReg(StoreAllocValidQ[iSt], bool{false});
+      StoreAllocTagQ[iSt][STORE_Q_SIZE - 1] = StoreReq.tag;
+      StoreAllocValidQ[iSt][STORE_Q_SIZE - 1] = true;
+
+      InitShiftReg(LoadSafeNow[iSt], bool{false});
+      InitShiftReg(LoadSafeAfterTag[iSt], bool{false});
+      InitShiftReg(LoadReuse[iSt], bool{false});
+      InitShiftReg(LoadWaitForTag[iSt], uint{0});
+    });
 
     bool EndSignal = false;
     // uint cycle = 0;
@@ -139,48 +177,50 @@ event StreamingLoad(queue &q, T *data) {
       // Listen for end signal.
       EndSignalPipe::read(EndSignal);
 
-      /** Rule for reading store ACKs. Always enabled */
-      bool succ = false;
-      auto tryAckAddrTag = StoreAckPipe::read(succ);
-      if (succ) {
-        StoreAckTag = tryAckAddrTag;
-      }
-      /** End Rule */
-      
-      /** Rule for reading store values. */
-      if (StoreAllocValid[0]) {
+      UnrolledLoop<NUM_STORES>([&](auto iSt) {
+        /** Rule for reading store ACKs. Always enabled */
         bool succ = false;
-        auto tryStoreValTag = StoreValPipe::read(succ);
+        auto tryAckAddrTag = StoreAckPipes::template PipeAt<iSt>::read(succ);
         if (succ) {
-          StoreVal = tryStoreValTag;
-          StoreValTag = StoreAllocTag[0];
-          StoreAllocValid[0] = false;
+          StoreAckTag[iSt] = tryAckAddrTag;
         }
-      }
-      /** End Rule */
-
-      // TODO: How to delay this if (storeAddr > loadAddr) ?
-      /** Rule for reading store {addr, tag} pairs. */
-      if (!StoreAllocValid[STORE_Q_SIZE - 1] &&
-          (LastStoreAllocAddr <= LoadAddr[0] ||
-           LastStoreAllocTag >= LoadTag[0])) {
-        bool succ = false;
-        auto StoreReq = StoreAddrPipe::read(succ);
-        if (succ) {
-          LastStoreAllocAddr = StoreReq.addr;
-          LastStoreAllocTag = StoreReq.tag;
-          StoreAllocValid[STORE_Q_SIZE - 1] = true;
-          StoreAllocTag[STORE_Q_SIZE - 1] = LastStoreAllocTag;
+        /** End Rule */
+        
+        /** Rule for reading store values. */
+        if (StoreAllocValidQ[iSt][0]) {
+          bool succ = false;
+          auto tryStoreValTag = StoreValPipes::template PipeAt<iSt>::read(succ);
+          if (succ) {
+            StoreVal[iSt] = tryStoreValTag;
+            StoreValTag[iSt] = StoreAllocTagQ[iSt][0];
+            StoreAllocValidQ[iSt][0] = false;
+          }
         }
-      }
-      /** End Rule */
+        /** End Rule */
 
-      /** Rule for shifting store allocation queue. */
-      if (!StoreAllocValid[0]) {
-        StoreAllocValid.Shift(bool{false});
-        StoreAllocTag.Shift(uint{0});
-      }
-      /** End Rule */
+        // TODO: How to delay this if (storeAddr > loadAddr) ?
+        /** Rule for reading store {addr, tag} pairs. */
+        if (!StoreAllocValidQ[iSt][STORE_Q_SIZE - 1] &&
+            (LastStoreAllocAddr[iSt] <= LoadAddr[0] ||
+             LastStoreAllocTag[iSt] >= LoadTag[0])) {
+          bool succ = false;
+          auto StoreReq = StoreAddrPipes::template PipeAt<iSt>::read(succ);
+          if (succ) {
+            LastStoreAllocAddr[iSt] = StoreReq.addr;
+            LastStoreAllocTag[iSt] = StoreReq.tag;
+            StoreAllocValidQ[iSt][STORE_Q_SIZE - 1] = true;
+            StoreAllocTagQ[iSt][STORE_Q_SIZE - 1] = StoreReq.tag;
+          }
+        }
+        /** End Rule */
+
+        /** Rule for shifting store allocation queue. */
+        if (!StoreAllocValidQ[iSt][0]) {
+          DoShiftReg(StoreAllocValidQ[iSt], bool{false});
+          DoShiftReg(StoreAllocTagQ[iSt], uint{0});
+        }
+        /** End Rule */
+      });
 
       /////////////////////////////////////////////////////////////////////////
       //////////////////////////     LOAD LOGIC     ///////////////////////////
@@ -194,16 +234,35 @@ event StreamingLoad(queue &q, T *data) {
       }
       /** End Rule */
 
+      /** Rule for checking if we can reuse or load safely. */
+      bool IsReuse = false;
+      bool IsReuseValValid = false;
+      T ReuseVal = T{};
+      bool IsLoadSafe = true;
+      UnrolledLoop<NUM_STORES>([&](auto iSt) {
+        // "Any" reduction to find reuse value.
+        if (LoadReuse[iSt][0]) {
+          IsReuse = true;
+          IsReuseValValid = (LoadWaitForTag[iSt][0] == StoreValTag[iSt]);
+          ReuseVal = StoreVal[iSt];
+        }
+
+        // "All" reduction to check safety.
+        IsLoadSafe &= (LoadSafeNow[iSt][0] ||
+                       (LoadSafeAfterTag[iSt][0] &&
+                        (LoadWaitForTag[iSt][0] <= StoreAckTag[iSt])));
+      });
+      /** End Rule */
+
       /** Rule for reusing store value or issuing load. */
       if (LoadAddrValid[0]) {
-        if (LoadReuse[0]) {
-          if (LoadWaitForTag[0] == StoreValTag) {
+        if (IsReuse) {
+          if (IsReuseValValid) {
             LoadMuxPred::write(uint2_t{LOAD_MUX_PRED::REUSE});
-            LoadMuxReuseVal::write(StoreVal);
+            LoadMuxReuseVal::write(ReuseVal);
             LoadAddrValid[0] = false;
           }
-        } else if (LoadSafeNow[0] || (LoadSafeAfterTag[0] &&
-                                      (LoadWaitForTag[0] <= StoreAckTag))) {
+        } else if (IsLoadSafe) {
           LoadMuxPred::write(uint2_t{LOAD_MUX_PRED::LOAD});
           LoadPortAddr::write(LoadAddr[0]);
           LoadAddrValid[0] = false;
@@ -213,27 +272,32 @@ event StreamingLoad(queue &q, T *data) {
 
       /** Rule for shifting load queues. */
       if (!LoadAddrValid[0]) {
-        LoadAddr.Shift(uint{0});
-        LoadTag.Shift(uint{0});
-        LoadAddrValid.Shift(bool{false});
-        LoadSafeNow.Shift(bool{false});
-        LoadSafeAfterTag.Shift(bool{false});
-        LoadReuse.Shift(bool{false});
-        LoadWaitForTag.Shift(uint{0});
+        DoShiftReg(LoadAddr, uint{0});
+        DoShiftReg(LoadTag, uint{0});
+        DoShiftReg(LoadAddrValid, bool{false});
+
+        UnrolledLoop<NUM_STORES>([&](auto iSt) {
+          DoShiftReg(LoadSafeNow[iSt], bool{false});
+          DoShiftReg(LoadSafeAfterTag[iSt], bool{false});
+          DoShiftReg(LoadReuse[iSt], bool{false});
+          DoShiftReg(LoadWaitForTag[iSt], uint{0});
+        });
       }
       /** End Rule */
 
       /** Rule for checking load safety and reuse. */
-      if (!LoadReuse[0] && !LoadSafeAfterTag[0]) {
-        LoadSafeNow[0] = (LoadTag[0] < LastStoreAllocTag ||
-                          (LoadTag[0] == LastStoreAllocTag &&
-                           LoadAddr[0] != LastStoreAllocAddr));
-        LoadSafeAfterTag[0] = (LoadTag[0] >= LastStoreAllocTag &&
-                               LoadAddr[0] < LastStoreAllocAddr);
-        LoadReuse[0] = (LoadTag[0] >= LastStoreAllocTag) &&
-                       (LoadAddr[0] == LastStoreAllocAddr);
-        LoadWaitForTag[0] = LastStoreAllocTag;
-      }
+        UnrolledLoop<NUM_STORES>([&](auto iSt) {
+        if (!LoadReuse[iSt][0] && !LoadSafeAfterTag[iSt][0]) {
+          LoadSafeNow[iSt][0] = (LoadTag[0] < LastStoreAllocTag[iSt] ||
+                                 (LoadTag[0] == LastStoreAllocTag[iSt] &&
+                                  LoadAddr[0] != LastStoreAllocAddr[iSt]));
+          LoadSafeAfterTag[iSt][0] = (LoadTag[0] >= LastStoreAllocTag[iSt] &&
+                                      LoadAddr[0] < LastStoreAllocAddr[iSt]);
+          LoadReuse[iSt][0] = (LoadTag[0] >= LastStoreAllocTag[iSt]) &&
+                              (LoadAddr[0] == LastStoreAllocAddr[iSt]);
+          LoadWaitForTag[iSt][0] = LastStoreAllocTag[iSt];
+        }
+      });
       /** End Rule */
 
     } // end while

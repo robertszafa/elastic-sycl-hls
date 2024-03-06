@@ -32,6 +32,13 @@ struct addr_tag_t {
   uint tag;
 };
 
+struct addr_tag_mintag_t {
+  uint addr;
+  uint tag;
+  /// Minimum tag that a store dependency has to have.
+  uint mintag;
+};
+
 template <typename T> struct addr_val_t {
   uint addr;
   T val;
@@ -48,13 +55,6 @@ template <typename T> struct addr_tag_val_t {
   T val;
 };
 
-struct load_command_t {
-  bool safeNow;
-  bool safeAfterTag;
-  bool reuse;
-  uint tag; 
-};
-
 
 /// Unique kernel name generators.
 template <int MemId> class StreamingMemoryKernel;
@@ -65,72 +65,88 @@ template <int MemId, int PortId> class LoadValMuxKernel;
 template <int MEM_ID, typename EndSignalPipe, typename LoadAddrPipe,
           typename LoadValPipe, typename StoreAddrPipe, typename StoreValPipe,
           uint NUM_LOADS, uint BIT_WIDTH = 32, typename T>
-std::vector<event> StreamingMemory(queue &q, T *data) {
+std::vector<event> StreamingLoad(queue &q, T *data) {
   std::vector<event> events(1);
 
   assert(sizeof(T) * 8 == BIT_WIDTH && "Incorrect kBitWidth.");
-  constexpr uint NUM_BURST_VALS = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
+  constexpr uint BURST_SIZE = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
 
-  using StorePortPredPipe = pipe<class _StorePortPred, bool, NUM_BURST_VALS>;
-  using StorePortReqPipe = pipe<class _StorePortReq, addr_val_t<T>, NUM_BURST_VALS>;
+  // Store port.
+  using StorePortReqPipe = pipe<class _StorePortReq, addr_val_t<T>, BURST_SIZE*4>;
   events[0] = q.single_task<StorePortKernel<MEM_ID, 0>>([=]() KERNEL_PRAGMAS {
     [[intel::ivdep]]
     [[intel::initiation_interval(1)]]
     [[intel::speculated_iterations(0)]]
-    while (StorePortPredPipe::read()) {
+    while (true) {
       auto Req = StorePortReqPipe::read();
+      if (Req.addr == MAX_INT) break;
       auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
       BurstCoalescedLSU::store(StorePtr, Req.val);
     }
   });
 
-  using LoadPortAddr = pipe<class _LoadAddr, int, NUM_BURST_VALS>;
-  using LoadPortPred = pipe<class _LoadPortPred, bool, NUM_BURST_VALS>;
-  using LoadMuxIsReuse = pipe<class _LoadMuxIsReuse, bool, NUM_BURST_VALS>;
-  using LoadMuxPred = pipe<class _LoadMuxPred, bool, NUM_BURST_VALS>;
-  using LoadMuxMemoryVal = pipe<class _LoadMuxMemoryVal, T, NUM_BURST_VALS>;
-  using LoadMuxReuseVal = pipe<class _LoadMuxReuseVal, T, NUM_BURST_VALS>;
+  // Types for specifying action in load mux.
+  using ld_mux_pred_t = ac_int<2, false>;
+  constexpr ld_mux_pred_t LD_MUX_TERMINATE = ld_mux_pred_t{0};
+  constexpr ld_mux_pred_t LD_MUX_REUSE = ld_mux_pred_t{1};
+  constexpr ld_mux_pred_t LD_MUX_LOAD = ld_mux_pred_t{2};
+  // Pipes for load port and load mux.
+  using LoadPortAddrPipe = pipe<class _LoadAddr, int, BURST_SIZE*4>;
+  using LoadMuxLoadValPipe = pipe<class _LoadMuxMemoryVal, T, BURST_SIZE*4>;
+  using LoadMuxPredPipe = pipe<class _LoadMuxPred, ld_mux_pred_t, BURST_SIZE*4>;
+  using LoadMuxReuseValPipe = pipe<class _LoadMuxReuseVal, T, BURST_SIZE*4>;
   q.single_task<LoadPortKernel<MEM_ID, 0>>([=]() KERNEL_PRAGMAS {
     [[intel::ivdep]]
     [[intel::initiation_interval(1)]]
     [[intel::speculated_iterations(0)]]
-    while (LoadPortPred::read()) {
-      int Addr = LoadPortAddr::read();
+    while (true) {
+      int Addr = LoadPortAddrPipe::read();
+      if (Addr == MAX_INT) break;
       auto LoadPtr = ext::intel::device_ptr<T>(data + Addr);
       auto Val = BurstCoalescedLSU::load(LoadPtr);
-      LoadMuxMemoryVal::write(Val);
+      LoadMuxLoadValPipe::write(Val);
     }
   });
   q.single_task<LoadValMuxKernel<MEM_ID, 0>>([=]() KERNEL_PRAGMAS {
     int NumTotal = 0;
     int NumReused = 0;
-    while (LoadMuxPred::read()) {
-      NumTotal++;
-      T val;
-      if (LoadMuxIsReuse::read()) {
+    [[intel::ivdep]]
+    [[intel::initiation_interval(1)]]
+    [[intel::speculated_iterations(0)]]
+    while (true) {
+      T Val;
+      ld_mux_pred_t Pred = LoadMuxPredPipe::read();
+      if (Pred == LD_MUX_REUSE) {
         NumReused++;
-        val = LoadMuxReuseVal::read();
+        Val = LoadMuxReuseValPipe::read();
+      } else if (Pred == LD_MUX_LOAD) {
+        Val = LoadMuxLoadValPipe::read();
       } else {
-        val = LoadMuxMemoryVal::read();
+        break;
       }
-      LoadValPipe::write(val);
+
+      LoadValPipe::write(Val);
+      NumTotal++;
     }
     PRINTF("DONE load MUX, reused %d/%d\n", NumReused, NumTotal);
   });
 
   q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
-    auto StoreReq = StoreAddrPipe::read();
-    uint StoreAddr = StoreReq.addr;
-    uint StoreTag = StoreReq.tag;
-    uint LastStoreAddr = StoreAddr;
-    uint LastStoreTag = StoreTag;
-    bool StoreAddrValid = true;
+    DataBundle<uint, BURST_SIZE> StAllocAddrQ(uint{MAX_INT});
+    DataBundle<uint, BURST_SIZE> StAllocTagQ(uint{0});
+    DataBundle<bool, BURST_SIZE> StAllocValidQ(bool{false});
 
-    T StoreVal = {};
-    bool StoreValValid = false;
+    DataBundle<uint, BURST_SIZE> StCommitAddrQ(uint{0});
+    DataBundle<uint, BURST_SIZE> StCommitTagQ(uint{MAX_INT});
+    DataBundle<T, BURST_SIZE> StCommitValQ(T{});
 
-    DataBundle<uint, NUM_BURST_VALS> CommitQueueAddr(uint{MAX_INT});
-    DataBundle<T, NUM_BURST_VALS> CommitQueueVal(T{});
+    // For convenience, same as AllocationQueue tail.
+    uint LastStoreAllocAddr = 0;
+    uint LastStoreAllocTag = 0;
+
+    // These hold the most-recently-shifted-away values from the commit queue.
+    uint LastStoreCommitAddr = 0;
+    uint LastStoreCommitTag = MAX_INT;
 
     uint LoadAddr = 0;
     uint LoadTag = 0;
@@ -142,93 +158,121 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     [[intel::initiation_interval(1)]]
     [[intel::speculated_iterations(0)]]
     while (!EndSignal) {
-      if (!StoreAddrValid)
+      // if (!StoreAddrValid)
         EndSignalPipe::read(EndSignal);
 
       /** Rule for reading load {addr, tag} pairs. */
       if (!LoadAddrValid) {
-        auto LoadReq = LoadAddrPipe::read(LoadAddrValid);
-        if (LoadAddrValid) {
+        bool succ = false;
+        auto LoadReq = LoadAddrPipe::read(succ);
+        if (succ) {
+          LoadAddrValid = true;
           LoadAddr = LoadReq.addr;
           LoadTag = LoadReq.tag;
+          // PRINTF("Next load req (%d, %d)\n", LoadAddr, LoadTag);
         }
       }
+      /** End Rule */
+
+      /** Rule for delaying the store stream to increase st->ld reuse. */
+      const bool GetNextStoreAlloc = (LastStoreAllocAddr <= LoadAddr ||
+                                      LastStoreAllocTag >= LoadTag);
       /** End Rule */
 
       /** Rule for reading store {addr, tag} pairs. */
-      if (!StoreAddrValid) {
-        auto StoreReq = StoreAddrPipe::read(StoreAddrValid);
-        if (StoreAddrValid) {
-          StoreAddr = StoreReq.addr;
-          StoreTag = StoreReq.tag;
-          StoreAddrValid = (StoreAddr != MAX_INT);
-          StorePortPredPipe::write(StoreAddr != MAX_INT);
+      if (!StAllocValidQ[BURST_SIZE - 1] && GetNextStoreAlloc) {
+        bool succ = false;
+        auto StoreReq = StoreAddrPipe::read(succ);
+        if (succ) {
+          StAllocValidQ[BURST_SIZE - 1] = true;
+          StAllocAddrQ[BURST_SIZE - 1] = StoreReq.addr;
+          StAllocTagQ[BURST_SIZE - 1] = StoreReq.tag;
+
+          LastStoreAllocAddr = StoreReq.addr;
+          LastStoreAllocTag = StoreReq.tag;
+          // PRINTF("Got StoreAlloc (%d, %d)\n", LastStoreAllocAddr, LastStoreAllocTag);
         }
       }
       /** End Rule */
 
-      /** Rule for reading store values and writing to store port. */
-      if (StoreAddrValid && !StoreValValid) {
-        auto tryStoreValTag = StoreValPipe::read(StoreValValid);
-        if (StoreValValid) {
-          StoreVal = tryStoreValTag;
-          StorePortReqPipe::write({StoreAddr, StoreVal});
-          LastStoreAddr = StoreAddr;
-          LastStoreTag = StoreTag;
+      /** Rule for reading store values and writing to store port. 
+          On getting store val, move store allocation to store commit queue. 
+          Capture the shifted away store address and tag. */
+      if (StAllocValidQ[0]) {
+        bool succ = false;
+        auto StoreVal = StoreValPipe::read(succ);
+        if (succ) {
+          StorePortReqPipe::write({StAllocAddrQ[0], StoreVal});
 
-          CommitQueueAddr.Shift(StoreAddr);
-          CommitQueueVal.Shift(StoreVal);
+          LastStoreCommitAddr = StCommitAddrQ[0];
+          LastStoreCommitTag = StCommitTagQ[0];
+
+          StCommitAddrQ.Shift(StAllocAddrQ[0]);
+          StCommitTagQ.Shift(StAllocTagQ[0]);
+          StCommitValQ.Shift(StoreVal);
+
+          StAllocValidQ[0] = false;
         }
+      }
+      /** End Rule */
+
+      /** Rule for shifting store allocation queue. */
+      if (!StAllocValidQ[0]) {
+        StAllocAddrQ.Shift(uint{MAX_INT});
+        StAllocTagQ.Shift(uint{0});
+        StAllocValidQ.Shift(false);
       }
       /** End Rule */
 
       /** Rule for checking load safety and reuse. */
-      const bool LoadAfterTag = (LoadTag <= LastStoreTag) ||
-                                (LoadTag > LastStoreTag && LoadAddr < LastStoreAddr);
-      const bool ReuseAfterTag = (LoadTag >= LastStoreTag && LoadAddr <= LastStoreAddr);
+      const bool LoadBeforeStore = (LoadTag < LastStoreAllocTag);
+      const bool LoadFromDiffAddrRightAfterStore =
+          (LoadTag == LastStoreAllocTag && LoadAddr != LastStoreAllocAddr);
+      const bool LoadFromLowerAddrAfterStore =
+          (LoadTag >= LastStoreCommitTag && LoadAddr <= LastStoreCommitAddr);
+      const bool LoadIsSafe = (LoadBeforeStore ||
+                               LoadFromDiffAddrRightAfterStore ||
+                               LoadFromLowerAddrAfterStore);
+
+      // For checking reuse, lookup the store commit queue.
       bool ReuseHit = false;
       T ReuseVal = {};
       #pragma unroll
-      for (int i = 0; i < NUM_BURST_VALS; ++i) {
-        if (CommitQueueAddr[i] == LoadAddr) {
+      for (int i = 0; i < BURST_SIZE; ++i) {
+        if (StCommitAddrQ[i] == LoadAddr && LoadTag >= StCommitTagQ[i]) {
+          ReuseVal = StCommitValQ[i];
           ReuseHit = true;
-          ReuseVal = CommitQueueVal[i];
         }
       }
+      // const bool LoadCanReuse =
+      //     (LoadTag >= LastStoreAllocTag && LoadAddr <= LastStoreAllocAddr);
       /** End Rule */
 
-      /** Rule for returning reused/loaded value via the load MUX kernel.  */
+      /** Rule for returning reused/loaded value via the load MUX kernel.  
+          Reuse takes precedence over loading, in case both are true. */
       if (LoadAddrValid) {
-        if (ReuseAfterTag && ReuseHit) {
-          LoadMuxPred::write(1);
-          LoadMuxIsReuse::write(1);
-          LoadMuxReuseVal::write(ReuseVal);
+        if (ReuseHit) {
+          // PRINTF("Reused (%d, %d)\n", LoadAddr, LoadTag);
+          LoadMuxPredPipe::write(LD_MUX_REUSE);
+          LoadMuxReuseValPipe::write(ReuseVal);
           LoadAddrValid = false;
-        } else if (LoadAfterTag) {
-          // If no reuse, then we trigger the load port kernel.
-          LoadPortPred::write(1);
-          LoadPortAddr::write(LoadAddr);
-          LoadMuxPred::write(1);
-          LoadMuxIsReuse::write(0);
+        } else if (LoadIsSafe) {
+          // PRINTF("Loaded (%d, %d)   LastStoreAlloc (%d, %d)   LastStoreCommit (%d, %d)    safe (%d, %d, %d)\n", 
+          //         LoadAddr, LoadTag, LastStoreAllocAddr, LastStoreAllocTag, LastStoreCommitAddr, LastStoreCommitTag, LoadBeforeStore, LoadFromDiffAddrRightAfterStore, LoadFromLowerAddrAfterStore);
+          LoadMuxPredPipe::write(LD_MUX_LOAD);
+          LoadPortAddrPipe::write(LoadAddr);
           LoadAddrValid = false;
         }
-      }
-      /** End Rule */
-
-      /** Rule for getting the next store address/value pair. */
-      if (StoreValValid && (LoadAddr >= StoreAddr || LoadTag <= StoreTag)) {
-        StoreValValid = false;
-        StoreAddrValid = false;
       }
       /** End Rule */
 
     } // end while
 
-    LoadMuxPred::write(0);
-    LoadPortPred::write(0);
-    // StorePortPredPipe::write(0);
+    LoadMuxPredPipe::write(LD_MUX_TERMINATE);
+    LoadPortAddrPipe::write(MAX_INT);
+    StorePortReqPipe::write({MAX_INT});
 
-    // PRINTF("DONE Streaming Memory\n");
+    PRINTF("DONE Streaming Memory\n");
   });
 
   return events;

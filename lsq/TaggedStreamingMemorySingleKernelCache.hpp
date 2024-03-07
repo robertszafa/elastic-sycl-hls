@@ -147,10 +147,13 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
     // These hold the most-recently-shifted-away values from the commit queue.
     uint LastStoreCommitAddr = 0;
     uint LastStoreCommitTag = MAX_INT;
+    // The most-recently-shifted-in value to the commit queue.
+    uint FirstStoreCommitTag = MAX_INT;
 
-    uint LoadAddr = 0;
-    uint LoadTag = 0;
-    bool LoadAddrValid = false;
+    constexpr uint LOAD_Q_SIZE = 4;
+    DataBundle<uint, LOAD_Q_SIZE> LoadAddr(uint{0});
+    DataBundle<uint, LOAD_Q_SIZE> LoadTag(uint{0});
+    DataBundle<bool, LOAD_Q_SIZE> LoadAddrValid(bool{false});
 
     bool EndSignal = false;
 
@@ -158,27 +161,13 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
     [[intel::initiation_interval(1)]]
     [[intel::speculated_iterations(0)]]
     while (!EndSignal) {
-      // if (!StoreAddrValid)
+      if (!StAllocValidQ[0])
         EndSignalPipe::read(EndSignal);
 
-      /** Rule for reading load {addr, tag} pairs. */
-      if (!LoadAddrValid) {
-        bool succ = false;
-        auto LoadReq = LoadAddrPipe::read(succ);
-        if (succ) {
-          LoadAddrValid = true;
-          LoadAddr = LoadReq.addr;
-          LoadTag = LoadReq.tag;
-          // PRINTF("Next load req (%d, %d)\n", LoadAddr, LoadTag);
-        }
-      }
-      /** End Rule */
-
       /** Rule for delaying the store stream to increase st->ld reuse. */
-      const bool GetNextStoreAlloc = (LastStoreAllocAddr <= LoadAddr ||
-                                      LastStoreAllocTag >= LoadTag);
+      const bool GetNextStoreAlloc = (LastStoreAllocAddr <= LoadAddr[0] ||
+                                      LastStoreAllocTag >= LoadTag[0]);
       /** End Rule */
-
       /** Rule for reading store {addr, tag} pairs. */
       if (!StAllocValidQ[BURST_SIZE - 1] && GetNextStoreAlloc) {
         bool succ = false;
@@ -206,6 +195,7 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
 
           LastStoreCommitAddr = StCommitAddrQ[0];
           LastStoreCommitTag = StCommitTagQ[0];
+          FirstStoreCommitTag = StAllocTagQ[0];
 
           StCommitAddrQ.Shift(StAllocAddrQ[0]);
           StCommitTagQ.Shift(StAllocTagQ[0]);
@@ -223,45 +213,72 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
         StAllocValidQ.Shift(false);
       }
       /** End Rule */
+      
+
+      /////////////////////////////////////////////////////////////////////////
+      //////////////////////////     LOAD LOGIC     ///////////////////////////
+      /////////////////////////////////////////////////////////////////////////
+
+      /** Rule for shifting load queue. */ 
+      if (!LoadAddrValid[0]) {
+        LoadAddr.Shift(uint{0});
+        LoadTag.Shift(uint{0});
+        LoadAddrValid.Shift(bool{false});
+      }
+      /** End Rule */
+
+      /** Rule for reading load {addr, tag} pairs. */
+      if (!LoadAddrValid[LOAD_Q_SIZE - 1]) {
+        bool succ = false;
+        auto LoadReq = LoadAddrPipe::read(succ);
+        if (succ) {
+          LoadAddrValid[LOAD_Q_SIZE - 1] = true;
+          LoadAddr[LOAD_Q_SIZE - 1] = LoadReq.addr;
+          LoadTag[LOAD_Q_SIZE - 1] = LoadReq.tag;
+          // PRINTF("Next load req (%d, %d)\n", LoadAddr, LoadTag);
+        }
+      }
+      /** End Rule */
 
       /** Rule for checking load safety and reuse. */
-      const bool LoadBeforeStore = (LoadTag < LastStoreAllocTag);
+      const bool LoadBeforeStore = (LoadTag[0] < LastStoreAllocTag);
       const bool LoadFromDiffAddrRightAfterStore =
-          (LoadTag == LastStoreAllocTag && LoadAddr != LastStoreAllocAddr);
+          (LoadTag[0] == LastStoreAllocTag &&
+           LoadAddr[0] != LastStoreAllocAddr);
       const bool LoadFromLowerAddrAfterStore =
-          (LoadTag >= LastStoreCommitTag && LoadAddr <= LastStoreCommitAddr);
-      const bool LoadIsSafe = (LoadBeforeStore ||
-                               LoadFromDiffAddrRightAfterStore ||
-                               LoadFromLowerAddrAfterStore);
+          (LoadTag[0] >= LastStoreCommitTag &&
+           LoadAddr[0] <= LastStoreCommitAddr);
+      const bool LoadIsSafe =
+          (LoadBeforeStore || LoadFromDiffAddrRightAfterStore ||
+           LoadFromLowerAddrAfterStore);
 
       // For checking reuse, lookup the store commit queue.
+      const bool CanReuse = LoadTag[0] >= FirstStoreCommitTag;
       bool ReuseHit = false;
       T ReuseVal = {};
       #pragma unroll
       for (int i = 0; i < BURST_SIZE; ++i) {
-        if (StCommitAddrQ[i] == LoadAddr && LoadTag >= StCommitTagQ[i]) {
+        if (StCommitAddrQ[i] == LoadAddr[0]) {
           ReuseVal = StCommitValQ[i];
           ReuseHit = true;
         }
       }
-      // const bool LoadCanReuse =
-      //     (LoadTag >= LastStoreAllocTag && LoadAddr <= LastStoreAllocAddr);
       /** End Rule */
 
       /** Rule for returning reused/loaded value via the load MUX kernel.  
           Reuse takes precedence over loading, in case both are true. */
-      if (LoadAddrValid) {
-        if (ReuseHit) {
+      if (LoadAddrValid[0]) {
+        if (CanReuse && ReuseHit) {
           // PRINTF("Reused (%d, %d)\n", LoadAddr, LoadTag);
           LoadMuxPredPipe::write(LD_MUX_REUSE);
           LoadMuxReuseValPipe::write(ReuseVal);
-          LoadAddrValid = false;
+          LoadAddrValid[0] = false;
         } else if (LoadIsSafe) {
           // PRINTF("Loaded (%d, %d)   LastStoreAlloc (%d, %d)   LastStoreCommit (%d, %d)    safe (%d, %d, %d)\n", 
           //         LoadAddr, LoadTag, LastStoreAllocAddr, LastStoreAllocTag, LastStoreCommitAddr, LastStoreCommitTag, LoadBeforeStore, LoadFromDiffAddrRightAfterStore, LoadFromLowerAddrAfterStore);
           LoadMuxPredPipe::write(LD_MUX_LOAD);
-          LoadPortAddrPipe::write(LoadAddr);
-          LoadAddrValid = false;
+          LoadPortAddrPipe::write(LoadAddr[0]);
+          LoadAddrValid[0] = false;
         }
       }
       /** End Rule */

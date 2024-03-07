@@ -32,6 +32,13 @@ struct addr_tag_t {
   uint tag;
 };
 
+struct addr_tag_mintag_t {
+  uint addr;
+  uint tag;
+  /// Minimum tag that a store dependency has to have.
+  uint mintag;
+};
+
 template <typename T> struct addr_val_t {
   uint addr;
   T val;
@@ -48,13 +55,6 @@ template <typename T> struct addr_tag_val_t {
   T val;
 };
 
-struct load_command_t {
-  bool safeNow;
-  bool safeAfterTag;
-  bool reuse;
-  uint tag; 
-};
-
 
 /// Unique kernel name generators.
 template <int MemId> class StreamingMemoryKernel;
@@ -63,82 +63,129 @@ template <int MemId, int PortId> class StorePortKernel;
 template <int MemId, int PortId> class LoadValMuxKernel;
 
 template <int MEM_ID, typename EndSignalPipe, typename LoadAddrPipe,
-          typename LoadValPipe, typename StoreAddrPipe, typename StoreValPipe,
+          typename LoadValPipe, typename StoreAddrPipes, typename StoreValPipes,
           uint NUM_LOADS, uint BIT_WIDTH = 32, typename T>
-std::vector<event> StreamingMemory(queue &q, T *data) {
+std::vector<event> StreamingLoad(queue &q, T *data) {
   std::vector<event> events(1);
 
   assert(sizeof(T) * 8 == BIT_WIDTH && "Incorrect kBitWidth.");
-  constexpr uint NUM_BURST_VALS = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
+  constexpr uint BURST_SIZE = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
 
-  using StorePortPredPipe = pipe<class _StorePortPred, bool, NUM_BURST_VALS>;
-  using StorePortReqPipe = pipe<class _StorePortReq, addr_val_t<T>, NUM_BURST_VALS>;
+  // Store port.
+  using StorePortAckPipe = pipe<class _StorePortAck, int, BURST_SIZE*4>;
   events[0] = q.single_task<StorePortKernel<MEM_ID, 0>>([=]() KERNEL_PRAGMAS {
+    DataBundle<uint, BURST_SIZE> AckTag(uint{0});
+
+    addr_tag_t Req = addr_tag_t{};
+    bool ReqValid = false;
+    T Val = T{};
+    bool ValValid = false;
+
     [[intel::ivdep]]
     [[intel::initiation_interval(1)]]
     [[intel::speculated_iterations(0)]]
-    while (StorePortPredPipe::read()) {
-      auto Req = StorePortReqPipe::read();
-      auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
-      BurstCoalescedLSU::store(StorePtr, Req.val);
+    while (true) {
+      if (Req.addr == MAX_INT) break;
+
+      if (!ReqValid) {
+        auto tryReq = StoreAddrPipes::template PipeAt<0>::read(ReqValid);
+        if (ReqValid) Req = tryReq;
+      }
+
+      
+      if (!ValValid) {
+        auto tryVal = StoreValPipes::template PipeAt<0>::read(ValValid);
+        if (ValValid) Val = tryVal;
+      }
+
+      if (ReqValid && ValValid) {
+        auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
+        BurstCoalescedLSU::store(StorePtr, Val);
+        ReqValid = false;
+        ValValid = false;
+      }
+
+      StorePortAckPipe::write(AckTag[0]);
+      AckTag.Shift(Req.tag);
     }
-    atomic_fence(memory_order_seq_cst, memory_scope_work_item);
-    // PRINTF("DONE store port\n");
+    // Drain acks
+    atomic_fence(memory_order_seq_cst, memory_scope_work_item); // force burst
+    for (int i = 0; i < BURST_SIZE; ++i) {
+      StorePortAckPipe::write(AckTag[i]);
+    }
+    // StorePortAckPipe::write(MAX_INT);
+    PRINTF("** DONE store port\n");
   });
 
-  using LoadPortAddr = pipe<class _LoadAddr, int, NUM_BURST_VALS>;
-  using LoadPortPred = pipe<class _LoadPortPred, bool, NUM_BURST_VALS>;
-  using LoadMuxIsReuse = pipe<class _LoadMuxIsReuse, bool, NUM_BURST_VALS>;
-  using LoadMuxPred = pipe<class _LoadMuxPred, bool, NUM_BURST_VALS>;
-  using LoadMuxMemoryVal = pipe<class _LoadMuxMemoryVal, T, NUM_BURST_VALS>;
-  using LoadMuxReuseVal = pipe<class _LoadMuxReuseVal, T, NUM_BURST_VALS>;
+  // Types for specifying action in load mux.
+  using ld_mux_pred_t = ac_int<2, false>;
+  constexpr ld_mux_pred_t LD_MUX_TERMINATE = ld_mux_pred_t{0};
+  constexpr ld_mux_pred_t LD_MUX_REUSE = ld_mux_pred_t{1};
+  constexpr ld_mux_pred_t LD_MUX_LOAD = ld_mux_pred_t{2};
+  // Pipes for load port and load mux.
+  using LoadPortAddrPipe = pipe<class _LoadAddr, int, BURST_SIZE*4>;
+  using LoadMuxLoadValPipe = pipe<class _LoadMuxMemoryVal, T, BURST_SIZE*4>;
+  using LoadMuxPredPipe = pipe<class _LoadMuxPred, ld_mux_pred_t, BURST_SIZE*4>;
+  using LoadMuxReuseValPipe = pipe<class _LoadMuxReuseVal, T, BURST_SIZE*4>;
   q.single_task<LoadPortKernel<MEM_ID, 0>>([=]() KERNEL_PRAGMAS {
     [[intel::ivdep]]
     [[intel::initiation_interval(1)]]
     [[intel::speculated_iterations(0)]]
-    while (LoadPortPred::read()) {
-      int Addr = LoadPortAddr::read();
+    while (true) {
+      int Addr = LoadPortAddrPipe::read();
+      if (Addr == MAX_INT) break;
       auto LoadPtr = ext::intel::device_ptr<T>(data + Addr);
       auto Val = BurstCoalescedLSU::load(LoadPtr);
-      LoadMuxMemoryVal::write(Val);
+      LoadMuxLoadValPipe::write(Val);
     }
-    // Ensure all stores commited before finishing kernel.
-    // PRINTF("DONE load port %d\n", id);
+    PRINTF("** DONE load port\n");
   });
   q.single_task<LoadValMuxKernel<MEM_ID, 0>>([=]() KERNEL_PRAGMAS {
     int NumTotal = 0;
     int NumReused = 0;
-    while (LoadMuxPred::read()) {
-      NumTotal++;
-      T val;
-      if (LoadMuxIsReuse::read()) {
+    [[intel::ivdep]]
+    [[intel::initiation_interval(1)]]
+    [[intel::speculated_iterations(0)]]
+    while (true) {
+      T Val;
+      ld_mux_pred_t Pred = LoadMuxPredPipe::read();
+      if (Pred == LD_MUX_REUSE) {
         NumReused++;
-        val = LoadMuxReuseVal::read();
+        Val = LoadMuxReuseValPipe::read();
+      } else if (Pred == LD_MUX_LOAD) {
+        Val = LoadMuxLoadValPipe::read();
       } else {
-        val = LoadMuxMemoryVal::read();
+        break;
       }
-      LoadValPipe::write(val);
+
+      LoadValPipe::write(Val);
+      NumTotal++;
     }
-    PRINTF("DONE load MUX, reused %d/%d\n", NumReused, NumTotal);
+    PRINTF("** DONE load MUX, reused %d/%d\n", NumReused, NumTotal);
   });
 
   q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
-    // auto StoreReq = StoreAddrPipe::read();
-    uint StoreAddr = 0;
-    uint StoreTag = 0;
-    bool StoreAddrValid = false;
-    uint StoreAckTag = 0;
-    uint StoreAckAddr = 0;
-    T StoreVal = {};
-    bool StoreValValid = false;
+    auto StoreReq = StoreAddrPipes:: template PipeAt<1>::read();
+    uint StoreAllocAddr = StoreReq.addr;
+    uint StoreAllocTag = StoreReq.tag;
+    bool StoreAllocValid = true;
 
-    DataBundle<uint, NUM_BURST_VALS> CommitQueueAddr(uint(0));
-    DataBundle<uint, NUM_BURST_VALS> CommitQueueTag(uint(0));
+    T LastStoreValue = T{};
+    uint LastStoreTag = uint{0};
+    uint StoreAckTag = uint{0};
 
-    // auto LoadReq = LoadAddrPipe::read();
-    uint LoadAddr = 0;
-    uint LoadTag = 0;
-    bool LoadAddrValid = false;
+    auto LoadReq = LoadAddrPipe::read();
+    constexpr uint LD_Q_SIZE = 4;
+    DataBundle<uint, LD_Q_SIZE> LoadAddr(LoadReq.addr);
+    DataBundle<uint, LD_Q_SIZE> LoadTag(LoadReq.tag);
+    DataBundle<bool, LD_Q_SIZE> LoadAddrValid(bool{false});
+    LoadAddrValid[0] = true;
+    
+    // TDOD: Another load queue that holds the below. 
+    DataBundle<bool, LD_Q_SIZE> LoadSafeNow(bool{false});
+    DataBundle<bool, LD_Q_SIZE> LoadSafeAfterTag(bool{false});
+    DataBundle<bool, LD_Q_SIZE> LoadReuse(bool{false});
+    DataBundle<uint, LD_Q_SIZE> LoadWaitForTag(uint{0});
 
     bool EndSignal = false;
 
@@ -146,94 +193,138 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     [[intel::initiation_interval(1)]]
     [[intel::speculated_iterations(0)]]
     while (!EndSignal) {
-      if (!StoreAddrValid)
+      if (StoreAllocValid)
         EndSignalPipe::read(EndSignal);
+    
+      /////////////////////////////////////////////////////////////////////////
+      //////////////////////////     LOAD LOGIC     ///////////////////////////
+      /////////////////////////////////////////////////////////////////////////
+
+      /** Rule for shifting load queue. */ 
+      if (!LoadAddrValid[0]) {
+        LoadAddr.Shift(uint{0});
+        LoadTag.Shift(uint{0});
+        LoadAddrValid.Shift(bool{false});
+        LoadSafeNow.Shift(bool{false});
+        LoadSafeAfterTag.Shift(bool{false});
+        LoadReuse.Shift(bool{false});
+        LoadWaitForTag.Shift(uint{0});
+      }
+      /** End Rule */
 
       /** Rule for reading load {addr, tag} pairs. */
-      if (!LoadAddrValid) {
-        auto LoadReq = LoadAddrPipe::read(LoadAddrValid);
-        if (LoadAddrValid) {
-          LoadAddr = LoadReq.addr;
-          LoadTag = LoadReq.tag;
-          // PRINTF("Curr load request (%d, %d)\n", LoadAddr, LoadTag);
-        }
-      }
-      /** End Rule */
-
-      // TODO: How to delay this if (storeAddr > loadAddr) ?
-      /** Rule for reading store {addr, tag} pairs. */
-      if (!StoreAddrValid) {
-        auto StoreReq = StoreAddrPipe::read(StoreAddrValid);
-        if (StoreAddrValid) {
-          StoreAddr = StoreReq.addr;
-          StoreTag = StoreReq.tag;
-          StoreAddrValid = (StoreAddr != MAX_INT);
-          StorePortPredPipe::write(StoreAddr != MAX_INT);
-          // PRINTF("Curr store request (%d, %d)\t"
-          //        "Curr load request (%d, %d)\n",  StoreAddr, StoreTag, LoadAddr, LoadTag);
-        }
-      }
-      /** End Rule */
-
-      /** Rule for reading store values and writing to store port. */
-      if (StoreAddrValid && !StoreValValid) {
-        auto tryStoreValTag = StoreValPipe::read(StoreValValid);
-        if (StoreValValid) {
-          StoreVal = tryStoreValTag;
-          StorePortReqPipe::write({StoreAddr, StoreVal});
+      if (!LoadAddrValid[LD_Q_SIZE - 1]) {
+        bool succ = false;
+        auto LoadReq = LoadAddrPipe::read(succ);
+        if (succ) {
+          LoadAddrValid[LD_Q_SIZE - 1] = true;
+          LoadAddr[LD_Q_SIZE - 1] = LoadReq.addr;
+          LoadTag[LD_Q_SIZE - 1] = LoadReq.tag;
+          // PRINTF("Next load req (%d, %d)\n", LoadReq.addr, LoadReq.addr);
         }
       }
       /** End Rule */
 
       /** Rule for checking load safety and reuse. */
-      const bool SafeNow = (LoadTag < StoreTag);
-      const bool SafeAfterTag = (LoadTag == StoreAckTag) ||
-                                (LoadTag > StoreAckTag && LoadAddr <= StoreAckAddr);
-      const bool Reuse = (LoadTag >= StoreTag) && (LoadAddr == StoreAddr);
-      if (LoadAddrValid) {
-        if (Reuse) {
-          if (StoreValValid) {
-            // PRINTF("Load request (%d, %d) SafeNow=%d, SafeAfterTag=%d, Reuse=%d   "
-            //        "StoreAlloc=(%d, %d), StoreAck=(%d, %d)\n",
-            //     LoadAddr, LoadTag, SafeNow, SafeAfterTag, Reuse, StoreAddr, StoreTag, StoreAckAddr, StoreAckTag);
-            LoadMuxPred::write(1);
-            LoadMuxIsReuse::write(1);
-            LoadMuxReuseVal::write(StoreVal);
-            LoadAddrValid = false;
+      if (!LoadReuse[0] && !LoadSafeAfterTag[0] && !LoadSafeNow[0] &&
+          LoadAddrValid[0]) {
+        // If LdAddr == SomePrevStAllocAddr, then that would have been reused.
+        LoadSafeNow[0] = (LoadTag[0] < StoreAllocTag ||
+                          (LoadTag[0] == StoreAllocTag &&
+                           LoadAddr[0] != StoreAllocAddr));
+        LoadSafeAfterTag[0] = (LoadTag[0] >= StoreAllocTag &&
+                               LoadAddr[0] <= StoreAllocAddr);
+        LoadReuse[0] = (LoadTag[0] >= StoreAllocTag) &&
+                       (LoadAddr[0] == StoreAllocAddr);
+        LoadWaitForTag[0] = StoreAllocTag;
+        // PRINTF("Load (%d, %d) is safe (%d, %d, %d), tagWait=%d\n", 
+                  // LoadAddr[0], LoadTag[0], LoadSafeNow[0], 
+                  // LoadSafeAfterTag[0], LoadReuse[0], LoadWaitForTag[0]);
+      }
+      /** End Rule */
+
+      /** Rule for returning reused/loaded value via the load MUX kernel.  
+          Reuse takes precedence over loading, in case both are true. */
+      if (LoadAddrValid[0]) {
+        if (LoadReuse[0]) {
+          if (LoadWaitForTag[0] == LastStoreTag) {
+            LoadMuxPredPipe::write(LD_MUX_REUSE);
+            LoadMuxReuseValPipe::write(LastStoreValue);
+            LoadAddrValid[0] = false;
+            // PRINTF("Reused (%d, %d)\n", LoadAddr[0], LoadTag[0]);
           }
-        } else if (SafeNow || SafeAfterTag) {
-            // PRINTF("Load request (%d, %d) SafeNow=%d, SafeAfterTag=%d, Reuse=%d   "
-            //        "StoreAlloc=(%d, %d), StoreAck=(%d, %d)\n",
-            //     LoadAddr, LoadTag, SafeNow, SafeAfterTag, Reuse, StoreAddr, StoreTag, StoreAckAddr, StoreAckTag);
-          LoadMuxPred::write(1);
-          LoadMuxIsReuse::write(0);
-          LoadPortPred::write(1);
-          LoadPortAddr::write(LoadAddr);
-          LoadAddrValid = false;
+        } else if (LoadSafeNow[0] || (LoadSafeAfterTag[0] &&
+                                      (LoadWaitForTag[0] <= StoreAckTag))) {
+          LoadMuxPredPipe::write(LD_MUX_LOAD);
+          LoadPortAddrPipe::write(LoadAddr[0]);
+          LoadAddrValid[0] = false;
+          // PRINTF("Loaded (%d, %d)   LastStoreAlloc (%d, %d)\n", 
+          //         LoadAddr[0], LoadTag[0], LastStoreAllocAddr, LastStoreAllocTag);
+        } 
+      }
+      /** End Rule */
+
+
+      /////////////////////////////////////////////////////////////////////////
+      //////////////////////////    Store LOGIC     ///////////////////////////
+      /////////////////////////////////////////////////////////////////////////
+
+      /** Rule for always listining for store ACKs. */
+      bool succ = false;
+      auto tryAckTag = StorePortAckPipe::read(succ);
+      if (succ) {
+        // if (tryAckTag > StoreAckTag) PRINTF("Got StoreAckTag %d\n", tryAckTag);
+        StoreAckTag = tryAckTag;
+      }
+      /** End Rule */
+
+      /** Rule for delaying the store stream to increase st->ld reuse. */
+      const bool Delay = (StoreAllocAddr >= LoadAddr[0] && 
+                          StoreAllocTag < LoadTag[0]);
+      /** End Rule */
+
+      /** Rule for reading store {addr, tag} pairs. */
+      if (!StoreAllocValid && !Delay) {
+        bool succ = false;
+        auto StoreReq = StoreAddrPipes::template PipeAt<1>::read(succ);
+        if (succ) {
+          StoreAllocAddr = StoreReq.addr;
+          StoreAllocTag = StoreReq.tag;
+          StoreAllocValid = true;
+          // PRINTF("Got StoreAlloc (%d, %d)\n", StoreAllocAddr, StoreAllocTag);
         }
       }
       /** End Rule */
 
-      /** Rule for allowing to read from store addr/val pipes again. */
-      if (StoreValValid && (LoadAddr >= StoreAddr || LoadTag <= StoreTag)) {
-        StoreValValid = false;
-        StoreAddrValid = false;
+      /** Rule for reading store values and writing to store port. 
+          On getting store val, move store allocation to store commit queue. 
+          Capture the shifted away store address and tag. */
+      if (StoreAllocValid) {
+        bool succ = false;
+        auto tryStoreVal = StoreValPipes::template PipeAt<1>::read(succ);
+        if (succ) {
+          LastStoreValue = tryStoreVal;
+          LastStoreTag = StoreAllocTag;
+          StoreAllocValid = false;
+          // PRINTF("Got StoreVal (%d, %d)\n", StoreAllocAddr, LastStoreTag);
+        }
       }
       /** End Rule */
 
-      StoreAckAddr = CommitQueueAddr[0];
-      StoreAckTag = CommitQueueTag[0];
-      CommitQueueAddr.Shift(StoreAddr);
-      CommitQueueTag.Shift(StoreTag);
-
+      /** Rule for shifting store allocation queue. */
+      // if (!StAllocValidQ[0]) {
+      //   StAllocAddrQ.Shift(uint{MAX_INT});
+      //   StAllocTagQ.Shift(uint{0});
+      //   StAllocValidQ.Shift(false);
+      // }
+      /** End Rule */
 
     } // end while
 
-    LoadMuxPred::write(0);
-    LoadPortPred::write(0);
-    // StorePortPredPipe::write(0);
+    LoadMuxPredPipe::write(LD_MUX_TERMINATE);
+    LoadPortAddrPipe::write(MAX_INT);
 
-    PRINTF("DONE Streaming Memory\n");
+    PRINTF("** DONE Streaming Memory\n");
   });
 
   return events;

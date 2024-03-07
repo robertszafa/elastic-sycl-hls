@@ -132,13 +132,15 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
   });
 
   q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
-    DataBundle<uint, BURST_SIZE> StAllocAddrQ(uint{MAX_INT});
-    DataBundle<uint, BURST_SIZE> StAllocTagQ(uint{0});
-    DataBundle<bool, BURST_SIZE> StAllocValidQ(bool{false});
+    constexpr uint ST_ALLOC_Q_SIZE = 4;
+    DataBundle<uint, ST_ALLOC_Q_SIZE> StAllocAddrQ(uint{MAX_INT});
+    DataBundle<uint, ST_ALLOC_Q_SIZE> StAllocTagQ(uint{0});
+    DataBundle<bool, ST_ALLOC_Q_SIZE> StAllocValidQ(bool{false});
 
-    DataBundle<uint, BURST_SIZE> StCommitAddrQ(uint{0});
-    DataBundle<uint, BURST_SIZE> StCommitTagQ(uint{MAX_INT});
-    DataBundle<T, BURST_SIZE> StCommitValQ(T{});
+    constexpr uint ST_COMMIT_Q_SIZE = BURST_SIZE;
+    DataBundle<uint, ST_COMMIT_Q_SIZE> StCommitAddrQ(uint{0});
+    DataBundle<uint, ST_COMMIT_Q_SIZE> StCommitTagQ(uint{MAX_INT});
+    DataBundle<T, ST_COMMIT_Q_SIZE> StCommitValQ(T{});
 
     // For convenience, same as AllocationQueue tail.
     uint LastStoreAllocAddr = 0;
@@ -150,10 +152,10 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
     // The most-recently-shifted-in value to the commit queue.
     uint FirstStoreCommitTag = MAX_INT;
 
-    constexpr uint LOAD_Q_SIZE = 4;
-    DataBundle<uint, LOAD_Q_SIZE> LoadAddr(uint{0});
-    DataBundle<uint, LOAD_Q_SIZE> LoadTag(uint{0});
-    DataBundle<bool, LOAD_Q_SIZE> LoadAddrValid(bool{false});
+    constexpr uint LD_Q_SIZE = 4;
+    DataBundle<uint, LD_Q_SIZE> LoadAddr(uint{0});
+    DataBundle<uint, LD_Q_SIZE> LoadTag(uint{0});
+    DataBundle<bool, LD_Q_SIZE> LoadAddrValid(bool{false});
 
     bool EndSignal = false;
 
@@ -169,13 +171,13 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
                                       LastStoreAllocTag >= LoadTag[0]);
       /** End Rule */
       /** Rule for reading store {addr, tag} pairs. */
-      if (!StAllocValidQ[BURST_SIZE - 1] && GetNextStoreAlloc) {
+      if (!StAllocValidQ[ST_ALLOC_Q_SIZE - 1] && GetNextStoreAlloc) {
         bool succ = false;
         auto StoreReq = StoreAddrPipe::read(succ);
         if (succ) {
-          StAllocValidQ[BURST_SIZE - 1] = true;
-          StAllocAddrQ[BURST_SIZE - 1] = StoreReq.addr;
-          StAllocTagQ[BURST_SIZE - 1] = StoreReq.tag;
+          StAllocValidQ[ST_ALLOC_Q_SIZE - 1] = true;
+          StAllocAddrQ[ST_ALLOC_Q_SIZE - 1] = StoreReq.addr;
+          StAllocTagQ[ST_ALLOC_Q_SIZE - 1] = StoreReq.tag;
 
           LastStoreAllocAddr = StoreReq.addr;
           LastStoreAllocTag = StoreReq.tag;
@@ -228,13 +230,13 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
       /** End Rule */
 
       /** Rule for reading load {addr, tag} pairs. */
-      if (!LoadAddrValid[LOAD_Q_SIZE - 1]) {
+      if (!LoadAddrValid[LD_Q_SIZE - 1]) {
         bool succ = false;
         auto LoadReq = LoadAddrPipe::read(succ);
         if (succ) {
-          LoadAddrValid[LOAD_Q_SIZE - 1] = true;
-          LoadAddr[LOAD_Q_SIZE - 1] = LoadReq.addr;
-          LoadTag[LOAD_Q_SIZE - 1] = LoadReq.tag;
+          LoadAddrValid[LD_Q_SIZE - 1] = true;
+          LoadAddr[LD_Q_SIZE - 1] = LoadReq.addr;
+          LoadTag[LD_Q_SIZE - 1] = LoadReq.tag;
           // PRINTF("Next load req (%d, %d)\n", LoadAddr, LoadTag);
         }
       }
@@ -257,7 +259,7 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
       bool ReuseHit = false;
       T ReuseVal = {};
       #pragma unroll
-      for (int i = 0; i < BURST_SIZE; ++i) {
+      for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
         if (StCommitAddrQ[i] == LoadAddr[0]) {
           ReuseVal = StCommitValQ[i];
           ReuseHit = true;

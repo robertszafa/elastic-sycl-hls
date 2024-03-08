@@ -66,7 +66,7 @@ template <int MEM_ID, typename EndSignalPipe, typename LoadAddrPipe,
           typename LoadValPipe, typename StoreAddrPipe, typename StoreValPipe,
           uint NUM_LOADS, uint BIT_WIDTH = 32, typename T>
 std::vector<event> StreamingLoad(queue &q, T *data) {
-  std::vector<event> events(1);
+  std::vector<event> events(2);
 
   assert(sizeof(T) * 8 == BIT_WIDTH && "Incorrect kBitWidth.");
   constexpr uint BURST_SIZE = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
@@ -83,6 +83,7 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
       auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
       BurstCoalescedLSU::store(StorePtr, Req.val);
     }
+    atomic_fence(memory_order_seq_cst, memory_scope_work_item); // force burst
   });
 
   // Types for specifying action in load mux.
@@ -105,6 +106,7 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
       auto LoadPtr = ext::intel::device_ptr<T>(data + Addr);
       auto Val = BurstCoalescedLSU::load(LoadPtr);
       LoadMuxLoadValPipe::write(Val);
+      // PRINTF("Loaded %d\n", Addr);
     }
   });
   q.single_task<LoadValMuxKernel<MEM_ID, 0>>([=]() KERNEL_PRAGMAS {
@@ -131,12 +133,13 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
     PRINTF("DONE load MUX, reused %d/%d\n", NumReused, NumTotal);
   });
 
-  q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
+  events[1] = q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
     constexpr uint ST_ALLOC_Q_SIZE = 4;
     DataBundle<uint, ST_ALLOC_Q_SIZE> StAllocAddrQ(uint{MAX_INT});
     DataBundle<uint, ST_ALLOC_Q_SIZE> StAllocTagQ(uint{0});
     DataBundle<bool, ST_ALLOC_Q_SIZE> StAllocValidQ(bool{false});
 
+    // TODO: Try with 64 st_commit_size.
     constexpr uint ST_COMMIT_Q_SIZE = BURST_SIZE;
     DataBundle<uint, ST_COMMIT_Q_SIZE> StCommitAddrQ(uint{0});
     DataBundle<uint, ST_COMMIT_Q_SIZE> StCommitTagQ(uint{MAX_INT});
@@ -243,16 +246,12 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
       /** End Rule */
 
       /** Rule for checking load safety and reuse. */
-      const bool LoadBeforeStore = (LoadTag[0] < LastStoreAllocTag);
-      const bool LoadFromDiffAddrRightAfterStore =
-          (LoadTag[0] == LastStoreAllocTag &&
-           LoadAddr[0] != LastStoreAllocAddr);
-      const bool LoadFromLowerAddrAfterStore =
-          (LoadTag[0] >= LastStoreCommitTag &&
-           LoadAddr[0] <= LastStoreCommitAddr);
-      const bool LoadIsSafe =
-          (LoadBeforeStore || LoadFromDiffAddrRightAfterStore ||
-           LoadFromLowerAddrAfterStore);
+      const bool LdBeforeSt = (LoadTag[0] < LastStoreAllocTag);
+      const bool LdRightAfterSt = (LoadTag[0] == LastStoreCommitTag);
+      const bool LdLowerAddrAfterSt = (LoadTag[0] > LastStoreCommitTag &&
+                                       LoadAddr[0] <= LastStoreCommitAddr);
+      const bool SafeToLoad =
+          (LdBeforeSt || LdRightAfterSt || LdLowerAddrAfterSt);
 
       // For checking reuse, lookup the store commit queue.
       const bool CanReuse = LoadTag[0] >= FirstStoreCommitTag;
@@ -275,9 +274,9 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
           LoadMuxPredPipe::write(LD_MUX_REUSE);
           LoadMuxReuseValPipe::write(ReuseVal);
           LoadAddrValid[0] = false;
-        } else if (LoadIsSafe) {
+        } else if (SafeToLoad) {
           // PRINTF("Loaded (%d, %d)   LastStoreAlloc (%d, %d)   LastStoreCommit (%d, %d)    safe (%d, %d, %d)\n", 
-          //         LoadAddr, LoadTag, LastStoreAllocAddr, LastStoreAllocTag, LastStoreCommitAddr, LastStoreCommitTag, LoadBeforeStore, LoadFromDiffAddrRightAfterStore, LoadFromLowerAddrAfterStore);
+          //         LoadAddr[0], LoadTag[0], LastStoreAllocAddr, LastStoreAllocTag, LastStoreCommitAddr, LastStoreCommitTag, LdBeforeSt, LdRightAfterSt, LdLowerAddrAfterSt);
           LoadMuxPredPipe::write(LD_MUX_LOAD);
           LoadPortAddrPipe::write(LoadAddr[0]);
           LoadAddrValid[0] = false;

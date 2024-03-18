@@ -65,7 +65,7 @@ template <int MemId, int PortId> class LoadValMuxKernel;
 template <int MEM_ID, typename EndSignalPipe, typename LoadAddrPipe,
           typename LoadValPipe, typename StoreAddrPipes, typename StoreValPipes,
           uint NUM_LOADS, uint BIT_WIDTH = 32, typename T>
-std::vector<event> StreamingLoad(queue &q, T *data) {
+std::vector<event> StreamingMemory(queue &q, T *data) {
   std::vector<event> events(1);
 
   assert(sizeof(T) * 8 == BIT_WIDTH && "Incorrect kBitWidth.");
@@ -85,13 +85,11 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
     [[intel::initiation_interval(1)]]
     [[intel::speculated_iterations(0)]]
     while (true) {
-
       if (!ReqValid) {
         auto tryReq = StoreAddrPipes::template PipeAt<0>::read(ReqValid);
         if (ReqValid) Req = tryReq;
       }
       if (Req.addr == MAX_INT) break;
-
       
       if (!ValValid) {
         auto tryVal = StoreValPipes::template PipeAt<0>::read(ValValid);
@@ -114,7 +112,6 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
       StorePortAckPipe::write(AckTag[i]);
     }
     // StorePortAckPipe::write(MAX_INT);
-    // PRINTF("** DONE store port\n");
   });
 
   // Types for specifying action in load mux.
@@ -138,7 +135,6 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
       auto Val = BurstCoalescedLSU::load(LoadPtr);
       LoadMuxLoadValPipe::write(Val);
     }
-    PRINTF("** DONE load port\n");
   });
   q.single_task<LoadValMuxKernel<MEM_ID, 0>>([=]() KERNEL_PRAGMAS {
     int NumTotal = 0;
@@ -165,12 +161,18 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
   });
 
   q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
-    uint StoreAllocAddr = 0;
-    uint StoreAllocTag = 1;
-    bool StoreAllocValid = false;
+    constexpr uint ST_Q_SIZE = 2;
+    DataBundle<uint, ST_Q_SIZE> StoreAllocAddr(uint{0});
+    DataBundle<uint, ST_Q_SIZE> StoreAllocTag(uint{1});
+    DataBundle<bool, ST_Q_SIZE> StoreAllocValid(bool{false});
+    uint LastStoreAllocAddr = uint{0};
+    uint LastStoreAllocTag = uint{1};
 
     T LastStoreValue = T{};
     uint LastStoreValTag = uint{0};
+    DataBundle<uint, ST_Q_SIZE> StoreCommitTag(uint{0});
+    DataBundle<uint, ST_Q_SIZE> StoreCommitValid(bool{false});
+
     uint StoreAckTag = uint{0};
 
     constexpr uint LD_Q_SIZE = 2;
@@ -191,54 +193,9 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
     [[intel::initiation_interval(1)]]
     [[intel::speculated_iterations(0)]]
     while (!EndSignal) {
-      if (!StoreAllocValid)
+      if (!StoreAllocValid[0])
         EndSignalPipe::read(EndSignal);
 
-      /////////////////////////////////////////////////////////////////////////
-      //////////////////////////    Store LOGIC     ///////////////////////////
-      /////////////////////////////////////////////////////////////////////////
-
-      /** Rule for always listining for store ACKs. */
-      bool succ = false;
-      auto tryAckTag = StorePortAckPipe::read(succ);
-      if (succ) {
-        // if (tryAckTag > StoreAckTag) PRINTF("Got StoreAckTag %d\n", tryAckTag);
-        StoreAckTag = tryAckTag;
-      }
-      /** End Rule */
-
-      /** Rule for delaying the store stream to increase st->ld reuse. */
-      const bool GetNextStore = (StoreAllocAddr < LoadExecAddr[0] || 
-                                 StoreAllocTag > LoadAllocTag[0]);
-      /** End Rule */
-
-      /** Rule for reading store {addr, tag} pairs. */
-      if (!StoreAllocValid && GetNextStore) {
-        bool succ = false;
-        auto StoreReq = StoreAddrPipes::template PipeAt<1>::read(succ);
-        if (succ) {
-          StoreAllocAddr = StoreReq.addr;
-          StoreAllocTag = StoreReq.tag;
-          StoreAllocValid = true;
-          // PRINTF("Got StoreAlloc (%d, %d)\n", StoreAllocAddr, StoreAllocTag);
-        }
-      }
-      /** End Rule */
-
-      /** Rule for reading store values and writing to store port. */
-      if (StoreAllocValid) {
-        bool succ = false;
-        auto tryStoreVal = StoreValPipes::template PipeAt<1>::read(succ);
-        if (succ) {
-          LastStoreValTag = StoreAllocTag;
-          LastStoreValue = tryStoreVal;
-          StoreAllocValid = false;
-          // PRINTF("Got StoreVal (%d, %d)\n", StoreAllocAddr, LastStoreValTag);
-        }
-      }
-      /** End Rule */
-
-    
       /////////////////////////////////////////////////////////////////////////
       //////////////////////////     LOAD LOGIC     ///////////////////////////
       /////////////////////////////////////////////////////////////////////////
@@ -270,22 +227,20 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
           LoadAllocAddr[LD_Q_SIZE - 1] = LoadReq.addr;
           LoadAllocTag[LD_Q_SIZE - 1] = LoadReq.tag;
           LoadAllocValid[LD_Q_SIZE - 1] = true;
-          // PRINTF("Got new load req (%d, %d)   Load at [0] (%d, %d)\n", 
-          //        LoadReq.addr, LoadReq.tag, LoadAllocAddr[0], LoadAllocTag[0]);
         }
       }
       /** End Rule */
 
       /** Rule for checking load safety and reuse. */
       if (LoadAllocValid[0] && !LoadExecValid[LD_Q_SIZE - 1]) {
-        LoadExecSafeNow[LD_Q_SIZE - 1] = (LoadAllocTag[0] < StoreAllocTag);
+        LoadExecSafeNow[LD_Q_SIZE - 1] = (LoadAllocTag[0] < LastStoreAllocTag);
         LoadExecSafeAfterTag[LD_Q_SIZE - 1] =
-            (LoadAllocTag[0] == StoreAllocTag ||
-             (LoadAllocTag[0] > StoreAllocTag &&
-              LoadAllocAddr[0] < StoreAllocAddr));
-        LoadExecReuse[LD_Q_SIZE - 1] = (LoadAllocTag[0] >= StoreAllocTag) &&
-                                       (LoadAllocAddr[0] == StoreAllocAddr);
-        LoadExecWaitForTag[LD_Q_SIZE - 1] = StoreAllocTag;
+            (LoadAllocTag[0] == LastStoreAllocTag ||
+             (LoadAllocTag[0] > LastStoreAllocTag &&
+              LoadAllocAddr[0] < LastStoreAllocAddr));
+        LoadExecReuse[LD_Q_SIZE - 1] = (LoadAllocTag[0] >= LastStoreAllocTag) &&
+                                       (LoadAllocAddr[0] == LastStoreAllocAddr);
+        LoadExecWaitForTag[LD_Q_SIZE - 1] = LastStoreAllocTag;
 
         const bool AnySafe = (LoadExecSafeNow[LD_Q_SIZE - 1] ||
                               LoadExecSafeAfterTag[LD_Q_SIZE - 1] ||
@@ -293,12 +248,6 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
         LoadExecAddr[LD_Q_SIZE - 1] = LoadAllocAddr[0];
         LoadExecValid[LD_Q_SIZE - 1] = AnySafe;
         LoadAllocValid[0] = !AnySafe;
-        // if (AnySafe) {
-        //   PRINTF("+ Safe load (%d, %d) (%d, %d, %d) waitTag=%d lastStoreValTag=%d\n", 
-        //         LoadExecAddr[LD_Q_SIZE - 1], LoadAllocTag[0], LoadExecSafeNow[LD_Q_SIZE-1], 
-        //         LoadExecSafeAfterTag[LD_Q_SIZE - 1], LoadExecReuse[LD_Q_SIZE - 1], 
-        //         LoadExecWaitForTag[LD_Q_SIZE - 1], LastStoreValTag)
-        // }
       }
       /** End Rule */
 
@@ -310,17 +259,74 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
           LoadMuxPredPipe::write(LD_MUX_REUSE);
           LoadMuxReuseValPipe::write(LastStoreValue);
           LoadExecValid[0] = false;
-          // PRINTF("<- Reused %d tagWaitedOn=%d\n", 
-          //        LoadExecAddr[0], LoadExecWaitForTag[0]);
-        } 
+        }
       } else if (LoadExecSafeNow[0] ||
-                  (LoadExecSafeAfterTag[0] &&
+                 (LoadExecSafeAfterTag[0] &&
                   (LoadExecWaitForTag[0] <= StoreAckTag))) {
         LoadMuxPredPipe::write(LD_MUX_LOAD);
         LoadPortAddrPipe::write(LoadExecAddr[0]);
         LoadExecValid[0] = false;
-        // PRINTF("<- Loaded %d,   StoreAlloc (%d, %d)\n", 
-        //         LoadExecAddr[0], StoreAllocAddr, StoreAllocTag);
+      }
+      /** End Rule */
+
+      /////////////////////////////////////////////////////////////////////////
+      //////////////////////////    STORE LOGIC     ///////////////////////////
+      /////////////////////////////////////////////////////////////////////////
+
+      /** Rule for always listining for store ACKs. */
+      bool succ = false;
+      auto tryAckTag = StorePortAckPipe::read(succ);
+      if (succ) StoreAckTag = tryAckTag;
+      /** End Rule */
+
+      if (!StoreAllocValid[0]) {
+        StoreAllocAddr.Shift(uint{0});
+        StoreAllocTag.Shift(uint{0});
+        StoreAllocValid.Shift(bool{false});
+      }
+      if (!StoreCommitValid[0]) {
+        StoreCommitValid.Shift(false);
+        StoreCommitTag.Shift(0);
+      }
+
+      /** Rule for moving store allocation to store commit queue. */
+      const bool GetNextStoreAlloc = (LastStoreAllocAddr <= LoadAllocAddr[0] || 
+                                      LastStoreAllocTag > LoadAllocTag[0]);
+      if (GetNextStoreAlloc) {
+        if (StoreAllocValid[0] && !StoreCommitValid[ST_Q_SIZE - 1]) {
+          LastStoreAllocAddr = StoreAllocAddr[0];
+          LastStoreAllocTag = StoreAllocTag[0];
+
+          StoreCommitValid[ST_Q_SIZE - 1] = true;
+          StoreCommitTag[ST_Q_SIZE - 1] = StoreAllocTag[0];
+
+          StoreAllocValid[0] = false;
+        }
+      }
+      /** End Rule */
+
+      /** Rule for reading store {addr, tag} pairs. */
+      if (!StoreAllocValid[ST_Q_SIZE - 1]) {
+        bool succ = false;
+        auto StoreReq = StoreAddrPipes::template PipeAt<1>::read(succ);
+        if (succ) {
+          StoreAllocAddr[ST_Q_SIZE - 1] = StoreReq.addr;
+          StoreAllocTag[ST_Q_SIZE - 1] = StoreReq.tag;
+          StoreAllocValid[ST_Q_SIZE - 1] = true;
+        }
+      }
+      /** End Rule */
+
+      /** Rule for reading store values and writing to store port. */
+      const bool GetNextStoreVal = (LoadExecWaitForTag[0] >= LastStoreValTag);
+      if (StoreCommitValid[0] && GetNextStoreVal) {
+        bool succ = false;
+        auto tryStoreVal = StoreValPipes::template PipeAt<1>::read(succ);
+        if (succ) {
+          LastStoreValTag = StoreCommitTag[0];
+          LastStoreValue = tryStoreVal;
+          StoreCommitValid[0] = false;
+        }
       }
       /** End Rule */
 
@@ -329,7 +335,7 @@ std::vector<event> StreamingLoad(queue &q, T *data) {
     LoadMuxPredPipe::write(LD_MUX_TERMINATE);
     LoadPortAddrPipe::write(MAX_INT);
 
-    PRINTF("** DONE Streaming Memory\n");
+    // PRINTF("** DONE Streaming Memory\n");
   });
 
   return events;

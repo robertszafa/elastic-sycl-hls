@@ -189,7 +189,10 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     DataBundle<bool, LD_Q_SIZE> LoadExecSafeNow(bool{false});
     DataBundle<bool, LD_Q_SIZE> LoadExecSafeAfterTag(bool{false});
     DataBundle<bool, LD_Q_SIZE> LoadExecReuse(bool{false});
-    DataBundle<uint, LD_Q_SIZE> LoadExecWaitForTag(uint{0});
+    DataBundle<uint, LD_Q_SIZE> LoadExecValWaitTag(uint{0});
+    DataBundle<uint, LD_Q_SIZE> LoadExecAckWaitTag(uint{0});
+    DataBundle<uint, LD_Q_SIZE> LoadExecAckWaitStId(uint{0});
+    DataBundle<uint, LD_Q_SIZE> LoadExecValWaitStId(uint{0});
     DataBundle<uint, LD_Q_SIZE> LoadExecAddr(uint{0});
     DataBundle<uint, LD_Q_SIZE> LoadExecValid(bool{false});
 
@@ -219,7 +222,10 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         LoadExecSafeNow.Shift(bool{false});
         LoadExecSafeAfterTag.Shift(bool{false});
         LoadExecReuse.Shift(bool{false});
-        LoadExecWaitForTag.Shift(uint{0});
+        LoadExecValWaitTag.Shift(uint{0});
+        LoadExecAckWaitTag.Shift(uint{0});
+        LoadExecValWaitStId.Shift(uint{0});
+        LoadExecAckWaitStId.Shift(uint{0});
         LoadExecValid.Shift(uint{0});
         LoadExecAddr.Shift(uint{0});
       }
@@ -238,9 +244,9 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       }
       /** End Rule */
 
-      if constexpr (NUM_STORES == 1) {
-        /** Rule for checking load safety and reuse. */
-        if (LoadAllocValid[0] && !LoadExecValid[LD_Q_SIZE - 1]) {
+      /** Rule for checking load safety and reuse. */
+      if (LoadAllocValid[0] && !LoadExecValid[LD_Q_SIZE - 1]) {
+        if constexpr (NUM_STORES == 1) {
           LoadExecSafeNow[LD_Q_SIZE - 1] =
               (LoadAllocTag[0] < LastStoreAllocTag[0]);
           LoadExecSafeAfterTag[LD_Q_SIZE - 1] =
@@ -250,7 +256,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           LoadExecReuse[LD_Q_SIZE - 1] =
               (LoadAllocTag[0] >= LastStoreAllocTag[0]) &&
               (LoadAllocAddr[0] == LastStoreAllocAddr[0]);
-          LoadExecWaitForTag[LD_Q_SIZE - 1] = LastStoreAllocTag[0];
+          LoadExecValWaitTag[LD_Q_SIZE - 1] = LastStoreAllocTag[0];
+          LoadExecAckWaitTag[LD_Q_SIZE - 1] = LastStoreAllocTag[0];
 
           const bool AnySafe = (LoadAllocMinTag[0] <= LastStoreAllocTag[0]) &&
                                (LoadExecSafeNow[LD_Q_SIZE - 1] ||
@@ -259,29 +266,82 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           LoadExecAddr[LD_Q_SIZE - 1] = LoadAllocAddr[0];
           LoadExecValid[LD_Q_SIZE - 1] = AnySafe;
           LoadAllocValid[0] = !AnySafe;
-        }
-        /** End Rule */
+        } else {
+          // Check all stores for safety.
+          DataBundle<bool, NUM_STORES> ThisStoreSafeNow(bool{false});
+          DataBundle<bool, NUM_STORES> ThisStoreSafeAfterTag(bool{false});
+          DataBundle<bool, NUM_STORES> ThisStoreReuse(bool{false});
+          DataBundle<bool, NUM_STORES> ThisStoreWaitForTag(uint{0});
+          UnrolledLoop<NUM_STORES>([&](auto iSt) {
+            ThisStoreSafeNow[iSt] = (LoadAllocTag[0] < LastStoreAllocTag[iSt]);
+            ThisStoreSafeAfterTag[iSt] =
+                (LoadAllocTag[0] == LastStoreAllocTag[iSt] ||
+                 (LoadAllocTag[0] > LastStoreAllocTag[iSt] &&
+                  LoadAllocAddr[0] < LastStoreAllocAddr[iSt]));
+            ThisStoreReuse[iSt] = (LoadAllocTag[0] >= LastStoreAllocTag[0]) &&
+                                  (LoadAllocAddr[0] == LastStoreAllocAddr[0]);
+            if (LoadAllocTag[0] >= LastStoreAllocTag[iSt]) {
+              ThisStoreWaitForTag[iSt] = LastStoreAllocTag[0];
+            }
+          });
 
-        /** Rule for returning reused/loaded value via the load MUX kernel.  
-            Reuse takes precedence over loading, in case both are true. 
-            Any of {Reuse, SafeNow, SafeAfterTag} implies LoadExecValid. */
-        if (LoadExecReuse[0]) {
-          if (LoadExecWaitForTag[0] == LastStoreValTag[0]) {
-            LoadMuxPredPipe::write(LD_MUX_REUSE);
-            LoadMuxReuseValPipe::write(LastStoreValue[0]);
-            LoadExecValid[0] = false;
-          }
-        } else if (LoadExecSafeNow[0] ||
-                  (LoadExecSafeAfterTag[0] &&
-                    (LoadExecWaitForTag[0] <= StoreAckTag[0]))) {
-          LoadMuxPredPipe::write(LD_MUX_LOAD);
-          LoadPortAddrPipe::write(LoadExecAddr[0]);
+          // All stores should have any of (SafeNow, SafeAfterTag, Reuse) set.
+          bool AnySafe = true;
+          UnrolledLoop<NUM_STORES>([&](auto iSt) {
+            if (!ThisStoreSafeNow[iSt] && !ThisStoreSafeAfterTag[iSt] &&
+                !ThisStoreReuse[iSt]) {
+              AnySafe = false;
+            }
+
+            // For reuse and wait for tag, we need to find the max tag.
+            if (ThisStoreReuse[iSt] && (ThisStoreWaitForTag[iSt] >
+                                        LoadExecValWaitTag[LD_Q_SIZE - 1])) {
+              LoadExecReuse[LD_Q_SIZE - 1] = true;
+              LoadExecValWaitTag[LD_Q_SIZE - 1] = ThisStoreWaitForTag[iSt];
+              LoadExecValWaitStId[LD_Q_SIZE - 1] = iSt;
+            }
+
+            if (ThisStoreSafeAfterTag[iSt] &&
+                (ThisStoreWaitForTag[iSt] >
+                 LoadExecAckWaitTag[LD_Q_SIZE - 1])) {
+              LoadExecSafeAfterTag[LD_Q_SIZE - 1] = true;
+              LoadExecAckWaitTag[LD_Q_SIZE - 1] = ThisStoreWaitForTag[iSt];
+              LoadExecAckWaitStId[LD_Q_SIZE - 1] = iSt;
+            }
+
+            LoadExecSafeNow[LD_Q_SIZE - 1] &= ThisStoreSafeNow[iSt];
+          });
+
+          LoadExecAddr[LD_Q_SIZE - 1] = LoadAllocAddr[0];
+          LoadExecValid[LD_Q_SIZE - 1] = AnySafe;
+          LoadAllocValid[0] = !AnySafe;
+        }
+      }
+      /** End Rule */
+
+      /** Rule for returning reused/loaded value via the load MUX kernel.  
+          Reuse takes precedence over loading, in case both are true. 
+          Any of {Reuse, SafeNow, SafeAfterTag} implies LoadExecValid. */
+      int StIdxForVal = 0;
+      int StIdxForAck = 0;
+      if constexpr (NUM_STORES > 1) {
+        StIdxForVal = LoadExecValWaitStId[0];
+        StIdxForAck = LoadExecAckWaitStId[0];
+      }
+      if (LoadExecReuse[0]) {
+        if (LoadExecValWaitTag[0] == LastStoreValTag[StIdxForVal]) {
+          LoadMuxPredPipe::write(LD_MUX_REUSE);
+          LoadMuxReuseValPipe::write(LastStoreValue[StIdxForVal]);
           LoadExecValid[0] = false;
         }
-        /** End Rule */
-      } else {
-        assert(false && "Multiple stores not implemented!\n");
+      } else if (LoadExecSafeNow[0] ||
+                 (LoadExecSafeAfterTag[0] &&
+                  (LoadExecAckWaitTag[0] <= StoreAckTag[StIdxForAck]))) {
+        LoadMuxPredPipe::write(LD_MUX_LOAD);
+        LoadPortAddrPipe::write(LoadExecAddr[0]);
+        LoadExecValid[0] = false;
       }
+      /** End Rule */
 
       /////////////////////////////////////////////////////////////////////////
       //////////////////////////    STORE LOGIC     ///////////////////////////
@@ -333,7 +393,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         /** End Rule */
 
         /** Rule for reading store values and writing to store port. */
-        const bool GetNextStoreVal = (LoadExecWaitForTag[0] >= LastStoreValTag[iSt]);
+        const bool GetNextStoreVal = (LoadExecValWaitTag[0] >= LastStoreValTag[iSt]);
         if (StoreCommitValid[iSt][0] && GetNextStoreVal) {
           bool succ = false;
           auto tryStoreVal = StoreValPipes::template PipeAt<iSt>::read(succ);

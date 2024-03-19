@@ -33,11 +33,12 @@ struct addr_tag_t {
   uint tag;
 };
 
+template <int NUM_STORES>
 struct addr_tag_mintag_t {
   uint addr;
   uint tag;
   /// Minimum tag that a store dependency has to have.
-  uint mintag;
+  uint mintag[NUM_STORES];
 };
 
 template <typename T> struct addr_val_t {
@@ -183,8 +184,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     constexpr uint LD_Q_SIZE = 2;
     DataBundle<uint, LD_Q_SIZE> LoadAllocAddr(uint{1});
     DataBundle<uint, LD_Q_SIZE> LoadAllocTag(uint{0});
-    DataBundle<uint, LD_Q_SIZE> LoadAllocMinTag(uint{0});
     DataBundle<bool, LD_Q_SIZE> LoadAllocValid(bool{false});
+    DataBundleArray<uint, LD_Q_SIZE, NUM_STORES> LoadAllocMinTag(uint{0});
     
     DataBundle<bool, LD_Q_SIZE> LoadExecSafeNow(bool{false});
     DataBundle<bool, LD_Q_SIZE> LoadExecSafeAfterTag(bool{false});
@@ -234,11 +235,13 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       /** Rule for reading new load allocation: {addr, tag} pairs. */
       if (!LoadAllocValid[LD_Q_SIZE - 1]) {
         bool succ = false;
-        auto LoadReq = LoadAddrPipe::read(succ);
+        const auto LoadReq = LoadAddrPipe::read(succ);
         if (succ) {
           LoadAllocAddr[LD_Q_SIZE - 1] = LoadReq.addr;
           LoadAllocTag[LD_Q_SIZE - 1] = LoadReq.tag;
-          LoadAllocMinTag[LD_Q_SIZE - 1] = LoadReq.mintag;
+          UnrolledLoop<NUM_STORES>([&](auto iSt) {
+            LoadAllocMinTag[LD_Q_SIZE - 1][iSt] = LoadReq.mintag[iSt];
+          });
           LoadAllocValid[LD_Q_SIZE - 1] = true;
         }
       }
@@ -259,10 +262,11 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           LoadExecValWaitTag[LD_Q_SIZE - 1] = LastStoreAllocTag[0];
           LoadExecAckWaitTag[LD_Q_SIZE - 1] = LastStoreAllocTag[0];
 
-          const bool AnySafe = (LoadAllocMinTag[0] <= LastStoreAllocTag[0]) &&
-                               (LoadExecSafeNow[LD_Q_SIZE - 1] ||
-                                LoadExecSafeAfterTag[LD_Q_SIZE - 1] ||
-                                LoadExecReuse[LD_Q_SIZE - 1]);
+          const bool AnySafe =
+              (LoadAllocMinTag[0][0] <= LastStoreAllocTag[0]) &&
+              (LoadExecSafeNow[LD_Q_SIZE - 1] ||
+               LoadExecSafeAfterTag[LD_Q_SIZE - 1] ||
+               LoadExecReuse[LD_Q_SIZE - 1]);
           LoadExecAddr[LD_Q_SIZE - 1] = LoadAllocAddr[0];
           LoadExecValid[LD_Q_SIZE - 1] = AnySafe;
           LoadAllocValid[0] = !AnySafe;

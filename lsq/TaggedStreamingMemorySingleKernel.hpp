@@ -217,11 +217,14 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     
     bool LoadExecValid[LD_Q_SIZE]; 
     uint LoadExecAddr[LD_Q_SIZE]; 
-    bool LoadExecSafeNow[NUM_STORES][LD_Q_SIZE];
-    bool LoadExecSafeAfterTag[NUM_STORES][LD_Q_SIZE];
-    bool LoadExecReuse[NUM_STORES][LD_Q_SIZE];
-    uint LoadExecValWaitTag[NUM_STORES][LD_Q_SIZE];
-    uint LoadExecAckWaitTag[NUM_STORES][LD_Q_SIZE];
+
+    bool LoadExecSafeNow[LD_Q_SIZE];
+    bool LoadExecSafeAfterTag[LD_Q_SIZE];
+    bool LoadExecReuse[LD_Q_SIZE];
+    uint LoadExecValWaitTag[LD_Q_SIZE];
+    uint LoadExecAckWaitTag[LD_Q_SIZE];
+    uint LoadExecAckWaitId[LD_Q_SIZE];
+    uint LoadExecValWaitId[LD_Q_SIZE];
 
     // Init load registers
     InitBundle(LoadAllocValid, false);
@@ -229,15 +232,17 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     InitBundle(LoadAllocTag, 0u);
     InitBundle(LoadExecValid, false); 
     InitBundle(LoadExecAddr, 0u);
-    // A load holds info for each store.
-    UnrolledLoop<NUM_STORES>([&](auto iSt) {
-      InitBundle(LoadAllocMinTag[iSt], 0u);
-      InitBundle(LoadExecSafeNow[iSt], false);
-      InitBundle(LoadExecSafeAfterTag[iSt], false);
-      InitBundle(LoadExecReuse[iSt], false);
-      InitBundle(LoadExecValWaitTag[iSt], 0u);
-      InitBundle(LoadExecAckWaitTag[iSt], 0u);
-    });
+
+    InitBundle(LoadExecSafeNow, false);
+    InitBundle(LoadExecSafeAfterTag, false);
+    InitBundle(LoadExecReuse, false);
+    InitBundle(LoadExecValWaitTag, 0u);
+    InitBundle(LoadExecAckWaitTag, 0u);
+    InitBundle(LoadExecAckWaitId, 0u);
+    InitBundle(LoadExecValWaitId, 0u);
+
+    UnrolledLoop<NUM_STORES>(
+        [&](auto iSt) { InitBundle(LoadAllocMinTag[iSt], 0u); });
 
     bool EndSignal = false;
 
@@ -267,13 +272,13 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         ShiftBundle(LoadExecValid, false);
         ShiftBundle(LoadExecAddr, 0u);
 
-        UnrolledLoop<NUM_STORES>([&] (auto iSt) {
-          ShiftBundle(LoadExecSafeNow[iSt], false);
-          ShiftBundle(LoadExecSafeAfterTag[iSt], false);
-          ShiftBundle(LoadExecReuse[iSt], false);
-          ShiftBundle(LoadExecValWaitTag[iSt], 0u);
-          ShiftBundle(LoadExecAckWaitTag[iSt], 0u);
-        });
+        ShiftBundle(LoadExecSafeNow, false);
+        ShiftBundle(LoadExecSafeAfterTag, false);
+        ShiftBundle(LoadExecReuse, false);
+        ShiftBundle(LoadExecValWaitTag, 0u);
+        ShiftBundle(LoadExecAckWaitTag, 0u);
+        ShiftBundle(LoadExecAckWaitId, 0u);
+        ShiftBundle(LoadExecValWaitId, 0u);
       }
       /** End Rule */
 
@@ -294,80 +299,79 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
       /** Rule for checking load safety and reuse. */
       if (LoadAllocValid[0] && !LoadExecValid[LD_Q_SIZE - 1]) {
-        bool IsLoadSafe = true;
-        UnrolledLoop<NUM_STORES>([&](auto iSt) {
-          LoadExecSafeNow[iSt][LD_Q_SIZE - 1] =
-              (LoadAllocTag[0] < LastStoreAllocTag[iSt]);
-          LoadExecSafeAfterTag[iSt][LD_Q_SIZE - 1] =
-              (LoadAllocTag[0] == LastStoreAllocTag[iSt] ||
-               (LoadAllocTag[0] > LastStoreAllocTag[iSt] &&
-                LoadAllocAddr[0] < LastStoreAllocAddr[iSt]));
-          LoadExecReuse[iSt][LD_Q_SIZE - 1] =
-              (LoadAllocTag[0] >= LastStoreAllocTag[0]) &&
-              (LoadAllocAddr[0] == LastStoreAllocAddr[0]);
+        bool SafeNow[NUM_STORES];
+        bool SafeAfterTag[NUM_STORES];
+        bool Reuse[NUM_STORES];
+        uint WaitForValTag[NUM_STORES];
+        uint WaitForAckTag[NUM_STORES];
+        bool AllStoresSafe = true;
+        UnrolledLoop<NUM_STORES>([&](uint iSt) {
+          SafeNow[iSt] = (LoadAllocTag[0] < LastStoreAllocTag[iSt]);
+          SafeAfterTag[iSt] = (LoadAllocTag[0] == LastStoreAllocTag[iSt] ||
+                               (LoadAllocTag[0] > LastStoreAllocTag[iSt] &&
+                                LoadAllocAddr[0] < LastStoreAllocAddr[iSt]));
+          Reuse[iSt] = (LoadAllocTag[0] >= LastStoreAllocTag[iSt]) &&
+                       (LoadAllocAddr[0] == LastStoreAllocAddr[iSt]);
 
-          LoadExecValWaitTag[iSt][LD_Q_SIZE - 1] = LastStoreAllocTag[iSt];
-          LoadExecAckWaitTag[iSt][LD_Q_SIZE - 1] = LastStoreAllocTag[iSt];
-          LoadExecAddr[LD_Q_SIZE - 1] = LoadAllocAddr[0];
+          WaitForValTag[iSt] = LastStoreAllocTag[iSt];
+          WaitForAckTag[iSt] = LastStoreAllocTag[iSt];
 
           const bool ThisStoreSafe =
               (LoadAllocMinTag[iSt][0] <= LastStoreAllocTag[iSt]) &&
-              (LoadExecSafeNow[iSt][LD_Q_SIZE - 1] ||
-               LoadExecSafeAfterTag[iSt][LD_Q_SIZE - 1] ||
-               LoadExecReuse[iSt][LD_Q_SIZE - 1]);
+              (SafeNow[iSt] || SafeAfterTag[iSt] || Reuse[iSt]);
           if constexpr (NUM_STORES > 1)
-            IsLoadSafe &= ThisStoreSafe;
+            AllStoresSafe &= ThisStoreSafe;
           else
-            IsLoadSafe = ThisStoreSafe;
+            AllStoresSafe = ThisStoreSafe;
         });
 
-        // if (IsLoadSafe) {
-          LoadExecValid[LD_Q_SIZE - 1] = IsLoadSafe;
-          LoadAllocValid[0] = !IsLoadSafe;
-        // }
+        if (AllStoresSafe) {
+          // TODO: LD_Q_SIZE-2 ?
+          LoadExecSafeNow[LD_Q_SIZE - 1] = SafeNow[0];
+          LoadExecSafeAfterTag[LD_Q_SIZE - 1] = SafeAfterTag[0];
+          LoadExecReuse[LD_Q_SIZE - 1] = Reuse[0];
+          LoadExecValWaitTag[LD_Q_SIZE - 1] = WaitForValTag[0];
+          LoadExecAckWaitTag[LD_Q_SIZE - 1] = WaitForAckTag[0];
+          LoadExecAckWaitId[LD_Q_SIZE - 1] = 0;
+          LoadExecValWaitId[LD_Q_SIZE - 1] = 0;
+          UnrolledLoop<1, NUM_STORES>([&](auto iSt) {
+            LoadExecSafeNow[LD_Q_SIZE - 1] &= SafeNow[iSt];
+            LoadExecSafeAfterTag[LD_Q_SIZE - 1] |= SafeAfterTag[iSt];
+            LoadExecReuse[LD_Q_SIZE - 1] |= Reuse[iSt];
+
+            if (SafeAfterTag[iSt] &&
+                (WaitForAckTag[iSt] > LoadExecAckWaitTag[LD_Q_SIZE - 1])) {
+              LoadExecAckWaitTag[LD_Q_SIZE - 1] = WaitForAckTag[iSt];
+              LoadExecAckWaitId[LD_Q_SIZE - 1] = iSt;
+            }
+            if (Reuse[iSt] &&
+                (WaitForValTag[iSt] > LoadExecValWaitTag[LD_Q_SIZE - 1])) {
+              LoadExecValWaitTag[LD_Q_SIZE - 1] = WaitForValTag[iSt];
+              LoadExecValWaitId[LD_Q_SIZE - 1] = iSt;
+            }
+          });
+
+          LoadExecValid[LD_Q_SIZE - 1] = true;
+          LoadExecAddr[LD_Q_SIZE - 1] = LoadAllocAddr[0];
+          LoadAllocValid[0] = false;
+        }
       }
       /** End Rule */
 
       /** Rule for returning reused/loaded values. Reuse takes precedence. 
           Any of {Reuse, SafeNow, SafeAfterTag} implies LoadExecValid. */
-      bool AllSafeNow = LoadExecSafeNow[0][0];
-      bool AnySafeAfterTag = LoadExecSafeAfterTag[0][0];
-      bool AnyReuse = LoadExecReuse[0][0];
-      uint MaxAckTag = LoadExecAckWaitTag[0][0];
-      uint MaxValTag = LoadExecValWaitTag[0][0];
-      uint MaxAckTagStoreId = 0;
-      uint MaxValTagStoreId = 0;
-      UnrolledLoop<1, NUM_STORES>([&](auto iSt) {
-        AllSafeNow &= LoadExecSafeNow[iSt][0];
-        AnySafeAfterTag |= LoadExecSafeAfterTag[iSt][0];
-        AnyReuse |= LoadExecReuse[iSt][0];
-
-        if (LoadExecSafeAfterTag[iSt][0] &&
-            (LoadExecAckWaitTag[iSt][0] > MaxAckTag)) {
-          MaxAckTag = LoadExecAckWaitTag[iSt][0];
-          MaxAckTagStoreId = iSt;
-        }
-        if (LoadExecReuse[iSt][0] &&
-            (LoadExecValWaitTag[iSt][0] > MaxValTag)) {
-          MaxValTag = LoadExecValWaitTag[iSt][0];
-          MaxValTagStoreId = iSt;
-        }
-      });
-
-      if (LoadExecValid[0]) {
-        if (AnyReuse) {
-          if (MaxValTag == LastStoreValTag[MaxValTagStoreId]) {
-            LoadMuxPredPipe::write(LD_MUX_REUSE);
-            LoadMuxReuseValPipe::write(LastStoreValue[MaxValTagStoreId]);
-            LoadExecValid[0] = false;
-          }
-        } else if (AllSafeNow ||
-                  (AnySafeAfterTag &&
-                    (MaxAckTag <= StoreAckTag[MaxAckTagStoreId]))) {
-          LoadMuxPredPipe::write(LD_MUX_LOAD);
-          LoadPortAddrPipe::write(LoadExecAddr[0]);
+      if (LoadExecReuse[0]) {
+        if (LoadExecValWaitTag[0] == LastStoreValTag[LoadExecValWaitId[0]]) {
+          LoadMuxPredPipe::write(LD_MUX_REUSE);
+          LoadMuxReuseValPipe::write(LastStoreValue[LoadExecValWaitId[0]]);
           LoadExecValid[0] = false;
         }
+      } else if (LoadExecSafeNow[0] ||
+                (LoadExecSafeAfterTag[0] &&
+                  (LoadExecAckWaitTag[0] <= StoreAckTag[LoadExecAckWaitId[0]]))) {
+        LoadMuxPredPipe::write(LD_MUX_LOAD);
+        LoadPortAddrPipe::write(LoadExecAddr[0]);
+        LoadExecValid[0] = false;
       }
       /** End Rule */
 
@@ -427,7 +431,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
         /** Rule for reading store values and writing to store port. */
         const bool GetNextVal =
-            (LoadExecValWaitTag[iSt][0] > LastStoreValTag[iSt]);
+            (LoadExecValWaitTag[0] > LastStoreValTag[iSt]);
         if (StoreCommitValid[iSt][0] && GetNextVal) {
           bool succ = false;
           auto tryStoreVal = StoreValPipes::template PipeAt<iSt>::read(succ);

@@ -18,40 +18,19 @@ using PipelinedLSU = sycl::ext::intel::lsu<>;
 #define KERNEL_PRAGMAS [[intel::kernel_args_restrict]] [[intel::max_global_work_dim(0)]] 
 
 constexpr uint DRAM_BURST_BITS = 512;
-constexpr uint MAX_INT = (1<<29);
+constexpr uint MAX_INT = (1<<30);
 constexpr int INVALID_ADDR = -1;
-
-struct addr_t {
-  int addr;
-};
 
 struct addr_tag_t {
   int addr;
   uint tag;
 };
-
 template <int NUM_STORES>
 struct addr_tag_mintag_t {
   int addr;
   uint tag;
   /// Minimum tag that a store dependency has to have.
   uint mintag[NUM_STORES];
-};
-
-template <typename T> struct addr_val_t {
-  int addr;
-  T val;
-};
-
-template <typename T> struct tag_val_t {
-  int tag;
-  T val;
-};
-
-template <typename T> struct addr_tag_val_t {
-  int addr;
-  uint tag;
-  T val;
 };
 
 template <typename T, uint SIZE> 
@@ -107,10 +86,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
         BurstCoalescedLSU::store(StorePtr, Val);
       }
-      // force final burst
+      // force final burst?
       // atomic_fence(memory_order_seq_cst, memory_scope_work_item); 
-
-      PRINTF("** DONE store port %d\n", int(iSt));
     });
   });
 
@@ -135,7 +112,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       auto Val = BurstCoalescedLSU::load(LoadPtr);
       LoadMuxLoadValPipe::write(Val);
     }
-    PRINTF("** DONE load port %d\n");
   });
   q.single_task<LoadValMuxKernel<MEM_ID, 0>>([=]() KERNEL_PRAGMAS {
     int NumTotal = 0;
@@ -219,7 +195,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
     bool EndSignal = false;
 
-    uint cycle = 0;
+    [[maybe_unused]] uint cycle = 0;
 
     [[intel::ivdep]]
     [[intel::initiation_interval(1)]]
@@ -253,7 +229,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           bool succ = false;
           auto StoreReq = StoreAddrPipes::template PipeAt<iSt>::read(succ);
           if (succ) {
-            // PRINTF("@%d St%d Req (%d, %d)\n", cycle, int(iSt), StoreReq.addr, StoreReq.tag);
             StoreAllocValid[iSt][ST_ALLOC_Q_SIZE - 1] = true;
             StoreAllocAddr[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.addr;
             StoreAllocTag[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.tag;
@@ -266,7 +241,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           bool succ = false;
           auto StoreVal = StoreValPipes::template PipeAt<iSt>::read(succ);
           if (succ) {
-            // PRINTF("@%d St%d Val (%d, %d)\n", cycle, int(iSt), StoreAllocAddr[iSt][0], StoreAllocTag[iSt][0]);
+            // PRINTF("@%d St%d Val (%d, %d)\n", cycle, int(iSt), 
+            //        StoreAllocAddr[iSt][0], StoreAllocTag[iSt][0]);
 
             LastStoreAckAddr[iSt] = StoreCommitAddr[iSt][0];
             LastStoreAckTag[iSt] = StoreCommitTag[iSt][0];
@@ -304,8 +280,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         bool succ = false;
         const auto LoadReq = LoadAddrPipe::read(succ);
         if (succ) {
-          // PRINTF("@%d Ld Req (%d, %d)\n", cycle, LoadReq.addr, LoadReq.tag);
-
           LoadValid[LD_Q_SIZE - 1] = true;
           LoadAddr[LD_Q_SIZE - 1] = LoadReq.addr;
           LoadTag[LD_Q_SIZE - 1] = LoadReq.tag;
@@ -320,13 +294,11 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       if (LoadValid[0]) {
         bool LoadSafePerStore[NUM_STORES];
         bool LoadReusePerStore[NUM_STORES];
-        uint LoadReuseTagPerStore[NUM_STORES]; // A tag > 0 indicates reuse
+        uint LoadReuseTagPerStore[NUM_STORES]; 
         T LoadReuseValPerStore[NUM_STORES];
         bool MinTagsSatisfied = (LoadMinTag[0][0] < LastStoreAllocTag[0]);
         UnrolledLoop<NUM_STORES>([&](auto iSt) {
           LoadSafePerStore[iSt] = (LoadTag[0] < LastStoreAllocTag[iSt]) ||
-                                  // (LoadTag[0] == LastStoreAllocTag[iSt] &&
-                                  //  LoadAddr[0] != LastStoreAllocAddr[iSt]) ||
                                   (LoadTag[0] >= LastStoreAckTag[iSt] &&
                                    LoadAddr[0] < LastStoreAckAddr[iSt]);
 
@@ -361,12 +333,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           });
 
           if (LoadReuse[0]) {
-            // PRINTF("%d Reusing load addr %d   LastStoreAlloc=(%d, %d)   "
-            //        "LastStoreAckTag=%d   CommitTail=(%d, %d)\n",
-            //        cycle, LoadAddr[0], LastStoreAllocAddr[0],
-            //        LastStoreAllocTag[0], LastStoreAckTag[0],
-            //        StoreCommitAddr[0][ST_COMMIT_Q_SIZE - 1],
-            //        StoreCommitTag[0][ST_COMMIT_Q_SIZE - 1]);
             LoadMuxPredPipe::write(LD_MUX_REUSE);
             LoadMuxReuseValPipe::write(LoadReuseVal[0]);
             LoadValid[0] = false;

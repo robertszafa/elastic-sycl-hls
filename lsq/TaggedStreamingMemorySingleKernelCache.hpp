@@ -21,6 +21,7 @@ constexpr uint DRAM_BURST_BITS = 512;
 constexpr uint MAX_INT = (1<<30);
 constexpr int INVALID_ADDR = -1;
 
+// Types for (addr, tag) memory requests.
 struct addr_tag_t {
   int addr;
   uint tag;
@@ -29,9 +30,14 @@ template <int NUM_STORES>
 struct addr_tag_mintag_t {
   int addr;
   uint tag;
-  /// Minimum tag that a store dependency has to have.
+  // Minimum tag that a store dependency has to have.
   uint mintag[NUM_STORES];
 };
+// Types for specifying action in load mux.
+using ld_mux_pred_t = ac_int<2, false>;
+constexpr ld_mux_pred_t LD_MUX_TERMINATE = ld_mux_pred_t{0};
+constexpr ld_mux_pred_t LD_MUX_REUSE = ld_mux_pred_t{1};
+constexpr ld_mux_pred_t LD_MUX_LOAD = ld_mux_pred_t{2};
 
 template <typename T, uint SIZE> 
 inline void InitBundle(T (&Bundle)[SIZE], const T val) {
@@ -63,8 +69,8 @@ template <int MemId, int PortId> class LoadPortKernel;
 template <int MemId, int PortId> class StorePortKernel;
 template <int MemId, int PortId> class LoadValMuxKernel;
 
-template <int MEM_ID, typename EndSignalPipe, typename LoadAddrPipe,
-          typename LoadValPipe, typename StoreAddrPipes, typename StoreValPipes,
+template <int MEM_ID, typename EndSignalPipe, typename LoadAddrPipes,
+          typename LoadValPipes, typename StoreAddrPipes, typename StoreValPipes,
           typename StorePortAddrPipes, typename StorePortValPipes,
           uint NUM_LOADS, uint NUM_STORES, uint BIT_WIDTH = 32, typename T>
 std::vector<event> StreamingMemory(queue &q, T *data) {
@@ -73,7 +79,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
   assert(sizeof(T) * 8 == BIT_WIDTH && "Incorrect kBitWidth.");
   constexpr uint BURST_SIZE = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
 
-  // Store port.
+  // Store ports.
   UnrolledLoop<NUM_STORES>([&](auto iSt) {
     events[iSt] = q.single_task<StorePortKernel<MEM_ID, iSt>>([=]() KERNEL_PRAGMAS {
       [[intel::ivdep]]
@@ -91,51 +97,50 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     });
   });
 
-  // Types for specifying action in load mux.
-  using ld_mux_pred_t = ac_int<2, false>;
-  constexpr ld_mux_pred_t LD_MUX_TERMINATE = ld_mux_pred_t{0};
-  constexpr ld_mux_pred_t LD_MUX_REUSE = ld_mux_pred_t{1};
-  constexpr ld_mux_pred_t LD_MUX_LOAD = ld_mux_pred_t{2};
-  // Pipes for load port and load mux.
-  using LoadPortAddrPipe = pipe<class _LoadAddr, uint, BURST_SIZE*4>;
-  using LoadMuxLoadValPipe = pipe<class _LoadMuxMemoryVal, T, BURST_SIZE*4>;
-  using LoadMuxPredPipe = pipe<class _LoadMuxPred, ld_mux_pred_t, BURST_SIZE*4>;
-  using LoadMuxReuseValPipe = pipe<class _LoadMuxReuseVal, T, BURST_SIZE*4>;
-  q.single_task<LoadPortKernel<MEM_ID, 0>>([=]() KERNEL_PRAGMAS {
-    [[intel::ivdep]]
-    [[intel::initiation_interval(1)]]
-    [[intel::speculated_iterations(0)]]
-    while (true) {
-      auto Addr = LoadPortAddrPipe::read();
-      if (Addr == MAX_INT) break;
-      auto LoadPtr = ext::intel::device_ptr<T>(data + Addr);
-      auto Val = BurstCoalescedLSU::load(LoadPtr);
-      LoadMuxLoadValPipe::write(Val);
-    }
-  });
-  q.single_task<LoadValMuxKernel<MEM_ID, 0>>([=]() KERNEL_PRAGMAS {
-    int NumTotal = 0;
-    int NumReused = 0;
-    [[intel::ivdep]]
-    [[intel::initiation_interval(1)]]
-    [[intel::speculated_iterations(0)]]
-    while (true) {
-      T Val;
-      ld_mux_pred_t Pred = LoadMuxPredPipe::read();
-      if (Pred == LD_MUX_REUSE) {
-        NumReused++;
-        Val = LoadMuxReuseValPipe::read();
-      } else if (Pred == LD_MUX_LOAD) {
-        Val = LoadMuxLoadValPipe::read();
-      } else {
-        break;
-      }
-      // PRINTF("Ld Val returned (reuse = %d)\n", (Pred == LD_MUX_REUSE));
+  // Load ports.
 
-      LoadValPipe::write(Val);
-      NumTotal++;
-    }
-    PRINTF("** DONE load MUX, reused %d/%d\n", NumReused, NumTotal);
+  // Pipes for load port and load mux.
+  using LoadPortAddrPipes = PipeArray<class _LoadAddr, uint, BURST_SIZE*4, NUM_LOADS>;
+  using LoadMuxLoadValPipes = PipeArray<class _LoadMuxMemoryVal, T, BURST_SIZE*4, NUM_LOADS>;
+  using LoadMuxPredPipes = PipeArray<class _LoadMuxPred, ld_mux_pred_t, BURST_SIZE*4, NUM_LOADS>;
+  using LoadMuxReuseValPipes = PipeArray<class _LoadMuxReuseVal, T, BURST_SIZE*4, NUM_LOADS>;
+  UnrolledLoop<NUM_LOADS>([&](auto iLd) {
+    q.single_task<LoadPortKernel<MEM_ID, iLd>>([=]() KERNEL_PRAGMAS {
+      [[intel::ivdep]]
+      [[intel::initiation_interval(1)]]
+      [[intel::speculated_iterations(0)]]
+      while (true) {
+        auto Addr = LoadPortAddrPipes::template PipeAt<iLd>::read();
+        if (Addr == MAX_INT) break;
+        auto LoadPtr = ext::intel::device_ptr<T>(data + Addr);
+        auto Val = BurstCoalescedLSU::load(LoadPtr);
+        LoadMuxLoadValPipes::template PipeAt<iLd>::write(Val);
+      }
+    });
+    q.single_task<LoadValMuxKernel<MEM_ID, iLd>>([=]() KERNEL_PRAGMAS {
+      int NumTotal = 0;
+      int NumReused = 0;
+      [[intel::ivdep]]
+      [[intel::initiation_interval(1)]]
+      [[intel::speculated_iterations(0)]]
+      while (true) {
+        T Val;
+        ld_mux_pred_t Pred = LoadMuxPredPipes::template PipeAt<iLd>::read();
+        if (Pred == LD_MUX_REUSE) {
+          NumReused++;
+          Val = LoadMuxReuseValPipes::template PipeAt<iLd>::read();
+        } else if (Pred == LD_MUX_LOAD) {
+          Val = LoadMuxLoadValPipes::template PipeAt<iLd>::read();
+        } else {
+          break;
+        }
+        // PRINTF("Ld%d Val returned (reuse = %d)\n", int(iLd), (Pred == LD_MUX_REUSE));
+
+        LoadValPipes::template PipeAt<iLd>::write(Val);
+        NumTotal++;
+      }
+      PRINTF("** DONE load%d MUX, reused %d/%d\n", int(iLd), NumReused, NumTotal);
+    });
   });
 
   events[NUM_STORES] = q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
@@ -172,26 +177,34 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     });
 
     constexpr uint LD_Q_SIZE = 4;
-    bool LoadValid[LD_Q_SIZE];
-    int LoadAddr[LD_Q_SIZE];
-    uint LoadTag[LD_Q_SIZE];
-    uint LoadMinTag[NUM_STORES][LD_Q_SIZE];
+    bool LoadValid[NUM_LOADS][LD_Q_SIZE];
+    int LoadAddr[NUM_LOADS][LD_Q_SIZE];
+    uint LoadTag[NUM_LOADS][LD_Q_SIZE];
+    uint LoadMinTag[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
     
-    bool LoadSafe[LD_Q_SIZE];
-    bool LoadReuse[LD_Q_SIZE];
-    T LoadReuseVal[LD_Q_SIZE];
+    bool LoadSafe[NUM_LOADS][LD_Q_SIZE];
+    bool LoadReuse[NUM_LOADS][LD_Q_SIZE];
+    T LoadReuseVal[NUM_LOADS][LD_Q_SIZE];
+
+    int AdvanceStoreAddr[NUM_LOADS][NUM_STORES];
+    uint AdvanceStoreTag[NUM_LOADS][NUM_STORES];
 
     // Init load registers
-    InitBundle(LoadValid, false);
-    InitBundle(LoadAddr, INVALID_ADDR);
-    InitBundle(LoadTag, 0u);
+    UnrolledLoop<NUM_LOADS>([&](auto iLd) {
+      InitBundle(LoadValid[iLd], false);
+      InitBundle(LoadAddr[iLd], INVALID_ADDR);
+      InitBundle(LoadTag[iLd], 0u);
 
-    InitBundle(LoadSafe, false);
-    InitBundle(LoadReuse, false);
-    InitBundle(LoadReuseVal, T{});
+      InitBundle(LoadSafe[iLd], false);
+      InitBundle(LoadReuse[iLd], false);
+      InitBundle(LoadReuseVal[iLd], T{});
 
-    UnrolledLoop<NUM_STORES>(
-        [&](auto iSt) { InitBundle(LoadMinTag[iSt], 0u); });
+      InitBundle(AdvanceStoreAddr[iLd], INVALID_ADDR);
+      InitBundle(AdvanceStoreTag[iLd], 0u);
+
+      UnrolledLoop<NUM_STORES>(
+          [&](auto iSt) { InitBundle(LoadMinTag[iLd][iSt], 0u); });
+    });
 
     bool EndSignal = false;
 
@@ -261,96 +274,103 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       /////////////////////////////////////////////////////////////////////////
       //////////////////////////     LOAD LOGIC     ///////////////////////////
       /////////////////////////////////////////////////////////////////////////
-      /** Rule for shifting load allocation queue. */ 
-      if (!LoadValid[0]) {
-        ShiftBundle(LoadValid, false);
-        ShiftBundle(LoadAddr, INVALID_ADDR);
-        ShiftBundle(LoadTag, 0u);
-        UnrolledLoop<NUM_STORES>(
-            [&](auto iSt) { ShiftBundle(LoadMinTag[iSt], 0u); });
+      UnrolledLoop<NUM_LOADS>([&](auto iLd) {
+        /** Rule for shifting load allocation queue. */ 
+        if (!LoadValid[iLd][0]) {
+          ShiftBundle(LoadValid[iLd], false);
+          ShiftBundle(LoadAddr[iLd], INVALID_ADDR);
+          ShiftBundle(LoadTag[iLd], 0u);
+          UnrolledLoop<NUM_STORES>(
+              [&](auto iSt) { ShiftBundle(LoadMinTag[iLd][iSt], 0u); });
 
-        ShiftBundle(LoadSafe, false);
-        ShiftBundle(LoadReuse, false);
-        ShiftBundle(LoadReuseVal, T{});
-      }
-      /** End Rule */
+          ShiftBundle(LoadSafe[iLd], false);
+          ShiftBundle(LoadReuse[iLd], false);
+          ShiftBundle(LoadReuseVal[iLd], T{});
+        }
+        /** End Rule */
 
-      /** Rule for reading new load allocation: {addr, tag} pairs. */
-      if (!LoadValid[LD_Q_SIZE - 1]) {
-        bool succ = false;
-        const auto LoadReq = LoadAddrPipe::read(succ);
-        if (succ) {
-          LoadValid[LD_Q_SIZE - 1] = true;
-          LoadAddr[LD_Q_SIZE - 1] = LoadReq.addr;
-          LoadTag[LD_Q_SIZE - 1] = LoadReq.tag;
+        /** Rule for reading new load allocation: {addr, tag} pairs. */
+        if (!LoadValid[iLd][LD_Q_SIZE - 1]) {
+          bool succ = false;
+          const auto LoadReq = LoadAddrPipes::template PipeAt<iLd>::read(succ);
+          if (succ) {
+            LoadValid[iLd][LD_Q_SIZE - 1] = true;
+            LoadAddr[iLd][LD_Q_SIZE - 1] = LoadReq.addr;
+            LoadTag[iLd][LD_Q_SIZE - 1] = LoadReq.tag;
+            UnrolledLoop<NUM_STORES>([&](auto iSt) {
+              LoadMinTag[iLd][iSt][LD_Q_SIZE - 1] = LoadReq.mintag[iSt];
+            });
+          }
+        }
+        /** End Rule */
+
+        /** Rule for checking load safety and reuse. */
+        if (LoadValid[iLd][0]) {
+          bool ThisSafe[NUM_STORES];
+          bool ThisReuse[NUM_STORES];
+          uint ThisReuseTag[NUM_STORES];
+          T ThisReuseVal[NUM_STORES];
+          bool MinTagsSatisfied =
+              (LoadMinTag[iLd][0][0] < LastStoreAllocTag[0]);
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
-            LoadMinTag[iSt][LD_Q_SIZE - 1] = LoadReq.mintag[iSt];
-          });
-        }
-      }
-      /** End Rule */
+            ThisSafe[iSt] = (LoadTag[iLd][0] < LastStoreAllocTag[iSt]) ||
+                            (LoadTag[iLd][0] == LastStoreAllocTag[iSt] &&
+                             LoadAddr[iLd][0] != LastStoreAllocAddr[iSt]) ||
+                            (LoadTag[iLd][0] > LastStoreAckTag[iSt] &&
+                             LoadAddr[iLd][0] <= LastStoreAckAddr[iSt]);
 
-      /** Rule for checking load safety and reuse. */
-      if (LoadValid[0]) {
-        bool LoadSafePerStore[NUM_STORES];
-        bool LoadReusePerStore[NUM_STORES];
-        uint LoadReuseTagPerStore[NUM_STORES]; 
-        T LoadReuseValPerStore[NUM_STORES];
-        bool MinTagsSatisfied = (LoadMinTag[0][0] < LastStoreAllocTag[0]);
-        UnrolledLoop<NUM_STORES>([&](auto iSt) {
-          LoadSafePerStore[iSt] = (LoadTag[0] < LastStoreAllocTag[iSt]) ||
-                                  (LoadTag[0] >= LastStoreAckTag[iSt] &&
-                                   LoadAddr[0] < LastStoreAckAddr[iSt]);
-
-          LoadReusePerStore[iSt] = false;
-          LoadReuseTagPerStore[iSt] = 0u;
-          #pragma unroll
-          for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
-            if (LoadAddr[0] == StoreCommitAddr[iSt][i]) {
-              LoadReusePerStore[iSt] = true;
-              LoadReuseTagPerStore[iSt] = StoreCommitTag[iSt][i];
-              LoadReuseValPerStore[iSt] = StoreCommitVal[iSt][i];
+            ThisReuse[iSt] = false;
+            ThisReuseTag[iSt] = 0u;
+            #pragma unroll
+            for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
+              if (LoadAddr[iLd][0] == StoreCommitAddr[iSt][i]) {
+                ThisReuse[iSt] = true;
+                ThisReuseTag[iSt] = StoreCommitTag[iSt][i];
+                ThisReuseVal[iSt] = StoreCommitVal[iSt][i];
+              }
             }
-          }
 
-          if constexpr (iSt > 0)
-            MinTagsSatisfied &= (LoadMinTag[iSt][0] < LastStoreAllocTag[iSt]);
-        });
-
-        if (MinTagsSatisfied) {
-          LoadSafe[0] = LoadSafePerStore[0];
-          LoadReuse[0] = LoadReusePerStore[0];
-          uint MaxReuseTag = LoadReuseTagPerStore[0];
-          LoadReuseVal[0] = LoadReuseValPerStore[0];
-          UnrolledLoop<1, NUM_STORES>([&](auto iSt) {
-            LoadSafe[0] &= LoadSafePerStore[iSt];
-            LoadReuse[0] |= LoadReusePerStore[iSt];
-
-            if (LoadReuseTagPerStore[iSt] > MaxReuseTag) {
-              MaxReuseTag = LoadReuseTagPerStore[iSt];
-              LoadReuseVal[0] = LoadReuseValPerStore[iSt];
+            if constexpr (iSt > 0) {
+              MinTagsSatisfied &=
+                  (LoadMinTag[iLd][iSt][0] < LastStoreAllocTag[iSt]);
             }
           });
 
-          if (LoadReuse[0]) {
-            LoadMuxPredPipe::write(LD_MUX_REUSE);
-            LoadMuxReuseValPipe::write(LoadReuseVal[0]);
-            LoadValid[0] = false;
-          } else if (LoadSafe[0]) {
-            LoadMuxPredPipe::write(LD_MUX_LOAD);
-            LoadPortAddrPipe::write(LoadAddr[0]);
-            LoadValid[0] = false;
+          if (MinTagsSatisfied) {
+            LoadSafe[iLd][0] = ThisSafe[0];
+            LoadReuse[iLd][0] = ThisReuse[0];
+            uint MaxReuseTag = ThisReuseTag[0];
+            LoadReuseVal[iLd][0] = ThisReuseVal[0];
+            UnrolledLoop<1, NUM_STORES>([&](auto iSt) {
+              LoadSafe[iLd][0] &= ThisSafe[iSt];
+              LoadReuse[iLd][0] |= ThisReuse[iSt];
+
+              if (ThisReuseTag[iSt] > MaxReuseTag) {
+                MaxReuseTag = ThisReuseTag[iSt];
+                LoadReuseVal[iLd][0] = ThisReuseVal[iSt];
+              }
+            });
+
+            if (LoadReuse[iLd][0]) {
+              LoadMuxPredPipes::template PipeAt<iLd>::write(LD_MUX_REUSE);
+              LoadMuxReuseValPipes::template PipeAt<iLd>::write(LoadReuseVal[iLd][0]);
+              LoadValid[iLd][0] = false;
+            } else if (LoadSafe[iLd][0]) {
+              LoadMuxPredPipes::template PipeAt<iLd>::write(LD_MUX_LOAD);
+              LoadPortAddrPipes::template PipeAt<iLd>::write(LoadAddr[iLd][0]);
+              LoadValid[iLd][0] = false;
+            }
           }
         }
-      }
-      /** End Rule */
+        /** End Rule */
+      });
 
     } // end while
 
-    LoadMuxPredPipe::write(LD_MUX_TERMINATE);
-    LoadPortAddrPipe::write(MAX_INT);
+    LoadMuxPredPipes::write(LD_MUX_TERMINATE);
+    LoadPortAddrPipes::write(MAX_INT);
 
-    PRINTF("** DONE Streaming Memory\n");
+    // PRINTF("** DONE Streaming Memory\n");
   });
 
   return events;

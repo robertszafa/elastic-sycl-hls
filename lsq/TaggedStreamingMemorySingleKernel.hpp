@@ -219,11 +219,14 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     int LoadAllocAddr[NUM_LOADS];
     uint LoadAllocTag[NUM_LOADS];
     uint LoadAllocMinTag[NUM_LOADS][NUM_STORES];
+    bool LoadAllocPositiveDepDist[NUM_LOADS][NUM_STORES];
     InitBundle(LoadAllocValid, false);
     InitBundle(LoadAllocAddr, INVALID_ADDR);
     InitBundle(LoadAllocTag, 0u);
-    UnrolledLoop<NUM_LOADS>(
-        [&](auto iLd) { InitBundle(LoadAllocMinTag[iLd], 0u); });
+    UnrolledLoop<NUM_LOADS>([&](auto iLd) { 
+      InitBundle(LoadAllocMinTag[iLd], 0u); 
+      InitBundle(LoadAllocPositiveDepDist[iLd], false); 
+    });
 
     bool LoadExecSafeToLoad[NUM_LOADS];
     bool LoadExecReuse[NUM_LOADS];
@@ -261,6 +264,20 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
               LoadAllocMinTag[iLd][iSt] = LoadReq.mintag[iSt];
             });
             LoadAllocValid[iLd] = true;
+
+            // For each store sequence, pinpoint the store coming immediately
+            // this load and check if the dependency distance is positive. 
+            UnrolledLoop<NUM_STORES>([&](uint iSt) {
+              if (LoadReq.tag <= StoreAllocTag[iSt][ST_Q_SIZE - 1]) {
+                #pragma unroll
+                for (int i = ST_Q_SIZE-1; i >= 0; --i) {
+                  if (LoadReq.tag >= StoreAllocTag[iSt][i]) {
+                    LoadAllocPositiveDepDist[iLd][iSt] =
+                        (LoadReq.addr > StoreAllocAddr[iSt][i]);
+                  }
+                }
+              }
+            });
           }
         }
         /** End Rule */
@@ -277,6 +294,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           UnrolledLoop<NUM_STORES>([&](uint iSt) {
             // TODO: CAM INTO STORE ALLOCS
             Safe[iSt] = (LoadAllocTag[iLd] < NextStoreTag[iSt]) ||
+                        LoadAllocPositiveDepDist[iLd][iSt] ||
                         (LoadAllocTag[iLd] >= StoreAckTag[iSt] &&
                          LoadAllocAddr[iLd] <= StoreAckAddr[iSt]);
             Reuse[iSt] = (LoadAllocTag[iLd] >= LastStoreTag[iSt]) &&
@@ -306,10 +324,10 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           if (AllMinTag && (AllSafe || AnyReuse)) {
             // if (iLd == 1) {
             //   PRINTF(
-            //       "@%d SAFE (%d, %d)  Reuse=(%d, tag=%d) NextStore (%d, %d) "
+            //       "@%d SAFE (%d, %d)  PositiveDep=%d Reuse=(%d, tag=%d) NextStore (%d, %d) "
             //       "LastStore (%d, %d)  Ack (%d, %d)\n",
             //       cycle, LoadAllocAddr[iLd], LoadAllocTag[iLd],
-            //       LoadExecReuse[iLd], LoadExecReuseTag[iLd],
+            //       LoadAllocPositiveDepDist[iLd][0], LoadExecReuse[iLd], LoadExecReuseTag[iLd],
             //       NextStoreAddr[0], NextStoreTag[0], LastStoreAddr[0],
             //       LastStoreTag[0], StoreAckAddr[0], StoreAckTag[0]);
             // }

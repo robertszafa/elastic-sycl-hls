@@ -32,6 +32,7 @@ struct addr_tag_mintag_t {
   uint tag;
   // Minimum tag that a store dependency has to have.
   uint mintag[NUM_STORES];
+  bool posDepDist[NUM_STORES];
 };
 // Types for specifying action in load mux.
 using ld_mux_pred_t = ac_int<2, false>;
@@ -181,6 +182,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     int LoadAddr[NUM_LOADS][LD_Q_SIZE];
     uint LoadTag[NUM_LOADS][LD_Q_SIZE];
     uint LoadMinTag[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
+    bool LoadPosDepDist[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
     
     bool LoadSafe[NUM_LOADS][LD_Q_SIZE];
     bool LoadReuse[NUM_LOADS][LD_Q_SIZE];
@@ -195,8 +197,10 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       InitBundle(LoadSafe[iLd], false);
       InitBundle(LoadReuse[iLd], false);
       InitBundle(LoadReuseVal[iLd], T{});
-      UnrolledLoop<NUM_STORES>(
-          [&](auto iSt) { InitBundle(LoadMinTag[iLd][iSt], 0u); });
+      UnrolledLoop<NUM_STORES>([&](auto iSt) {
+        InitBundle(LoadMinTag[iLd][iSt], 0u);
+        InitBundle(LoadPosDepDist[iLd][iSt], false);
+      });
     });
 
     bool EndSignal = false;
@@ -273,8 +277,10 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           ShiftBundle(LoadValid[iLd], false);
           ShiftBundle(LoadAddr[iLd], INVALID_ADDR);
           ShiftBundle(LoadTag[iLd], 0u);
-          UnrolledLoop<NUM_STORES>(
-              [&](auto iSt) { ShiftBundle(LoadMinTag[iLd][iSt], 0u); });
+          UnrolledLoop<NUM_STORES>([&](auto iSt) {
+            ShiftBundle(LoadMinTag[iLd][iSt], 0u);
+            ShiftBundle(LoadPosDepDist[iLd][iSt], false);
+          });
 
           ShiftBundle(LoadSafe[iLd], false);
           ShiftBundle(LoadReuse[iLd], false);
@@ -292,6 +298,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             LoadTag[iLd][LD_Q_SIZE - 1] = LoadReq.tag;
             UnrolledLoop<NUM_STORES>([&](auto iSt) {
               LoadMinTag[iLd][iSt][LD_Q_SIZE - 1] = LoadReq.mintag[iSt];
+              LoadPosDepDist[iLd][iSt][LD_Q_SIZE - 1] = LoadReq.posDepDist[iSt];
             });
           }
         }
@@ -303,26 +310,15 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           bool ThisReuse[NUM_STORES];
           uint ThisReuseTag[NUM_STORES];
           T ThisReuseVal[NUM_STORES];
-          bool AllMinTags = (LoadMinTag[iLd][0][0] < LastStoreAllocTag[0]);
+          bool AllMinTags = true;
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
-            uint TagHit = MAX_INT;
-            #pragma unroll
-            for (int i = ST_ALLOC_Q_SIZE-1; i >= 0; --i) {
-              if (LoadAddr[iLd][0] == StoreAllocAddr[iSt][i]) {
-                TagHit = StoreAllocTag[iSt][i];
-              }
-            }
-
             ThisSafe[iSt] = (LoadTag[iLd][0] < LastStoreAllocTag[iSt]) ||
-                            // (LoadTag[iLd][0] == LastStoreAllocTag[iSt] &&
-                            //  LoadAddr[iLd][0] != LastStoreAllocAddr[iSt]) ||
-                            (LoadTag[iLd][0] >= LastStoreAllocTag[iSt] &&
-                             LoadTag[iLd][0] < TagHit) ||
-                            (LoadTag[iLd][0] >= LastStoreAckTag[iSt] && 
+                            LoadPosDepDist[iLd][iSt][0] ||
+                            (LoadTag[iLd][0] > LastStoreAckTag[iSt] &&
                              LoadAddr[iLd][0] <= LastStoreAckAddr[iSt]);
-
             ThisReuse[iSt] = false;
             ThisReuseTag[iSt] = 0u;
+            ThisReuseVal[iSt] = T{};
             #pragma unroll
             for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
               if (LoadAddr[iLd][0] == StoreCommitAddr[iSt][i]) {
@@ -332,16 +328,14 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
               }
             }
 
-            if constexpr (iSt > 0) {
-              AllMinTags &= (LoadMinTag[iLd][iSt][0] < LastStoreAllocTag[iSt]);
-            }
+            AllMinTags &= (LoadMinTag[iLd][iSt][0] < LastStoreAllocTag[iSt]);
           });
 
           if (AllMinTags) {
             LoadSafe[iLd][0] = ThisSafe[0];
             LoadReuse[iLd][0] = ThisReuse[0];
-            uint MaxReuseTag = ThisReuseTag[0];
             LoadReuseVal[iLd][0] = ThisReuseVal[0];
+            uint MaxReuseTag = ThisReuseTag[0];
             UnrolledLoop<1, NUM_STORES>([&](auto iSt) {
               LoadSafe[iLd][0] &= ThisSafe[iSt];
               LoadReuse[iLd][0] |= ThisReuse[iSt];

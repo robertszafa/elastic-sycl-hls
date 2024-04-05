@@ -97,7 +97,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       }
       // force final burst?
       atomic_fence(memory_order_seq_cst, memory_scope_work_item); 
-      PRINTF("** DONE store port%d\n", int(iSt));
+      // PRINTF("** DONE store port%d\n", int(iSt));
     });
   });
 
@@ -331,6 +331,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
                             LoadTag[iLd][0] < NextStoreTag[iSt] ||
                             (LoadMinTag[iLd][iSt][0] < NextStoreTag[iSt] &&
                              LoadAddr[iLd][0] < NextStoreAddr[iSt]);
+            AllSafe &= ThisSafe[iSt];
 
             ThisReuse[iSt] = false;
             ThisReuseTag[iSt] = 0u;
@@ -344,17 +345,14 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
                 ThisReuseVal[iSt] = StoreCommitVal[iSt][i];
               }
             }
-
-            AllSafe &= (ThisSafe[iSt] || ThisReuse[iSt]);
           });
 
           if (AllSafe) {
-            LoadSafe[iLd][0] = ThisSafe[0];
+            LoadSafe[iLd][0] = true;
             LoadReuse[iLd][0] = ThisReuse[0];
             LoadReuseVal[iLd][0] = ThisReuseVal[0];
             uint MaxReuseTag = ThisReuseTag[0];
             UnrolledLoop<1, NUM_STORES>([&](auto iSt) {
-              LoadSafe[iLd][0] &= ThisSafe[iSt];
               LoadReuse[iLd][0] |= ThisReuse[iSt];
 
               if (ThisReuseTag[iSt] > MaxReuseTag) {
@@ -363,26 +361,15 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
               }
             });
 
-            // if constexpr (iLd == 1) {
-            //   PRINTF(
-            //       "@%d Load%d SAFE (%d, %d), Reuse=(%d, tag=%d)\n"
-            //       "(%d, %d) NextStore0 (%d, %d), PosDep=%d, min=%d\n"
-            //       "(%d, %d) NextStore1 (%d, %d), PosDep=%d, min=%d\n\n",
-            //       cycle, int(iLd), LoadAddr[iLd][0], LoadTag[iLd][0], LoadReuse[iLd][0], MaxReuseTag, 
-            //       ThisSafe[0], ThisReuse[0], NextStoreAddr[0], NextStoreTag[0], LoadPosDepDist[iLd][0][0], LoadMinTag[iLd][0][0],
-            //       ThisSafe[1], ThisReuse[1], NextStoreAddr[1], NextStoreTag[1], LoadPosDepDist[iLd][1][0], LoadMinTag[iLd][1][0]
-            //   );
-            // }
-
             if (LoadReuse[iLd][0]) {
               LoadMuxPredPipes::template PipeAt<iLd>::write(LD_MUX_REUSE);
               LoadMuxReuseValPipes::template PipeAt<iLd>::write(LoadReuseVal[iLd][0]);
-              LoadValid[iLd][0] = false;
             } else if (LoadSafe[iLd][0]) {
               LoadMuxPredPipes::template PipeAt<iLd>::write(LD_MUX_LOAD);
               LoadPortAddrPipes::template PipeAt<iLd>::write(LoadAddr[iLd][0]);
-              LoadValid[iLd][0] = false;
             }
+
+            LoadValid[iLd][0] = false;
           }
         }
         /** End Rule */
@@ -392,9 +379,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
     LoadMuxPredPipes::write(LD_MUX_TERMINATE);
     LoadPortAddrPipes::write(MAX_INT);
-    // StorePortAddrPipes::write(MAX_INT);
 
-    PRINTF("** DONE Streaming Memory\n");
+    // PRINTF("** DONE Streaming Memory\n");
   });
 
   return events;

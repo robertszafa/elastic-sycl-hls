@@ -105,9 +105,9 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
   // Pipes for load port and load mux.
   using LoadPortAddrPipes = PipeArray<class _LoadAddr, uint, BURST_SIZE*4, NUM_LOADS>;
-  using LoadMuxLoadValPipes = PipeArray<class _LoadMuxMemoryVal, T, BURST_SIZE*4, NUM_LOADS>;
-  using LoadMuxPredPipes = PipeArray<class _LoadMuxPred, ld_mux_pred_t, BURST_SIZE*4, NUM_LOADS>;
-  using LoadMuxReuseValPipes = PipeArray<class _LoadMuxReuseVal, T, BURST_SIZE*4, NUM_LOADS>;
+  using LoadMuxLoadValPipes = PipeArray<class _LoadMuxMemoryVal, T, BURST_SIZE, NUM_LOADS>;
+  using LoadMuxPredPipes = PipeArray<class _LoadMuxPred, ld_mux_pred_t, BURST_SIZE, NUM_LOADS>;
+  using LoadMuxReuseValPipes = PipeArray<class _LoadMuxReuseVal, T, BURST_SIZE, NUM_LOADS>;
   UnrolledLoop<NUM_LOADS>([&](auto iLd) {
     q.single_task<LoadPortKernel<MEM_ID, iLd>>([=]() KERNEL_PRAGMAS {
       [[intel::ivdep]]
@@ -175,7 +175,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       NextStoreTag[iSt] = 0u;
     });
 
-    constexpr uint LD_Q_SIZE = 4;
+    constexpr uint LD_Q_SIZE = 2;
     bool LoadValid[NUM_LOADS][LD_Q_SIZE];
     int LoadAddr[NUM_LOADS][LD_Q_SIZE];
     uint LoadTag[NUM_LOADS][LD_Q_SIZE];
@@ -183,10 +183,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     uint LoadMinTag[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
     bool LoadPosDepDist[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
     
-    bool LoadSafe[NUM_LOADS][LD_Q_SIZE];
-    bool LoadReuse[NUM_LOADS][LD_Q_SIZE];
-    T LoadReuseVal[NUM_LOADS][LD_Q_SIZE];
-
     // Init load registers
     UnrolledLoop<NUM_LOADS>([&](auto iLd) {
       InitBundle(LoadValid[iLd], false);
@@ -194,9 +190,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       InitBundle(LoadTag[iLd], 0u);
       InitBundle(LoadLoopStartTag[iLd], 0u);
 
-      InitBundle(LoadSafe[iLd], false);
-      InitBundle(LoadReuse[iLd], false);
-      InitBundle(LoadReuseVal[iLd], T{});
       UnrolledLoop<NUM_STORES>([&](auto iSt) {
         InitBundle(LoadMinTag[iLd][iSt], 0u);
         InitBundle(LoadPosDepDist[iLd][iSt], false);
@@ -213,7 +206,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     while (!EndSignal) {
       cycle++;
 
-      /** Rule for termination. Terminate a cycle after getting EndSignal. */
+      /** Rule for getting termination signal. Enabled when all stores finished
+         (MAX_INT sentinel). Terminate a cycle after getting EndSignal.*/
       bool OutstandingStores = false;
       UnrolledLoop<NUM_STORES>([&](auto iSt) {
         if (NextStoreAddr[iSt] != MAX_INT)
@@ -295,9 +289,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             ShiftBundle(LoadMinTag[iLd][iSt], 0u);
             ShiftBundle(LoadPosDepDist[iLd][iSt], false);
           });
-          ShiftBundle(LoadSafe[iLd], false);
-          ShiftBundle(LoadReuse[iLd], false);
-          ShiftBundle(LoadReuseVal[iLd], T{});
         }
         /** End Rule */
 
@@ -321,26 +312,29 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         /** Rule for checking load safety and reuse. */
         if (LoadValid[iLd][0]) {
           bool ThisSafe[NUM_STORES];
-          bool ThisReuse[NUM_STORES];
           uint ThisReuseTag[NUM_STORES];
           T ThisReuseVal[NUM_STORES];
           bool AllSafe = true;
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
-            ThisSafe[iSt] = (LoadLoopStartTag[iLd][0] < NextStoreTag[iSt] && 
+            // Three cases when no st->ld dependency exists:
+            //  1. Load comes before store in program order (load tag is lower).
+            //  2. Load comes after store in program order, but both are in the
+            //     same loop and the dependency distance is positive.
+            //  3. Load comes after store in program order, but reads from a
+            //     lower address.
+            ThisSafe[iSt] = (LoadTag[iLd][0] < NextStoreTag[iSt]) ||
+                            (LoadLoopStartTag[iLd][0] < NextStoreTag[iSt] &&
                              LoadPosDepDist[iLd][iSt][0]) ||
-                            LoadTag[iLd][0] < NextStoreTag[iSt] ||
                             (LoadMinTag[iLd][iSt][0] < NextStoreTag[iSt] &&
                              LoadAddr[iLd][0] < NextStoreAddr[iSt]);
             AllSafe &= ThisSafe[iSt];
 
-            ThisReuse[iSt] = false;
             ThisReuseTag[iSt] = 0u;
             ThisReuseVal[iSt] = T{};
             #pragma unroll
             for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
-              if (LoadAddr[iLd][0] == StoreCommitAddr[iSt][i] &&
-                  LoadMinTag[iLd][iSt][0] < StoreCommitTag[iSt][i]) {
-                ThisReuse[iSt] = true;
+              // On multiple matches this will choose the one with highest tag.
+              if (LoadAddr[iLd][0] == StoreCommitAddr[iSt][i]) {
                 ThisReuseTag[iSt] = StoreCommitTag[iSt][i];
                 ThisReuseVal[iSt] = StoreCommitVal[iSt][i];
               }
@@ -348,23 +342,24 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           });
 
           if (AllSafe) {
-            LoadSafe[iLd][0] = true;
-            LoadReuse[iLd][0] = ThisReuse[0];
-            LoadReuseVal[iLd][0] = ThisReuseVal[0];
-            uint MaxReuseTag = ThisReuseTag[0];
+            // We know there is a reuse if any ThisReuseTag is above 0 and above
+            // the minTag for that store. If more matches, than choose max.
+            bool Reuse = (ThisReuseTag[0] > LoadMinTag[iLd][0][0]);
+            uint ReuseTag = ThisReuseTag[0];
+            T ReuseVal = ThisReuseVal[0];
             UnrolledLoop<1, NUM_STORES>([&](auto iSt) {
-              LoadReuse[iLd][0] |= ThisReuse[iSt];
-
-              if (ThisReuseTag[iSt] > MaxReuseTag) {
-                MaxReuseTag = ThisReuseTag[iSt];
-                LoadReuseVal[iLd][0] = ThisReuseVal[iSt];
+              if (ThisReuseTag[iSt] > ReuseTag &&
+                  ThisReuseTag[iSt] > LoadMinTag[iLd][iSt][0]) {
+                Reuse = true;
+                ReuseTag = ThisReuseTag[iSt];
+                ReuseVal = ThisReuseVal[iSt];
               }
             });
 
-            if (LoadReuse[iLd][0]) {
+            if (Reuse) {
               LoadMuxPredPipes::template PipeAt<iLd>::write(LD_MUX_REUSE);
-              LoadMuxReuseValPipes::template PipeAt<iLd>::write(LoadReuseVal[iLd][0]);
-            } else if (LoadSafe[iLd][0]) {
+              LoadMuxReuseValPipes::template PipeAt<iLd>::write(ReuseVal);
+            } else {
               LoadMuxPredPipes::template PipeAt<iLd>::write(LD_MUX_LOAD);
               LoadPortAddrPipes::template PipeAt<iLd>::write(LoadAddr[iLd][0]);
             }

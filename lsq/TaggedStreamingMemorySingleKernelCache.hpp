@@ -30,6 +30,7 @@ template <int NUM_STORES>
 struct addr_tag_mintag_t {
   int addr;
   uint tag;
+  uint loopStartTag;
   // Minimum tag that a store dependency has to have.
   uint mintag[NUM_STORES];
   bool posDepDist[NUM_STORES];
@@ -178,6 +179,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     bool LoadValid[NUM_LOADS][LD_Q_SIZE];
     int LoadAddr[NUM_LOADS][LD_Q_SIZE];
     uint LoadTag[NUM_LOADS][LD_Q_SIZE];
+    uint LoadLoopStartTag[NUM_LOADS][LD_Q_SIZE];
     uint LoadMinTag[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
     bool LoadPosDepDist[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
     
@@ -190,6 +192,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       InitBundle(LoadValid[iLd], false);
       InitBundle(LoadAddr[iLd], INVALID_ADDR);
       InitBundle(LoadTag[iLd], 0u);
+      InitBundle(LoadLoopStartTag[iLd], 0u);
 
       InitBundle(LoadSafe[iLd], false);
       InitBundle(LoadReuse[iLd], false);
@@ -287,6 +290,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           ShiftBundle(LoadValid[iLd], false);
           ShiftBundle(LoadAddr[iLd], INVALID_ADDR);
           ShiftBundle(LoadTag[iLd], 0u);
+          ShiftBundle(LoadLoopStartTag[iLd], 0u);
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
             ShiftBundle(LoadMinTag[iLd][iSt], 0u);
             ShiftBundle(LoadPosDepDist[iLd][iSt], false);
@@ -305,6 +309,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             LoadValid[iLd][LD_Q_SIZE - 1] = true;
             LoadAddr[iLd][LD_Q_SIZE - 1] = LoadReq.addr;
             LoadTag[iLd][LD_Q_SIZE - 1] = LoadReq.tag;
+            LoadLoopStartTag[iLd][LD_Q_SIZE - 1] = LoadReq.loopStartTag;
             UnrolledLoop<NUM_STORES>([&](auto iSt) {
               LoadMinTag[iLd][iSt][LD_Q_SIZE - 1] = LoadReq.mintag[iSt];
               LoadPosDepDist[iLd][iSt][LD_Q_SIZE - 1] = LoadReq.posDepDist[iSt];
@@ -321,7 +326,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           T ThisReuseVal[NUM_STORES];
           bool AllSafe = true;
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
-            ThisSafe[iSt] = LoadPosDepDist[iLd][iSt][0] ||
+            ThisSafe[iSt] = (LoadLoopStartTag[iLd][0] < NextStoreTag[iSt] && 
+                             LoadPosDepDist[iLd][iSt][0]) ||
                             LoadTag[iLd][0] < NextStoreTag[iSt] ||
                             (LoadMinTag[iLd][iSt][0] < NextStoreTag[iSt] &&
                              LoadAddr[iLd][0] < NextStoreAddr[iSt]);

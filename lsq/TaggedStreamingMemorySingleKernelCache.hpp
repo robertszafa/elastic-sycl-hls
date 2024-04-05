@@ -72,7 +72,6 @@ template <int MemId, int PortId> class LoadValMuxKernel;
 
 template <int MEM_ID, typename EndSignalPipe, typename LoadAddrPipes,
           typename LoadValPipes, typename StoreAddrPipes, typename StoreValPipes,
-          typename StorePortAddrPipes, typename StorePortValPipes,
           uint NUM_LOADS, uint NUM_STORES, uint BIT_WIDTH = 32, typename T>
 std::vector<event> StreamingMemory(queue &q, T *data) {
   std::vector<event> events(NUM_STORES + 1);
@@ -81,20 +80,23 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
   constexpr uint BURST_SIZE = (DRAM_BURST_BITS + BIT_WIDTH - 1) / BIT_WIDTH;
 
   // Store ports.
+  using StorePortAddrPipes = PipeArray<class _StorePortAddr, int, BURST_SIZE*4, NUM_STORES>;
+  using StorePortValPipes = PipeArray<class _StorePortVal, T, BURST_SIZE*4, NUM_STORES>;
   UnrolledLoop<NUM_STORES>([&](auto iSt) {
     events[iSt] = q.single_task<StorePortKernel<MEM_ID, iSt>>([=]() KERNEL_PRAGMAS {
       [[intel::ivdep]]
       [[intel::initiation_interval(1)]]
       [[intel::speculated_iterations(0)]]
       while (true) {
-        auto Req = StorePortAddrPipes::template PipeAt<iSt>::read();
-        if (Req.addr == MAX_INT) break;
+        auto Addr = StorePortAddrPipes::template PipeAt<iSt>::read();
+        if (Addr == MAX_INT) break;
         auto Val = StorePortValPipes::template PipeAt<iSt>::read();
-        auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
+        auto StorePtr = ext::intel::device_ptr<T>(data + Addr);
         BurstCoalescedLSU::store(StorePtr, Val);
       }
       // force final burst?
-      // atomic_fence(memory_order_seq_cst, memory_scope_work_item); 
+      atomic_fence(memory_order_seq_cst, memory_scope_work_item); 
+      PRINTF("** DONE store port%d\n", int(iSt));
     });
   });
 
@@ -145,7 +147,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
   });
 
   events[NUM_STORES] = q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
-    constexpr uint ST_ALLOC_Q_SIZE = 4;
+    constexpr uint ST_ALLOC_Q_SIZE = 2;
     bool StoreAllocValid[NUM_STORES][ST_ALLOC_Q_SIZE];
     int StoreAllocAddr[NUM_STORES][ST_ALLOC_Q_SIZE];
     uint StoreAllocTag[NUM_STORES][ST_ALLOC_Q_SIZE];
@@ -155,10 +157,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     uint StoreCommitTag[NUM_STORES][ST_COMMIT_Q_SIZE];
     T StoreCommitVal[NUM_STORES][ST_COMMIT_Q_SIZE];
 
-    int LastStoreAckAddr[NUM_STORES];
-    uint LastStoreAckTag[NUM_STORES];
-    int LastStoreAllocAddr[NUM_STORES];
-    uint LastStoreAllocTag[NUM_STORES];
+    int NextStoreAddr[NUM_STORES];
+    uint NextStoreTag[NUM_STORES];
 
     // Init store registers
     UnrolledLoop<NUM_STORES>([&] (auto iSt) {
@@ -170,11 +170,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       InitBundle(StoreCommitTag[iSt], 0u);
       InitBundle(StoreCommitVal[iSt], T{});
 
-      LastStoreAckAddr[iSt] = INVALID_ADDR;
-      LastStoreAckTag[iSt] = 0u;
-
-      LastStoreAllocAddr[iSt] = INVALID_ADDR;
-      LastStoreAllocTag[iSt] = 0u;
+      NextStoreAddr[iSt] = INVALID_ADDR;
+      NextStoreTag[iSt] = 0u;
     });
 
     constexpr uint LD_Q_SIZE = 4;
@@ -205,7 +202,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
     bool EndSignal = false;
 
-    [[maybe_unused]] uint cycle = 0;
+    [[maybe_unused]] uint cycle = 0; // Used only for debug prints.
 
     [[intel::ivdep]]
     [[intel::initiation_interval(1)]]
@@ -214,7 +211,13 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       cycle++;
 
       /** Rule for termination. Terminate a cycle after getting EndSignal. */
-      EndSignalPipe::read(EndSignal);
+      bool OutstandingStores = false;
+      UnrolledLoop<NUM_STORES>([&](auto iSt) {
+        if (NextStoreAddr[iSt] != MAX_INT)
+          OutstandingStores = true;
+      });
+      if (!OutstandingStores)
+        EndSignalPipe::read(EndSignal);
       /** End Rule */
 
       /////////////////////////////////////////////////////////////////////////
@@ -224,8 +227,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         /** Rule shifting store allocation queue. */
         if (!StoreAllocValid[iSt][0]) {
           if (StoreAllocValid[iSt][1]) {
-            LastStoreAllocAddr[iSt] = StoreAllocAddr[iSt][1];
-            LastStoreAllocTag[iSt] = StoreAllocTag[iSt][1];
+            NextStoreAddr[iSt] = StoreAllocAddr[iSt][1];
+            NextStoreTag[iSt] = StoreAllocTag[iSt][1];
           }
 
           ShiftBundle(StoreAllocAddr[iSt], INVALID_ADDR);
@@ -239,6 +242,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           bool succ = false;
           auto StoreReq = StoreAddrPipes::template PipeAt<iSt>::read(succ);
           if (succ) {
+            StorePortAddrPipes:: template PipeAt<iSt>::write(StoreReq.addr);
+
             StoreAllocValid[iSt][ST_ALLOC_Q_SIZE - 1] = true;
             StoreAllocAddr[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.addr;
             StoreAllocTag[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.tag;
@@ -246,16 +251,21 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         }
         /** End Rule */
 
-        /** Rule for moving store allocation to store commit queue. */
-        if (StoreAllocValid[iSt][0]) {
+        /** Rule for getting st val and moving st alloc to st commit queue. */
+        bool StoreSafe = true;
+        UnrolledLoop<NUM_STORES>([&](auto iStOther) {
+          if constexpr (iStOther != iSt) {
+            if (NextStoreTag[iStOther] < NextStoreTag[iSt] &&
+                NextStoreAddr[iStOther] <= NextStoreAddr[iSt]) {
+              StoreSafe = false;
+            }
+          }
+        });
+        if (StoreAllocValid[iSt][0] && StoreSafe) {
           bool succ = false;
           auto StoreVal = StoreValPipes::template PipeAt<iSt>::read(succ);
           if (succ) {
-            // PRINTF("@%d St%d Val (%d, %d)\n", cycle, int(iSt), 
-            //        StoreAllocAddr[iSt][0], StoreAllocTag[iSt][0]);
-
-            LastStoreAckAddr[iSt] = StoreCommitAddr[iSt][0];
-            LastStoreAckTag[iSt] = StoreCommitTag[iSt][0];
+            StorePortValPipes::template PipeAt<iSt>::write(StoreVal);
 
             ShiftBundle(StoreCommitAddr[iSt], StoreAllocAddr[iSt][0]);
             ShiftBundle(StoreCommitTag[iSt], StoreAllocTag[iSt][0]);
@@ -281,7 +291,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             ShiftBundle(LoadMinTag[iLd][iSt], 0u);
             ShiftBundle(LoadPosDepDist[iLd][iSt], false);
           });
-
           ShiftBundle(LoadSafe[iLd], false);
           ShiftBundle(LoadReuse[iLd], false);
           ShiftBundle(LoadReuseVal[iLd], T{});
@@ -310,28 +319,30 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           bool ThisReuse[NUM_STORES];
           uint ThisReuseTag[NUM_STORES];
           T ThisReuseVal[NUM_STORES];
-          bool AllMinTags = true;
+          bool AllSafe = true;
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
-            ThisSafe[iSt] = (LoadTag[iLd][0] < LastStoreAllocTag[iSt]) ||
-                            LoadPosDepDist[iLd][iSt][0] ||
-                            (LoadTag[iLd][0] > LastStoreAckTag[iSt] &&
-                             LoadAddr[iLd][0] <= LastStoreAckAddr[iSt]);
+            ThisSafe[iSt] = LoadPosDepDist[iLd][iSt][0] ||
+                            LoadTag[iLd][0] < NextStoreTag[iSt] ||
+                            (LoadMinTag[iLd][iSt][0] < NextStoreTag[iSt] &&
+                             LoadAddr[iLd][0] < NextStoreAddr[iSt]);
+
             ThisReuse[iSt] = false;
             ThisReuseTag[iSt] = 0u;
             ThisReuseVal[iSt] = T{};
             #pragma unroll
             for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
-              if (LoadAddr[iLd][0] == StoreCommitAddr[iSt][i]) {
+              if (LoadAddr[iLd][0] == StoreCommitAddr[iSt][i] &&
+                  LoadMinTag[iLd][iSt][0] < StoreCommitTag[iSt][i]) {
                 ThisReuse[iSt] = true;
                 ThisReuseTag[iSt] = StoreCommitTag[iSt][i];
                 ThisReuseVal[iSt] = StoreCommitVal[iSt][i];
               }
             }
 
-            AllMinTags &= (LoadMinTag[iLd][iSt][0] < LastStoreAllocTag[iSt]);
+            AllSafe &= (ThisSafe[iSt] || ThisReuse[iSt]);
           });
 
-          if (AllMinTags) {
+          if (AllSafe) {
             LoadSafe[iLd][0] = ThisSafe[0];
             LoadReuse[iLd][0] = ThisReuse[0];
             LoadReuseVal[iLd][0] = ThisReuseVal[0];
@@ -345,6 +356,17 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
                 LoadReuseVal[iLd][0] = ThisReuseVal[iSt];
               }
             });
+
+            // if constexpr (iLd == 1) {
+            //   PRINTF(
+            //       "@%d Load%d SAFE (%d, %d), Reuse=(%d, tag=%d)\n"
+            //       "(%d, %d) NextStore0 (%d, %d), PosDep=%d, min=%d\n"
+            //       "(%d, %d) NextStore1 (%d, %d), PosDep=%d, min=%d\n\n",
+            //       cycle, int(iLd), LoadAddr[iLd][0], LoadTag[iLd][0], LoadReuse[iLd][0], MaxReuseTag, 
+            //       ThisSafe[0], ThisReuse[0], NextStoreAddr[0], NextStoreTag[0], LoadPosDepDist[iLd][0][0], LoadMinTag[iLd][0][0],
+            //       ThisSafe[1], ThisReuse[1], NextStoreAddr[1], NextStoreTag[1], LoadPosDepDist[iLd][1][0], LoadMinTag[iLd][1][0]
+            //   );
+            // }
 
             if (LoadReuse[iLd][0]) {
               LoadMuxPredPipes::template PipeAt<iLd>::write(LD_MUX_REUSE);
@@ -364,8 +386,9 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
     LoadMuxPredPipes::write(LD_MUX_TERMINATE);
     LoadPortAddrPipes::write(MAX_INT);
+    // StorePortAddrPipes::write(MAX_INT);
 
-    // PRINTF("** DONE Streaming Memory\n");
+    PRINTF("** DONE Streaming Memory\n");
   });
 
   return events;

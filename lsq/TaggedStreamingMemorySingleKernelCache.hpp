@@ -87,7 +87,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     events[iSt] = q.single_task<StorePortKernel<MEM_ID, iSt>>([=]() KERNEL_PRAGMAS {
       [[intel::ivdep]]
       [[intel::initiation_interval(1)]]
-      [[intel::speculated_iterations(0)]]
       while (true) {
         auto Addr = StorePortAddrPipes::template PipeAt<iSt>::read();
         if (Addr == MAX_INT) break;
@@ -97,7 +96,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       }
       // force final burst?
       atomic_fence(memory_order_seq_cst, memory_scope_work_item); 
-      // PRINTF("** DONE store port%d\n", int(iSt));
     });
   });
 
@@ -112,7 +110,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     q.single_task<LoadPortKernel<MEM_ID, iLd>>([=]() KERNEL_PRAGMAS {
       [[intel::ivdep]]
       [[intel::initiation_interval(1)]]
-      [[intel::speculated_iterations(0)]]
       while (true) {
         auto Addr = LoadPortAddrPipes::template PipeAt<iLd>::read();
         if (Addr == MAX_INT) break;
@@ -122,11 +119,9 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       }
     });
     q.single_task<LoadValMuxKernel<MEM_ID, iLd>>([=]() KERNEL_PRAGMAS {
-      int NumTotal = 0;
-      int NumReused = 0;
+      [[maybe_unused]] int NumTotal = 0, NumReused = 0;
       [[intel::ivdep]]
       [[intel::initiation_interval(1)]]
-      [[intel::speculated_iterations(0)]]
       while (true) {
         T Val;
         ld_mux_pred_t Pred = LoadMuxPredPipes::template PipeAt<iLd>::read();
@@ -138,16 +133,15 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         } else {
           break;
         }
-        // PRINTF("Ld%d Val returned (reuse = %d)\n", int(iLd), (Pred == LD_MUX_REUSE));
 
         LoadValPipes::template PipeAt<iLd>::write(Val);
         NumTotal++;
       }
-      PRINTF("** DONE load%d MUX, reused %d/%d\n", int(iLd), NumReused, NumTotal);
+      // PRINTF("** DONE load%d MUX, reused %d/%d\n", int(iLd), NumReused, NumTotal);
     });
   });
 
-  events[NUM_STORES] = q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
+  events[1] = q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
     constexpr uint ST_ALLOC_Q_SIZE = 2;
     bool StoreAllocValid[NUM_STORES][ST_ALLOC_Q_SIZE];
     int StoreAllocAddr[NUM_STORES][ST_ALLOC_Q_SIZE];
@@ -202,7 +196,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
     [[intel::ivdep]]
     [[intel::initiation_interval(1)]]
-    [[intel::speculated_iterations(0)]]
     while (!EndSignal) {
       cycle++;
 
@@ -249,16 +242,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         /** End Rule */
 
         /** Rule for getting st val and moving st alloc to st commit queue. */
-        bool StoreSafe = true;
-        UnrolledLoop<NUM_STORES>([&](auto iStOther) {
-          if constexpr (iStOther != iSt) {
-            if (NextStoreTag[iStOther] < NextStoreTag[iSt] &&
-                NextStoreAddr[iStOther] <= NextStoreAddr[iSt]) {
-              StoreSafe = false;
-            }
-          }
-        });
-        if (StoreAllocValid[iSt][0] && StoreSafe) {
+        if (StoreAllocValid[iSt][0]) {
           bool succ = false;
           auto StoreVal = StoreValPipes::template PipeAt<iSt>::read(succ);
           if (succ) {
@@ -269,6 +253,18 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             ShiftBundle(StoreCommitVal[iSt], StoreVal);
 
             StoreAllocValid[iSt][0] = false;
+
+            // Check if this store overrides another store in its burst buffer.
+            UnrolledLoop<NUM_STORES>([&](auto iStOther) {
+              if constexpr (iStOther != iSt) {
+                #pragma unroll
+                for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
+                  if (NextStoreAddr[iSt] == StoreCommitAddr[iStOther][i]) {
+                    StoreCommitAddr[iStOther][i] = INVALID_ADDR;
+                  }
+                }
+              }
+            });
           }
         }
         /** End Rule */
@@ -356,6 +352,18 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
               }
             });
 
+            // if constexpr (iLd == 1) {
+            //   PRINTF("safe ld%d (%d, %d) reuse = %d, resuseTags=(%d, %d),   "
+            //          "NextSt0=(%d, %d), NextSt1=(%d, %d),    "
+            //          "St0CommitRange=[(%d, %d), (%d, %d)], St1CommitRange=[(%d, %d), (%d, %d)]\n",
+            //          int(iLd), LoadAddr[iLd][0], LoadTag[iLd][0], Reuse,
+            //          ThisReuseTag[0], ThisReuseTag[1], 
+            //          NextStoreAddr[0], NextStoreTag[0], 
+            //          NextStoreAddr[1], NextStoreTag[1],
+            //          StoreCommitAddr[0][0], StoreCommitTag[0][0], StoreCommitAddr[0][ST_COMMIT_Q_SIZE - 1], StoreCommitTag[0][ST_COMMIT_Q_SIZE - 1], 
+            //          StoreCommitAddr[1][0], StoreCommitTag[1][0], StoreCommitAddr[1][ST_COMMIT_Q_SIZE - 1], StoreCommitTag[1][ST_COMMIT_Q_SIZE - 1]
+            //         );
+            // }
             if (Reuse) {
               LoadMuxPredPipes::template PipeAt<iLd>::write(LD_MUX_REUSE);
               LoadMuxReuseValPipes::template PipeAt<iLd>::write(ReuseVal);

@@ -211,67 +211,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       /** End Rule */
 
       /////////////////////////////////////////////////////////////////////////
-      //////////////////////////    STORE LOGIC     ///////////////////////////
-      /////////////////////////////////////////////////////////////////////////
-      UnrolledLoop<NUM_STORES>([&](auto iSt) {
-        /** Rule shifting store allocation queue. */
-        if (!StoreAllocValid[iSt][0]) {
-          if (StoreAllocValid[iSt][1]) {
-            NextStoreAddr[iSt] = StoreAllocAddr[iSt][1];
-            NextStoreTag[iSt] = StoreAllocTag[iSt][1];
-          }
-
-          ShiftBundle(StoreAllocAddr[iSt], INVALID_ADDR);
-          ShiftBundle(StoreAllocTag[iSt], 0u);
-          ShiftBundle(StoreAllocValid[iSt], false);
-        }
-        /** End Rule */
-
-        /** Rule for reading store {addr, tag} pairs. */
-        if (!StoreAllocValid[iSt][ST_ALLOC_Q_SIZE - 1]) {
-          bool succ = false;
-          auto StoreReq = StoreAddrPipes::template PipeAt<iSt>::read(succ);
-          if (succ) {
-            StorePortAddrPipes:: template PipeAt<iSt>::write(StoreReq.addr);
-
-            StoreAllocValid[iSt][ST_ALLOC_Q_SIZE - 1] = true;
-            StoreAllocAddr[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.addr;
-            StoreAllocTag[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.tag;
-          }
-        }
-        /** End Rule */
-
-        /** Rule for getting st val and moving st alloc to st commit queue. */
-        if (StoreAllocValid[iSt][0]) {
-          bool succ = false;
-          auto StoreVal = StoreValPipes::template PipeAt<iSt>::read(succ);
-          if (succ) {
-            StorePortValPipes::template PipeAt<iSt>::write(StoreVal);
-
-            ShiftBundle(StoreCommitAddr[iSt], StoreAllocAddr[iSt][0]);
-            ShiftBundle(StoreCommitTag[iSt], StoreAllocTag[iSt][0]);
-            ShiftBundle(StoreCommitVal[iSt], StoreVal);
-
-            StoreAllocValid[iSt][0] = false;
-
-            // Check if this store overrides another store in its burst buffer.
-            UnrolledLoop<NUM_STORES>([&](auto iStOther) {
-              if constexpr (iStOther != iSt) {
-                #pragma unroll
-                for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
-                  if (NextStoreAddr[iSt] == StoreCommitAddr[iStOther][i]) {
-                    StoreCommitAddr[iStOther][i] = INVALID_ADDR;
-                  }
-                }
-              }
-            });
-          }
-        }
-        /** End Rule */
-
-      }); // End for all stores
-
-      /////////////////////////////////////////////////////////////////////////
       //////////////////////////     LOAD LOGIC     ///////////////////////////
       /////////////////////////////////////////////////////////////////////////
       UnrolledLoop<NUM_LOADS>([&](auto iLd) {
@@ -377,6 +316,67 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         }
         /** End Rule */
       });
+
+      /////////////////////////////////////////////////////////////////////////
+      //////////////////////////    STORE LOGIC     ///////////////////////////
+      /////////////////////////////////////////////////////////////////////////
+      UnrolledLoop<NUM_STORES>([&](auto iSt) {
+        /** Rule shifting store allocation queue. */
+        if (!StoreAllocValid[iSt][0]) {
+          if (StoreAllocValid[iSt][1]) {
+            NextStoreAddr[iSt] = StoreAllocAddr[iSt][1];
+            NextStoreTag[iSt] = StoreAllocTag[iSt][1];
+          }
+
+          ShiftBundle(StoreAllocAddr[iSt], INVALID_ADDR);
+          ShiftBundle(StoreAllocTag[iSt], 0u);
+          ShiftBundle(StoreAllocValid[iSt], false);
+        }
+        /** End Rule */
+
+        /** Rule for reading store {addr, tag} pairs. */
+        if (!StoreAllocValid[iSt][ST_ALLOC_Q_SIZE - 1]) {
+          bool succ = false;
+          auto StoreReq = StoreAddrPipes::template PipeAt<iSt>::read(succ);
+          if (succ) {
+            StorePortAddrPipes:: template PipeAt<iSt>::write(StoreReq.addr);
+
+            StoreAllocValid[iSt][ST_ALLOC_Q_SIZE - 1] = true;
+            StoreAllocAddr[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.addr;
+            StoreAllocTag[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.tag;
+          }
+        }
+        /** End Rule */
+
+        /** Rule for getting st val and moving st alloc to st commit queue. */
+        if (StoreAllocValid[iSt][0]) {
+          bool succ = false;
+          auto StoreVal = StoreValPipes::template PipeAt<iSt>::read(succ);
+          if (succ) {
+            StorePortValPipes::template PipeAt<iSt>::write(StoreVal);
+
+            ShiftBundle(StoreCommitAddr[iSt], StoreAllocAddr[iSt][0]);
+            ShiftBundle(StoreCommitTag[iSt], StoreAllocTag[iSt][0]);
+            ShiftBundle(StoreCommitVal[iSt], StoreVal);
+
+            StoreAllocValid[iSt][0] = false;
+
+            // Check if this store overrides another store in its burst buffer.
+            UnrolledLoop<NUM_STORES>([&](auto iStOther) {
+              if constexpr (iStOther != iSt) {
+                #pragma unroll
+                for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
+                  if (NextStoreAddr[iSt] == StoreCommitAddr[iStOther][i]) {
+                    StoreCommitAddr[iStOther][i] = INVALID_ADDR;
+                  }
+                }
+              }
+            });
+          }
+        }
+        /** End Rule */
+
+      }); // End for all stores
 
     } // end while
 

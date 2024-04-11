@@ -176,6 +176,16 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     uint LoadLoopStartTag[NUM_LOADS][LD_Q_SIZE];
     uint LoadMinTag[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
     bool LoadPosDepDist[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
+
+    // Once a load allocation is deemed safe to execute/reuse, it is moved to
+    // this stage to issu load request or send reuse value.
+    bool SafeLoadValid[NUM_LOADS][LD_Q_SIZE];
+    int SafeLoadAddr[NUM_LOADS][LD_Q_SIZE];
+    bool SafeLoadReuse[NUM_LOADS][LD_Q_SIZE];
+    T SafeLoadReuseVal[NUM_LOADS][LD_Q_SIZE];
+    bool SafeLoadMuxPipeSucc[NUM_LOADS][LD_Q_SIZE];
+    bool SafeLoadAddrPipeSucc[NUM_LOADS][LD_Q_SIZE];
+    bool SafeLoadReusePipeSucc[NUM_LOADS][LD_Q_SIZE];
     
     // Init load registers
     UnrolledLoop<NUM_LOADS>([&](auto iLd) {
@@ -188,6 +198,14 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         InitBundle(LoadMinTag[iLd][iSt], 0u);
         InitBundle(LoadPosDepDist[iLd][iSt], false);
       });
+
+      InitBundle(SafeLoadValid[iLd], false);
+      InitBundle(SafeLoadAddr[iLd], INVALID_ADDR);
+      InitBundle(SafeLoadReuse[iLd], false);
+      InitBundle(SafeLoadReuseVal[iLd], T{});
+      InitBundle(SafeLoadMuxPipeSucc[iLd], false);
+      InitBundle(SafeLoadAddrPipeSucc[iLd], false);
+      InitBundle(SafeLoadReusePipeSucc[iLd], false);
     });
 
     bool EndSignal = false;
@@ -214,7 +232,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       //////////////////////////     LOAD LOGIC     ///////////////////////////
       /////////////////////////////////////////////////////////////////////////
       UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-        /** Rule for shifting load allocation queue. */ 
+        /** Rule for shifting load queues. */ 
         if (!LoadValid[iLd][0]) {
           ShiftBundle(LoadValid[iLd], false);
           ShiftBundle(LoadAddr[iLd], INVALID_ADDR);
@@ -224,6 +242,16 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             ShiftBundle(LoadMinTag[iLd][iSt], 0u);
             ShiftBundle(LoadPosDepDist[iLd][iSt], false);
           });
+        }
+
+        if (!SafeLoadValid[iLd][0]) {
+          ShiftBundle(SafeLoadValid[iLd], false);
+          ShiftBundle(SafeLoadAddr[iLd], INVALID_ADDR);
+          ShiftBundle(SafeLoadReuse[iLd], false);
+          ShiftBundle(SafeLoadReuseVal[iLd], T{});
+          ShiftBundle(SafeLoadMuxPipeSucc[iLd], false);
+          ShiftBundle(SafeLoadAddrPipeSucc[iLd], false);
+          ShiftBundle(SafeLoadReusePipeSucc[iLd], false);
         }
         /** End Rule */
 
@@ -245,7 +273,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         /** End Rule */
 
         /** Rule for checking load safety and reuse. */
-        if (LoadValid[iLd][0]) {
+        if (LoadValid[iLd][0] && !SafeLoadValid[iLd][LD_Q_SIZE - 1]) {
           bool ThisSafe[NUM_STORES];
           uint ThisReuseTag[NUM_STORES];
           T ThisReuseVal[NUM_STORES];
@@ -277,6 +305,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           });
 
           if (AllSafe) {
+            LoadValid[iLd][0] = false;
+
             // We know there is a reuse if any ThisReuseTag is above 0 and above
             // the minTag for that store. If more matches, than choose max.
             bool Reuse = (ThisReuseTag[0] > LoadMinTag[iLd][0][0]);
@@ -291,27 +321,41 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
               }
             });
 
-            // if constexpr (iLd == 1) {
-            //   PRINTF("safe ld%d (%d, %d) reuse = %d, resuseTags=(%d, %d),   "
-            //          "NextSt0=(%d, %d), NextSt1=(%d, %d),    "
-            //          "St0CommitRange=[(%d, %d), (%d, %d)], St1CommitRange=[(%d, %d), (%d, %d)]\n",
-            //          int(iLd), LoadAddr[iLd][0], LoadTag[iLd][0], Reuse,
-            //          ThisReuseTag[0], ThisReuseTag[1], 
-            //          NextStoreAddr[0], NextStoreTag[0], 
-            //          NextStoreAddr[1], NextStoreTag[1],
-            //          StoreCommitAddr[0][0], StoreCommitTag[0][0], StoreCommitAddr[0][ST_COMMIT_Q_SIZE - 1], StoreCommitTag[0][ST_COMMIT_Q_SIZE - 1], 
-            //          StoreCommitAddr[1][0], StoreCommitTag[1][0], StoreCommitAddr[1][ST_COMMIT_Q_SIZE - 1], StoreCommitTag[1][ST_COMMIT_Q_SIZE - 1]
-            //         );
-            // }
-            if (Reuse) {
-              LoadMuxPredPipes::template PipeAt<iLd>::write(LD_MUX_REUSE);
-              LoadMuxReuseValPipes::template PipeAt<iLd>::write(ReuseVal);
-            } else {
-              LoadMuxPredPipes::template PipeAt<iLd>::write(LD_MUX_LOAD);
-              LoadPortAddrPipes::template PipeAt<iLd>::write(LoadAddr[iLd][0]);
-            }
+            SafeLoadValid[iLd][LD_Q_SIZE - 1] = true;
+            SafeLoadAddr[iLd][LD_Q_SIZE - 1] = LoadAddr[iLd][0];
+            SafeLoadReuse[iLd][LD_Q_SIZE - 1] = Reuse;
+            SafeLoadReuseVal[iLd][LD_Q_SIZE - 1] = ReuseVal;
+            SafeLoadMuxPipeSucc[iLd][LD_Q_SIZE - 1] = false;
+            SafeLoadAddrPipeSucc[iLd][LD_Q_SIZE - 1] = false;
+            SafeLoadReusePipeSucc[iLd][LD_Q_SIZE - 1] = false;
+          }
+        }
+        /** End Rule */
 
-            LoadValid[iLd][0] = false;
+        /** Rule for sending address to load port (which returns loaded value to
+         * MUX), or for sending reuse value directly to MUX. */
+        if (SafeLoadValid[iLd][0]) {
+          if (!SafeLoadMuxPipeSucc[iLd][0]) {
+            auto MUX_CODE = SafeLoadReuse[iLd][0] ? LD_MUX_REUSE : LD_MUX_LOAD;
+            LoadMuxPredPipes::template PipeAt<iLd>::write(
+                MUX_CODE, SafeLoadMuxPipeSucc[iLd][0]);
+          }
+
+          if (SafeLoadReuse[iLd][0]) {
+            if (!SafeLoadReusePipeSucc[iLd][0]) {
+              LoadMuxReuseValPipes::template PipeAt<iLd>::write(
+                  SafeLoadReuseVal[iLd][0], SafeLoadReusePipeSucc[iLd][0]);
+            }
+            SafeLoadAddrPipeSucc[iLd][0] = true;
+          } else if (!SafeLoadAddrPipeSucc[iLd][0]) {
+            LoadPortAddrPipes::template PipeAt<iLd>::write(
+                SafeLoadAddr[iLd][0], SafeLoadAddrPipeSucc[iLd][0]);
+            SafeLoadReusePipeSucc[iLd][0] = true;
+          }
+
+          if (SafeLoadMuxPipeSucc[iLd][0] && SafeLoadReusePipeSucc[iLd][0] &&
+              SafeLoadAddrPipeSucc[iLd][0]) {
+            SafeLoadValid[iLd][0] = false;
           }
         }
         /** End Rule */

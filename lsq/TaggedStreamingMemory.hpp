@@ -167,7 +167,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     tag_t StoreAllocTag[NUM_STORES][ST_ALLOC_Q_SIZE];
     tag_t StoreAllocLoopTag[NUM_STORES][ST_ALLOC_Q_SIZE];
     tag_t StoreAllocMinLoopTagStores[NUM_STORES][NUM_STORES][ST_ALLOC_Q_SIZE];
-    tag_t StoreAllocMinLoopTagLoads[NUM_STORES][NUM_STORES][ST_ALLOC_Q_SIZE];
+    tag_t StoreAllocMinLoopTagLoads[NUM_STORES][NUM_LOADS][ST_ALLOC_Q_SIZE];
     
     bool StorePrinted[NUM_STORES];
     InitBundle(StorePrinted, false);
@@ -220,7 +220,11 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     tag_t LoadLoopTag[NUM_LOADS][LD_Q_SIZE];
     tag_t LoadAckTag[NUM_LOADS];
     tag_t LoadAckLoopTag[NUM_LOADS];
-    tag_t LoadAckAddr[NUM_LOADS];
+    addr_t LoadAckAddr[NUM_LOADS];
+
+    tag_t NextLoadTag[NUM_LOADS];
+    tag_t NextLoadLoopTag[NUM_LOADS];
+    addr_t NextLoadAddr[NUM_LOADS];
 
     tag_t LoadStoreLoopMinTag[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
     bool LoadPosDepDist[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
@@ -245,7 +249,11 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       InitBundle(LoadLoopTag[iLd], 0u);
       LoadAckTag[iLd] = 0u;
       LoadAckLoopTag[iLd] = 0u;
-      LoadAckAddr[iLd] = INVALID_ADDR;
+      LoadAckAddr[iLd] = MAX_INT;
+
+      NextLoadTag[iLd] = 0u;
+      NextLoadLoopTag[iLd] = 0u;
+      NextLoadAddr[iLd] = INVALID_ADDR;
 
       UnrolledLoop<NUM_STORES>([&](auto iSt) {
         InitBundle(LoadStoreLoopMinTag[iLd][iSt], 0u);
@@ -305,6 +313,12 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
         /** Rule for shifting load queues. */ 
         if (!LoadValid[iLd][0]) {
+          if (LoadValid[iLd][1]) {
+            NextLoadTag[iLd] = LoadTag[iLd][1];
+            NextLoadLoopTag[iLd] = LoadLoopTag[iLd][1];
+            NextLoadAddr[iLd] = LoadAddr[iLd][1];
+          }
+
           ShiftBundle(LoadValid[iLd], false);
           ShiftBundle(LoadAddr[iLd], INVALID_ADDR);
           ShiftBundle(LoadTag[iLd], 0u);
@@ -400,9 +414,9 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
             // No st->ld dependency exists if:
             NoRAW &= (LoadBeforeNextStoreInProgramOrder ||
-                        LoadRightAfterLastStoreInProgramOrder ||
-                        LoadInSameLoopWithPositiveDepDist ||
-                        LoadAfterStoreButToLowerAddress);
+                      LoadRightAfterLastStoreInProgramOrder ||
+                      LoadInSameLoopWithPositiveDepDist ||
+                      LoadAfterStoreButToLowerAddress);
 
             ThisReuse[iSt] = false;
             ThisReuseTag[iSt] = 0u;
@@ -518,6 +532,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         UnrolledLoop<NUM_LOADS>([&](auto iLd) {
           if ((StoreAllocMinLoopTagLoads[iSt][iLd][0] > LoadAckLoopTag[iLd]) ||
               (NextStoreLoopTag[iSt] > LoadAckLoopTag[iLd] &&
+               NextStoreLoopTag[iSt] > NextLoadLoopTag[iLd] &&
                NextStoreAddr[iSt] > LoadAckAddr[iLd])) {
             NoWAR = false;
           }
@@ -528,6 +543,10 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           const T StoreVal = StoreValPipes::template PipeAt<iSt>::read(succ);
           if (succ) {
             StorePortValPipes::template PipeAt<iSt>::write(StoreVal);
+
+            // PRINTF("Store%d stored (%d, %d, %d)\n", int(iSt),
+            //        StoreAllocAddr[iSt][0], StoreAllocTag[iSt][0],
+            //        StoreAllocLoopTag[iSt][0]);
 
             LastStoreAddr[iSt] = StoreAllocAddr[iSt][0];
             LastStoreTag[iSt] = StoreAllocTag[iSt][0];
@@ -559,7 +578,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
     } // end while
 
-    PRINTF("** DONE StreamingMemory %d\n", MEM_ID);
+    // PRINTF("** DONE StreamingMemory %d\n", MEM_ID);
 
   });
 

@@ -86,14 +86,13 @@ template <int MemId, int PortId> class LoadValMuxKernel;
 
 template <int MEM_ID, typename LoadAddrPipes, typename LoadValPipes,
           typename StoreAddrPipes, typename StoreValPipes,
-          typename EndSignalPipe, uint NUM_LOADS, uint NUM_STORES, typename T>
+          uint NUM_LOADS, uint NUM_STORES, typename T>
 std::vector<event> StreamingMemory(queue &q, T *data) {
   std::vector<event> events(NUM_STORES + 1);
 
   constexpr uint BYTES_IN_T = sizeof(T);
   /// How many T values fit in a DRAM burst.
   constexpr uint BURST_SIZE = (DRAM_BURST_BYTES + BYTES_IN_T - 1) / BYTES_IN_T;
-  // constexpr uint BURST_SIZE = 32;
 
   // Store ports.
   using StorePortAddrPipes = PipeArray<class _StorePortAddr, addr_t, BURST_SIZE, NUM_STORES>;
@@ -206,7 +205,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       InitBundle(StoreCommitVal[iSt], T{});
 
       NextStoreAddr[iSt] = INVALID_ADDR;
-      NextStoreTag[iSt] = 0u;
+      NextStoreTag[iSt] = 1u;
       NextStoreLoopTag[iSt] = 0u;
 
       LastStoreAddr[iSt] = INVALID_ADDR;
@@ -265,6 +264,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     });
 
     bool EndSignal = false;
+    bool AnyStoresLeft = true;
+    bool AnyLoadsLeft = true;
 
     [[maybe_unused]] uint cycle = 0; // Used only for debug prints.
 
@@ -273,21 +274,21 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     while (!EndSignal) {
       cycle++;
 
-      /** Rule for listening for termination signal. Enabled when all stores
-          have finished (MAX_INT sentinel value received on the StoreAddr pipe).
-          Terminate a cycle after getting EndSignal.*/
-      bool OutstandingStores = false;
+      /** Rule enabling termination signal once all stores and loads have
+          finished (MAX_INT sentinel value received). */
+      if (!AnyStoresLeft && !AnyLoadsLeft)
+        EndSignal = true;
+
+      AnyStoresLeft = false;
       UnrolledLoop<NUM_STORES>([&](auto iSt) {
         if (NextStoreAddr[iSt] != MAX_INT)
-          OutstandingStores = true;
+          AnyStoresLeft = true;
       });
-      bool OutstandingLoads = false;
+      AnyLoadsLeft = false;
       UnrolledLoop<NUM_LOADS>([&](auto iLd) {
         if (LoadAckTag[iLd] != MAX_INT)
-          OutstandingLoads = true;
+          AnyLoadsLeft = true;
       });
-      if (!OutstandingStores && !OutstandingLoads)
-        EndSignalPipe::read(EndSignal);
       /** End Rule */
 
       /////////////////////////////////////////////////////////////////////////
@@ -380,28 +381,28 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
         /** Rule for checking load safety and reuse. */
         if (LoadValid[iLd][0] && !SafeLoadValid[iLd][LD_Q_SIZE - 1]) {
-          bool ThisSafe[NUM_STORES];
           bool ThisReuse[NUM_STORES];
           tag_t ThisReuseTag[NUM_STORES];
           tag_t ThisReuseLoopTag[NUM_STORES];
           T ThisReuseVal[NUM_STORES];
-          bool AllSafe = true;
+          bool NoRAW = true;
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
-            // Three cases when no st->ld dependency exists:
-            //  1. Load comes before store in program order (load tag is lower).
-            //  2. Load comes after store in program order, but both are in the
-            //     same loop and the dependency distance is positive.
-            //  3. Load comes after store in program order, but reads from a
-            //     lower address.
-            ThisSafe[iSt] = (LoadTag[iLd][0] < NextStoreTag[iSt]) ||
-                            // (LoadTag[iLd][0] == LastStoreTag[iSt]) ||
-                            (LoadTag[iLd][0] == 0) ||
-                            (LoadLoopTag[iLd][0] == NextStoreLoopTag[iSt] &&
-                             // (LoadAddr[iLd][iSt][0] < NextStoreTag[iSt] &&
-                             LoadPosDepDist[iLd][iSt][0]) ||
-                            (LoadStoreLoopMinTag[iLd][iSt][0] <= NextStoreLoopTag[iSt] &&
-                             LoadAddr[iLd][0] < NextStoreAddr[iSt]);
-            AllSafe &= ThisSafe[iSt];
+            const bool LoadBeforeNextStoreInProgramOrder =
+                (LoadTag[iLd][0] < NextStoreTag[iSt]);
+            const bool LoadRightAfterLastStoreInProgramOrder =
+                (LoadTag[iLd][0] == LastStoreTag[iSt]);
+            const bool LoadInSameLoopWithPositiveDepDist =
+                (LoadLoopTag[iLd][0] == NextStoreLoopTag[iSt] &&
+                 LoadPosDepDist[iLd][iSt][0]);
+            const bool LoadAfterStoreButToLowerAddress =
+                (LoadStoreLoopMinTag[iLd][iSt][0] <= NextStoreLoopTag[iSt] &&
+                 LoadAddr[iLd][0] < NextStoreAddr[iSt]);
+
+            // No st->ld dependency exists if:
+            NoRAW &= (LoadBeforeNextStoreInProgramOrder ||
+                        LoadRightAfterLastStoreInProgramOrder ||
+                        LoadInSameLoopWithPositiveDepDist ||
+                        LoadAfterStoreButToLowerAddress);
 
             ThisReuse[iSt] = false;
             ThisReuseTag[iSt] = 0u;
@@ -420,18 +421,17 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           });
 
           // If no hazards against any store, then move load to "safe" stage.
-          if (AllSafe) {
+          if (NoRAW) {
             // We know there is a reuse if any ThisReuseTag is above 0 and above
             // the minTag for that store. If more matches, than choose max.
-            bool Reuse = ThisReuse[0] && (ThisReuseLoopTag[0] >= LoadStoreLoopMinTag[iLd][0][0]);
+            bool Reuse = ThisReuse[0] && (ThisReuseLoopTag[0] >=
+                                          LoadStoreLoopMinTag[iLd][0][0]);
             tag_t ReuseTag = ThisReuseTag[0];
             T ReuseVal = ThisReuseVal[0];
-            [[maybe_unused]] uint ReuseId = 0u;
             UnrolledLoop<1, NUM_STORES>([&](auto iSt) {
               if (ThisReuseTag[iSt] > ReuseTag) {
-                ReuseId = uint(iSt);
-                Reuse =
-                    (ThisReuseLoopTag[iSt] >= LoadStoreLoopMinTag[iLd][iSt][0]);
+                Reuse = (ThisReuseLoopTag[iSt] >= 
+                         LoadStoreLoopMinTag[iLd][iSt][0]);
                 ReuseTag = ThisReuseTag[iSt];
                 ReuseVal = ThisReuseVal[iSt];
               }
@@ -445,7 +445,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             SafeLoadReuseVal[iLd][LD_Q_SIZE - 1] = ReuseVal;
 
             LoadValid[iLd][0] = false;
-          }
+          } 
         }
         /** End Rule */
 
@@ -502,24 +502,27 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         /** End Rule */
 
         /** Rule for getting st val and moving st alloc to st commit queue. */
-        bool NoWAW = true, NoWAR = true;
+        bool NoWAW = true;
         UnrolledLoop<NUM_STORES>([&](auto iStOther) {
           if constexpr (iStOther != iSt) {
-            if ((NextStoreTag[iSt] > NextStoreTag[iStOther] &&
-                 NextStoreAddr[iSt] >= NextStoreAddr[iStOther]) ||
-                (StoreAllocMinLoopTagStores[iSt][iStOther][0] >
-                 NextStoreLoopTag[iStOther])) {
+            if ((StoreAllocMinLoopTagStores[iSt][iStOther][0] >
+                 NextStoreLoopTag[iStOther]) ||
+                (NextStoreTag[iSt] > NextStoreTag[iStOther] &&
+                 NextStoreAddr[iSt] >= NextStoreAddr[iStOther])) {
               NoWAW = false;
             }
           }
         });
+
+        bool NoWAR = true;
         UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-          if (StoreAllocMinLoopTagLoads[iSt][iLd][0] > LoadAckLoopTag[iLd] ||
+          if ((StoreAllocMinLoopTagLoads[iSt][iLd][0] > LoadAckLoopTag[iLd]) ||
               (NextStoreLoopTag[iSt] > LoadAckLoopTag[iLd] &&
                NextStoreAddr[iSt] > LoadAckAddr[iLd])) {
             NoWAR = false;
           }
         });
+
         if (StoreAllocValid[iSt][0] && NoWAW && NoWAR) {
           bool succ = false;
           const T StoreVal = StoreValPipes::template PipeAt<iSt>::read(succ);
@@ -550,11 +553,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             });
           }
         } 
-        // else if (StoreAllocValid[iSt][0] && StoreAllocAddr[iSt][0] == MAX_INT) {
-        //   LastStoreAddr[iSt] = StoreAllocAddr[iSt][0];
-        //   LastStoreTag[iSt] = StoreAllocTag[iSt][0];
-        //   LastStoreLoopTag[iSt] = StoreAllocLoopTag[iSt][0];
-        // }
         /** End Rule */
 
       }); // End for all stores

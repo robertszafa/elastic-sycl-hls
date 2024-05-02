@@ -7,43 +7,43 @@
 #include "pipe_utils.hpp"
 #include "unrolled_loop.hpp"
 
+#include "dependencies.hpp"
+
 using namespace sycl;
 using namespace fpga_tools;
 
+template <int iLd, int iSt>
+inline bool inSameLoop(const uint (&LoadSched)[NUM_LOADS][LOOP_DEPTH],
+                       const uint (&StoreSched)[NUM_LOADS][LOOP_DEPTH]) {
+  if constexpr (COMMON_LOOP_DEPTH[iLd][iSt] == 0) {
+    return true;
+  }
 
-constexpr int NUM_LOADS = 2;
-constexpr int NUM_STORES = 2;
-constexpr int LOOP_DEPTH = 3;
-
-enum DEP_DIR {
-  BACK,
-  FORWARD,
-};
-
-constexpr int COMMON_LOOP_DEPTH[NUM_LOADS][NUM_STORES] = {{1, 0}, {0, 2}};
-constexpr DEP_DIR LOAD_TO_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = {
-    {BACK, BACK}, {FORWARD, BACK}};
-constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = {1, 2};
-constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {1, 2};
-
-constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][LOOP_DEPTH] = {
-    {false, false},
-    {false, true, false},
-};
-constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][LOOP_DEPTH] = {
-    {false, false},
-    {false, true, false},
-};
+  return (StoreSched[iSt][COMMON_LOOP_DEPTH[iLd][iSt] - 1] >=
+          LoadSched[iLd][COMMON_LOOP_DEPTH[iLd][iSt] - 1]);
+  // return (StoreSched[iSt][COMMON_LOOP_DEPTH[iLd][iSt] - 1] ==
+  //         LoadSched[iLd][COMMON_LOOP_DEPTH[iLd][iSt] - 1]);
+}
 
 template <int iSt, int start> 
-constexpr int walkUpToFirstWrap() {
+constexpr int walkUpStoreToFirstWrap() {
   for (int i = start - 1; i >= 0; --i) {
     if (STORE_IS_MAX_ITER_NEEDED[iSt][i]) {
       return i;
     }
   }
 
-  return -1;
+  return start;
+}
+template <int iLd, int start> 
+constexpr int walkUpLoadToFirstWrap() {
+  for (int i = start - 1; i >= 0; --i) {
+    if (LOAD_IS_MAX_ITER_NEEDED[iLd][i]) {
+      return i;
+    }
+  }
+
+  return start;
 }
 
 template <int iLd, int iSt>
@@ -52,7 +52,7 @@ inline bool storeHasMinSched(
     const uint (&StoreSched)[NUM_LOADS][LOOP_DEPTH],
     const bool (&StoreIsMaxIter)[NUM_STORES][LOOP_DEPTH]) {
   constexpr int depthForMinIter =
-      walkUpToFirstWrap<iSt, COMMON_LOOP_DEPTH[iLd][iSt]>();
+      walkUpStoreToFirstWrap<iSt, COMMON_LOOP_DEPTH[iLd][iSt]>();
 
   // PRINTF("ld%d st%d depthForMinIter=%d\n", int(iLd), int(iSt),
   // depthForMinIter)
@@ -76,10 +76,12 @@ inline bool storeHasMinSched(
     // By definition of walkUpToFirstWrap, no maxIter required between
     // COMMON_LOOP_DEPTH[iLd][iSt] and kDepthForMinIter.
     bool maxIterSatisfied = true;
-    // if constexpr (STORE_LOOP_DEPTH[iSt] > COMMON_LOOP_DEPTH[iLd][iSt]) {
     UnrolledLoop<STORE_LOOP_DEPTH[iSt], COMMON_LOOP_DEPTH[iLd][iSt]>(
-        [&](auto iD) { maxIterSatisfied &= StoreIsMaxIter[iSt][iD]; });
-    // }
+        [&](auto iD) {
+          if constexpr (STORE_IS_MAX_ITER_NEEDED[iSt][iD]) {
+            maxIterSatisfied &= StoreIsMaxIter[iSt][iD];
+          }
+        });
 
     hasMinSched = storeSchedGreater || (storeSchedEqual && maxIterSatisfied);
   }
@@ -88,20 +90,43 @@ inline bool storeHasMinSched(
 }
 
 template <int iLd, int iSt>
-inline bool inSameLoop(const uint (&LoadSched)[NUM_LOADS][LOOP_DEPTH],
-                       const uint (&StoreSched)[NUM_LOADS][LOOP_DEPTH]) {
-  if constexpr (COMMON_LOOP_DEPTH[iLd][iSt] == 0) {
-    return true;
+inline bool loadHasMinSched(
+    const uint (&LoadSched)[NUM_LOADS][LOOP_DEPTH],
+    const uint (&StoreSched)[NUM_LOADS][LOOP_DEPTH],
+    const bool (&LoadIsMaxIter)[NUM_STORES][LOOP_DEPTH]) {
+  constexpr int depthForMinIter =
+      walkUpLoadToFirstWrap<iLd, COMMON_LOOP_DEPTH[iLd][iSt]>();
+  
+  // PRINTF("depthForMinIter = %d\n", depthForMinIter);
+
+  bool hasMinSched = true;
+  if constexpr (depthForMinIter >= 0) {
+    bool loadSchedEqual = true, loadSchedGreater = true;
+    if constexpr (LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
+      loadSchedEqual = ((LoadSched[iLd][depthForMinIter] + 1) ==
+                         StoreSched[iSt][depthForMinIter]);
+      loadSchedGreater = ((LoadSched[iLd][depthForMinIter] + 1) >
+                           StoreSched[iSt][depthForMinIter]);
+    } else {
+      loadSchedEqual =
+          (StoreSched[iSt][depthForMinIter] == LoadSched[iLd][depthForMinIter]);
+      loadSchedGreater =
+          (StoreSched[iSt][depthForMinIter] < LoadSched[iLd][depthForMinIter]);
+    }
+
+    bool maxIterSatisfied = true;
+    UnrolledLoop<LOAD_LOOP_DEPTH[iLd], COMMON_LOOP_DEPTH[iLd][iSt]>(
+        [&](auto iD) {
+          if constexpr (LOAD_IS_MAX_ITER_NEEDED[iLd][iD]) {
+            maxIterSatisfied &= LoadIsMaxIter[iLd][iD];
+          }
+        });
+
+    hasMinSched = loadSchedGreater || (loadSchedEqual && maxIterSatisfied);
   }
 
-  return (StoreSched[iSt][COMMON_LOOP_DEPTH[iLd][iSt] - 1] ==
-          LoadSched[iLd][COMMON_LOOP_DEPTH[iLd][iSt] - 1]);
+  return hasMinSched;
 }
-
-constexpr bool ARE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
-    {true, false},
-    {false, true},
-};
 
 using BurstCoalescedLSU = ext::intel::lsu<ext::intel::burst_coalesce<true>,
                                           ext::intel::prefetch<false>>;
@@ -248,6 +273,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
       load_ack_t<LOOP_DEPTH> maxAck{MAX_INT};
       InitBundle(maxAck.sched, MAX_UINT);
+      InitBundle(maxAck.isMaxIter, true);
       LoadMuxAckPipes::template PipeAt<iLd>::write(maxAck);
       PRINTF("** DONE ld%d, reused %d/%d\n", int(iLd), NumReused, NumTotal);
     });
@@ -396,9 +422,12 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         auto ldAck = LoadMuxAckPipes::template PipeAt<iLd>::read(succ);
         if (succ) {
           LoadAckAddr[iLd] = ldAck.addr;
-          // PRINTF("ld%d ack %d\n", int(iLd), ldAck.addr);
+          // PRINTF("ld%d ack %d (%d, %d, %d) (%d, %d, %d)\n", int(iLd),
+          //        ldAck.addr, ldAck.sched[0], ldAck.sched[1], ldAck.sched[2],
+          //        ldAck.isMaxIter[0], ldAck.isMaxIter[1], ldAck.isMaxIter[2]);
           UnrolledLoop<LOOP_DEPTH>([&](auto iIter) {
             LoadAckSched[iLd][iIter] = ldAck.sched[iIter];
+            LoadAckIsMaxIter[iLd][iIter] = ldAck.isMaxIter[iIter];
           });
         }
 
@@ -408,7 +437,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             NextLoadAddr[iLd] = LoadAddr[iLd][1];
             UnrolledLoop<LOOP_DEPTH>([&](auto iIter) {
               NextLoadSched[iLd][iIter] = LoadSched[iLd][iIter][1];
-              NextStoreIsMaxIter[iLd][iIter] = LoadIsMaxIter[iLd][iIter][1];
+              NextLoadIsMaxIter[iLd][iIter] = LoadIsMaxIter[iLd][iIter][1];
             });
             UnrolledLoop<NUM_STORES>([&](auto iSt) {
               NextLoadPosDepDist[iLd][iSt] = LoadPosDepDist[iLd][iSt][1];
@@ -449,6 +478,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             load_ack_t<LOOP_DEPTH> MuxAck{SafeLoadAddr[iLd][0]};
             UnrolledLoop<LOOP_DEPTH>([&](auto iIter) {
               MuxAck.sched[iIter] = SafeLoadSched[iLd][iIter][0];
+              MuxAck.isMaxIter[iIter] = SafeLoadIsMaxIter[iLd][iIter][0];
             });
             LoadMuxPredPipes::template PipeAt<iLd>::write(
                 {SafeLoadReuse[iLd][0], MuxAck}, SafeLoadMuxPipeSucc[iLd][0]);
@@ -521,22 +551,20 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             // value of the address expression. 
             // (kDepthForMinIter can be equal to COMMON_LOOP_DEPTH[iLd][iSt])
             bool minSchedSatisfied = storeHasMinSched<iLd, iSt>(
-                // NextLoadSched, NextStoreSched, NextStoreIsMaxIter);
-                NextLoadSched, LastStoreSched, LastStoreIsMaxIter);
-
-            bool areInSameLoop =
-                inSameLoop<iLd, iSt>(NextLoadSched, NextStoreSched);
+                NextLoadSched, NextStoreSched, NextStoreIsMaxIter);
+                // NextLoadSched, LastStoreSched, LastStoreIsMaxIter);
 
             bool LoadHasPosDepDistance = false;
             if constexpr (ARE_IN_SAME_LOOP[iLd][iSt]) {
-              LoadHasPosDepDistance = NextLoadPosDepDist[iLd];
+              bool areInSameLoop =
+                  inSameLoop<iLd, iSt>(NextLoadSched, NextStoreSched);
+              LoadHasPosDepDistance = areInSameLoop && NextLoadPosDepDist[iLd];
             }
 
             bool StoreHasLargerAddress = NextStoreAddr[iSt] > NextLoadAddr[iLd];
             // No st->ld dependency exists if:
-            NoRAW &= (LoadIsBeforeStore ||
-                      (minSchedSatisfied && StoreHasLargerAddress) ||
-                      (areInSameLoop && LoadHasPosDepDistance));
+            NoRAW &= (LoadIsBeforeStore || LoadHasPosDepDistance ||
+                      (minSchedSatisfied && StoreHasLargerAddress));
 
             ThisReuse[iSt] = false;
             InitBundle(ThisReuseSched[iSt], 0u);
@@ -609,6 +637,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             SafeLoadAddr[iLd][LD_Q_SIZE - 1] = LoadAddr[iLd][0];
             UnrolledLoop<LOOP_DEPTH>([&](auto iIter) {
               SafeLoadSched[iLd][iIter][LD_Q_SIZE-1] = NextLoadSched[iLd][iIter];
+              SafeLoadIsMaxIter[iLd][iIter][LD_Q_SIZE-1] = NextLoadIsMaxIter[iLd][iIter];
             });
             SafeLoadReuse[iLd][LD_Q_SIZE - 1] = Reuse;
             SafeLoadReuseVal[iLd][LD_Q_SIZE - 1] = ReuseVal;
@@ -679,19 +708,28 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         // });
 
         bool NoWAR = true;
-        // UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-        //   if ((StoreAllocIters[iSt][iLd][0] > LoadAckIters[iLd]) ||
-        //       (NextStoreIters[iSt] > LoadAckIters[iLd] &&
-        //        NextStoreIters[iSt] > NextLoadIters[iLd] &&
-        //        NextStoreAddr[iSt] > LoadAckAddr[iLd])) {
-        //     NoWAR = false;
-        //   }
-        // });
+        UnrolledLoop<NUM_LOADS>([&](auto iLd) {
+          bool minLdSchedSatisfied = loadHasMinSched<iLd, iSt>(
+              LoadAckSched, NextStoreSched, LoadAckIsMaxIter);
+              // NextLoadSched, NextStoreSched, NextLoadIsMaxIter);
+
+          constexpr auto commonIter = COMMON_LOOP_DEPTH[iLd][iSt];
+          if (!minLdSchedSatisfied ||
+              (NextStoreSched[iSt][commonIter] >= LoadAckSched[iLd][commonIter] &&
+               NextStoreAddr[iSt] > LoadAckAddr[iLd])) {
+            NoWAR = false;
+          }
+        });
 
         if (StoreAllocValid[iSt][0] && NoWAW && NoWAR) {
           bool succ = false;
           const T StoreVal = StoreValPipes::template PipeAt<iSt>::read(succ);
           if (succ) {
+            // PRINTF("NoWAR for st %d (%d, %d),   LoadAck %d (%d, %d, %d)\n",
+            //        NextStoreAddr[0], NextStoreSched[0][0], NextStoreSched[0][1],
+            //        LoadAckAddr[0], LoadAckSched[0][0], LoadAckSched[0][1],
+            //        LoadAckSched[0][2]);
+
             StorePortValPipes::template PipeAt<iSt>::write(StoreVal);
 
             LastStoreAddr[iSt] = StoreAllocAddr[iSt][0];

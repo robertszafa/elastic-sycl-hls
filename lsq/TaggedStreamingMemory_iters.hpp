@@ -12,6 +12,55 @@
 using namespace sycl;
 using namespace fpga_tools;
 
+
+using BurstCoalescedLSU = ext::intel::lsu<ext::intel::burst_coalesce<true>,
+                                          ext::intel::prefetch<false>>;
+using PipelinedLSU = sycl::ext::intel::lsu<>;
+
+using addr_t = int;
+using tag_t = uint;
+using seq_t = uint;
+
+template <int LOOP_DEPTH>
+struct store_req_t {
+  addr_t addr;
+  seq_t sched[LOOP_DEPTH];
+  bool isMaxIter[LOOP_DEPTH];
+};
+template <int NUM_STORES, int LOOP_DEPTH>
+struct load_req_t {
+  addr_t addr;
+  seq_t sched[LOOP_DEPTH];
+  bool isMaxIter[LOOP_DEPTH];
+  bool posDepDist[NUM_STORES];
+};
+
+template <int LOOP_DEPTH>
+struct load_ack_t {
+  addr_t addr;
+  seq_t sched[LOOP_DEPTH];
+  bool isMaxIter[LOOP_DEPTH];
+};
+template <int LOOP_DEPTH>
+struct load_mux_req_t {
+  bool reuse;
+  load_ack_t<LOOP_DEPTH> ack;
+};
+
+/// A gated StreamingLoad receives {addr, value, schedule} data on its gate,
+/// and stores {addr, value} in a shift-register FIFO for reuse.
+#define KERNEL_PRAGMAS [[intel::kernel_args_restrict]] [[intel::max_global_work_dim(0)]] 
+
+constexpr uint DRAM_BURST_BYTES = 32;
+
+constexpr int INVALID_ADDR = -1;
+constexpr int STORE_ADDR_SENTINEL = (1<<30) - 1;
+constexpr int LOAD_ADDR_SENTINEL = (1<<30) - 2;
+constexpr int FINAL_LD_ADDR_ACK = STORE_ADDR_SENTINEL + 1;
+constexpr uint SCHED_SENTINEL = (1<<31);
+
+
+
 template <int iLd, int iSt>
 inline bool inSameLoop(const uint (&LoadSched)[NUM_LOADS][LOOP_DEPTH],
                        const uint (&StoreSched)[NUM_LOADS][LOOP_DEPTH]) {
@@ -54,12 +103,10 @@ inline bool storeHasMinSched(
   constexpr int depthForMinIter =
       walkUpStoreToFirstWrap<iSt, COMMON_LOOP_DEPTH[iLd][iSt]>();
 
-  // PRINTF("ld%d st%d depthForMinIter=%d\n", int(iLd), int(iSt),
-  // depthForMinIter)
 
-  bool hasMinSched = true;
+  bool hasMinSched = true, storeSchedEqual = true, storeSchedGreater = true;
+    bool maxIterSatisfied = true;
   if constexpr (depthForMinIter >= 0) {
-    bool storeSchedEqual = true, storeSchedGreater = true;
     if constexpr (LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
       storeSchedEqual = ((StoreSched[iSt][depthForMinIter] + 1) ==
                          LoadSched[iLd][depthForMinIter]);
@@ -75,7 +122,6 @@ inline bool storeHasMinSched(
     // For every loop between STORE_LOOP_DEPTH[iSt] and common loop depth
     // By definition of walkUpToFirstWrap, no maxIter required between
     // COMMON_LOOP_DEPTH[iLd][iSt] and kDepthForMinIter.
-    bool maxIterSatisfied = true;
     UnrolledLoop<STORE_LOOP_DEPTH[iSt], COMMON_LOOP_DEPTH[iLd][iSt]>(
         [&](auto iD) {
           if constexpr (STORE_IS_MAX_ITER_NEEDED[iSt][iD]) {
@@ -86,22 +132,30 @@ inline bool storeHasMinSched(
     hasMinSched = storeSchedGreater || (storeSchedEqual && maxIterSatisfied);
   }
 
+  // PRINTF("ld%d st%d depthForMinIter=%d  storeSchedEqual=%d maxIterSatisfied=%d\n", int(iLd), int(iSt),
+  //         depthForMinIter, storeSchedEqual, maxIterSatisfied);
+
   return hasMinSched;
 }
 
 template <int iLd, int iSt>
-inline bool loadHasMinSched(
+inline bool checkNoWAR(
     const uint (&LoadSched)[NUM_LOADS][LOOP_DEPTH],
-    const uint (&StoreSched)[NUM_LOADS][LOOP_DEPTH],
-    const bool (&LoadIsMaxIter)[NUM_STORES][LOOP_DEPTH]) {
+    const uint (&StoreSched)[NUM_STORES][LOOP_DEPTH],
+    const int (&LoadAddr)[NUM_LOADS],
+    const int (&StoreAddr)[NUM_STORES],
+    const bool (&LoadIsMaxIter)[NUM_LOADS][LOOP_DEPTH]) {
   constexpr int depthForMinIter =
       walkUpLoadToFirstWrap<iLd, COMMON_LOOP_DEPTH[iLd][iSt]>();
-  
-  // PRINTF("depthForMinIter = %d\n", depthForMinIter);
+
+  // PRINTF("st%d-ld%d depthForMinIter = %d   depDir=%d\n", iSt, iLd, 
+  //        depthForMinIter, LOAD_TO_STORE_DEP_DIR[iLd][iSt]);
 
   bool hasMinSched = true;
+  bool loadSchedEqual = true; 
+  bool loadSchedGreater = (LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD);
+  
   if constexpr (depthForMinIter >= 0) {
-    bool loadSchedEqual = true, loadSchedGreater = true;
     if constexpr (LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
       loadSchedEqual = ((LoadSched[iLd][depthForMinIter] + 1) ==
                          StoreSched[iSt][depthForMinIter]);
@@ -121,55 +175,22 @@ inline bool loadHasMinSched(
             maxIterSatisfied &= LoadIsMaxIter[iLd][iD];
           }
         });
+    
+    // if (iSt == 1 && iLd == 0) {
+      // PRINTF("maxIterSatisfied=%d, loadSchedEqual=%d\n", 
+      //        maxIterSatisfied, loadSchedEqual);
+    // }
 
-    hasMinSched = loadSchedGreater || (loadSchedEqual && maxIterSatisfied);
+    hasMinSched = (loadSchedEqual && maxIterSatisfied);// || 
+                  //(loadSchedEqual && LoadIsMaxIter[iLd][depthForMinIter + 1]);
   }
 
-  return hasMinSched;
+  bool noWAR =
+      // loadSchedGreater || (hasMinSched && LoadAddr[iLd] >= StoreAddr[iSt]);
+      loadSchedGreater || (hasMinSched);
+
+  return noWAR;
 }
-
-using BurstCoalescedLSU = ext::intel::lsu<ext::intel::burst_coalesce<true>,
-                                          ext::intel::prefetch<false>>;
-using PipelinedLSU = sycl::ext::intel::lsu<>;
-
-/// A gated StreamingLoad receives {addr, value, schedule} data on its gate,
-/// and stores {addr, value} in a shift-register FIFO for reuse.
-#define KERNEL_PRAGMAS [[intel::kernel_args_restrict]] [[intel::max_global_work_dim(0)]] 
-
-constexpr uint DRAM_BURST_BYTES = 32;
-constexpr int MAX_INT = (1<<30);
-constexpr uint MAX_UINT = (1<<30);
-constexpr int INVALID_ADDR = -1;
-
-using addr_t = int;
-using tag_t = uint;
-using seq_t = uint;
-
-template <int LOOP_DEPTH>
-struct store_req_t {
-  addr_t addr;
-  seq_t sched[LOOP_DEPTH];
-  bool isMaxIter[LOOP_DEPTH];
-};
-template <int NUM_STORES, int LOOP_DEPTH>
-struct load_req_t {
-  addr_t addr;
-  seq_t sched[LOOP_DEPTH];
-  bool isMaxIter[LOOP_DEPTH];
-  bool posDepDist[NUM_STORES];
-};
-
-template <int LOOP_DEPTH>
-struct load_ack_t {
-  addr_t addr;
-  seq_t sched[LOOP_DEPTH];
-  bool isMaxIter[LOOP_DEPTH];
-};
-template <int LOOP_DEPTH>
-struct load_mux_req_t {
-  bool reuse;
-  load_ack_t<LOOP_DEPTH> ack;
-};
 
 // Functions for shifting shift-register bundles.
 template <typename T, uint SIZE> 
@@ -220,7 +241,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       [[intel::initiation_interval(1)]]
       while (true) {
         addr_t Addr = StorePortAddrPipes::template PipeAt<iSt>::read();
-        if (Addr == MAX_INT) break;
+        if (Addr == STORE_ADDR_SENTINEL) break;
         T Val = StorePortValPipes::template PipeAt<iSt>::read();
         auto StorePtr = ext::intel::device_ptr<T>(data + Addr);
         BurstCoalescedLSU::store(StorePtr, Val);
@@ -243,7 +264,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       [[intel::initiation_interval(1)]]
       while (true) {
         addr_t Addr = LoadPortAddrPipes::template PipeAt<iLd>::read();
-        if (Addr == MAX_INT) break;
+        if (Addr == LOAD_ADDR_SENTINEL) break;
         auto LoadPtr = ext::intel::device_ptr<T>(data + Addr);
         T Val = BurstCoalescedLSU::load(LoadPtr);
         LoadPortValPipes::template PipeAt<iLd>::write(Val);
@@ -257,7 +278,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       while (true) {
         T Val;
         const auto MuxReq = LoadMuxPredPipes::template PipeAt<iLd>::read();
-        if (MuxReq.ack.addr == MAX_INT) break;
+        if (MuxReq.ack.addr == LOAD_ADDR_SENTINEL) break;
 
         if (MuxReq.reuse) {
           NumReused++;
@@ -271,8 +292,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         NumTotal++;
       }
 
-      load_ack_t<LOOP_DEPTH> maxAck{MAX_INT};
-      InitBundle(maxAck.sched, MAX_UINT);
+      load_ack_t<LOOP_DEPTH> maxAck{FINAL_LD_ADDR_ACK};
+      InitBundle(maxAck.sched, SCHED_SENTINEL);
       InitBundle(maxAck.isMaxIter, true);
       LoadMuxAckPipes::template PipeAt<iLd>::write(maxAck);
       PRINTF("** DONE ld%d, reused %d/%d\n", int(iLd), NumReused, NumTotal);
@@ -370,7 +391,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
       LoadAckAddr[iLd] = INVALID_ADDR;
       InitBundle(LoadAckSched[iLd], 0u);
-      InitBundle(LoadAckIsMaxIter[iLd], false);
+      // InitBundle(LoadAckIsMaxIter[iLd], false);
+      InitBundle(LoadAckIsMaxIter[iLd], true);
 
       NextLoadAddr[iLd] = INVALID_ADDR;
       InitBundle(NextLoadSched[iLd], 0u);
@@ -404,12 +426,12 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
       AnyStoresLeft = false;
       UnrolledLoop<NUM_STORES>([&](auto iSt) {
-        if (NextStoreAddr[iSt] != MAX_INT)
+        if (NextStoreAddr[iSt] != STORE_ADDR_SENTINEL)
           AnyStoresLeft = true;
       });
       AnyLoadsLeft = false;
       UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-        if (LoadAckAddr[iLd] != MAX_INT)
+        if (LoadAckAddr[iLd] != FINAL_LD_ADDR_ACK)
           AnyLoadsLeft = true;
       });
       /** End Rule */
@@ -566,6 +588,16 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             NoRAW &= (LoadIsBeforeStore || LoadHasPosDepDistance ||
                       (minSchedSatisfied && StoreHasLargerAddress));
 
+            // if (!(LoadIsBeforeStore || LoadHasPosDepDistance ||
+            //       (minSchedSatisfied && StoreHasLargerAddress))) {
+            //   PRINTF("Load%d addr %d (%d, %d, %d) has RAW to st%d %d (%d, %d, %d)   minSchedSatisfied=%d\n",
+            //          int(iLd), NextLoadAddr[iLd], NextLoadSched[iLd][0],
+            //          NextLoadSched[iLd][1], NextLoadSched[iLd][2], int(iSt),
+            //          NextStoreSched[iSt][0], NextStoreSched[iSt][1], NextStoreSched[iSt][2],
+            //          minSchedSatisfied
+            //          );
+            // }
+
             ThisReuse[iSt] = false;
             InitBundle(ThisReuseSched[iSt], 0u);
             ThisReuseVal[iSt] = T{};
@@ -709,15 +741,48 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
         bool NoWAR = true;
         UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-          bool minLdSchedSatisfied = loadHasMinSched<iLd, iSt>(
-              LoadAckSched, NextStoreSched, LoadAckIsMaxIter);
-              // NextLoadSched, NextStoreSched, NextLoadIsMaxIter);
+          if constexpr (!ARE_IN_SAME_LOOP[iLd][iSt]) {
+            auto thisNoWAR =
+                checkNoWAR<iLd, iSt>(LoadAckSched, NextStoreSched, LoadAckAddr,
+                                     NextStoreAddr, LoadAckIsMaxIter);
+                // checkNoWAR<iLd, iSt>(NextLoadSched, NextStoreSched, NextLoadAddr,
+                //                      NextStoreAddr, NextLoadIsMaxIter);
+            NoWAR &= thisNoWAR;
 
-          constexpr auto commonIter = COMMON_LOOP_DEPTH[iLd][iSt];
-          if (!minLdSchedSatisfied ||
-              (NextStoreSched[iSt][commonIter] >= LoadAckSched[iLd][commonIter] &&
-               NextStoreAddr[iSt] > LoadAckAddr[iLd])) {
-            NoWAR = false;
+            // bool minLdSchedSatisfied = checkWAR<iLd, iSt>(
+            //     LoadAckSched, NextStoreSched, LoadAckIsMaxIter);
+            //     // NextLoadSched, NextStoreSched, NextLoadIsMaxIter);
+
+            // constexpr auto commonIter = COMMON_LOOP_DEPTH[iLd][iSt];
+            // bool storeAddressToFar = false;
+
+            // if constexpr (LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
+            //   storeAddressToFar = (NextStoreSched[iSt][commonIter] >
+            //                            LoadAckSched[iLd][commonIter] &&
+            //                        NextStoreSched[iSt][commonIter] >
+            //                            NextLoadSched[iLd][commonIter] &&
+            //                        NextStoreAddr[iSt] > LoadAckAddr[iLd]);
+            // } else {
+            //   storeAddressToFar = (NextStoreSched[iSt][commonIter] >=
+            //                            LoadAckSched[iLd][commonIter] &&
+            //                        NextStoreSched[iSt][commonIter] >=
+            //                            NextLoadSched[iLd][commonIter] &&
+            //                        NextStoreAddr[iSt] > LoadAckAddr[iLd]);
+            // }
+
+            // if (!minLdSchedSatisfied || storeAddressToFar) {
+            //   NoWAR = false;
+
+            // if (!thisNoWAR && NextStoreAddr[iSt] != STORE_ADDR_SENTINEL) {
+            //   PRINTF("WAR st%d: %d (%d, %d)   ackLd%d: %d (%d, %d, %d)   "
+            //          "nextLd%d: %d (%d, %d, %d)\n",
+            //          int(iSt), NextStoreAddr[iSt], NextStoreSched[iSt][0],
+            //          NextStoreSched[iSt][1], int(iLd), LoadAckAddr[iLd],
+            //          LoadAckSched[iLd][0], LoadAckSched[iLd][1],
+            //          LoadAckSched[iLd][2], int(iLd), NextLoadAddr[iLd],
+            //          NextLoadSched[iLd][0], NextLoadSched[iLd][1],
+            //          NextLoadSched[iLd][2]);
+            // }
           }
         });
 
@@ -725,8 +790,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           bool succ = false;
           const T StoreVal = StoreValPipes::template PipeAt<iSt>::read(succ);
           if (succ) {
-            // PRINTF("NoWAR for st %d (%d, %d),   LoadAck %d (%d, %d, %d)\n",
-            //        NextStoreAddr[0], NextStoreSched[0][0], NextStoreSched[0][1],
+            // PRINTF("NoWAR for st%d addr %d (%d, %d),   LoadAck %d (%d, %d, %d)\n",
+            //        int(iSt), NextStoreAddr[0], NextStoreSched[0][0], NextStoreSched[0][1],
             //        LoadAckAddr[0], LoadAckSched[0][0], LoadAckSched[0][1],
             //        LoadAckSched[0][2]);
 
@@ -743,11 +808,11 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
                           StoreAllocIsMaxIter[iSt][iIter][0]);
             });
             ShiftBundle(StoreCommitVal[iSt], StoreVal);
-            if (StoreAllocAddr[iSt][0] == MAX_INT) {
-              ShiftBundle(StoreCommitAddr[iSt], INVALID_ADDR);
-            } else {
+            // if (StoreAllocAddr[iSt][0] == STORE_ADDR_SENTINEL) {
+            //   ShiftBundle(StoreCommitAddr[iSt], INVALID_ADDR);
+            // } else {
               ShiftBundle(StoreCommitAddr[iSt], StoreAllocAddr[iSt][0]);
-            }
+            // }
 
             StoreAllocValid[iSt][0] = false;
 

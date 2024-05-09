@@ -54,17 +54,6 @@ constexpr int LOAD_ADDR_SENTINEL = (1<<30) - 2;
 constexpr int FINAL_LD_ADDR_ACK = STORE_ADDR_SENTINEL + 1;
 constexpr uint SCHED_SENTINEL = (1<<31);
 
-template <int iLd, int iSt>
-inline bool inSameLoopInvoc(const uint (&LoadSched)[NUM_LOADS][LOOP_DEPTH],
-                            const uint (&StoreSched)[NUM_STORES][LOOP_DEPTH]) {
-  if constexpr (COMMON_LOOP_DEPTH[iLd][iSt] == 0) {
-    return true;
-  }
-
-  return (StoreSched[iSt][COMMON_LOOP_DEPTH[iLd][iSt] - 1] >=
-          LoadSched[iLd][COMMON_LOOP_DEPTH[iLd][iSt] - 1]);
-}
-
 template <int iSt, int start> 
 constexpr int walkUpStoreToFirstWrap() {
   for (int i = start - 1; i >= 0; --i) {
@@ -84,6 +73,19 @@ constexpr int walkUpLoadToFirstWrap() {
   }
 
   return start;
+}
+
+template <int iLd, int iSt>
+inline bool
+canCheckPosDepDist(const uint (&LoadSched)[NUM_LOADS][LOOP_DEPTH],
+                   const uint (&StoreSched)[NUM_STORES][LOOP_DEPTH]) {
+  constexpr int cmnDepth = COMMON_LOOP_DEPTH[iLd][iSt];
+  constexpr int stWrapDepth = walkUpStoreToFirstWrap<iSt, cmnDepth>();
+
+  if constexpr ((cmnDepth <= 0) || (stWrapDepth == cmnDepth)) 
+    return true;
+
+  return (StoreSched[iSt][stWrapDepth] >= LoadSched[iLd][stWrapDepth]);
 }
 
 template <int iLd, int iSt>
@@ -177,17 +179,17 @@ inline bool checkNoWAW(const int (&StoreAddrPlusBurst)[NUM_STORES],
                        const bool (&StoreIsMaxIter)[NUM_STORES][LOOP_DEPTH],
                        const int (&StoreAckAddr)[NUM_STORES]) {
   constexpr int cmnDepth = COMMON_STORE_LOOP_DEPTH[iStThis][iStOther];
-  constexpr int depthForMinIter = walkUpStoreToFirstWrap<iStOther, cmnDepth>();
+  constexpr int depthToCheck = walkUpStoreToFirstWrap<iStOther, cmnDepth>();
 
   bool thisSchedSmaller = (iStThis < iStOther);
   bool otherSchedMaxIterSatisfied = true;
-  if constexpr (depthForMinIter >= 0) {
+  if constexpr (depthToCheck >= 0) {
     if constexpr (iStThis < iStOther) {
-      thisSchedSmaller = (StoreSched[iStThis][depthForMinIter] <=
-                          StoreSched[iStOther][depthForMinIter]);
+      thisSchedSmaller = (StoreSched[iStThis][depthToCheck] <=
+                          StoreSched[iStOther][depthToCheck]);
     } else {
-      thisSchedSmaller = (StoreSched[iStThis][depthForMinIter] <
-                          StoreSched[iStOther][depthForMinIter]);
+      thisSchedSmaller = (StoreSched[iStThis][depthToCheck] <
+                          StoreSched[iStOther][depthToCheck]);
     }
 
     UnrolledLoop<STORE_LOOP_DEPTH[iStOther], cmnDepth>([&](auto iD) {
@@ -593,7 +595,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             bool LoadHasPosDepDistance = false;
             if constexpr (ARE_IN_SAME_LOOP[iLd][iSt]) {
               LoadHasPosDepDistance =
-                  inSameLoopInvoc<iLd, iSt>(NextLoadSched, NextStoreSched) &&
+                  canCheckPosDepDist<iLd, iSt>(NextLoadSched, NextStoreSched) &&
                   NextLoadPosDepDist[iLd];
             }
 

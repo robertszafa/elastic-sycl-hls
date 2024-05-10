@@ -7,7 +7,8 @@
 #include "unrolled_loop.hpp"
 #include "data_bundle.hpp"
 
-#include "dependencies.hpp"
+
+#include "DependencyTable.hpp"
 
 using namespace sycl;
 using namespace fpga_tools;
@@ -48,155 +49,6 @@ constexpr addr_t STORE_ADDR_SENTINEL = (1<<30) - 1;
 constexpr addr_t LOAD_ADDR_SENTINEL = (1<<30) - 2;
 constexpr addr_t FINAL_LD_ADDR_ACK = STORE_ADDR_SENTINEL + 1;
 constexpr sched_t SCHED_SENTINEL = (1<<31);
-
-template <int iSt, int start> 
-constexpr int walkUpStoreToFirstWrap() {
-  for (int i = start - 1; i >= 0; --i) {
-    if (STORE_IS_MAX_ITER_NEEDED[iSt][i]) {
-      return i;
-    }
-  }
-
-  return start;
-}
-template <int iLd, int start> 
-constexpr int walkUpLoadToFirstWrap() {
-  for (int i = start - 1; i >= 0; --i) {
-    if (LOAD_IS_MAX_ITER_NEEDED[iLd][i]) {
-      return i;
-    }
-  }
-
-  return start;
-}
-
-template <int iLd, int iSt>
-inline bool
-canCheckPosDepDist(const sched_t (&LoadSched)[NUM_LOADS][LOOP_DEPTH],
-                   const sched_t (&StoreSched)[NUM_STORES][LOOP_DEPTH]) {
-  constexpr int cmnDepth = COMMON_LOOP_DEPTH[iLd][iSt];
-  constexpr int stWrapDepth = walkUpStoreToFirstWrap<iSt, cmnDepth>();
-
-  if constexpr ((cmnDepth <= 0) || (stWrapDepth == cmnDepth)) 
-    return true;
-
-  return (StoreSched[iSt][stWrapDepth] >= LoadSched[iLd][stWrapDepth]);
-}
-
-template <int iLd, int iSt>
-inline bool storeHasMinSched(
-    const sched_t (&LoadSched)[NUM_LOADS][LOOP_DEPTH],
-    const sched_t (&StoreSched)[NUM_STORES][LOOP_DEPTH],
-    const bool (&StoreIsMaxIter)[NUM_STORES][LOOP_DEPTH]) {
-  constexpr int depthForMinIter =
-      walkUpStoreToFirstWrap<iSt, COMMON_LOOP_DEPTH[iLd][iSt]>();
-
-  bool hasMinSched = true;
-  if constexpr (depthForMinIter >= 0) {
-    bool storeSchedEqual = true, storeSchedGreater = true;
-
-    if constexpr (LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
-      storeSchedEqual = ((StoreSched[iSt][depthForMinIter] + 1) ==
-                         LoadSched[iLd][depthForMinIter]);
-      storeSchedGreater = ((StoreSched[iSt][depthForMinIter] + 1) >
-                           LoadSched[iLd][depthForMinIter]);
-    } else {
-      storeSchedEqual =
-          (StoreSched[iSt][depthForMinIter] == LoadSched[iLd][depthForMinIter]);
-      storeSchedGreater =
-          (StoreSched[iSt][depthForMinIter] > LoadSched[iLd][depthForMinIter]);
-    }
-
-    // By definition of walkUpToFirstWrap, no maxIter required between
-    // COMMON_LOOP_DEPTH[iLd][iSt] and kDepthForMinIter.
-    bool maxIterSatisfied = true;
-    UnrolledLoop<STORE_LOOP_DEPTH[iSt], COMMON_LOOP_DEPTH[iLd][iSt]>(
-        [&](auto iD) {
-          if constexpr (STORE_IS_MAX_ITER_NEEDED[iSt][iD]) {
-            maxIterSatisfied &= StoreIsMaxIter[iSt][iD];
-          }
-        });
-
-    hasMinSched = storeSchedGreater || (storeSchedEqual && maxIterSatisfied);
-  }
-
-  return hasMinSched;
-}
-
-template <int iLd, int iSt>
-inline bool checkNoWAR(const sched_t (&LoadAckSched)[NUM_LOADS][LOOP_DEPTH],
-                       const sched_t (&StoreSched)[NUM_STORES][LOOP_DEPTH],
-                       const addr_t (&LoadAckAddr)[NUM_LOADS],
-                       const addr_t (&StoreAddr)[NUM_STORES],
-                       const bool (&LoadAckIsMaxIter)[NUM_LOADS][LOOP_DEPTH]) {
-  constexpr int cmnDepth = COMMON_LOOP_DEPTH[iLd][iSt];
-  constexpr int depthForMinIter =
-      walkUpLoadToFirstWrap<iLd, COMMON_LOOP_DEPTH[iLd][iSt]>();
-
-  bool hasMinSched = true;
-  bool loadSchedEqual = true; 
-  bool loadSchedGreater = (LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD);
-  
-  if constexpr (depthForMinIter >= 0) {
-    if constexpr (LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
-      loadSchedEqual = ((LoadAckSched[iLd][depthForMinIter] + 1) ==
-                         StoreSched[iSt][depthForMinIter]);
-      loadSchedGreater = ((LoadAckSched[iLd][depthForMinIter] + 1) >
-                           StoreSched[iSt][depthForMinIter]);
-    } else {
-      loadSchedEqual = (LoadAckSched[iLd][depthForMinIter] == 
-                        StoreSched[iSt][depthForMinIter]);
-      loadSchedGreater = (LoadAckSched[iLd][depthForMinIter] > 
-                          StoreSched[iSt][depthForMinIter]);
-    }
-
-    bool maxIterSatisfied = true;
-    UnrolledLoop<LOAD_LOOP_DEPTH[iLd], cmnDepth>([&](auto iD) {
-      if constexpr (LOAD_IS_MAX_ITER_NEEDED[iLd][iD]) {
-        maxIterSatisfied &= LoadAckIsMaxIter[iLd][iD];
-      }
-    });
-
-    hasMinSched = (loadSchedEqual && maxIterSatisfied);// || 
-                  //(loadSchedEqual && LoadIsMaxIter[iLd][depthForMinIter + 1]);
-  }
-
-  return (loadSchedGreater || hasMinSched);
-      // loadSchedGreater || (hasMinSched && LoadAddr[iLd] >= StoreAddr[iSt]);
-}
-
-template <int iStThis, int iStOther>
-inline bool checkNoWAW(const addr_t (&StoreAddrPlusBurst)[NUM_STORES],
-                       const sched_t (&StoreSched)[NUM_STORES][LOOP_DEPTH],
-                       const bool (&StoreIsMaxIter)[NUM_STORES][LOOP_DEPTH],
-                       const addr_t (&StoreAckAddr)[NUM_STORES]) {
-  constexpr int cmnDepth = COMMON_STORE_LOOP_DEPTH[iStThis][iStOther];
-  constexpr int depthToCheck = walkUpStoreToFirstWrap<iStOther, cmnDepth>();
-
-  bool thisSchedSmaller = (iStThis < iStOther);
-  bool otherSchedMaxIterSatisfied = true;
-  if constexpr (depthToCheck >= 0) {
-    if constexpr (iStThis < iStOther) {
-      thisSchedSmaller = (StoreSched[iStThis][depthToCheck] <=
-                          StoreSched[iStOther][depthToCheck]);
-    } else {
-      thisSchedSmaller = (StoreSched[iStThis][depthToCheck] <
-                          StoreSched[iStOther][depthToCheck]);
-    }
-
-    UnrolledLoop<STORE_LOOP_DEPTH[iStOther], cmnDepth>([&](auto iD) {
-      if constexpr (STORE_IS_MAX_ITER_NEEDED[iStOther][iD]) {
-        // otherSchedMaxIterSatisfied &= StoreAckIsMaxIter[iStOther][iD];
-        otherSchedMaxIterSatisfied &= StoreIsMaxIter[iStOther][iD];
-      }
-    });
-  }
-
-  return (thisSchedSmaller ||
-          (StoreAddrPlusBurst[iStThis] <= StoreAckAddr[iStOther] &&
-           otherSchedMaxIterSatisfied));
-}
-
 
 /// Unique kernel name generators.
 template <int MemId> class StreamingMemoryKernel;
@@ -291,6 +143,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
   });
 
   events[1] = q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
+    /* Store logic registers */
     constexpr uint ST_ALLOC_Q_SIZE = 2;
     bool StoreAllocValid[NUM_STORES][ST_ALLOC_Q_SIZE];
     addr_t StoreAllocAddr[NUM_STORES][ST_ALLOC_Q_SIZE];
@@ -335,6 +188,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       StoreAckAddr[iSt] = INVALID_ADDR;
     });
 
+    /* Load logic registers */
     constexpr uint LD_Q_SIZE = 4;
     bool LoadValid[NUM_LOADS][LD_Q_SIZE];
     addr_t LoadAddr[NUM_LOADS][LD_Q_SIZE];
@@ -397,6 +251,152 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       InitBundle(SafeLoadReusePipeSucc[iLd], false);
     });
 
+    /* Lambdas for checking RAW, WAR, WAW hazards. The functions make use of
+     * compile-time information, like "at which loop level should we compare
+     * schedule values" or "is this a forward/backwards dependence".
+     */
+    static constexpr auto DI = DepInfo<MEM_ID>{};
+    constexpr auto walkUpStoreToFirstWrap = [&](const auto iSt,
+                                                const auto start) {
+      for (int i = start - 1; i >= 0; --i) {
+        if (DI.STORE_IS_MAX_ITER_NEEDED[iSt][i]) {
+          return i;
+        }
+      }
+
+      return start;
+    };
+
+    constexpr auto walkUpLoadToFirstWrap = [&](const auto iLd,
+                                               const auto start) {
+      for (int i = start - 1; i >= 0; --i) {
+        if (DI.LOAD_IS_MAX_ITER_NEEDED[iLd][i]) {
+          return i;
+        }
+      }
+
+      return start;
+    };
+
+    auto canCheckPosDepDist = [&](const auto iLd, const auto iSt) {
+      constexpr int cmnDepth = DI.COMMON_LOOP_DEPTH[iLd][iSt];
+      constexpr int stWrapDepth = walkUpStoreToFirstWrap(iSt, cmnDepth);
+
+      if constexpr ((cmnDepth <= 0) || (stWrapDepth == cmnDepth))
+        return true;
+
+      return (NextStoreSched[iSt][stWrapDepth] >=
+              NextLoadSched[iLd][stWrapDepth]);
+    };
+
+    auto checkNoWAW = [&](const auto iStThis, const auto iStOther) {
+      constexpr int cmnDepth = DI.COMMON_STORE_LOOP_DEPTH[iStThis][iStOther];
+      constexpr int depthToCheck = walkUpStoreToFirstWrap(iStOther, cmnDepth);
+
+      bool thisSchedSmaller = (iStThis < iStOther);
+      bool otherSchedMaxIterSatisfied = true;
+      if constexpr (depthToCheck >= 0) {
+        if constexpr (iStThis < iStOther) {
+          thisSchedSmaller = (NextStoreSched[iStThis][depthToCheck] <=
+                              NextStoreSched[iStOther][depthToCheck]);
+        } else {
+          thisSchedSmaller = (NextStoreSched[iStThis][depthToCheck] <
+                              NextStoreSched[iStOther][depthToCheck]);
+        }
+
+        UnrolledLoop<DI.STORE_LOOP_DEPTH[iStOther], cmnDepth>([&](auto iD) {
+          if constexpr (DI.STORE_IS_MAX_ITER_NEEDED[iStOther][iD]) {
+            // otherSchedMaxIterSatisfied &= StoreAckIsMaxIter[iStOther][iD];
+            otherSchedMaxIterSatisfied &= NextStoreIsMaxIter[iStOther][iD];
+          }
+        });
+      }
+
+      return (thisSchedSmaller ||
+              (NextStoreAddrPlusBurst[iStThis] <= StoreAckAddr[iStOther] &&
+               otherSchedMaxIterSatisfied));
+    };
+
+    auto checkNoWAR = [&](const auto iLd, const auto iSt) {
+      constexpr int cmnDepth = DI.COMMON_LOOP_DEPTH[iLd][iSt];
+      constexpr int depthForMinIter =
+          walkUpLoadToFirstWrap(iLd, DI.COMMON_LOOP_DEPTH[iLd][iSt]);
+
+      bool hasMinSched = true;
+      bool loadSchedEqual = true;
+      bool loadSchedGreater = (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD);
+
+      if constexpr (depthForMinIter >= 0) {
+        if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
+          loadSchedEqual = ((LoadAckSched[iLd][depthForMinIter] + 1) ==
+                            NextStoreSched[iSt][depthForMinIter]);
+          loadSchedGreater = ((LoadAckSched[iLd][depthForMinIter] + 1) >
+                              NextStoreSched[iSt][depthForMinIter]);
+        } else {
+          loadSchedEqual = (LoadAckSched[iLd][depthForMinIter] ==
+                            NextStoreSched[iSt][depthForMinIter]);
+          loadSchedGreater = (LoadAckSched[iLd][depthForMinIter] >
+                              NextStoreSched[iSt][depthForMinIter]);
+        }
+
+        bool maxIterSatisfied = true;
+        UnrolledLoop<DI.LOAD_LOOP_DEPTH[iLd], cmnDepth>([&](auto iD) {
+          if constexpr (DI.LOAD_IS_MAX_ITER_NEEDED[iLd][iD]) {
+            maxIterSatisfied &= LoadAckIsMaxIter[iLd][iD];
+          }
+        });
+
+        hasMinSched = (loadSchedEqual && maxIterSatisfied); 
+        // || //(loadSchedEqual && //LoadIsMaxIter[iLd][depthForMinIter + 1]);
+      }
+
+      return (loadSchedGreater || hasMinSched);
+      // return LoadAckAddr[iLd] == LOAD_ADDR_SENTINEL || loadSchedGreater ||
+      //        (hasMinSched && LoadAckAddr[iLd] >= NextStoreAddr[iSt]) ||
+            //  (LoadAckSched[iLd][cmnDepth] >= NextStoreSched[iSt][cmnDepth]);
+    };
+
+    /// The below is called when checking against NextStore and against a match
+    /// in the store commit queue. Thus, it uses function parameters.
+    auto storeHasMinSched = [&](const auto iLd, const auto iSt,
+                                const sched_t(&LoadSched)[LOOP_DEPTH],
+                                const sched_t(&StoreSched)[LOOP_DEPTH],
+                                const bool(&StoreIsMaxIter)[LOOP_DEPTH]) {
+      constexpr int cmnDepth = DI.COMMON_LOOP_DEPTH[iLd][iSt];
+      constexpr int depthToCheck = walkUpStoreToFirstWrap(iSt, cmnDepth);
+
+      bool hasMinSched = true;
+      if constexpr (depthToCheck >= 0) {
+        bool storeSchedEqual = true, storeSchedGreater = true;
+
+        if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
+          storeSchedEqual =
+              ((StoreSched[depthToCheck] + 1) == LoadSched[depthToCheck]);
+          storeSchedGreater =
+              ((StoreSched[depthToCheck] + 1) > LoadSched[depthToCheck]);
+        } else {
+          storeSchedEqual =
+              (StoreSched[depthToCheck] == LoadSched[depthToCheck]);
+          storeSchedGreater =
+              (StoreSched[depthToCheck] > LoadSched[depthToCheck]);
+        }
+
+        // By definition of walkUpToFirstWrap, no maxIter required between
+        // COMMON_LOOP_DEPTH[iLd][iSt] and kDepthForMinIter.
+        bool maxIterSatisfied = true;
+        UnrolledLoop<DI.STORE_LOOP_DEPTH[iSt], cmnDepth>([&](auto iD) {
+          if constexpr (DI.STORE_IS_MAX_ITER_NEEDED[iSt][iD]) {
+            maxIterSatisfied &= StoreIsMaxIter[iD];
+          }
+        });
+
+        hasMinSched =
+            storeSchedGreater || (storeSchedEqual && maxIterSatisfied);
+      }
+
+      return hasMinSched;
+    };
+
     bool EndSignal = false;
     bool AnyStoresLeft = true;
     bool AnyLoadsLeft = true;
@@ -433,6 +433,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         bool succ = false;
         auto ldAck = LoadMuxAckPipes::template PipeAt<iLd>::read(succ);
         if (succ) {
+          // PRINTF("mem%d load%d ack addr %d\n", int(MEM_ID), int(iLd), ldAck.addr);
           LoadAckAddr[iLd] = ldAck.addr;
           UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
             LoadAckSched[iLd][iD] = ldAck.sched[iD];
@@ -540,34 +541,34 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           bool NoRAW = true;
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
             // Load is before store if dep is 'back' and and no common loop.
-            bool LoadIsBeforeStore = (LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK);
-            if constexpr (COMMON_LOOP_DEPTH[iLd][iSt] >= 0) {
+            bool LoadBeforeStore = (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK);
+            if constexpr (DI.COMMON_LOOP_DEPTH[iLd][iSt] >= 0) {
               // If common loop then compare the iteration of common the common 
               // loop. Use ">=" if ld before st in the common loop, else ">".
-              if constexpr (LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
-                LoadIsBeforeStore =
-                    (NextStoreSched[iSt][COMMON_LOOP_DEPTH[iLd][iSt]] >=
-                     NextLoadSched[iLd][COMMON_LOOP_DEPTH[iLd][iSt]]);
+              if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
+                LoadBeforeStore =
+                    (NextStoreSched[iSt][DI.COMMON_LOOP_DEPTH[iLd][iSt]] >=
+                     NextLoadSched[iLd][DI.COMMON_LOOP_DEPTH[iLd][iSt]]);
               } else {
-                LoadIsBeforeStore =
-                    (NextStoreSched[iSt][COMMON_LOOP_DEPTH[iLd][iSt]] >
-                     NextLoadSched[iLd][COMMON_LOOP_DEPTH[iLd][iSt]]);
+                LoadBeforeStore =
+                    (NextStoreSched[iSt][DI.COMMON_LOOP_DEPTH[iLd][iSt]] >
+                     NextLoadSched[iLd][DI.COMMON_LOOP_DEPTH[iLd][iSt]]);
               }
             }
 
             bool LoadHasPosDepDistance = false;
-            if constexpr (ARE_IN_SAME_LOOP[iLd][iSt]) {
+            if constexpr (DI.ARE_IN_SAME_LOOP[iLd][iSt]) {
               LoadHasPosDepDistance =
-                  canCheckPosDepDist<iLd, iSt>(NextLoadSched, NextStoreSched) &&
-                  NextLoadPosDepDist[iLd];
+                  canCheckPosDepDist(iLd, iSt) && NextLoadPosDepDist[iLd];
             }
 
-            bool minSchedSatisfied = storeHasMinSched<iLd, iSt>(
-                NextLoadSched, NextStoreSched, NextStoreIsMaxIter);
+            bool minSchedSatisfied =
+                storeHasMinSched(iLd, iSt, NextLoadSched[iLd],
+                                 NextStoreSched[iSt], NextStoreIsMaxIter[iSt]);
 
             bool StoreHasLargerAddress = NextStoreAddr[iSt] > NextLoadAddr[iLd];
 
-            NoRAW &= (LoadIsBeforeStore || LoadHasPosDepDistance ||
+            NoRAW &= (LoadBeforeStore || LoadHasPosDepDistance ||
                       (minSchedSatisfied && StoreHasLargerAddress));
 
             ThisReuse[iSt] = false;
@@ -594,13 +595,14 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
             UnrolledLoop<2>([&](auto iEval) {
               UnrolledLoop<NUM_STORES>([&](auto iSt) {
-                constexpr auto DepDirection = LOAD_TO_STORE_DEP_DIR[iLd][iSt];
+                constexpr auto DepDir = DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt];
                 // Forward deps have precedence (i.e. evaluated last).
-                if constexpr ((iEval == 0 && DepDirection == BACK) ||
-                              (iEval == 1 && DepDirection == FORWARD)) {
+                if constexpr ((iEval == 0 && DepDir == BACK) ||
+                              (iEval == 1 && DepDir == FORWARD)) {
                   if (ThisReuse[iSt]) {
-                    bool minSchedSatisfied = storeHasMinSched<iLd, iSt>(
-                        NextLoadSched, ThisReuseSched, ThisReuseIsMaxIter);
+                    bool minSchedSatisfied = storeHasMinSched(
+                        iLd, iSt, NextLoadSched[iLd], ThisReuseSched[iSt],
+                        ThisReuseIsMaxIter[iSt]);
 
                     if (minSchedSatisfied) {
                       Reuse = true;
@@ -686,18 +688,14 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         bool NoWAW = true;
         UnrolledLoop<NUM_STORES>([&](auto iStOther) {
           if constexpr (iSt != iStOther) {
-            NoWAW &= checkNoWAW<iSt, iStOther>(
-                NextStoreAddrPlusBurst, NextStoreSched, NextStoreIsMaxIter,
-                StoreAckAddr);
+            NoWAW &= checkNoWAW(iSt, iStOther);
           }
         });
 
         bool NoWAR = true;
         UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-          if constexpr (!ARE_IN_SAME_LOOP[iLd][iSt]) {
-            NoWAR &=
-                checkNoWAR<iLd, iSt>(LoadAckSched, NextStoreSched, LoadAckAddr,
-                                     NextStoreAddr, LoadAckIsMaxIter);
+          if constexpr (!DI.ARE_IN_SAME_LOOP[iLd][iSt]) {
+            NoWAR &= checkNoWAR(iLd, iSt);
           }
         });
 

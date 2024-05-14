@@ -1,7 +1,36 @@
 #ifndef __DATA_BUNDLE_HPP__
 #define __DATA_BUNDLE_HPP__
 
+#include "tuple.hpp"
+#include "unrolled_loop.hpp"
+
 namespace fpga_tools {
+
+// Functions for shifting shift-register bundles.
+template <typename T, uint SIZE> 
+inline void InitBundle(T (&Bundle)[SIZE], const T val) {
+  #pragma unroll
+  for (uint i = 0; i < SIZE; ++i) {
+    Bundle[i] = val;
+  }
+}
+template <typename T, uint SIZE> 
+inline void ShiftBundle(T (&Bundle)[SIZE], const T val) {
+  #pragma unroll
+  for (uint i = 0; i < SIZE - 1; ++i) {
+    Bundle[i] = Bundle[i + 1];
+  }
+  Bundle[SIZE - 1] = val;
+}
+template <typename T, uint SIZE> 
+inline void ShiftBundle(T (&Bundle)[SIZE]) {
+  #pragma unroll
+  for (uint i = 0; i < SIZE - 1; ++i) {
+    Bundle[i] = Bundle[i + 1];
+  }
+}
+
+
 
 //
 // A class used to group together 'bundle_size' elements of type 'T' into a

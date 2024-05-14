@@ -9,12 +9,15 @@ BIN := bin/$(BENCHMARK)
 I = -I${ELASTIC_SYCL_HLS_DIR}/include_sycl
 I += -I${ELASTIC_SYCL_HLS_DIR}/lsq
 
+DEPS := $(FILE) ${ELASTIC_SYCL_HLS_DIR}/lsq/*
+
 CXX := icpx
-CXXFLAGS += -fsycl -std=c++17 -O2 $(I) 
+CXXFLAGS += -Wall -fsycl -std=c++17 -O2 $(I) -DQSIZE=$(Q)
 # use IEEE floating point exactly (easier testing against CPU execution)
 CXXFLAGS += -fp-model=precise 
 # ac_int.h header (to use algorithmic C datatypes -- custom bit-width numerics).
 CXXFLAGS += -qactypes 
+# -Xsno-interleaving=DDR -Xsglobal-ring -Xsforce-single-store-ring
 
 # Arria 10 fpga
 FPGA_TARGET := -Xsboard=intel_a10gx_pac:pac_a10
@@ -35,19 +38,19 @@ fpga_sim: $(BIN).fpga_sim
 fpga_hw: $(BIN).fpga_hw
 report: $(BIN).a 
 
-$(BIN): $(FILE) | bin
+$(BIN): $(DEPS) | bin
 	$(CXX) $(CXXFLAGS) -o $@ $(FILE)
 
-$(BIN).fpga_emu: $(FILE) | bin
+$(BIN).fpga_emu: $(DEPS) | bin
 	$(CXX) $(CXXFLAGS) -fintelfpga -DFPGA_EMU $< -o $@
 
-$(BIN).fpga_sim: $(FILE) | bin
+$(BIN).fpga_sim: $(DEPS) | bin
 	$(CXX) $(CXXFLAGS) -fintelfpga $(SIMULATION_FLAGS) $< -o $@ 
 
-$(BIN).fpga_hw: $(FILE) | bin
+$(BIN).fpga_hw: $(DEPS) | bin
 	$(CXX) $(CXXFLAGS) -fintelfpga $(HARDWARE_FLAGS) $< -o $@ 
 
-$(BIN).a:  $(FILE) | bin
+$(BIN).a:  $(DEPS) | bin
 	$(CXX) $(CXXFLAGS) -fintelfpga $(HARDWARE_FLAGS) -fsycl-link=early $< -o $@ 
 
 # Make bin/ dir if it doesn't exist

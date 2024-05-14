@@ -14,92 +14,14 @@
 #include "memory_utils.hpp"
 #include "device_print.hpp"
 
-// #include "StreamingMemory.hpp"
 #include "TaggedStreamingMemory.hpp"
-// #include "ComplicatedTaggedStreamingMemory.hpp"
-// #include "BurstingStreamingMemory.hpp"
 
 using namespace sycl;
+using namespace fpga_tools;
 
 // Forward declare kernel name.
 class MainKernel;
 
-struct this_sched_t {
-  int a; int b; int c; int d; 
-};
-bool operator==(const this_sched_t &LHS, const this_sched_t &RHS) {
-  return LHS.a == RHS.a && LHS.b == RHS.b && LHS.c == RHS.c && LHS.d == RHS.d;
-}
-
-bool operator>(const this_sched_t &LHS, const this_sched_t &RHS) {
-  if (LHS.a > RHS.a) {
-    return true;
-  } else if (LHS.a == RHS.a) {
-    if (LHS.b > RHS.b) {
-      return true;
-    } else if (LHS.b == RHS.b) {
-      if (LHS.c > RHS.c) {
-        return true;
-      } else if (LHS.c == RHS.c) {
-        return LHS.d > RHS.d;
-      }
-    }
-  }
-
-  return false;
-}
-bool operator>=(const this_sched_t &LHS, const this_sched_t &RHS) {
-  if (LHS.a > RHS.a) {
-    return true;
-  } else if (LHS.a == RHS.a) {
-    if (LHS.b > RHS.b) {
-      return true;
-    } else if (LHS.b == RHS.b) {
-      if (LHS.c > RHS.c) {
-        return true;
-      } else if (LHS.c == RHS.c) {
-        return LHS.d >= RHS.d;
-      }
-    }
-  }
-
-  return false;
-}
-bool operator<(const this_sched_t &LHS, const this_sched_t &RHS) {
-  if (LHS.a < RHS.a) {
-    return true;
-  } else if (LHS.a == RHS.a) {
-    if (LHS.b < RHS.b) {
-      return true;
-    } else if (LHS.b == RHS.b) {
-      if (LHS.c < RHS.c) {
-        return true;
-      } else if (LHS.c == RHS.c) {
-        return LHS.d < RHS.d;
-      }
-    }
-  }
-
-  return false;
-}
-
-bool operator<=(const this_sched_t &LHS, const this_sched_t &RHS) {
-  if (LHS.a < RHS.a) {
-    return true;
-  } else if (LHS.a == RHS.a) {
-    if (LHS.b < RHS.b) {
-      return true;
-    } else if (LHS.b == RHS.b) {
-      if (LHS.c < RHS.c) {
-        return true;
-      } else if (LHS.c == RHS.c) {
-        return LHS.d <= RHS.d;
-      }
-    }
-  }
-
-  return false;
-}
 double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
                    std::vector<float> &h_C, const float alpha, const float beta,
                    const int NI, const int NJ, const int NK) {
@@ -107,24 +29,20 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
   auto *B = fpga_tools::toDevice(h_B, q);
   auto *C = fpga_tools::toDevice(h_C, q);
 
-  using l0 = pipe<class _l0, bool, 16>;
-  using l1 = pipe<class _l1, bool, 16>;
-  // using i0 = pipe<class _i0, int, 16>;
-  // using i1 = pipe<class _i1, int, 16>;
 
-  using LoadAddrC0 = pipe<class _LoadAddrC0, addr_tag_t, 16>;
-  using LoadValC0 = pipe<class _LoadValC0, float, 16>;
-  using StoreAddrC0 = pipe<class _StoreAddrC0, addr_tag_t, 16>;
-  using StoreValC0 = pipe<class _StoreValC0, float, 16>;
+  constexpr int NUM_LOADS = 2;
+  constexpr int NUM_STORES = 2;
+  constexpr int LOOP_DEPTH = 3;
+  using LoadAddrPipes = PipeArray<class _LoadAddr_p, load_req_t<NUM_STORES, LOOP_DEPTH>, 16, NUM_LOADS>;
+  using LoadValPipes = PipeArray<class _LoadVal_p, float, 16, NUM_LOADS>;
+  using StoreAddrPipes = PipeArray<class _StoreAddr_p, store_req_t<LOOP_DEPTH>, 16, NUM_STORES>;
+  using StoreValPipes = PipeArray<class _StoreVal_p, float, 16, NUM_STORES>;
 
-  using LoadAddrC1 = pipe<class _LoadAddrC1, addr_tag_t, 16>;
-  using LoadValC1 = pipe<class _LoadValC1, float, 16>;
-  using StoreAddrC1 = pipe<class _StoreAddrC1, addr_tag_t, 16>;
-  using StoreValC1 = pipe<class _StoreValC1, float, 16>;
-
-  using LoadValA0 = pipe<class _LoadValA0, float, 16>;
-  using LoadValB0 = pipe<class _LoadValB0, float, 16>;
+  // using TagPipe = PipeArray<class _TagPipe, tag_t, 16, NUM_AGUS, NUM_AGUS>;
+  // using LoopTagPipe = PipeArray<class _TagAfterLoop_p_new, uint, 16, NUM_AGUS, NUM_AGUS>;
   
+  using LoadValA0 = sycl::pipe<class LoadValA0Pipe, float, 16>;
+  using LoadValB0 = sycl::pipe<class LoadValB0Pipe, float, 16>;
   q.single_task<class sldAB>([=]() [[intel::kernel_args_restrict]] {
     for (int i = 0; i < NI; i++) { 
       for (int k = 0; k < NK; k++) {
@@ -137,108 +55,114 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
   });
 
   q.single_task<class AGU0>([=]() [[intel::kernel_args_restrict]] {
+    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_0 {INVALID_ADDR};
+    InitBundle(ld_req_0.sched, 0u);
+    InitBundle(ld_req_0.posDepDist, false);
+    store_req_t<LOOP_DEPTH> st_req_0 {INVALID_ADDR};
+    InitBundle(st_req_0.sched, 0u);
+
     for (int i = 0; i < NI; i++) { 
+      st_req_0.sched[0]++;
+      ld_req_0.sched[0]++;
+
       for (int j = 0; j < NJ; j++) {
-        // PRINTF("Tag st0 = %d\n", (j + 1 + i*NJ*1 + i*NJ*NK));
-        LoadAddrC0::write({i * NI + j, (j + 0 + i*NJ*1 + i*NJ*NK)});
-        StoreAddrC0::write({i * NI + j, (j + 1 + i*NJ*1 + i*NJ*NK)});
+        st_req_0.sched[1]++;
+        ld_req_0.sched[1]++;
+
+        ld_req_0.addr = i * NI + j;
+        ld_req_0.posDepDist[0] = ld_req_0.addr > st_req_0.addr;
+        LoadAddrPipes::PipeAt<0>::write(ld_req_0);
+
+        st_req_0.addr = i * NI + j;
+        StoreAddrPipes::PipeAt<0>::write(st_req_0);
       }
     }
 
-    LoadAddrC0::write({INVALID_ADDR});
-    StoreAddrC0::write({INVALID_ADDR});
+    ld_req_0.addr = LOAD_ADDR_SENTINEL;
+    InitBundle(ld_req_0.sched, SCHED_SENTINEL);
+    st_req_0.addr = STORE_ADDR_SENTINEL;
+    InitBundle(st_req_0.sched, SCHED_SENTINEL);
+    LoadAddrPipes::PipeAt<0>::write(ld_req_0);
+    StoreAddrPipes::PipeAt<0>::write(st_req_0);
+    // PRINTF("Done AGU0\n");
   });
   
   q.single_task<class AGU1>([=]() [[intel::kernel_args_restrict]] {
-    // For each gate, send its range and dependence distance.
-    // LoadAddrC1::write({NJ, NJ-1});
-    // LoadAddrC1::write({NJ*NK, NJ-1});
+    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
+    InitBundle(ld_req_1.sched, 0u);
+    InitBundle(ld_req_1.posDepDist, false);
+    store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
+    InitBundle(st_req_1.sched, 0u);
 
     for (int i = 0; i < NI; i++) { 
-      for (int k = 0; k < NK; k++) {
-        for (int j = 0; j < NJ; j++) {
-          // PRINTF("Tag st 1 = %d\n", (i*(NJ + NK*NJ) + k*NK + NJ + j + 1));
+      st_req_1.sched[0]++;
+      ld_req_1.sched[0]++;
 
-          LoadAddrC1::write({i * NI + j, (i*(NJ + NK*NJ) + k*NK + NJ + j + 0)});
-          StoreAddrC1::write({i * NI + j, (i*(NJ + NK*NJ) + k*NK + NJ + j + 1)});
+      for (int k = 0; k < NK; k++) {
+        st_req_1.sched[1]++;
+        ld_req_1.sched[1]++;
+
+        for (int j = 0; j < NJ; j++) {
+          st_req_1.sched[2]++;
+          ld_req_1.sched[2]++;
+
+          ld_req_1.addr = i * NI + j;
+          ld_req_1.posDepDist[1] = ld_req_1.addr > st_req_1.addr;
+          LoadAddrPipes::PipeAt<1>::write(ld_req_1);
+
+          st_req_1.addr = i * NI + j;
+          StoreAddrPipes::PipeAt<1>::write(st_req_1);
         }
       }
     }
 
-    LoadAddrC1::write({INVALID_ADDR});
-    StoreAddrC1::write({INVALID_ADDR});
+    ld_req_1.addr = LOAD_ADDR_SENTINEL;
+    InitBundle(ld_req_1.sched, SCHED_SENTINEL);
+    st_req_1.addr = STORE_ADDR_SENTINEL;
+    InitBundle(st_req_1.sched, SCHED_SENTINEL);
+    LoadAddrPipes::PipeAt<1>::write(ld_req_1);
+    StoreAddrPipes::PipeAt<1>::write(st_req_1);
+    // PRINTF("Done AGU1\n");
   });
 
-
-  using InSldC1 = PipeArray<class _InSldC1, addr_tag_val_t<float>, 16, 2>;
-
-  // using InSst1 = PipeArray<class _InSstC1, addr_tag_val_t<float>, 16, 1>;
-  // using OutSstC0 = PipeDuplicator<class _OutSstC0, addr_tag_val_t<float>,
-  //                                 InSldC1::PipeAt<0>
-  //                                 , InSst1::PipeAt<0>
-  //                                 >;
-  // using OutSstC1 = PipeDuplicator<class _OutSstC1, addr_tag_val_t<float>,
-  //                                 InSldC1::PipeAt<1>
-  //                                 >;
-
-  auto sldC0 = StreamingLoad<0, LoadAddrC0, LoadValC0>(q, C);
-  // auto sstC0 = StreamingStore<0, StoreAddrC0, StoreValC0, NoPipe, 0, OutSstC0, 1>(q, C);
-  auto sstC0 = StreamingStore<0, StoreAddrC0, StoreValC0, NoPipe, 0, InSldC1::PipeAt<0>, 1>(q, C);
-
-  auto sldC1 = StreamingLoad<1, LoadAddrC1, LoadValC1, InSldC1, 2>(q, C, NJ-1);
-  // auto sstC1 = StreamingStore<1, StoreAddrC1, StoreValC1, InSst1, 1, OutSstC1, 1>(q, C, NJ); // for st->st deps, one greater dep distance
-  auto sstC1 = StreamingStore<1, StoreAddrC1, StoreValC1, NoPipe, 0, InSldC1::PipeAt<1>, 1>(q, C);
+  auto memEvents =
+      StreamingMemory<0, LoadAddrPipes, LoadValPipes, StoreAddrPipes,
+                      StoreValPipes, NUM_LOADS, NUM_STORES, LOOP_DEPTH>(q, C);
 
   auto eventL0 = q.single_task<class Loop0>([=]() [[intel::kernel_args_restrict]] {
-    while (l0::read()) {
-      // auto i = i0::read();
+    for (int i = 0; i < NI; i++) { 
       for (int j = 0; j < NJ; j++) {
-        StoreValC0::write(LoadValC0::read() * beta);
-        // C[i * NI + j] *= beta;
+        StoreValPipes::PipeAt<0>::write(LoadValPipes::PipeAt<0>::read() * beta);
+        // PRINTF("Done loop0 %d, %d\n", i, j);
       }
     }
-    // PRINTF("Done Loop0\n");
   });
 
   auto eventL1 = q.single_task<class Loop1>([=]() [[intel::kernel_args_restrict]] {
-    while (l1::read()) {
-      // auto i = i1::read();
+    for (int i = 0; i < NI; i++) { 
       for (int k = 0; k < NK; k++) {
         for (int j = 0; j < NJ; j++) {
-          // C[i * NI + j] += alpha * A[i * NI + k] * B[k * NK + j];
-          StoreValC1::write(LoadValC1::read() +
-                            (beta * LoadValA0::read() * LoadValB0::read()));
-          // PRINTF("Done i=%d, k=%d, j=%d\n", i, k, j);
+          StoreValPipes::PipeAt<1>::write(
+              LoadValPipes::PipeAt<1>::read() +
+              (beta * LoadValA0::read() * LoadValB0::read()));
+
+          // PRINTF("Done loop1 %d, %d, %d\n", i, j, k);
         }
       }
     }
-
-    // PRINTF("Done Loop1\n");
   });
 
-  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < NI; i++) { 
-      l0::write(1);
-      // i0::write(i);
+  eventL0.wait();
+  eventL1.wait();
+  for (auto &e : memEvents) e.wait();
 
-      l1::write(1);
-      // i1::write(i);
-    }
-
-    l0::write(0);
-    l1::write(0);
-  });
-
-  event.wait();
-  sstC0.wait();
-  sstC1.wait();
   q.copy(C, h_C.data(), h_C.size()).wait();
 
   sycl::free(A, q);
   sycl::free(B, q);
   sycl::free(C, q);
 
-  auto start = event.get_profiling_info<info::event_profiling::command_start>();
+  auto start = eventL0.get_profiling_info<info::event_profiling::command_start>();
   auto end = eventL1.get_profiling_info<info::event_profiling::command_end>();
   double time_in_ms = static_cast<double>(end - start) / 1000000;
 
@@ -255,12 +179,15 @@ void gemm_cpu(std::vector<float> &A, std::vector<float> &B,
   // A is NIxNK
   // B is NKxNJ
   // C is NIxNJ
+  // WrapId0 = 0;
+  // WrapId1 = 0;
   for (int i = 0; i < NI; i++) {
     for (int j = 0; j < NJ; j++) {
       C[i * NI + j] *= beta;
     }
 
     for (int k = 0; k < NK; k++) {
+      // WrapId1++;
       for (int j = 0; j < NJ; j++) {
         C[i * NI + j] += alpha * A[i * NI + k] * B[k * NK + j];
       }

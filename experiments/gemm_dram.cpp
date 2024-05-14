@@ -12,6 +12,7 @@
 
 #include "exception_handler.hpp"
 #include "memory_utils.hpp"
+#include "device_print.hpp"
 
 using namespace sycl;
 
@@ -33,17 +34,56 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
     // A is NIxNK
     // B is NKxNJ
     // C is NIxNJ
-    for (int i = 0; i < NI; i++) { 
+    //
+    // 19k cycles for a 10x10 array
+    uint tag = 0;
+    for (int i = 0; i < NI; i++) {
       for (int j = 0; j < NJ; j++) {
-        C[i * NI + j] *= beta;
+        auto ld0_addr = i * NI + j;
+        auto ld0_tag = tag;
+        auto ld0_val = C[i * NI + j];
+        tag++;
+        auto st0_val = ld0_val + beta;
+        auto st0_tag = tag;
+        auto st0_addr = i*NI + j;
+        // PRINTF("ld0 (%d, %d) = %f\nst0 (%d, %d) = %f\n", 
+        //        ld0_addr, ld0_tag, ld0_val, st0_addr, st0_tag, st0_val);
+        C[i * NI + j] = st0_val;
       }
 
       for (int k = 0; k < NK; k++) {
         for (int j = 0; j < NJ; j++) {
-          C[i * NI + j] += alpha * A[i * NI + k] * B[k * NK + j];
+          auto ld1_val = C[i * NI + j];
+          auto ld1_addr = i * NI + j;
+          auto ld1_tag = tag;
+          tag++;
+          auto st1_val = ld1_val + (alpha * A[i * NI + k] * B[k * NK + j]);
+          auto st1_addr = i * NI + j;
+          auto st1_tag = tag;
+
+        PRINTF("ld1 (%d, %d) = %f\nst1 (%d, %d) = %f\n", 
+               ld1_addr, ld1_tag, ld1_val, st1_addr, st1_tag, st1_val);
+
+          C[i * NI + j] = st1_val;
         }
       }
     }
+
+    // Below is a manually fused version. 16k cycles.
+    /*
+    for (int i = 0; i < NI; i++) { 
+      for (int k = 0; k < NK; k++) {
+        for (int j = 0; j < NJ; j++) {
+          auto v = C[i * NI + j]; 
+          if (k == 0)
+            v += beta;
+          v += alpha * A[i * NI + k] * B[k * NK + j];
+          C[i * NI + j] = v;
+        }
+      }
+    }
+    
+    */
   });
 
   event.wait();
@@ -70,7 +110,7 @@ void gemm_cpu(std::vector<float> &A, std::vector<float> &B,
   // C is NIxNJ
   for (int i = 0; i < NI; i++) {
     for (int j = 0; j < NJ; j++) {
-      C[i * NI + j] *= beta;
+      C[i * NI + j] += beta;
     }
 
     for (int k = 0; k < NK; k++) {

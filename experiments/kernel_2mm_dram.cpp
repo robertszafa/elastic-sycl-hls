@@ -31,7 +31,8 @@ double kernel_3mm(queue &q, const int alpha, const int beta, const int NI,
   int *C = fpga_tools::toDevice(h_C, q);
   int *D = fpga_tools::toDevice(h_D, q);
 
-  int* tmp = sycl::malloc_device<int>(h_D.size(), q);
+  std::vector zeroVec(h_D.size(), 0);
+  int* tmp = fpga_tools::toDevice(zeroVec, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (int i = 0; i < NI; i++) {
@@ -66,7 +67,7 @@ double kernel_3mm(queue &q, const int alpha, const int beta, const int NI,
   return time_in_ms;
 }
 
-void kernel_3mm_cpu(const int alpha, const int beta, const int NI, const int NJ,
+void kernel_2mm_cpu(const int alpha, const int beta, const int NI, const int NJ,
                     const int NK, const std::vector<int> &A,
                     const std::vector<int> &B, const std::vector<int> &C,
                     std::vector<int> &D) {
@@ -135,7 +136,7 @@ int main(int argc, char *argv[]) {
     auto kernel_time = kernel_3mm(q, 2, 2, NI, NJ, NK, A, B, C, D);
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    kernel_3mm_cpu(2, 2, NI, NJ, NK, A, B, C, D_cpu);
+    kernel_2mm_cpu(2, 2, NI, NJ, NK, A, B, C, D_cpu);
 
     if (std::equal(D.begin(), D.end(), D_cpu.begin()))
       std::cout << "Passed\n";

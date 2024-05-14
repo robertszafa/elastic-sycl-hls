@@ -7,7 +7,6 @@
 #include "unrolled_loop.hpp"
 #include "data_bundle.hpp"
 
-
 #include "DependencyTable.hpp"
 
 using namespace sycl;
@@ -48,7 +47,7 @@ constexpr addr_t INVALID_ADDR = -1;
 constexpr addr_t STORE_ADDR_SENTINEL = (1<<30) - 1;
 constexpr addr_t LOAD_ADDR_SENTINEL = (1<<30) - 2;
 constexpr addr_t FINAL_LD_ADDR_ACK = STORE_ADDR_SENTINEL + 1;
-constexpr sched_t SCHED_SENTINEL = (1<<31);
+constexpr sched_t SCHED_SENTINEL = (1<<30);
 
 /// Unique kernel name generators.
 template <int MemId> class StreamingMemoryKernel;
@@ -144,7 +143,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
   events[1] = q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
     /* Store logic registers */
-    constexpr uint ST_ALLOC_Q_SIZE = 2;
+    constexpr uint ST_ALLOC_Q_SIZE = 4;
     bool StoreAllocValid[NUM_STORES][ST_ALLOC_Q_SIZE];
     addr_t StoreAllocAddr[NUM_STORES][ST_ALLOC_Q_SIZE];
     addr_t StoreAllocAddrPlusBurst[NUM_STORES][ST_ALLOC_Q_SIZE];
@@ -154,14 +153,14 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     
     constexpr uint ST_COMMIT_Q_SIZE = BURST_SIZE;
     addr_t StoreCommitAddr[NUM_STORES][ST_COMMIT_Q_SIZE];
-    sched_t StoreCommitSched[NUM_STORES][LOOP_DEPTH][ST_COMMIT_Q_SIZE];
-    bool StoreCommitIsMaxIter[NUM_STORES][LOOP_DEPTH][ST_COMMIT_Q_SIZE];
     T StoreCommitVal[NUM_STORES][ST_COMMIT_Q_SIZE];
 
     addr_t NextStoreAddr[NUM_STORES];
     addr_t NextStoreAddrPlusBurst[NUM_STORES];
     sched_t NextStoreSched[NUM_STORES][LOOP_DEPTH];
     bool NextStoreIsMaxIter[NUM_STORES][LOOP_DEPTH];
+
+    sched_t NextNextStoreSched[NUM_STORES][LOOP_DEPTH];
 
     addr_t StoreAckAddr[NUM_STORES];
 
@@ -173,8 +172,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       UnrolledLoop<LOOP_DEPTH>([&] (auto iD) {
         InitBundle(StoreAllocSched[iSt][iD], 0u);
         InitBundle(StoreAllocIsMaxIter[iSt][iD], false);
-        InitBundle(StoreCommitSched[iSt][iD], 0u);
-        InitBundle(StoreCommitIsMaxIter[iSt][iD], false);
       });
 
       InitBundle(StoreCommitAddr[iSt], INVALID_ADDR);
@@ -183,6 +180,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       NextStoreAddr[iSt] = INVALID_ADDR;
       NextStoreAddrPlusBurst[iSt] = INVALID_ADDR;
       InitBundle(NextStoreSched[iSt], 0u);
+      InitBundle(NextNextStoreSched[iSt], 0u);
       InitBundle(NextStoreIsMaxIter[iSt], false);
 
       StoreAckAddr[iSt] = INVALID_ADDR;
@@ -234,7 +232,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       });
 
       LoadAckAddr[iLd] = INVALID_ADDR;
-      InitBundle(LoadAckSched[iLd], 0u);
+      InitBundle(LoadAckSched[iLd], 1u);
       InitBundle(LoadAckIsMaxIter[iLd], true);
 
       NextLoadAddr[iLd] = INVALID_ADDR;
@@ -278,15 +276,75 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       return start;
     };
 
-    auto canCheckPosDepDist = [&](const auto iLd, const auto iSt) {
+    auto checkNoRAW = [&](const auto iLd, const auto iSt) {
       constexpr int cmnDepth = DI.COMMON_LOOP_DEPTH[iLd][iSt];
-      constexpr int stWrapDepth = walkUpStoreToFirstWrap(iSt, cmnDepth);
+      constexpr int depthToCheck = walkUpStoreToFirstWrap(iSt, cmnDepth);
 
-      if constexpr ((cmnDepth <= 0) || (stWrapDepth == cmnDepth))
-        return true;
+      // Load is before store if dep is 'back' and and no common loop.
+      bool LoadBeforeStore = (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK);
+      if constexpr (cmnDepth >= 0) {
+        // If common loop then compare the iteration of common the common
+        // loop. Use ">=" if ld before st in the common loop, else ">".
+        if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
+          LoadBeforeStore =
+              (NextStoreSched[iSt][cmnDepth] >= NextLoadSched[iLd][cmnDepth]);
+        } else {
+          LoadBeforeStore =
+              (NextStoreSched[iSt][cmnDepth] > NextLoadSched[iLd][cmnDepth]);
+        }
+      }
 
-      return (NextStoreSched[iSt][stWrapDepth] >=
-              NextLoadSched[iLd][stWrapDepth]);
+      bool LoadHasPosDepDistance = false;
+      if constexpr (DI.ARE_IN_SAME_LOOP[iLd][iSt]) {
+        bool CanCheckPosDepDist = true;
+        if constexpr (cmnDepth > 0 && depthToCheck != cmnDepth) {
+          CanCheckPosDepDist = (NextStoreSched[iSt][depthToCheck] >=
+                                NextLoadSched[iLd][depthToCheck]);
+        }
+        LoadHasPosDepDistance = CanCheckPosDepDist && NextLoadPosDepDist[iLd];
+      }
+
+      bool HasMinSched = true;
+      if constexpr (depthToCheck >= 0) {
+        bool storeSchedEqual = true, storeSchedGreater = true;
+
+        if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
+          storeSchedEqual =
+              ((NextStoreSched[iSt][depthToCheck] + 1) == NextLoadSched[iLd][depthToCheck]);
+          storeSchedGreater =
+              ((NextStoreSched[iSt][depthToCheck] + 1) > NextLoadSched[iLd][depthToCheck]);
+        } else {
+          storeSchedEqual =
+              (NextStoreSched[iSt][depthToCheck] == NextLoadSched[iLd][depthToCheck]);
+          storeSchedGreater =
+              (NextStoreSched[iSt][depthToCheck] > NextLoadSched[iLd][depthToCheck]);
+        }
+
+        // By definition of walkUpToFirstWrap, no maxIter required between
+        // COMMON_LOOP_DEPTH[iLd][iSt] and kDepthForMinIter.
+        // bool maxIterSatisfied = true;
+        bool noAddrDecrement = true;
+        UnrolledLoop<DI.STORE_LOOP_DEPTH[iSt], cmnDepth>([&](auto iD) {
+          // If any max_store_iter needed
+          if constexpr (DI.STORE_IS_MAX_ITER_NEEDED[iSt][iD]) {
+            if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
+              noAddrDecrement = (NextNextStoreSched[iSt][depthToCheck] >=
+                                 NextLoadSched[iLd][depthToCheck]);
+            } else {
+              noAddrDecrement = (NextNextStoreSched[iSt][depthToCheck] >
+                                 NextLoadSched[iLd][depthToCheck]);
+            }
+          }
+        });
+
+        HasMinSched = storeSchedGreater || (storeSchedEqual && noAddrDecrement);
+      }
+
+      bool StoreHasLargerAddress = NextStoreAddr[iSt] > NextLoadAddr[iLd];
+
+      return (LoadBeforeStore || LoadHasPosDepDistance ||
+              (NextStoreAddr[iSt] == STORE_ADDR_SENTINEL) ||
+              (HasMinSched && StoreHasLargerAddress));
     };
 
     auto checkNoWAW = [&](const auto iStThis, const auto iStOther) {
@@ -331,11 +389,15 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           loadSchedEqual = ((LoadAckSched[iLd][depthForMinIter] + 1) ==
                             NextStoreSched[iSt][depthForMinIter]);
           loadSchedGreater = ((LoadAckSched[iLd][depthForMinIter] + 1) >
+                              NextStoreSched[iSt][depthForMinIter]) ||
+                             (NextLoadSched[iLd][depthForMinIter] >=
                               NextStoreSched[iSt][depthForMinIter]);
         } else {
           loadSchedEqual = (LoadAckSched[iLd][depthForMinIter] ==
                             NextStoreSched[iSt][depthForMinIter]);
           loadSchedGreater = (LoadAckSched[iLd][depthForMinIter] >
+                              NextStoreSched[iSt][depthForMinIter]) ||
+                             (NextLoadSched[iLd][depthForMinIter] >
                               NextStoreSched[iSt][depthForMinIter]);
         }
 
@@ -346,55 +408,11 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           }
         });
 
-        hasMinSched = (loadSchedEqual && maxIterSatisfied); 
-        // || //(loadSchedEqual && //LoadIsMaxIter[iLd][depthForMinIter + 1]);
+        hasMinSched = (loadSchedEqual && maxIterSatisfied);
       }
 
-      return (loadSchedGreater || hasMinSched);
-      // return LoadAckAddr[iLd] == LOAD_ADDR_SENTINEL || loadSchedGreater ||
-      //        (hasMinSched && LoadAckAddr[iLd] >= NextStoreAddr[iSt]) ||
-            //  (LoadAckSched[iLd][cmnDepth] >= NextStoreSched[iSt][cmnDepth]);
-    };
-
-    /// The below is called when checking against NextStore and against a match
-    /// in the store commit queue. Thus, it uses function parameters.
-    auto storeHasMinSched = [&](const auto iLd, const auto iSt,
-                                const sched_t(&LoadSched)[LOOP_DEPTH],
-                                const sched_t(&StoreSched)[LOOP_DEPTH],
-                                const bool(&StoreIsMaxIter)[LOOP_DEPTH]) {
-      constexpr int cmnDepth = DI.COMMON_LOOP_DEPTH[iLd][iSt];
-      constexpr int depthToCheck = walkUpStoreToFirstWrap(iSt, cmnDepth);
-
-      bool hasMinSched = true;
-      if constexpr (depthToCheck >= 0) {
-        bool storeSchedEqual = true, storeSchedGreater = true;
-
-        if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
-          storeSchedEqual =
-              ((StoreSched[depthToCheck] + 1) == LoadSched[depthToCheck]);
-          storeSchedGreater =
-              ((StoreSched[depthToCheck] + 1) > LoadSched[depthToCheck]);
-        } else {
-          storeSchedEqual =
-              (StoreSched[depthToCheck] == LoadSched[depthToCheck]);
-          storeSchedGreater =
-              (StoreSched[depthToCheck] > LoadSched[depthToCheck]);
-        }
-
-        // By definition of walkUpToFirstWrap, no maxIter required between
-        // COMMON_LOOP_DEPTH[iLd][iSt] and kDepthForMinIter.
-        bool maxIterSatisfied = true;
-        UnrolledLoop<DI.STORE_LOOP_DEPTH[iSt], cmnDepth>([&](auto iD) {
-          if constexpr (DI.STORE_IS_MAX_ITER_NEEDED[iSt][iD]) {
-            maxIterSatisfied &= StoreIsMaxIter[iD];
-          }
-        });
-
-        hasMinSched =
-            storeSchedGreater || (storeSchedEqual && maxIterSatisfied);
-      }
-
-      return hasMinSched;
+      return loadSchedGreater ||
+             (hasMinSched && LoadAckAddr[iLd] >= NextStoreAddr[iSt]);
     };
 
     bool EndSignal = false;
@@ -433,7 +451,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         bool succ = false;
         auto ldAck = LoadMuxAckPipes::template PipeAt<iLd>::read(succ);
         if (succ) {
-          // PRINTF("mem%d load%d ack addr %d\n", int(MEM_ID), int(iLd), ldAck.addr);
           LoadAckAddr[iLd] = ldAck.addr;
           UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
             LoadAckSched[iLd][iD] = ldAck.sched[iD];
@@ -535,44 +552,12 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         /** Rule for checking load safety and reuse. */
         if (LoadValid[iLd][0] && !SafeLoadValid[iLd][LD_Q_SIZE - 1]) {
           bool ThisReuse[NUM_STORES];
-          sched_t ThisReuseSched[NUM_STORES][LOOP_DEPTH];
-          bool ThisReuseIsMaxIter[NUM_STORES][LOOP_DEPTH];
           T ThisReuseVal[NUM_STORES];
           bool NoRAW = true;
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
-            // Load is before store if dep is 'back' and and no common loop.
-            bool LoadBeforeStore = (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK);
-            if constexpr (DI.COMMON_LOOP_DEPTH[iLd][iSt] >= 0) {
-              // If common loop then compare the iteration of common the common 
-              // loop. Use ">=" if ld before st in the common loop, else ">".
-              if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
-                LoadBeforeStore =
-                    (NextStoreSched[iSt][DI.COMMON_LOOP_DEPTH[iLd][iSt]] >=
-                     NextLoadSched[iLd][DI.COMMON_LOOP_DEPTH[iLd][iSt]]);
-              } else {
-                LoadBeforeStore =
-                    (NextStoreSched[iSt][DI.COMMON_LOOP_DEPTH[iLd][iSt]] >
-                     NextLoadSched[iLd][DI.COMMON_LOOP_DEPTH[iLd][iSt]]);
-              }
-            }
-
-            bool LoadHasPosDepDistance = false;
-            if constexpr (DI.ARE_IN_SAME_LOOP[iLd][iSt]) {
-              LoadHasPosDepDistance =
-                  canCheckPosDepDist(iLd, iSt) && NextLoadPosDepDist[iLd];
-            }
-
-            bool minSchedSatisfied =
-                storeHasMinSched(iLd, iSt, NextLoadSched[iLd],
-                                 NextStoreSched[iSt], NextStoreIsMaxIter[iSt]);
-
-            bool StoreHasLargerAddress = NextStoreAddr[iSt] > NextLoadAddr[iLd];
-
-            NoRAW &= (LoadBeforeStore || LoadHasPosDepDistance ||
-                      (minSchedSatisfied && StoreHasLargerAddress));
-
+            NoRAW &= checkNoRAW(iLd, iSt);
+            
             ThisReuse[iSt] = false;
-            InitBundle(ThisReuseSched[iSt], 0u);
             ThisReuseVal[iSt] = T{};
             #pragma unroll
             for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
@@ -580,10 +565,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
               if (NextLoadAddr[iLd] == StoreCommitAddr[iSt][i]) {
                 ThisReuse[iSt] = true;
                 ThisReuseVal[iSt] = StoreCommitVal[iSt][i];
-                UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-                  ThisReuseSched[iSt][iD] = StoreCommitSched[iSt][iD][i];
-                  ThisReuseIsMaxIter[iSt][iD] = StoreCommitIsMaxIter[iSt][iD][i];
-                });
               }
             }
           });
@@ -592,7 +573,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           if (NoRAW) {
             bool Reuse = false;
             T ReuseVal = T{};
-
             UnrolledLoop<2>([&](auto iEval) {
               UnrolledLoop<NUM_STORES>([&](auto iSt) {
                 constexpr auto DepDir = DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt];
@@ -600,19 +580,13 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
                 if constexpr ((iEval == 0 && DepDir == BACK) ||
                               (iEval == 1 && DepDir == FORWARD)) {
                   if (ThisReuse[iSt]) {
-                    bool minSchedSatisfied = storeHasMinSched(
-                        iLd, iSt, NextLoadSched[iLd], ThisReuseSched[iSt],
-                        ThisReuseIsMaxIter[iSt]);
-
-                    if (minSchedSatisfied) {
-                      Reuse = true;
-                      ReuseVal = ThisReuseVal[iSt];
-                    }
+                    Reuse = true;
+                    ReuseVal = ThisReuseVal[iSt];
                   }
                 }
               });
             });
-            
+
             SafeLoadValid[iLd][LD_Q_SIZE - 1] = true;
             SafeLoadAddr[iLd][LD_Q_SIZE - 1] = LoadAddr[iLd][0];
             UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
@@ -650,6 +624,11 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
             UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
               NextStoreSched[iSt][iD] = StoreAllocSched[iSt][iD][1];
               NextStoreIsMaxIter[iSt][iD] = StoreAllocIsMaxIter[iSt][iD][1];
+            });
+          }
+          if (StoreAllocValid[iSt][2]) {
+            UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
+              NextNextStoreSched[iSt][iD] = StoreAllocSched[iSt][iD][2];
             });
           }
 
@@ -705,12 +684,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           if (succ) {
             StorePortValPipes::template PipeAt<iSt>::write(StoreVal);
 
-            UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-              ShiftBundle(StoreCommitSched[iSt][iD],
-                          StoreAllocSched[iSt][iD][0]);
-              ShiftBundle(StoreCommitIsMaxIter[iSt][iD],
-                          StoreAllocIsMaxIter[iSt][iD][0]);
-            });
             ShiftBundle(StoreCommitVal[iSt], StoreVal);
             ShiftBundle(StoreCommitAddr[iSt], StoreAllocAddr[iSt][0]);
 

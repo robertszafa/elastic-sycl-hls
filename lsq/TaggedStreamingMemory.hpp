@@ -350,11 +350,12 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     auto checkNoWAW = [&](const auto iStThis, const auto iStOther) {
       constexpr int cmnDepth = DI.COMMON_STORE_LOOP_DEPTH[iStThis][iStOther];
       constexpr int depthToCheck = walkUpStoreToFirstWrap(iStOther, cmnDepth);
+      constexpr DEP_DIR depDir = (iStThis < iStOther) ? BACK : FORWARD;
 
       bool thisSchedSmaller = (iStThis < iStOther);
-      bool otherSchedMaxIterSatisfied = true;
+      bool otherStoreAddrNoDecrement = true;
       if constexpr (depthToCheck >= 0) {
-        if constexpr (iStThis < iStOther) {
+        if constexpr (depDir == BACK) {
           thisSchedSmaller = (NextStoreSched[iStThis][depthToCheck] <=
                               NextStoreSched[iStOther][depthToCheck]);
         } else {
@@ -363,16 +364,26 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         }
 
         UnrolledLoop<DI.STORE_LOOP_DEPTH[iStOther], cmnDepth>([&](auto iD) {
+          // If any of the loop iters between the store loop depth and cmnDepth
+          // causes the iStOther address to decrement, then check that those
+          // loops are at their final iteration.
           if constexpr (DI.STORE_IS_MAX_ITER_NEEDED[iStOther][iD]) {
-            // otherSchedMaxIterSatisfied &= StoreAckIsMaxIter[iStOther][iD];
-            otherSchedMaxIterSatisfied &= NextStoreIsMaxIter[iStOther][iD];
+            if constexpr (depDir == BACK) {
+              otherStoreAddrNoDecrement =
+                  (NextStoreSched[iStThis][depthToCheck] <=
+                   NextNextStoreSched[iStOther][depthToCheck]);
+            } else {
+              otherStoreAddrNoDecrement =
+                  (NextStoreSched[iStThis][depthToCheck] <
+                   NextNextStoreSched[iStOther][depthToCheck]);
+            }
           }
         });
       }
 
       return (thisSchedSmaller ||
               (NextStoreAddrPlusBurst[iStThis] <= StoreAckAddr[iStOther] &&
-               otherSchedMaxIterSatisfied));
+               otherStoreAddrNoDecrement));
     };
 
     auto checkNoWAR = [&](const auto iLd, const auto iSt) {

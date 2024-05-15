@@ -33,7 +33,6 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
   float *p = fpga_tools::toDevice(h_p, q);
   float *p_new = fpga_tools::toDevice(h_p, q);
   
-
   constexpr int LOOP_DEPTH = 3;
 
   constexpr int NUM_LOADS_p_new = 2;
@@ -44,7 +43,6 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
   using StoreAddrPipes_p_new = PipeArray<class _StoreAddr_p_new, store_req_t<LOOP_DEPTH_p_new>, 16, NUM_STORES_p_new>;
   using StoreValPipes_p_new = PipeArray<class _StoreVal_p_new, float, 16, NUM_STORES_p_new>;
   
-
   constexpr int NUM_LOADS_p = 1;
   constexpr int NUM_STORES_p = 1;
   constexpr int LOOP_DEPTH_p = 3;
@@ -203,7 +201,7 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
     // PRINTF("** DONE MainKernel0\n");
   });
 
-  q.single_task<class MainKernel1>([=]() [[intel::kernel_args_restrict]] {
+  auto event2 = q.single_task<class MainKernel1>([=]() [[intel::kernel_args_restrict]] {
     for (int iter = 0; iter < maxIters; ++iter) {
       int curcol = 0;
       for (int i = 0; i < numNodes; i++) {
@@ -249,6 +247,8 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
     // PRINTF("** DONE MainKernel2\n");
   });
 
+  event1.wait();
+  event2.wait();
   event3.wait();
 
   for (auto &e : memEvents) e.wait();
@@ -352,8 +352,9 @@ int main(int argc, char *argv[]) {
   // DEBUG: Print the number of nodes and edges, skip everything else
   printf("\nGraph data: Nodes: %d, Edges: %d \n\n", numNodes, numEdges);
 
-  std::vector<int> row_ptr(numNodes + 1, 0), col_idx(numEdges, 0);
-  std::vector<float> val(numEdges, 0.0f), p(numNodes, 0.0f);
+  auto sizeArr = std::max(numEdges + 1, numNodes + 1);
+  std::vector<int> row_ptr(sizeArr, 0), col_idx(sizeArr, 0);
+  std::vector<float> val(sizeArr, 0.0f), p(sizeArr, 0.0f);
   
   int fromnode, tonode;
   int cur_row = 0;
@@ -399,7 +400,7 @@ int main(int argc, char *argv[]) {
     property_list properties{property::queue::enable_profiling()};
     queue q(d_selector, exception_handler, properties);
 
-    std::vector<float> p_cpu(numNodes, 0.0f);
+    std::vector<float> p_cpu(sizeArr, 0.0f);
     std::copy(p.begin(), p.end(), p_cpu.begin());
 
     // Print out the device information used for the kernel code.

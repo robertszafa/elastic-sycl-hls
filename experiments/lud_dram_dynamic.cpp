@@ -12,7 +12,8 @@
 #include "pipe_utils.hpp"
 #include "exception_handler.hpp"
 
-#include "TaggedStreamingMemorySingleKernelCache.hpp"
+// #include "TaggedStreamingMemorySingleKernelCache.hpp"
+#include "TaggedStreamingMemory.hpp"
 
 using namespace sycl;
 using namespace fpga_tools;
@@ -24,169 +25,208 @@ class MainKernel2;
 double lud_cmp_kernel(queue &q, std::vector<float> &h_A, const int kN) {
   float *A = fpga_tools::toDevice(h_A, q);
 
-  using LoadAddrPipes = PipeArray<class _LoadAddrC, addr_tag_mintag_t<2>, 16, 7>;
-  using LoadValPipes = PipeArray<class _LoadValC, float, 16, 7>;
-  using StoreAddrPipes = PipeArray<class _StoreAddrC, addr_tag_t, 16, 2>;
-  using StoreValPipes = PipeArray<class _StoreValC, float, 16, 2>;
+  constexpr uint NUM_STORES = 2;
+  constexpr uint NUM_LOADS = 7;
+  constexpr uint LOOP_DEPTH = 3;
 
-  using MemEndSignal = pipe<class _MemEndSignal, bool, 1>;
+  using LoadAddrPipes = PipeArray<class _LoadAddr_p, load_req_t<NUM_STORES, LOOP_DEPTH>, 16, NUM_LOADS>;
+  using LoadValPipes = PipeArray<class _LoadVal_p, float, 16, NUM_LOADS>;
+  using StoreAddrPipes = PipeArray<class _StoreAddr_p, store_req_t<LOOP_DEPTH>, 16, NUM_STORES>;
+  using StoreValPipes = PipeArray<class _StoreVal_p, float, 16, NUM_STORES>;
 
-  q.single_task<class AGU0>([=]() [[intel::kernel_args_restrict]] {
-    uint tag = 0;
-    uint tagBeforeLoop1 = 0, lastTagBeforeLoop1 = 0;
-    
-    uint lastTagBeforeLoop3 = 0;
+  q.single_task<class AGU_ij>([=]() [[intel::kernel_args_restrict]] {
+    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
+    InitBundle(ld_req_1.sched, 0u);
+    InitBundle(ld_req_1.posDepDist, false);
 
-    int LoadAddr[7];
-    InitBundle(LoadAddr, INVALID_ADDR);
-    int StoreAddr[2];
-    InitBundle(StoreAddr, INVALID_ADDR);
+    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_2 {INVALID_ADDR};
+    InitBundle(ld_req_2.sched, 0u);
+    InitBundle(ld_req_2.posDepDist, false);
+
+    store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
+    InitBundle(st_req_1.sched, 0u);
 
     for (int i = 0; i < kN; i++) {
-      lastTagBeforeLoop1 = tagBeforeLoop1;
-      tagBeforeLoop1 = tag;
+      ld_req_1.sched[0]++;
+      ld_req_2.sched[0]++;
+      st_req_1.sched[0]++;
 
-      uint localTag = tag;
       for (int j = 0; j < i; j++) {
-        LoadAddr[0] = i * kN + j;
-        LoadAddrPipes::PipeAt<0>::write(
-            {LoadAddr[0],
-             localTag,
-             tagBeforeLoop1,
-             {lastTagBeforeLoop1, lastTagBeforeLoop3},
-            //  {false, false}});
-             {LoadAddr[0] > StoreAddr[0], false}});
+        ld_req_1.sched[1]++;
+        ld_req_2.sched[1]++;
+        st_req_1.sched[1]++;
+
+        ld_req_1.addr = i * kN + j;
+        ld_req_1.posDepDist[0] = ld_req_1.addr > st_req_1.addr;
+        LoadAddrPipes::PipeAt<0>::write(ld_req_1);
+
+        ld_req_2.addr = j * kN + j;
+        ld_req_2.posDepDist[0] = ld_req_2.addr > st_req_1.addr;
+        LoadAddrPipes::PipeAt<3>::write(ld_req_2);
+
+        st_req_1.addr = i * kN + j;
+        StoreAddrPipes::PipeAt<0>::write(st_req_1);
+      }
+    }
+
+    ld_req_1.addr = LOAD_ADDR_SENTINEL;
+    InitBundle(ld_req_1.sched, SCHED_SENTINEL);
+    LoadAddrPipes::PipeAt<0>::write(ld_req_1);
+    
+    ld_req_2.addr = LOAD_ADDR_SENTINEL;
+    InitBundle(ld_req_2.sched, SCHED_SENTINEL);
+    LoadAddrPipes::PipeAt<3>::write(ld_req_2);
+
+    st_req_1.addr = STORE_ADDR_SENTINEL;
+    InitBundle(st_req_1.sched, SCHED_SENTINEL);
+    StoreAddrPipes::PipeAt<0>::write(st_req_1);
+  });
+
+  q.single_task<class AGU_ijk>([=]() [[intel::kernel_args_restrict]] {
+    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
+    InitBundle(ld_req_1.sched, 0u);
+    InitBundle(ld_req_1.posDepDist, false);
+
+    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_2 {INVALID_ADDR};
+    InitBundle(ld_req_2.sched, 0u);
+    InitBundle(ld_req_2.posDepDist, false);
+
+    for (int i = 0; i < kN; i++) {
+      ld_req_1.sched[0]++;
+      ld_req_2.sched[0]++;
+
+      for (int j = 0; j < i; j++) {
+        ld_req_1.sched[1]++;
+        ld_req_2.sched[1]++;
 
         for (int k = 0; k < j; k++) {
-          LoadAddr[1] = i * kN + k;
-          LoadAddrPipes::PipeAt<1>::write(
-              {LoadAddr[1],
-              localTag,
-              tagBeforeLoop1,
-              {lastTagBeforeLoop1, lastTagBeforeLoop3},
-              // {false, false}});
-              {LoadAddr[1] > StoreAddr[0], false}});
-          
-          LoadAddr[2] = k * kN + j;
-          LoadAddrPipes::PipeAt<2>::write(
-              {LoadAddr[2],
-              localTag,
-              tagBeforeLoop1,
-              {lastTagBeforeLoop1, lastTagBeforeLoop3},
-              // {false, false}});
-              {LoadAddr[2] > StoreAddr[0], false}});
+          ld_req_1.sched[2]++;
+          ld_req_2.sched[2]++;
+
+          ld_req_1.addr = i * kN + k;
+          LoadAddrPipes::PipeAt<1>::write(ld_req_1);
+
+          ld_req_2.addr = k * kN + j;
+          LoadAddrPipes::PipeAt<2>::write(ld_req_2);
         }
-
-        LoadAddr[3] = j * kN + j;
-        LoadAddrPipes::PipeAt<3>::write(
-            {LoadAddr[3],
-             localTag,
-             tagBeforeLoop1,
-             {lastTagBeforeLoop1, lastTagBeforeLoop3},
-            //  {false, false}});
-             {LoadAddr[3] > StoreAddr[0], false}});
-
-        localTag++;
-        StoreAddr[0] = i * kN + j;
-        StoreAddrPipes::PipeAt<0>::write({StoreAddr[0], localTag});
       }
-
-      tag = localTag;
-      lastTagBeforeLoop3 = tag;
-
-      tag += (kN - i);
     }
 
-    StoreAddrPipes::PipeAt<0>::write({MAX_INT, MAX_INT});
+    ld_req_1.addr = LOAD_ADDR_SENTINEL;
+    InitBundle(ld_req_1.sched, SCHED_SENTINEL);
+    LoadAddrPipes::PipeAt<1>::write(ld_req_1);
+
+    ld_req_2.addr = LOAD_ADDR_SENTINEL;
+    InitBundle(ld_req_2.sched, SCHED_SENTINEL);
+    LoadAddrPipes::PipeAt<2>::write(ld_req_2);
   });
 
-  
-  q.single_task<class AGU1>([=]() [[intel::kernel_args_restrict]] {
-    uint tag = 0;
-    uint tagBeforeLoop1 = 0, lastTagBeforeLoop1 = 0;
-    uint tagBeforeLoop3 = 0, lastTagBeforeLoop3 = 0;
+  q.single_task<class AGU_il>([=]() [[intel::kernel_args_restrict]] {
+    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
+    InitBundle(ld_req_1.sched, 0u);
+    InitBundle(ld_req_1.posDepDist, false);
 
-    int LoadAddr[7];
-    InitBundle(LoadAddr, INVALID_ADDR);
-    int StoreAddr[2];
-    InitBundle(StoreAddr, INVALID_ADDR);
+    store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
+    InitBundle(st_req_1.sched, 0u);
 
-    for (int i = 0; i < kN; i++) { // L0 
-      tag += i;
+    for (int i = 0; i < kN; i++) {
+      ld_req_1.sched[0]++;
+      st_req_1.sched[0]++;
 
-      lastTagBeforeLoop3 = tagBeforeLoop3;
-      tagBeforeLoop3 = tag;
+      for (int l = i; l < kN; l++) {
+        ld_req_1.sched[1]++;
+        st_req_1.sched[1]++;
 
-      uint localTag = tag;
-      for (int l = i; l < kN; l++) { // L3
-        LoadAddr[4] = i * kN + l;
-        LoadAddrPipes::PipeAt<4>::write(
-            {LoadAddr[4],
-             localTag,
-             tagBeforeLoop3,
-             {lastTagBeforeLoop1, lastTagBeforeLoop3},
-            //  {false, false}});
-             {false, LoadAddr[4] > StoreAddr[1]}});
+        ld_req_1.addr = i * kN + l;
+        ld_req_1.posDepDist[1] = ld_req_1.addr > st_req_1.addr;
+        LoadAddrPipes::PipeAt<4>::write(ld_req_1);
 
-        for (int m = 0; m < i; m++) { // L4
-          LoadAddr[5] = i * kN + m;
-          LoadAddrPipes::PipeAt<5>::write(
-              {LoadAddr[5],
-              localTag,
-              tagBeforeLoop3,
-              {lastTagBeforeLoop1, lastTagBeforeLoop3},
-              // {false, false}});
-              {false, LoadAddr[5] > StoreAddr[1]}});
-
-          LoadAddr[6] = m * kN + l;
-          LoadAddrPipes::PipeAt<6>::write(
-              {LoadAddr[6],
-              localTag,
-              tagBeforeLoop3,
-              {lastTagBeforeLoop1, lastTagBeforeLoop3},
-              // {false, false}});
-              {false, LoadAddr[6] > StoreAddr[1]}});
-        }
-        
-        localTag++;
-        StoreAddr[1] = i * kN + l;
-        StoreAddrPipes::PipeAt<1>::write({StoreAddr[1], localTag});
+        st_req_1.addr = i * kN + l;
+        StoreAddrPipes::PipeAt<1>::write(st_req_1);
       }
-
-      tag = localTag;
-      lastTagBeforeLoop1 = tag;
     }
 
-    StoreAddrPipes::PipeAt<1>::write({MAX_INT, MAX_INT});
+    ld_req_1.addr = LOAD_ADDR_SENTINEL;
+    InitBundle(ld_req_1.sched, SCHED_SENTINEL);
+    LoadAddrPipes::PipeAt<4>::write(ld_req_1);
+
+    st_req_1.addr = STORE_ADDR_SENTINEL;
+    InitBundle(st_req_1.sched, SCHED_SENTINEL);
+    StoreAddrPipes::PipeAt<1>::write(st_req_1);
   });
 
-  auto memEvents = StreamingMemory<0, MemEndSignal, LoadAddrPipes, LoadValPipes,
-                                   StoreAddrPipes, StoreValPipes, 7, 2>(q, A);
+  q.single_task<class AGU_ilm>([=]() [[intel::kernel_args_restrict]] {
+    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
+    InitBundle(ld_req_1.sched, 0u);
+    InitBundle(ld_req_1.posDepDist, false);
+
+    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_2 {INVALID_ADDR};
+    InitBundle(ld_req_2.sched, 0u);
+    InitBundle(ld_req_2.posDepDist, false);
+
+    for (int i = 0; i < kN; i++) {
+      ld_req_1.sched[0]++;
+      ld_req_2.sched[0]++;
+
+      for (int l = i; l < kN; l++) {
+        ld_req_1.sched[1]++;
+        ld_req_2.sched[1]++;
+
+        for (int m = 0; m < i; m++) {
+          ld_req_1.sched[2]++;
+          ld_req_2.sched[2]++;
+
+          ld_req_1.addr = i * kN + m;
+          LoadAddrPipes::PipeAt<5>::write(ld_req_1);
+
+          ld_req_2.addr = m * kN + l;
+          LoadAddrPipes::PipeAt<6>::write(ld_req_2);
+        }
+      }
+    }
+
+    ld_req_1.addr = LOAD_ADDR_SENTINEL;
+    InitBundle(ld_req_1.sched, SCHED_SENTINEL);
+    LoadAddrPipes::PipeAt<5>::write(ld_req_1);
+
+    ld_req_2.addr = LOAD_ADDR_SENTINEL;
+    InitBundle(ld_req_2.sched, SCHED_SENTINEL);
+    LoadAddrPipes::PipeAt<6>::write(ld_req_2);
+  });
+
+
+  auto memEvents = StreamingMemory<6, LoadAddrPipes, LoadValPipes,
+                                   StoreAddrPipes, StoreValPipes, 
+                                   NUM_LOADS, NUM_STORES, LOOP_DEPTH>(q, A);
 
   auto event0 = q.single_task<class MainKernel0>([=]() [[intel::kernel_args_restrict]] {
     for (int i = 0; i < kN; i++) { // L0 
       for (int j = 0; j < i; j++) { // L1
         auto w = LoadValPipes::PipeAt<0>::read();
+        // PRINTF("Done2 iter i,j = %d,%d\n", i,j);
         for (int k = 0; k < j; k++) { // L2
           w -= LoadValPipes::PipeAt<1>::read() * LoadValPipes::PipeAt<2>::read();
         }
-        StoreValPipes::PipeAt<0>::write(w / LoadValPipes::PipeAt<3>::read());
+        
+        auto StVal = w / LoadValPipes::PipeAt<3>::read();
+        StoreValPipes::PipeAt<0>::write(StVal);
+        // StorePortValPipes::PipeAt<0>::write(StVal);
       }
     }
   });
 
   auto event1 = q.single_task<class MainKernel1>([=]() [[intel::kernel_args_restrict]] {
     for (int i = 0; i < kN; i++) { // L0 
+      // PRINTF("i = %d, ", i);
       for (int l = i; l < kN; l++) { // L3
         auto w = LoadValPipes::PipeAt<4>::read();
         for (int m = 0; m < i; m++) { // L4
           w -= LoadValPipes::PipeAt<5>::read() * LoadValPipes::PipeAt<6>::read();
         }
         StoreValPipes::PipeAt<1>::write(w);
+        // StorePortValPipes::PipeAt<1>::write(w);
       }
     }
-
-    MemEndSignal::write(true);
   });
 
   event0.wait();
@@ -207,19 +247,27 @@ void lud_cmp_cpu(std::vector<float> &A, const int kN) {
   for (int i = 0; i < kN; i++) {
 
     for (int j = 0; j < i; j++) {
-      auto w = A[i * kN + j];
+      // i, j
+      auto w = A[i * kN + j]; // no wrap
+
       for (int k = 0; k < j; k++) {
-        w -= A[i * kN + k] * A[k * kN + j];
+        // i, j, k
+        w -= A[i * kN + k] * // wraps at k (id = j)
+             A[k * kN + j]; // wraps at k (id = j)
       }
-      A[i * kN + j] = w / A[j * kN + j];
+
+      // i, j
+      A[i * kN + j] = // no wrap
+          w / A[j * kN + j]; // wraps at j (id = i)
     }
 
     for (int l = i; l < kN; l++) {
-      auto w = A[i * kN + l];
+      auto w = A[i * kN + l]; // no wrap
       for (int m = 0; m < i; m++) {
-        w -= A[i * kN + m] * A[m * kN + l];
+        w -= A[i * kN + m] * // wraps at m (id = l)
+             A[m * kN + l]; // wraps at m (id = l)
       }
-      A[i * kN + l] = w;
+      A[i * kN + l] = w; // no wrap
     }
 
   }
@@ -293,7 +341,7 @@ int main(int argc, char *argv[]) {
       if (!almost_equal(A[i],A_cpu[i]))
         std::cout << i << ": " << A[i] << " != " << A_cpu[i] << "\n";
     }
-    
+
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

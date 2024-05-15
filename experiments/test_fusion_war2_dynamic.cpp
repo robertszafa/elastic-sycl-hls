@@ -63,7 +63,7 @@ double test_kernel_war(queue &q, const int NI, const int NJ, const int NK, const
     InitBundle(ld_req_1.sched, SCHED_SENTINEL);
     LoadAddrPipes::PipeAt<0>::write(ld_req_1);
 
-    PRINTF("** DONE AGU0\n";)
+    // PRINTF("** DONE AGU0\n";)
   });
 
   q.single_task<class AGU1>([=]() [[intel::kernel_args_restrict]] {

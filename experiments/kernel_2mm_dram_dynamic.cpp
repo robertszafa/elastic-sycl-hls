@@ -101,21 +101,26 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
     load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
     InitBundle(ld_req_1.sched, 0u);
     InitBundle(ld_req_1.posDepDist, false);
+    InitBundle(ld_req_1.isMaxIter, false);
 
     store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
     InitBundle(st_req_1.sched, 0u);
+    InitBundle(st_req_1.isMaxIter, false);
 
-    // [[intel::loop_coalesce(2)]]
     for (int i = 0; i < NI; i++) {
       ld_req_1.sched[0]++;
       st_req_1.sched[0]++;
+      ld_req_1.isMaxIter[0] = (i+1) == NI;
+      st_req_1.isMaxIter[0] = (i+1) == NI;
 
       for (int j = 0; j < NJ; j++) {
         ld_req_1.sched[1]++;
+        ld_req_1.isMaxIter[1] = (j+1) == NJ;
         ld_req_1.addr++;
         ld_req_1.posDepDist[0] = ld_req_1.addr > st_req_1.addr;
         LoadAddrPipes::PipeAt<0>::write(ld_req_1);
 
+        st_req_1.isMaxIter[1] = (j+1) == NJ;
         st_req_1.sched[1]++;
         st_req_1.addr = i * NI + j;
         StoreAddrPipes::PipeAt<0>::write(st_req_1);
@@ -124,31 +129,33 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
 
     ld_req_1.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_1.sched, SCHED_SENTINEL);
+    InitBundle(ld_req_1.isMaxIter, true);
     LoadAddrPipes::PipeAt<0>::write(ld_req_1);
 
     st_req_1.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_1.sched, SCHED_SENTINEL);
+    InitBundle(st_req_1.isMaxIter, true);
     StoreAddrPipes::PipeAt<0>::write(st_req_1);
   });
 
   auto agu1 = q.single_task<class agu1>([=]() [[intel::kernel_args_restrict]] {
     load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
     InitBundle(ld_req_1.sched, 0u);
-    // InitBundle(ld_req_1.isMaxIter, false);
+    InitBundle(ld_req_1.isMaxIter, false);
     InitBundle(ld_req_1.posDepDist, false);
 
     // [[intel::loop_coalesce(3)]]
     for (int i = 0; i < NI; i++) {
       ld_req_1.sched[0]++;
-      // ld_req_1.isMaxIter[0] = ((i+1) == NI);
+      ld_req_1.isMaxIter[0] = ((i+1) == NI);
 
       for (int j = 0; j < NJ; j++) {
         ld_req_1.sched[1]++;
-        // ld_req_1.isMaxIter[1] = ((j+1) == NJ);
+        ld_req_1.isMaxIter[1] = ((j+1) == NJ);
 
         for (int k = 0; k < NJ; ++k) {
           ld_req_1.sched[2]++;
-          // ld_req_1.isMaxIter[2] = ((k+1) == NJ);
+          ld_req_1.isMaxIter[2] = ((k+1) == NJ);
 
           ld_req_1.addr = i * NI + k;
           LoadAddrPipes::PipeAt<1>::write(ld_req_1);
@@ -158,6 +165,7 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
     
     ld_req_1.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_1.sched, SCHED_SENTINEL);
+    InitBundle(ld_req_1.isMaxIter, true);
     LoadAddrPipes::PipeAt<1>::write(ld_req_1);
   });
 

@@ -40,15 +40,19 @@ double test_kernel_war(queue &q, const int NI, const int NJ, const int NK,
   q.single_task<class AGU0>([=]() [[intel::kernel_args_restrict]] {
     store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
     InitBundle(st_req_1.sched, 0u);
+    InitBundle(st_req_1.isMaxIter, false);
 
     for (int iters = 0; iters < NUM_ITERS; iters++) {
       st_req_1.sched[0]++;
+      st_req_1.isMaxIter[0] = (iters + 1) == NUM_ITERS;
      
       for (int j = 0; j < NI; j++) {
         st_req_1.sched[1]++;
+        st_req_1.isMaxIter[1] = (j + 1) == NI;
       
         for (int i = 0; i < NI; i++) {
           st_req_1.sched[2]++;
+          st_req_1.isMaxIter[2] = (i + 1) == NI;
           
           st_req_1.addr = i;
           StoreAddrPipes::PipeAt<0>::write(st_req_1);
@@ -58,6 +62,7 @@ double test_kernel_war(queue &q, const int NI, const int NJ, const int NK,
   
     st_req_1.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_1.sched, SCHED_SENTINEL);
+    InitBundle(st_req_1.isMaxIter, true);
     StoreAddrPipes::PipeAt<0>::write(st_req_1);
     // PRINTF("DONE AGU 0\n");
   });
@@ -65,12 +70,15 @@ double test_kernel_war(queue &q, const int NI, const int NJ, const int NK,
   q.single_task<class AGU1>([=]() [[intel::kernel_args_restrict]] {
     store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
     InitBundle(st_req_1.sched, 0u);
+    InitBundle(st_req_1.isMaxIter, false);
 
     for (int iters = 0; iters < NUM_ITERS; iters++) {
       st_req_1.sched[0]++;
+      st_req_1.isMaxIter[0] = (iters + 1) == NUM_ITERS;
      
       for (int j = 0; j < NI; j++) {
         st_req_1.sched[1]++;
+        st_req_1.isMaxIter[1] = (j + 1) == NI;
       
         st_req_1.addr = j;
         StoreAddrPipes::PipeAt<1>::write(st_req_1);
@@ -79,6 +87,7 @@ double test_kernel_war(queue &q, const int NI, const int NJ, const int NK,
   
     st_req_1.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_1.sched, SCHED_SENTINEL);
+    InitBundle(st_req_1.isMaxIter, false);
     StoreAddrPipes::PipeAt<1>::write(st_req_1);
     // PRINTF("DONE AGU 1\n");
   });

@@ -58,16 +58,22 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
     load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_0 {INVALID_ADDR};
     InitBundle(ld_req_0.sched, 0u);
     InitBundle(ld_req_0.posDepDist, false);
+    InitBundle(ld_req_0.isMaxIter, false);
     store_req_t<LOOP_DEPTH> st_req_0 {INVALID_ADDR};
     InitBundle(st_req_0.sched, 0u);
+    InitBundle(st_req_0.isMaxIter, false);
 
     for (int i = 0; i < NI; i++) { 
       st_req_0.sched[0]++;
       ld_req_0.sched[0]++;
+      st_req_0.isMaxIter[0] = (i+1) == NI;
+      ld_req_0.isMaxIter[0] = (i+1) == NI;
 
       for (int j = 0; j < NJ; j++) {
         st_req_0.sched[1]++;
         ld_req_0.sched[1]++;
+        st_req_0.isMaxIter[1] = (j+1) == NJ;
+        ld_req_0.isMaxIter[1] = (j+1) == NJ;
 
         ld_req_0.addr = i * NI + j;
         ld_req_0.posDepDist[0] = ld_req_0.addr > st_req_0.addr;
@@ -91,20 +97,28 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
     load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
     InitBundle(ld_req_1.sched, 0u);
     InitBundle(ld_req_1.posDepDist, false);
+    InitBundle(ld_req_1.isMaxIter, false);
     store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
     InitBundle(st_req_1.sched, 0u);
+    InitBundle(st_req_1.isMaxIter, false);
 
     for (int i = 0; i < NI; i++) { 
       st_req_1.sched[0]++;
       ld_req_1.sched[0]++;
+      st_req_1.isMaxIter[0] = (i+1) == NI;
+      ld_req_1.isMaxIter[0] = (i+1) == NI;
 
       for (int k = 0; k < NK; k++) {
         st_req_1.sched[1]++;
         ld_req_1.sched[1]++;
+        st_req_1.isMaxIter[1] = (k+1) == NK;
+        ld_req_1.isMaxIter[1] = (k+1) == NK;
 
         for (int j = 0; j < NJ; j++) {
           st_req_1.sched[2]++;
           ld_req_1.sched[2]++;
+          st_req_1.isMaxIter[2] = (j+1) == NJ;
+          ld_req_1.isMaxIter[2] = (j+1) == NJ;
 
           ld_req_1.addr = i * NI + j;
           ld_req_1.posDepDist[1] = ld_req_1.addr > st_req_1.addr;

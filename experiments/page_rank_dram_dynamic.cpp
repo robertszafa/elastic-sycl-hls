@@ -56,12 +56,15 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
   q.single_task<class AGU_l0>([=]() [[intel::kernel_args_restrict]] {
     store_req_t<LOOP_DEPTH> st_req {INVALID_ADDR};
     InitBundle(st_req.sched, 0u);
+    InitBundle(st_req.isMaxIter, false);
 
     for (int iter = 0; iter < maxIters; ++iter) {
       st_req.sched[0]++;
+      st_req.isMaxIter[0] = (iter + 1) == maxIters;
 
       for (int i = 0; i < numNodes; i++) {
         st_req.sched[1]++;
+        st_req.isMaxIter[1] = (i + 1) == numNodes;
 
         st_req.addr = i;
         StoreAddrPipes_p_new::PipeAt<0>::write(st_req);
@@ -70,6 +73,7 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
 
     st_req.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req.sched, SCHED_SENTINEL);
+    InitBundle(st_req.isMaxIter, true);
     StoreAddrPipes_p_new::PipeAt<0>::write(st_req);
 
     // PRINTF("** DONE AGU 0\n");
@@ -78,19 +82,27 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
   q.single_task<class AGU_l1>([=]() [[intel::kernel_args_restrict]] {
     store_req_t<LOOP_DEPTH> st_req_p_new {INVALID_ADDR};
     InitBundle(st_req_p_new.sched, 0u);
+    InitBundle(st_req_p_new.isMaxIter, false);
 
     load_req_t<NUM_STORES_p_new, LOOP_DEPTH> ld_req_p_new {INVALID_ADDR};
     InitBundle(ld_req_p_new.sched, 0u);
     InitBundle(ld_req_p_new.posDepDist, false);
+    InitBundle(ld_req_p_new.isMaxIter, false);
 
     load_req_t<NUM_STORES_p, LOOP_DEPTH> ld_req_p {INVALID_ADDR};
     InitBundle(ld_req_p.sched, 0u);
     InitBundle(ld_req_p.posDepDist, false);
+    InitBundle(ld_req_p.isMaxIter, false);
 
     for (int iter = 0; iter < maxIters; ++iter) {
       st_req_p_new.sched[0]++;
+      st_req_p_new.isMaxIter[0] = (iter + 1) == maxIters;
+
       ld_req_p_new.sched[0]++;
+      ld_req_p_new.isMaxIter[0] = (iter + 1) == maxIters;
+
       ld_req_p.sched[0]++;
+      ld_req_p.isMaxIter[0] = (iter + 1) == maxIters;
 
       int rowel = 0;
       int curcol = 0;
@@ -99,6 +111,9 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
         st_req_p_new.sched[1]++;
         ld_req_p_new.sched[1]++;
         ld_req_p.sched[1]++;
+        st_req_p_new.isMaxIter[1] = (i+1) == numNodes;
+        ld_req_p_new.isMaxIter[1] = (i+1) == numNodes;
+        ld_req_p.isMaxIter[1] = (i+1) == numNodes;
 
         rowel = row_ptr[i + 1] - row_ptr[i];
 
@@ -110,6 +125,9 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
           st_req_p_new.sched[2]++;
           ld_req_p_new.sched[2]++;
           ld_req_p.sched[2]++;
+          st_req_p_new.isMaxIter[2] = (j+1) == local_rowel;
+          ld_req_p_new.isMaxIter[2] = (j+1) == local_rowel;
+          ld_req_p.isMaxIter[2] = (j+1) == local_rowel;
 
           ld_req_p.addr = local_i;
           LoadAddrPipes_p::PipeAt<0>::write(ld_req_p);
@@ -130,14 +148,17 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
 
     ld_req_p.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_p.sched, SCHED_SENTINEL);
+    InitBundle(ld_req_p.isMaxIter, true);
     LoadAddrPipes_p::PipeAt<0>::write(ld_req_p);
 
     ld_req_p_new.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_p_new.sched, SCHED_SENTINEL);
+    InitBundle(ld_req_p_new.isMaxIter, true);
     LoadAddrPipes_p_new::PipeAt<0>::write(ld_req_p_new);
 
     st_req_p_new.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_p_new.sched, SCHED_SENTINEL);
+    InitBundle(st_req_p_new.isMaxIter, true);
     StoreAddrPipes_p_new::PipeAt<1>::write(st_req_p_new);
 
     // PRINTF("** DONE AGU 1\n");
@@ -146,20 +167,26 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
   q.single_task<class AGU_l2>([=]() [[intel::kernel_args_restrict]] {
     store_req_t<LOOP_DEPTH> st_req_p {INVALID_ADDR};
     InitBundle(st_req_p.sched, 0u);
+    InitBundle(st_req_p.isMaxIter, false);
 
     load_req_t<NUM_STORES_p_new, LOOP_DEPTH> ld_req_p_new {INVALID_ADDR};
     InitBundle(ld_req_p_new.sched, 0u);
     InitBundle(ld_req_p_new.posDepDist, false);
+    InitBundle(ld_req_p_new.isMaxIter, false);
 
     for (int iter = 0; iter < maxIters; ++iter) {
       st_req_p.sched[0]++;
+      st_req_p.isMaxIter[0] = (iter + 1) == maxIters;
       ld_req_p_new.sched[0]++;
-
+      ld_req_p_new.isMaxIter[0] = (iter + 1) == maxIters;
 
       for (int i = 0; i < numNodes; i++) {
         st_req_p.sched[1]++;
         st_req_p.sched[1]++;
         ld_req_p_new.sched[1]++;
+        st_req_p.isMaxIter[1] = (i+1) == numNodes;
+        st_req_p.isMaxIter[1] = (i+1) == numNodes;
+        ld_req_p_new.isMaxIter[1] = (i+1) == numNodes;
 
         ld_req_p_new.addr = i;
         LoadAddrPipes_p_new::PipeAt<1>::write(ld_req_p_new);
@@ -171,10 +198,12 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
 
     ld_req_p_new.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_p_new.sched, SCHED_SENTINEL);
+    InitBundle(ld_req_p_new.isMaxIter, true);
     LoadAddrPipes_p_new::PipeAt<1>::write(ld_req_p_new);
 
     st_req_p.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_p.sched, SCHED_SENTINEL);
+    InitBundle(st_req_p.isMaxIter, true);
     StoreAddrPipes_p::PipeAt<0>::write(st_req_p);
 
     // PRINTF("** DONE AGU 1\n");

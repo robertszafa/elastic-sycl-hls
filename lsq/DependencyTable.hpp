@@ -155,3 +155,43 @@ template <> struct DepInfo<5> {
   };
   static constexpr bool ARE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {{false}};
 };
+
+// lud
+template <> struct DepInfo<6> {
+  static constexpr int NUM_LOADS = 7;
+  static constexpr int NUM_STORES = 2;
+  static constexpr int LOOP_DEPTH = 3;
+
+  static constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = {1, 2, 2, 1, 1, 2, 2};
+  static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {1, 1};
+  static constexpr int COMMON_LOOP_DEPTH[NUM_LOADS][NUM_STORES] = {
+      {1, 0}, {1, 0}, {1, 0}, {1, 0}, {0, 1}, {0, 1}, {0, 1}};
+  static constexpr int COMMON_STORE_LOOP_DEPTH[NUM_STORES][NUM_STORES] = {
+      {1, 0},
+      {0, 1},
+  };
+  static constexpr DEP_DIR LOAD_TO_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = {
+      {BACK, BACK},
+      {BACK, BACK},
+      {BACK, BACK},
+      {BACK, BACK},
+      {FORWARD, BACK},
+      {FORWARD, BACK},
+      {FORWARD, BACK}
+  };
+  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][LOOP_DEPTH] = {
+      {false, false, false}, {false, true, false}, {true, true, false},
+      {true, false, false},
+
+      {false, false, false}, {false, true, false}, {true, true, false},
+  };
+  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][LOOP_DEPTH] = {
+      {false, false, false},
+      {false, false, false},
+  };
+  static constexpr bool ARE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
+      {true, false}, {false, false}, {false, false}, {true, false},
+
+      {false, true}, {false, false}, {false, false},
+  };
+};

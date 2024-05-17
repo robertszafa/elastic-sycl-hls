@@ -43,15 +43,19 @@ double test_kernel_war(queue &q, const int NI, const int NJ, const int NK, const
     load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
     InitBundle(ld_req_1.sched, 0u);
     InitBundle(ld_req_1.posDepDist, false);
+    InitBundle(ld_req_1.isMaxIter, false);
 
     for (int iters = 0; iters < NUM_ITERS; iters++) {
       ld_req_1.sched[0]++;
+      ld_req_1.isMaxIter[0] = (iters + 1) == NUM_ITERS;
 
       for (int j = 0; j < NI; j++) {
         ld_req_1.sched[1]++;
+        ld_req_1.isMaxIter[1] = (j + 1) == NI;
 
         for (int i = 0; i < NI; i++) {
           ld_req_1.sched[2]++;
+          ld_req_1.isMaxIter[2] = (i + 1) == NI;
 
           ld_req_1.addr = i;
           LoadAddrPipes::PipeAt<0>::write(ld_req_1);
@@ -61,6 +65,7 @@ double test_kernel_war(queue &q, const int NI, const int NJ, const int NK, const
 
     ld_req_1.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_1.sched, SCHED_SENTINEL);
+    InitBundle(ld_req_1.isMaxIter, true);
     LoadAddrPipes::PipeAt<0>::write(ld_req_1);
 
     // PRINTF("** DONE AGU0\n";)
@@ -69,12 +74,15 @@ double test_kernel_war(queue &q, const int NI, const int NJ, const int NK, const
   q.single_task<class AGU1>([=]() [[intel::kernel_args_restrict]] {
     store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
     InitBundle(st_req_1.sched, 0u);
+    InitBundle(st_req_1.isMaxIter, false);
 
     for (int iters = 0; iters < NUM_ITERS; iters++) {
       st_req_1.sched[0]++;
+      st_req_1.isMaxIter[0] = (iters + 1) == NUM_ITERS;
 
       for (int i = 10; i < NI; i++) {
         st_req_1.sched[1]++;
+        st_req_1.isMaxIter[1] = (i + 1) == NI;
 
         st_req_1.addr = i;
         StoreAddrPipes::PipeAt<0>::write(st_req_1);
@@ -83,6 +91,7 @@ double test_kernel_war(queue &q, const int NI, const int NJ, const int NK, const
 
     st_req_1.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_1.sched, SCHED_SENTINEL);
+    InitBundle(st_req_1.isMaxIter, true);
     StoreAddrPipes::PipeAt<0>::write(st_req_1);
   });
 

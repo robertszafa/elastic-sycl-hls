@@ -3,7 +3,6 @@
 #include <sycl/sycl.hpp>
 
 #include "device_print.hpp"
-#include "constexpr_math.hpp"
 #include "pipe_utils.hpp"
 #include "unrolled_loop.hpp"
 #include "data_bundle.hpp"
@@ -13,7 +12,7 @@
 using namespace sycl;
 using namespace fpga_tools;
 
-using addr_t = uint;
+using addr_t = int;
 using sched_t = uint;
 
 template <int LOOP_DEPTH>
@@ -31,23 +30,27 @@ struct load_req_t {
   bool posDepDist[NUM_STORES];
 };
 
+
 template <int LOOP_DEPTH>
-struct ld_ack_t {
+struct ack_t {
   addr_t addr;
   sched_t sched[LOOP_DEPTH];
   bool isMaxIter[LOOP_DEPTH];
 };
 
-template <int LOOP_DEPTH>
-struct load_mux_req_t {
+template <int LOOP_DEPTH, typename T>
+struct ld_mux_req_t {
+  ack_t<LOOP_DEPTH> ack;
+  T val;
   bool reuse;
-  ld_ack_t<LOOP_DEPTH> ack;
 };
 
-template <typename T> struct addr_val_t {
-  addr_t addr;
+template <int LOOP_DEPTH, typename T>
+struct st_port_req_t {
   T val;
+  ack_t<LOOP_DEPTH> ack;
 };
+
 
 #define KERNEL_PRAGMAS [[intel::kernel_args_restrict]] [[intel::max_global_work_dim(0)]] 
 
@@ -57,18 +60,17 @@ using BurstCoalescedLSU = ext::intel::lsu<ext::intel::burst_coalesce<true>,
 /// 512-bit DRAM interface
 constexpr uint DRAM_BURST_BYTES = 64;
 
-constexpr uint MAX_UINT_32 = uint32_t(-1);
-constexpr addr_t INVALID_ADDR = MAX_UINT_32 - 3;
-constexpr addr_t STORE_ADDR_SENTINEL = MAX_UINT_32 - 1;
-constexpr addr_t LOAD_ADDR_SENTINEL = MAX_UINT_32 - 2;
+constexpr addr_t INVALID_ADDR = -1;
+constexpr addr_t STORE_ADDR_SENTINEL = (1<<29) - 1;
+constexpr addr_t LOAD_ADDR_SENTINEL = (1<<29) - 2;
 constexpr addr_t FINAL_LD_ADDR_ACK = STORE_ADDR_SENTINEL + 1;
-constexpr sched_t SCHED_SENTINEL = MAX_UINT_32;
+constexpr sched_t SCHED_SENTINEL = (1<<30);
 
 /// Unique kernel name generators.
 template <int MemId> class StreamingMemoryKernel;
-template <int MemId, int PortId> class LoadPortKernel;
-template <int MemId, int PortId> class StorePortKernel;
-template <int MemId, int PortId> class LoadValMuxKernel;
+template <int PortId> class LoadPortKernel;
+template <int PortId> class StorePortKernel;
+template <int PortId> class LoadValMuxKernel;
 
 template <int MEM_ID, typename LoadAddrPipes, typename LoadValPipes,
           typename StoreAddrPipes, typename StoreValPipes,
@@ -76,70 +78,108 @@ template <int MEM_ID, typename LoadAddrPipes, typename LoadValPipes,
 std::vector<event> StreamingMemory(queue &q, T *data) {
   std::vector<event> events(NUM_STORES + 1);
 
-  constexpr uint T_BYTES = sizeof(T);
-  constexpr uint BURST_SIZE = ((DRAM_BURST_BYTES + T_BYTES - 1) / T_BYTES);
-  constexpr uint PIPE_DELAY = 2;
+  constexpr uint BYTES_IN_T = sizeof(T);
+  /// num_T_values_in_DRAM_burst * 2.
+  constexpr uint BURST_SIZE =
+      ((DRAM_BURST_BYTES + BYTES_IN_T - 1) / BYTES_IN_T) * 2;
 
   // Store ports.
-  using StorePortReqPipes = PipeArray<class _StorePortReq, addr_val_t<T>, 0, NUM_STORES>;
-  using StoreAckPipes = PipeArray<class _StoreAckPipe, addr_t, 2, NUM_STORES>;
+  // using StorePortReqPipes = PipeArray<class _StorePortAddr, store_req_t<LOOP_DEPTH>, 0, NUM_STORES>;
+  // using StorePortValPipes = PipeArray<class _StorePortVal, T, 0, NUM_STORES>;
+  // using StoreAckPipes = PipeArray<class _StoreAck, store_req_t<LOOP_DEPTH>, 2, NUM_STORES>;
+
+  using StorePortReqPipes = PipeArray<class _StorePortReq, st_port_req_t<LOOP_DEPTH, T>, 0, NUM_STORES>;
+  using StoreAckPipes = PipeArray<class _StoreAckPipe, ack_t<LOOP_DEPTH>, 4, NUM_STORES>;
   UnrolledLoop<NUM_STORES>([&](auto iSt) {
-    events[iSt] = q.single_task<StorePortKernel<MEM_ID, iSt>>([=]() KERNEL_PRAGMAS {
+    constexpr int StPortId = 2000*(MEM_ID+1) + iSt;
+    events[iSt] = q.single_task<StorePortKernel<StPortId>>([=]() KERNEL_PRAGMAS {
+      ack_t<LOOP_DEPTH> NextAck {0u};
+      ack_t<LOOP_DEPTH> LastValidAck {0u};
+
       [[intel::ivdep]]
       [[intel::initiation_interval(1)]]
-      while (true) {
+      while (NextAck.addr != STORE_ADDR_SENTINEL) {
         const auto Req = StorePortReqPipes::template PipeAt<iSt>::read();
-        if (Req.addr == STORE_ADDR_SENTINEL) break;
-        auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
-        BurstCoalescedLSU::store(StorePtr, Req.val);
-        StoreAckPipes::template PipeAt<iSt>::write(Req.addr);
+        NextAck = Req.ack;
+
+        if (NextAck.addr != STORE_ADDR_SENTINEL) {
+          auto StorePtr = ext::intel::device_ptr<T>(data + NextAck.addr);
+          BurstCoalescedLSU::store(StorePtr, Req.val);
+
+          StoreAckPipes::template PipeAt<iSt>::write(NextAck);
+          LastValidAck = Req.ack;
+        }
       }
-      // Force any outstanding burst.
-      atomic_fence(memory_order_seq_cst, memory_scope_work_item); 
+
+      // Force any outstanding burst before ACKing addr sentinel.
+      atomic_fence(memory_order_seq_cst, memory_scope_work_item);
+
+      auto anchor = sycl::ext::oneapi::experimental::properties(
+          sycl::ext::intel::experimental::latency_anchor_id<StPortId>);
+      auto constraint = sycl::ext::oneapi::experimental::properties(
+          sycl::ext::intel::experimental::latency_constraint<
+              StPortId,
+              sycl::ext::intel::experimental::latency_control_type::min,
+              BURST_SIZE>);
+      StoreAckPipes::template PipeAt<iSt>::write(LastValidAck, anchor);
+      StoreAckPipes::template PipeAt<iSt>::write(NextAck, constraint);
     });
   });
 
   // Load ports and MUXex. A MUX selects between a val forwarded from a store
   // BURST buffer (LoadMuxReuseVal), and a val loaded from memory (LoadPortVal).
-  using LoadPortAddrPipes = PipeArray<class _LoadAddr, addr_t, BURST_SIZE, NUM_LOADS>;
-  using LoadPortValPipes = PipeArray<class _LoadPortVal, T, BURST_SIZE, NUM_LOADS>;
-  using LoadMuxPredPipes = PipeArray<class _LoadMuxPred, load_mux_req_t<LOOP_DEPTH>, BURST_SIZE, NUM_LOADS>;
-  using LoadMuxAckPipes = PipeArray<class _LoadMuxAckPipes, ld_ack_t<LOOP_DEPTH>, BURST_SIZE, NUM_LOADS>;
-  using LoadMuxReuseValPipes = PipeArray<class _LoadMuxReuseVal, T, BURST_SIZE, NUM_LOADS>;
+  // using LoadPortAddrPipes = PipeArray<class _LoadAddr, addr_t, 16, NUM_LOADS>;
+  // using LoadPortValPipes = PipeArray<class _LoadPortVal, T, 16, NUM_LOADS>;
+  using LoadMuxReqPipes = PipeArray<class _LoadMuxReq, ld_mux_req_t<LOOP_DEPTH, T>, 16, NUM_LOADS>;
+  // using LoadMuxReuseValPipes = PipeArray<class _LoadMuxReuseVal, T, 16, NUM_LOADS>;
+  using LoadMuxAckPipes = PipeArray<class _LoadMuxAckPipes, ack_t<LOOP_DEPTH>, 2, NUM_LOADS>;
   UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-    q.single_task<LoadPortKernel<MEM_ID, iLd>>([=]() KERNEL_PRAGMAS {
-      [[intel::ivdep]]
-      [[intel::initiation_interval(1)]]
-      while (true) {
-        const addr_t Addr = LoadPortAddrPipes::template PipeAt<iLd>::read();
-        if (Addr == LOAD_ADDR_SENTINEL) break;
-        auto LoadPtr = ext::intel::device_ptr<T>(data + Addr);
-        T Val = BurstCoalescedLSU::load(LoadPtr);
-        LoadPortValPipes::template PipeAt<iLd>::write(Val);
-      }
-    });
-    q.single_task<LoadValMuxKernel<MEM_ID, iLd>>([=]() KERNEL_PRAGMAS {
+    constexpr int LoadPortId = 1000*(MEM_ID+1) + iLd;
+
+    // q.single_task<LoadPortKernel<LoadPortId>>([=]() KERNEL_PRAGMAS {
+    //   [[intel::ivdep]]
+    //   [[intel::initiation_interval(1)]]
+    //   while (true) {
+    //     const addr_t Addr = LoadPortAddrPipes::template PipeAt<iLd>::read();
+    //     if (Addr == LOAD_ADDR_SENTINEL) break;
+    //     auto LoadPtr = ext::intel::device_ptr<T>(data + Addr);
+    //     T Val = BurstCoalescedLSU::load(LoadPtr);
+    //     LoadPortValPipes::template PipeAt<iLd>::write(Val);
+    //   }
+    // });
+
+    q.single_task<LoadValMuxKernel<LoadPortId>>([=]() KERNEL_PRAGMAS {
+      auto anchor = sycl::ext::oneapi::experimental::properties(
+          sycl::ext::intel::experimental::latency_anchor_id<LoadPortId>);
+      auto constraint = sycl::ext::oneapi::experimental::properties(
+          sycl::ext::intel::experimental::latency_constraint<
+              LoadPortId,
+              sycl::ext::intel::experimental::latency_control_type::min, 1>);
+
       [[maybe_unused]] int NumTotal = 0, NumReused = 0;
       [[intel::ivdep]]
       [[intel::initiation_interval(1)]]
       while (true) {
         T Val;
-        const auto MuxReq = LoadMuxPredPipes::template PipeAt<iLd>::read();
-        if (MuxReq.ack.addr == LOAD_ADDR_SENTINEL) break;
+        const auto Req = LoadMuxReqPipes::template PipeAt<iLd>::read();
+        if (Req.ack.addr == LOAD_ADDR_SENTINEL)
+          break;
 
-        if (MuxReq.reuse) {
+        if (Req.reuse) {
           NumReused++;
-          Val = LoadMuxReuseValPipes::template PipeAt<iLd>::read();
+          Val = Req.val;
         } else {
-          Val = LoadPortValPipes::template PipeAt<iLd>::read();
-        } 
+          // Val = LoadPortValPipes::template PipeAt<iLd>::read();
+          auto LoadPtr = ext::intel::device_ptr<T>(data + Req.ack.addr);
+          Val = BurstCoalescedLSU::load(LoadPtr);
+        }
 
-        LoadMuxAckPipes::template PipeAt<iLd>::write(MuxReq.ack);
-        LoadValPipes::template PipeAt<iLd>::write(Val);
+        LoadValPipes::template PipeAt<iLd>::write(Val, anchor);
+        LoadMuxAckPipes::template PipeAt<iLd>::write(Req.ack, constraint);
         NumTotal++;
       }
 
-      ld_ack_t<LOOP_DEPTH> maxAck{FINAL_LD_ADDR_ACK};
+      ack_t<LOOP_DEPTH> maxAck{FINAL_LD_ADDR_ACK};
       InitBundle(maxAck.sched, SCHED_SENTINEL);
       InitBundle(maxAck.isMaxIter, true);
       LoadMuxAckPipes::template PipeAt<iLd>::write(maxAck);
@@ -152,49 +192,61 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     constexpr uint ST_ALLOC_Q_SIZE = 4;
     bool StoreAllocValid[NUM_STORES][ST_ALLOC_Q_SIZE];
     addr_t StoreAllocAddr[NUM_STORES][ST_ALLOC_Q_SIZE];
-    addr_t StoreAllocAddrPlusDelay[NUM_STORES][ST_ALLOC_Q_SIZE];
+    addr_t StoreAllocAddrPlusBurst[NUM_STORES][ST_ALLOC_Q_SIZE];
     sched_t StoreAllocSched[NUM_STORES][LOOP_DEPTH][ST_ALLOC_Q_SIZE];
     bool StoreAllocIsMaxIter[NUM_STORES][LOOP_DEPTH][ST_ALLOC_Q_SIZE];
     // addr_t StoreAllocMaxAddrAtLoop[NUM_STORES][LOOP_DEPTH][ST_ALLOC_Q_SIZE];
+    T NextStoreValue[NUM_STORES];
+    bool NextStoreValueValid[NUM_STORES];
     
+    constexpr uint ST_COMMIT_Q_SIZE = BURST_SIZE;
+    addr_t StoreCommitAddr[NUM_STORES][ST_COMMIT_Q_SIZE];
+    T StoreCommitVal[NUM_STORES][ST_COMMIT_Q_SIZE];
+
     // Shortcut for head of StoreAllocQueue
     addr_t NextStoreAddr[NUM_STORES];
-    addr_t NextStoreAddrPlusDelay[NUM_STORES];
+    addr_t NextStoreAddrPlusBurst[NUM_STORES];
     sched_t NextStoreSched[NUM_STORES][LOOP_DEPTH];
     bool NextStoreIsMaxIter[NUM_STORES][LOOP_DEPTH];
 
-    bool NextStoreValueValid[NUM_STORES];
-    T NextStoreValue[NUM_STORES];
-
     addr_t StoreAckAddr[NUM_STORES];
+    sched_t StoreAckSched[NUM_STORES][LOOP_DEPTH];
+    bool StoreAckIsMaxIter[NUM_STORES][LOOP_DEPTH];
+
     bool StoreDone[NUM_STORES];
 
-    constexpr uint ST_COMMIT_Q_SIZE = BURST_SIZE + PIPE_DELAY;
-    addr_t StoreCommitAddr[NUM_STORES][ST_COMMIT_Q_SIZE];
-    T StoreCommitVal[NUM_STORES][ST_COMMIT_Q_SIZE];
+    bool StoreNoOutstandingAcks[NUM_STORES];
+    sched_t LastSentStoreSched[NUM_STORES];
 
     // Init store registers
     UnrolledLoop<NUM_STORES>([&] (auto iSt) {
       InitBundle(StoreAllocValid[iSt], false);
       InitBundle(StoreAllocAddr[iSt], INVALID_ADDR);
-      InitBundle(StoreAllocAddrPlusDelay[iSt], INVALID_ADDR);
+      InitBundle(StoreAllocAddrPlusBurst[iSt], INVALID_ADDR);
       UnrolledLoop<LOOP_DEPTH>([&] (auto iD) {
         InitBundle(StoreAllocSched[iSt][iD], 0u);
         InitBundle(StoreAllocIsMaxIter[iSt][iD], false);
       });
-      StoreDone[iSt] = false;
-      NextStoreValueValid[iSt] = false;
+
       NextStoreValue[iSt] = T{};
+      NextStoreValueValid[iSt] = false;
 
       InitBundle(StoreCommitAddr[iSt], INVALID_ADDR);
       InitBundle(StoreCommitVal[iSt], T{});
 
-      NextStoreAddr[iSt] = 0u;
-      NextStoreAddrPlusDelay[iSt] = 0u;
-      InitBundle(NextStoreIsMaxIter[iSt], true);
+      NextStoreAddr[iSt] = INVALID_ADDR;
+      NextStoreAddrPlusBurst[iSt] = INVALID_ADDR;
       InitBundle(NextStoreSched[iSt], 0u);
+      InitBundle(NextStoreIsMaxIter[iSt], false);
 
-      StoreAckAddr[iSt] = 0u;
+      StoreAckAddr[iSt] = INVALID_ADDR;
+      InitBundle(StoreAckSched[iSt], 0u);
+      InitBundle(StoreAckIsMaxIter[iSt], false);
+      
+      StoreDone[iSt] = false;
+      
+      StoreNoOutstandingAcks[iSt] = true;
+      LastSentStoreSched[iSt] = 0u;
     });
 
     /* Load logic registers */
@@ -207,7 +259,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     // addr_t LoadMaxAddrAtLoop[NUM_LOADS][LOOP_DEPTH][LD_Q_SIZE];
 
     addr_t LoadAckAddr[NUM_LOADS];
-
     sched_t LoadAckSched[NUM_LOADS][LOOP_DEPTH];
     bool LoadAckIsMaxIter[NUM_LOADS][LOOP_DEPTH];
     
@@ -227,10 +278,12 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     T SafeLoadReuseVal[NUM_LOADS][LD_Q_SIZE];
     bool SafeLoadMuxPipeSucc[NUM_LOADS][LD_Q_SIZE];
     bool SafeLoadAddrPipeSucc[NUM_LOADS][LD_Q_SIZE];
-    bool SafeLoadReusePipeSucc[NUM_LOADS][LD_Q_SIZE];
     
     bool LoadDone[NUM_LOADS];
 
+    bool LoadNoOutstandingAcks[NUM_LOADS];
+    sched_t LastSentLoadSched[NUM_LOADS];
+    
     // Init load registers
     UnrolledLoop<NUM_LOADS>([&](auto iLd) {
       InitBundle(LoadValid[iLd], false);
@@ -244,7 +297,6 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         InitBundle(LoadIsMaxIter[iLd][iD], false);
         InitBundle(SafeLoadIsMaxIter[iLd][iD], false);
       });
-      LoadDone[iLd] = false;
 
       LoadAckAddr[iLd] = INVALID_ADDR;
       InitBundle(LoadAckSched[iLd], 1u);
@@ -261,7 +313,11 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       InitBundle(SafeLoadReuseVal[iLd], T{});
       InitBundle(SafeLoadMuxPipeSucc[iLd], false);
       InitBundle(SafeLoadAddrPipeSucc[iLd], false);
-      InitBundle(SafeLoadReusePipeSucc[iLd], false);
+
+      LoadDone[iLd] = false;
+
+      LoadNoOutstandingAcks[iLd] = true;
+      LastSentLoadSched[iLd] = 0u;
     });
 
     /* Lambdas for checking RAW, WAR, WAW hazards. The functions make use of
@@ -344,7 +400,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       constexpr int cmnLoopDepth = DI.COMMON_LOOP_DEPTH[iLd][iSt];
       constexpr int loadLoopDepth = DI.LOAD_LOOP_DEPTH[iLd];
 
-      bool loadSchedGreater = (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD);
+      bool ackLoadSchedGreater = (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD);
+      bool nextLoadSchedGreater = (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD);
       bool loadSchedEqaul = true;
       if constexpr (cmnLoopDepth >= 0) {
         constexpr int loadWrapFromCmn = walkUpLoadToFirstWrap(iLd, cmnLoopDepth);
@@ -357,11 +414,15 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         }
 
         if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
-          loadSchedGreater = (NextLoadSched[iLd][cmnLoopDepth] >=
-                              NextStoreSched[iSt][cmnLoopDepth]);
+          ackLoadSchedGreater = (LoadAckSched[iLd][cmnLoopDepth] >=
+                                 NextStoreSched[iSt][cmnLoopDepth]);
+          nextLoadSchedGreater = (NextLoadSched[iLd][cmnLoopDepth] >=
+                                  NextStoreSched[iSt][cmnLoopDepth]);
         } else {
-          loadSchedGreater = (NextLoadSched[iLd][cmnLoopDepth] >
-                              NextStoreSched[iSt][cmnLoopDepth]);
+          ackLoadSchedGreater = (LoadAckSched[iLd][cmnLoopDepth] >
+                                 NextStoreSched[iSt][cmnLoopDepth]);
+          nextLoadSchedGreater = (NextLoadSched[iLd][cmnLoopDepth] >
+                                  NextStoreSched[iSt][cmnLoopDepth]);
         }
       }
 
@@ -372,8 +433,10 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         }
       });
 
-      return loadSchedGreater || (loadSchedEqaul && ldAddrNoDecr &&
-                                  LoadAckAddr[iLd] >= NextStoreAddr[iSt]);
+      return ackLoadSchedGreater ||
+             (nextLoadSchedGreater && LoadNoOutstandingAcks[iLd]) ||
+             (loadSchedEqaul &&  // TODO: is equal needed?
+              ldAddrNoDecr && LoadAckAddr[iLd] >= NextStoreAddr[iSt]);
     };
 
     auto checkNoWAW = [&](const auto iSt, const auto iStOther) {
@@ -381,45 +444,47 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       constexpr int otherLoopDepth = DI.STORE_LOOP_DEPTH[iStOther];
       constexpr DEP_DIR depDir = (iSt < iStOther) ? BACK : FORWARD;
 
-      bool otherSchedGreater = (iStOther > iSt);
+      bool otherNextSchedGreater = (iStOther > iSt);
+      bool otherAckSchedGreater = (iStOther > iSt);
       bool otherSchedEqual = true;
       if constexpr (cmnLoopDepth >= 0) {
-        constexpr int otherWrapFromCmn =
-            walkUpStoreToFirstWrap(iStOther, cmnLoopDepth);
+        constexpr int otherWrapFromCmn = walkUpStoreToFirstWrap(iSt, cmnLoopDepth);
         constexpr int eqCheckLoopDepth =
             (otherWrapFromCmn >= 0) ? otherWrapFromCmn : cmnLoopDepth;
+
         if constexpr (eqCheckLoopDepth >= 0) {
-          otherSchedEqual = (NextStoreSched[iStOther][eqCheckLoopDepth] ==
+          otherSchedEqual = (StoreAckSched[iSt][eqCheckLoopDepth] ==
                              NextStoreSched[iSt][eqCheckLoopDepth]);
         }
 
         if constexpr (depDir == BACK) {
-          otherSchedGreater = (NextStoreSched[iStOther][cmnLoopDepth] >=
-                               NextStoreSched[iSt][cmnLoopDepth]);
+          otherNextSchedGreater = (NextStoreSched[iStOther][cmnLoopDepth] >=
+                                   NextStoreSched[iSt][cmnLoopDepth]);
+          otherAckSchedGreater = (StoreAckSched[iStOther][cmnLoopDepth] >=
+                                  NextStoreSched[iSt][cmnLoopDepth]);
         } else {
-          otherSchedGreater = (NextStoreSched[iStOther][cmnLoopDepth] >
-                               NextStoreSched[iSt][cmnLoopDepth]);
+          otherNextSchedGreater = (NextStoreSched[iStOther][cmnLoopDepth] >
+                                   NextStoreSched[iSt][cmnLoopDepth]);
+          otherAckSchedGreater = (StoreAckSched[iStOther][cmnLoopDepth] >
+                                  NextStoreSched[iSt][cmnLoopDepth]);
         }
       }
 
       bool otherAddrNoDecr = true;
       UnrolledLoop<otherLoopDepth, std::max(cmnLoopDepth, 0)>([&](auto iD) {
         if constexpr (DI.STORE_IS_MAX_ITER_NEEDED[iStOther][iD]) {
-          otherAddrNoDecr &= NextStoreIsMaxIter[iStOther][iD];
+          // otherAddrNoDecr &= NextStoreIsMaxIter[iStOther][iD];
+          otherAddrNoDecr &= StoreAckIsMaxIter[iStOther][iD];
         }
       });
 
-      const bool otherAddrGreater =
-          // NextStoreAddr[iStOther] > NextStoreAddrPlusDelay[iSt];
-          StoreAckAddr[iStOther] > NextStoreAddr[iSt];
-
-      return otherSchedGreater ||
-             (otherSchedEqual && otherAddrNoDecr && otherAddrGreater);
-      // StoreAckAddr[iStOther] >= NextStoreAddrPlusBurst[iSt]);
-      // StoreAckAddr[iStOther] >= NextStoreAddr[iSt]);
-      // TODO: try these:
-      // NextStoreAddr[iStOther] > NextStoreAddr[iSt]+2);
-      // LastStoreAddr[iStOther] > NextStoreAddr[iSt]);
+      return otherAckSchedGreater ||
+             (otherNextSchedGreater && StoreNoOutstandingAcks[iStOther]) ||
+             (otherAddrNoDecr && // TODO: Use ack?
+            //  TODO: Sched equal
+              otherSchedEqual &&
+              StoreAckAddr[iStOther] > NextStoreAddrPlusBurst[iSt]);
+              // StoreAckAddr[iStOther] > NextStoreAddr[iSt]);
     };
 
     bool EndSignal = false;
@@ -454,6 +519,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         bool succ = false;
         auto ldAck = LoadMuxAckPipes::template PipeAt<iLd>::read(succ);
         if (succ) {
+          // PRINTF("Load ack %d   NextLoadAddr[iLd] = %d, NextStoreAddr[2]=%d\n", ldAck.addr, NextLoadAddr[iLd], NextStoreAddr[2]);
           LoadAckAddr[iLd] = ldAck.addr;
           UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
             LoadAckSched[iLd][iD] = ldAck.sched[iD];
@@ -485,53 +551,46 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
               [&](auto iSt) { ShiftBundle(LoadPosDepDist[iLd][iSt], false); });
         }
 
-        if (!SafeLoadValid[iLd][0]) {
-          ShiftBundle(SafeLoadValid[iLd], false);
-          ShiftBundle(SafeLoadAddr[iLd], INVALID_ADDR);
-          UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-            ShiftBundle(SafeLoadSched[iLd][iD], 0u);
-            ShiftBundle(SafeLoadIsMaxIter[iLd][iD], false);
-          });
-          ShiftBundle(SafeLoadReuse[iLd], false);
-          ShiftBundle(SafeLoadReuseVal[iLd], T{});
-          ShiftBundle(SafeLoadMuxPipeSucc[iLd], false);
-          ShiftBundle(SafeLoadAddrPipeSucc[iLd], false);
-          ShiftBundle(SafeLoadReusePipeSucc[iLd], false);
-        }
+        // if (!SafeLoadValid[iLd][0]) {
+        //   ShiftBundle(SafeLoadValid[iLd], false);
+        //   ShiftBundle(SafeLoadAddr[iLd], INVALID_ADDR);
+        //   UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
+        //     ShiftBundle(SafeLoadSched[iLd][iD], 0u);
+        //     ShiftBundle(SafeLoadIsMaxIter[iLd][iD], false);
+        //   });
+        //   ShiftBundle(SafeLoadReuse[iLd], false);
+        //   ShiftBundle(SafeLoadReuseVal[iLd], T{});
+        //   ShiftBundle(SafeLoadMuxPipeSucc[iLd], false);
+        //   ShiftBundle(SafeLoadAddrPipeSucc[iLd], false);
+        // }
         /** End Rule */
 
         /** Rule for sending address to load port (which returns loaded value to
             MUX), or for sending reuse value directly to MUX. The pipe writes to
             the "LoadMux" and to the "LoadPort" kernels are non-blocking. This
             stage is finished only once all pipes have been written.*/
-        if (SafeLoadValid[iLd][0]) {
-          if (!SafeLoadMuxPipeSucc[iLd][0]) {
-            ld_ack_t<LOOP_DEPTH> MuxAck{SafeLoadAddr[iLd][0]};
-            UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-              MuxAck.sched[iD] = SafeLoadSched[iLd][iD][0];
-              MuxAck.isMaxIter[iD] = SafeLoadIsMaxIter[iLd][iD][0];
-            });
-            LoadMuxPredPipes::template PipeAt<iLd>::write(
-                {SafeLoadReuse[iLd][0], MuxAck}, SafeLoadMuxPipeSucc[iLd][0]);
-          }
+        // if (SafeLoadValid[iLd][0]) {
+        //   if (!SafeLoadMuxPipeSucc[iLd][0]) {
+        //     ack_t<LOOP_DEPTH> MuxAck{SafeLoadAddr[iLd][0]};
+        //     UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
+        //       MuxAck.sched[iD] = SafeLoadSched[iLd][iD][0];
+        //       MuxAck.isMaxIter[iD] = SafeLoadIsMaxIter[iLd][iD][0];
+        //     });
+        //     LoadMuxReqPipes::template PipeAt<iLd>::write(
+        //         {MuxAck, SafeLoadReuseVal[iLd][0], SafeLoadReuse[iLd][0]},
+        //         SafeLoadMuxPipeSucc[iLd][0]);
+        //   }
 
-          if (SafeLoadReuse[iLd][0]) {
-            if (!SafeLoadReusePipeSucc[iLd][0]) {
-              LoadMuxReuseValPipes::template PipeAt<iLd>::write(
-                  SafeLoadReuseVal[iLd][0], SafeLoadReusePipeSucc[iLd][0]);
-            }
-          } else {
-            if (!SafeLoadAddrPipeSucc[iLd][0]) {
-              LoadPortAddrPipes::template PipeAt<iLd>::write(
-                  SafeLoadAddr[iLd][0], SafeLoadAddrPipeSucc[iLd][0]);
-            }
-          }
+        //   if (!SafeLoadReuse[iLd][0] && !SafeLoadAddrPipeSucc[iLd][0]) {
+        //     LoadPortAddrPipes::template PipeAt<iLd>::write(
+        //         SafeLoadAddr[iLd][0], SafeLoadAddrPipeSucc[iLd][0]);
+        //   }
 
-          if (SafeLoadMuxPipeSucc[iLd][0] && (SafeLoadReusePipeSucc[iLd][0] ||
-              SafeLoadAddrPipeSucc[iLd][0])) {
-            SafeLoadValid[iLd][0] = false;
-          }
-        }
+        //   if (SafeLoadMuxPipeSucc[iLd][0] && (SafeLoadReuse[iLd][0] ||
+        //       SafeLoadAddrPipeSucc[iLd][0])) {
+        //     SafeLoadValid[iLd][0] = false;
+        //   }
+        // }
         /** End Rule */
 
         /** Rule for reading new load allocation: {addr, tag} pairs. */
@@ -553,7 +612,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         /** End Rule */
 
         /** Rule for checking load safety and reuse. */
-        if (LoadValid[iLd][0] && !SafeLoadValid[iLd][LD_Q_SIZE - 1]) {
+        // if (LoadValid[iLd][0] && !SafeLoadValid[iLd][LD_Q_SIZE - 1]) {
+        if (LoadValid[iLd][0]) {
           bool ThisReuse[NUM_STORES];
           T ThisReuseVal[NUM_STORES];
           bool NoRAW = true;
@@ -590,38 +650,61 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
               });
             });
 
-            SafeLoadValid[iLd][LD_Q_SIZE - 1] = true;
-            SafeLoadAddr[iLd][LD_Q_SIZE - 1] = LoadAddr[iLd][0];
-            UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-              SafeLoadSched[iLd][iD][LD_Q_SIZE-1] = NextLoadSched[iLd][iD];
-              SafeLoadIsMaxIter[iLd][iD][LD_Q_SIZE-1] = NextLoadIsMaxIter[iLd][iD];
-            });
-            SafeLoadReuse[iLd][LD_Q_SIZE - 1] = Reuse;
-            SafeLoadReuseVal[iLd][LD_Q_SIZE - 1] = ReuseVal;
+            // SafeLoadValid[iLd][LD_Q_SIZE - 1] = true;
+            // SafeLoadAddr[iLd][LD_Q_SIZE - 1] = LoadAddr[iLd][0];
+            // UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
+            //   SafeLoadSched[iLd][iD][LD_Q_SIZE-1] = NextLoadSched[iLd][iD];
+            //   SafeLoadIsMaxIter[iLd][iD][LD_Q_SIZE-1] = NextLoadIsMaxIter[iLd][iD];
+            // });
+            // SafeLoadReuse[iLd][LD_Q_SIZE - 1] = Reuse;
+            // SafeLoadReuseVal[iLd][LD_Q_SIZE - 1] = ReuseVal;
 
-            LoadValid[iLd][0] = false;
+            bool succ = false;
+            ack_t<LOOP_DEPTH> MuxAck{NextLoadAddr[iLd]};
+            UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
+              MuxAck.sched[iD] = NextLoadSched[iLd][iD];
+              MuxAck.isMaxIter[iD] = NextLoadIsMaxIter[iLd][iD];
+            });
+            LoadMuxReqPipes::template PipeAt<iLd>::write(
+                {MuxAck, ReuseVal, Reuse}, succ);
+
+            if (succ) {
+              LoadValid[iLd][0] = false;
+              LastSentLoadSched[iLd] = NextLoadSched[iLd][DI.LOAD_LOOP_DEPTH[iLd]];
+            }
           } 
         }
         /** End Rule */
+
+        LoadNoOutstandingAcks[iLd] =
+            (LastSentLoadSched[iLd] == LoadAckSched[iLd][DI.LOAD_LOOP_DEPTH[iLd]]);
+
       }); // End for all loads.
 
       /////////////////////////////////////////////////////////////////////////
       //////////////////////////    STORE LOGIC     ///////////////////////////
       /////////////////////////////////////////////////////////////////////////
       UnrolledLoop<NUM_STORES>([&](auto iSt) {
-        bool succ = false;
-        auto ack = StoreAckPipes::template PipeAt<iSt>::read(succ);
-        if (succ) {
-          StoreAckAddr[iSt] = ack;
-        }
+        StoreDone[iSt] = (StoreAckAddr[iSt] == STORE_ADDR_SENTINEL);
 
-        StoreDone[iSt] = (NextStoreAddr[iSt] == STORE_ADDR_SENTINEL);
+        /** Rule for reading store ACKs (always enabled). */ 
+        bool succ = false;
+        auto stAck = StoreAckPipes::template PipeAt<iSt>::read(succ);
+        if (succ) {
+          // PRINTF("st%d ack %d (%d, %d)\n", int(iSt), stAck.addr, stAck.sched[0], stAck.sched[1]);
+          StoreAckAddr[iSt] = stAck.addr;
+          UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
+            StoreAckSched[iSt][iD] = stAck.sched[iD];
+            StoreAckIsMaxIter[iSt][iD] = stAck.isMaxIter[iD];
+          });
+        }
+        /** End Rule */
 
         /** Rule shifting store allocation queue. */
         if (!StoreAllocValid[iSt][0]) {
           if (StoreAllocValid[iSt][1]) {
             NextStoreAddr[iSt] = StoreAllocAddr[iSt][1];
-            NextStoreAddrPlusDelay[iSt] = StoreAllocAddrPlusDelay[iSt][1];
+            NextStoreAddrPlusBurst[iSt] = StoreAllocAddrPlusBurst[iSt][1];
             UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
               NextStoreSched[iSt][iD] = StoreAllocSched[iSt][iD][1];
               NextStoreIsMaxIter[iSt][iD] = StoreAllocIsMaxIter[iSt][iD][1];
@@ -630,7 +713,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
           ShiftBundle(StoreAllocValid[iSt], false);
           ShiftBundle(StoreAllocAddr[iSt], INVALID_ADDR);
-          ShiftBundle(StoreAllocAddrPlusDelay[iSt], INVALID_ADDR);
+          ShiftBundle(StoreAllocAddrPlusBurst[iSt], INVALID_ADDR);
           UnrolledLoop<LOOP_DEPTH>([&] (auto iD) {
             ShiftBundle(StoreAllocSched[iSt][iD], 0u);
             ShiftBundle(StoreAllocIsMaxIter[iSt][iD], false);
@@ -640,30 +723,24 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
         /** Rule for reading store {addr, tag} pairs. */
         if (!StoreAllocValid[iSt][ST_ALLOC_Q_SIZE - 1]) {
-          bool succ = false;
-          auto StoreReq = StoreAddrPipes::template PipeAt<iSt>::read(succ);
-          if (succ) {
-            StoreAllocValid[iSt][ST_ALLOC_Q_SIZE - 1] = true;
-            StoreAllocAddr[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.addr;
-            StoreAllocAddrPlusDelay[iSt][ST_ALLOC_Q_SIZE - 1] =
-                StoreReq.addr + BURST_SIZE;
-                // StoreReq.addr + 2;
-            UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-              StoreAllocSched[iSt][iD][ST_ALLOC_Q_SIZE-1] = StoreReq.sched[iD];
-              StoreAllocIsMaxIter[iSt][iD][ST_ALLOC_Q_SIZE-1] = StoreReq.isMaxIter[iD];
-            });
-          }
+          auto StoreReq = StoreAddrPipes::template PipeAt<iSt>::read(
+              StoreAllocValid[iSt][ST_ALLOC_Q_SIZE - 1]);
+          StoreAllocAddr[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.addr;
+          StoreAllocAddrPlusBurst[iSt][ST_ALLOC_Q_SIZE - 1] =
+              StoreReq.addr + BURST_SIZE;
+          UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
+            StoreAllocSched[iSt][iD][ST_ALLOC_Q_SIZE - 1] = StoreReq.sched[iD];
+            StoreAllocIsMaxIter[iSt][iD][ST_ALLOC_Q_SIZE - 1] =
+                StoreReq.isMaxIter[iD];
+          });
         }
         /** End Rule */
-
-        /** Rule for reading the next store value. */
         if (!NextStoreValueValid[iSt]) {
           NextStoreValue[iSt] = StoreValPipes::template PipeAt<iSt>::read(
               NextStoreValueValid[iSt]);
         }
-        /** End Rule */
 
-        /** Rule for moving st alloc to st commit queue. */
+        /** Rule for getting st val and moving st alloc to st commit queue. */
         bool NoWAW = true;
         UnrolledLoop<NUM_STORES>([&](auto iStOther) {
           if constexpr (iSt != iStOther) {
@@ -678,17 +755,27 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           }
         });
 
-        const bool SafeStore = NoWAW && NoWAR;
-        if (StoreAllocValid[iSt][0] && NextStoreValueValid[iSt] && SafeStore) {
+        const bool IsSafe = (NoWAW && NoWAR);
+        if (StoreAllocValid[iSt][0] && ((NextStoreValueValid[iSt] && IsSafe) ||
+            (NextStoreAddr[iSt] == STORE_ADDR_SENTINEL))) {
+          ack_t<LOOP_DEPTH> ack{NextStoreAddr[iSt]};
+          UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
+            ack.sched[iD] = NextStoreSched[iSt][iD];
+            ack.isMaxIter[iD] = NextStoreIsMaxIter[iSt][iD];
+          });
+
           bool succ = false;
           StorePortReqPipes::template PipeAt<iSt>::write(
-              {NextStoreAddr[iSt], NextStoreValue[iSt]}, succ);
+              {NextStoreValue[iSt], ack}, succ);
+
           if (succ) {
             ShiftBundle(StoreCommitVal[iSt], NextStoreValue[iSt]);
             ShiftBundle(StoreCommitAddr[iSt], NextStoreAddr[iSt]);
 
             StoreAllocValid[iSt][0] = false;
             NextStoreValueValid[iSt] = false;
+
+            LastSentStoreSched[iSt] = NextStoreSched[iSt][DI.STORE_LOOP_DEPTH[iSt]];
 
             // Check if this store overrides another store in its burst buffer.
             UnrolledLoop<NUM_STORES>([&](auto iStOther) {
@@ -705,16 +792,15 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         }
         /** End Rule */
 
+        StoreNoOutstandingAcks[iSt] =
+            (LastSentStoreSched[iSt] == StoreAckSched[iSt][DI.STORE_LOOP_DEPTH[iSt]]);
+
+
       }); // End for all stores
 
     } // end while
 
-    // Terminate store ports.
-    UnrolledLoop<NUM_STORES>([&](auto iSt) {
-      StorePortReqPipes::template PipeAt<iSt>::write({STORE_ADDR_SENTINEL});
-    });
-
-    PRINTF("** DONE StreamingMemory %d\n", MEM_ID);
+    // PRINTF("** DONE StreamingMemory %d\n", MEM_ID);
 
   });
 

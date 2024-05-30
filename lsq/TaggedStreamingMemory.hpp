@@ -93,9 +93,11 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
   UnrolledLoop<NUM_STORES>([&](auto iSt) {
     constexpr int StPortId = 100*(MEM_ID+1) + iSt;
     events[iSt] = q.single_task<StorePortKernel<StPortId>>([=]() KERNEL_PRAGMAS {
-      addr_t AckAddrQ[BURST_SIZE];
-      sched_t AckSchedQ[LOOP_DEPTH][BURST_SIZE];
-      bool AckIsMaxIterQ[LOOP_DEPTH][BURST_SIZE];
+      constexpr int AckDelay = 8;
+
+      addr_t AckAddrQ[AckDelay];
+      sched_t AckSchedQ[LOOP_DEPTH][AckDelay];
+      bool AckIsMaxIterQ[LOOP_DEPTH][AckDelay];
       InitBundle(AckAddrQ, INVALID_ADDR);
       UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
         InitBundle(AckSchedQ[iD], 0u);

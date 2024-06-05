@@ -12,7 +12,7 @@
 using namespace sycl;
 using namespace fpga_tools;
 
-using addr_t = int;
+using addr_t = uint;
 using sched_t = uint;
 
 template <int LOOP_DEPTH>
@@ -55,7 +55,6 @@ using BurstCoalescedLSU =
                     ext::intel::prefetch<false>>;
 
 
-constexpr addr_t INVALID_ADDR = -1;
 constexpr addr_t STORE_ADDR_SENTINEL = (1<<29) - 1;
 constexpr addr_t LOAD_ADDR_SENTINEL = (1<<29) - 2;
 constexpr addr_t FINAL_LD_ADDR_ACK = STORE_ADDR_SENTINEL + 1;
@@ -84,13 +83,12 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
   UnrolledLoop<NUM_STORES>([&](auto iSt) {
     constexpr int StPortId = 100*(MEM_ID+1) + iSt;
     events[iSt] = q.single_task<StorePortKernel<StPortId>>([=]() KERNEL_PRAGMAS {
-      ack_t<LOOP_DEPTH> NextAck {INVALID_ADDR};
+      ack_t<LOOP_DEPTH> NextAck {0u};
       InitBundle(NextAck.sched, 0u);
       InitBundle(NextAck.isMaxIter, false);
 
       [[intel::ivdep]]
       [[intel::initiation_interval(1)]]
-      // [[intel::speculated_iterations(0)]]
       while (true) {
         StoreAckPipes::template PipeAt<iSt>::write(NextAck);
 
@@ -187,7 +185,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     // Init store registers
     UnrolledLoop<NUM_STORES>([&] (auto iSt) {
       InitBundle(StoreAllocValid[iSt], false);
-      InitBundle(StoreAllocAddr[iSt], INVALID_ADDR);
+      InitBundle(StoreAllocAddr[iSt], 0u);
       UnrolledLoop<LOOP_DEPTH>([&] (auto iD) {
         InitBundle(StoreAllocSched[iSt][iD], 0u);
         InitBundle(StoreAllocIsMaxIter[iSt][iD], false);
@@ -196,15 +194,15 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
       NextStoreValue[iSt] = T{};
       NextStoreValueValid[iSt] = false;
 
-      InitBundle(StoreCommitAddr[iSt], INVALID_ADDR);
+      InitBundle(StoreCommitAddr[iSt], STORE_ADDR_SENTINEL);
       InitBundle(StoreCommitVal[iSt], T{});
 
-      NextStoreAddr[iSt] = INVALID_ADDR;
-      NextStoreAddrPlusBurst[iSt] = INVALID_ADDR;
+      NextStoreAddr[iSt] = 0u;
+      NextStoreAddrPlusBurst[iSt] = 0u;
       InitBundle(NextStoreSched[iSt], 0u);
       InitBundle(NextStoreIsMaxIter[iSt], false);
 
-      StoreAckAddr[iSt] = INVALID_ADDR;
+      StoreAckAddr[iSt] = 0u;
       InitBundle(StoreAckSched[iSt], 0u);
       InitBundle(StoreAckIsMaxIter[iSt], false);
 
@@ -239,7 +237,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     // Init load registers
     UnrolledLoop<NUM_LOADS>([&](auto iLd) {
       InitBundle(LoadValid[iLd], false);
-      InitBundle(LoadAddr[iLd], INVALID_ADDR);
+      InitBundle(LoadAddr[iLd], 0u);
       UnrolledLoop<NUM_STORES>([&](auto iSt) {
         InitBundle(LoadPosDepDist[iLd][iSt], false);
       });
@@ -248,11 +246,11 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         InitBundle(LoadIsMaxIter[iLd][iD], false);
       });
 
-      LoadAckAddr[iLd] = INVALID_ADDR;
+      LoadAckAddr[iLd] = 0u;
       InitBundle(LoadAckSched[iLd], 1u);
       InitBundle(LoadAckIsMaxIter[iLd], false);
 
-      NextLoadAddr[iLd] = INVALID_ADDR;
+      NextLoadAddr[iLd] = 0u;
       InitBundle(NextLoadSched[iLd], 0u);
       InitBundle(NextLoadPosDepDist[iLd], false);
       InitBundle(NextLoadIsMaxIter[iLd], false);
@@ -529,7 +527,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           }
 
           ShiftBundle(LoadValid[iLd], false);
-          ShiftBundle(LoadAddr[iLd], INVALID_ADDR);
+          ShiftBundle(LoadAddr[iLd], 0u);
           UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
             ShiftBundle(LoadSched[iLd][iD], 0u);
             ShiftBundle(LoadIsMaxIter[iLd][iD], false);
@@ -643,7 +641,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           }
 
           ShiftBundle(StoreAllocValid[iSt], false);
-          ShiftBundle(StoreAllocAddr[iSt], INVALID_ADDR);
+          ShiftBundle(StoreAllocAddr[iSt], 0u);
           UnrolledLoop<LOOP_DEPTH>([&] (auto iD) {
             ShiftBundle(StoreAllocSched[iSt][iD], 0u);
             ShiftBundle(StoreAllocIsMaxIter[iSt][iD], false);
@@ -701,7 +699,8 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
                 #pragma unroll
                 for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
                   if (NextStoreAddr[iSt] == StoreCommitAddr[iStOther][i]) {
-                    StoreCommitAddr[iStOther][i] = INVALID_ADDR;
+                    // Invalid address, i.e. a load will never requiest this.
+                    StoreCommitAddr[iStOther][i] = STORE_ADDR_SENTINEL;
                   }
                 }
               }

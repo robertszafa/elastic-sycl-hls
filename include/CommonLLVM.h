@@ -43,12 +43,14 @@ auto isaStore = [](auto i) { return isa<StoreInst>(i); };
 
 [[maybe_unused]] CallInst *getPipeCall(Instruction *I) {
   const std::string PIPE_CALL = "ext::intel::pipe";
+  const std::string EXP_PIPE_CALL = "ext::intel::experimental::pipe";
 
   if (CallInst *callInst = dyn_cast<CallInst>(I)) {
     if (Function *f = callInst->getCalledFunction()) {
       auto fName = demangle(std::string(f->getName()));
       if (f->getCallingConv() == CallingConv::SPIR_FUNC &&
-          fName.find(PIPE_CALL) != std::string::npos) {
+          (fName.find(PIPE_CALL) != std::string::npos ||
+           fName.find(EXP_PIPE_CALL) != std::string::npos)) {
         return callInst;
       }
     }
@@ -391,8 +393,10 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
 [[maybe_unused]] SmallVector<BasicBlock *> getUniqueLoopBlocks(Loop *L) {
   SetVector<BasicBlock *> blocksOfSubloops;
   for (auto subLoop : L->getSubLoops()) {
-    for (auto BB : subLoop->blocks())
-      blocksOfSubloops.insert(BB);
+    for (auto BB : subLoop->blocks()) {
+      if (BB != L->getHeader())
+        blocksOfSubloops.insert(BB);
+    }
   }
 
   SmallVector<BasicBlock *> thisLoopBlocks;

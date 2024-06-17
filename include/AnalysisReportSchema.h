@@ -454,4 +454,95 @@ deserializeAnalysis(Function &F, LoopInfo &LI, const json::Object &report,
     lsqArray.push_back(jsonToLSQInfo(F, *lsqInfoJson.getAsObject()));
 }
 
+enum DEP_DIR {
+  BACK, // First load, then store in program order.
+  FORWARD, // First store, then load in program order.
+};
+struct MemoryDependencyInfo {
+  int id;
+
+  int numLoads;
+  int numStores;
+  int maxLoopDepth;
+
+  SmallVector<int> loadLoopDepth;
+  SmallVector<SmallVector<bool>> loadIsMaxIterNeeded;
+  SmallVector<SmallVector<bool>> loadStoreInSameLoop;
+  SmallVector<SmallVector<int>> loadStoreCommonLoopDepth;
+  SmallVector<SmallVector<DEP_DIR>> loadStoreDepDir;
+
+  SmallVector<int> storeLoopDepth;
+  SmallVector<SmallVector<bool>> storeIsMaxIterNeeded;
+  SmallVector<SmallVector<bool>> storeStoreInSameLoop;
+  SmallVector<SmallVector<int>> storeStoreCommonLoopDepth;
+  SmallVector<SmallVector<DEP_DIR>> storeStoreDepDir;
+
+  void print(raw_ostream &O) {
+    auto print1D = [&O] (auto vec1d) {
+      O << "{";
+      for (auto elem : vec1d) 
+        O << elem << ", ";
+      O << "}";
+    };
+    auto print2D = [&print1D, &O] (auto vec2d) {
+      O << "{\n    ";
+      for (auto vec1d : vec2d) {
+        print1D(vec1d);
+        O << ", ";
+      }
+      O << "\n  }";
+    };
+
+    O << "\ntemplate <> struct DepInfo<" << id << "> {\n";
+    O << "  static constexpr int NUM_LOADS = " << numLoads << ";\n";
+    O << "  static constexpr int NUM_STORES = " << numStores << ";\n";
+    O << "  static constexpr int MAX_LOOP_DEPTH = " << maxLoopDepth << ";\n\n";
+    
+    // Loads
+    O << "  static constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = ";
+    print1D(loadLoopDepth);
+    O << ";\n";
+
+    O << "  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = ";
+    print2D(loadIsMaxIterNeeded);
+    O << ";\n";
+
+    O << "  static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = ";
+    print2D(loadStoreInSameLoop);
+    O << ";\n";
+
+    O << "  static constexpr int LOAD_STORE_COMMON_LOOP_DEPTH[NUM_LOADS][NUM_STORES] = ";
+    print2D(loadStoreCommonLoopDepth);
+    O << ";\n";
+
+    O << "  static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = ";
+    print2D(loadStoreDepDir);
+    O << ";\n\n";
+ 
+    // Stores
+    O << "  static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = ";
+    print1D(storeLoopDepth);
+    O << ";\n";
+
+    O << "  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = ";
+    print2D(storeIsMaxIterNeeded);
+    O << ";\n";
+
+    O << "  static constexpr bool STORE_STORE_IN_SAME_LOOP[NUM_STORES][NUM_STORES] = ";
+    print2D(storeStoreInSameLoop);
+    O << ";\n";
+
+    O << "  static constexpr int STORE_STORE_COMMON_LOOP_DEPTH[NUM_STORES][NUM_STORES] = ";
+    print2D(storeStoreCommonLoopDepth);
+    O << ";\n";
+
+    O << "  static constexpr int STORE_STORE_DEP_DIR[NUM_STORES][NUM_STORES] = ";
+    print2D(storeStoreDepDir);
+    O << ";\n\n";
+
+    O << "}; // end DepInfo \n";
+  }
+};
+
+
 } // end namespace llvm

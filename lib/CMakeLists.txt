@@ -1,3 +1,5 @@
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # THE LIST OF PLUGINS AND THE CORRESPONDING SOURCE FILES
 # ======================================================
 set(OPT_PASSES_PLUGINS
@@ -5,6 +7,7 @@ set(OPT_PASSES_PLUGINS
     ElasticAnalysisPrinter
     ElasticTransform
     DDGDotPrinter
+    DynamicLoopFusionAnalysisPrinter
 )
 
 set(HoistConstantGepTransform_SOURCES 
@@ -24,6 +27,12 @@ set(ElasticTransform_SOURCES
 
 set(DDGDotPrinter_SOURCES
   DDGDotPrinter.cpp
+  CDG.cpp
+)
+
+set(DynamicLoopFusionAnalysisPrinter_SOURCES
+  DynamicLoopFusionAnalysisPrinter.cpp
+  DynamicLoopFusionAnalysis.cpp
   CDG.cpp
 )
 

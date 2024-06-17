@@ -290,12 +290,12 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     };
 
     auto checkNoRAW = [&](const auto iLd, const auto iSt) {
-      constexpr int CmnLoopDepth = DI.COMMON_LOOP_DEPTH[iLd][iSt];
+      constexpr int CmnLoopDepth = DI.LOAD_STORE_COMMON_LOOP_DEPTH[iLd][iSt];
       constexpr int StLoopDepth = DI.STORE_LOOP_DEPTH[iSt];
 
-      bool StoreSchedGreater = (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK);
+      bool StoreSchedGreater = (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == BACK);
       if constexpr (CmnLoopDepth >= 0) {
-        if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
+        if constexpr (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == BACK) {
           StoreSchedGreater = (NextStoreSched[iSt][CmnLoopDepth] >=
                                NextLoadSched[iLd][CmnLoopDepth]);
         } else {
@@ -306,7 +306,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
       bool LoadHasPosDepDistance = false;
       bool StAddrNoDecrement = true;
-      if constexpr (DI.ARE_IN_SAME_LOOP[iLd][iSt]) {
+      if constexpr (DI.LOAD_STORE_IN_SAME_LOOP[iLd][iSt]) {
         bool CanCheckPosDepDist = true;
         constexpr int StWrapDepth =
             walkUpStoreToFirstWrap(iSt, StLoopDepth - 1);
@@ -314,7 +314,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           CanCheckPosDepDist = (NextStoreSched[iSt][StWrapDepth] >=
                                 NextLoadSched[iLd][StWrapDepth]);
 
-          if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == BACK) {
+          if constexpr (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == BACK) {
             StAddrNoDecrement = ((NextStoreSched[iSt][StWrapDepth] + 1) >=
                                  NextLoadSched[iLd][StWrapDepth]);
           } else {
@@ -340,11 +340,11 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     };
 
     auto checkNoWAR = [&](const auto iLd, const auto iSt) {
-      constexpr int CmnLoopDepth = DI.COMMON_LOOP_DEPTH[iLd][iSt];
+      constexpr int CmnLoopDepth = DI.LOAD_STORE_COMMON_LOOP_DEPTH[iLd][iSt];
       constexpr int LoadLoopDepth = DI.LOAD_LOOP_DEPTH[iLd];
 
-      bool AckLoadSchedGreater = (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD);
-      bool NextLoadSchedGreater = (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD);
+      bool AckLoadSchedGreater = (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == FORWARD);
+      bool NextLoadSchedGreater = (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == FORWARD);
       bool LoadSchedEqaul = true;
       if constexpr (CmnLoopDepth >= 0) {
         constexpr int LoadWrapFromCmn = walkUpLoadToFirstWrap(iLd, CmnLoopDepth);
@@ -355,13 +355,13 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           LoadSchedEqaul = (LoadAckSched[iLd][EqCheckLoopDepth] ==
                             NextStoreSched[iSt][EqCheckLoopDepth]);
 
-          if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
+          if constexpr (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
             LoadSchedEqaul |= ((LoadAckSched[iLd][EqCheckLoopDepth] + 1) ==
                                NextStoreSched[iSt][EqCheckLoopDepth]);
           }
         }
 
-        if constexpr (DI.LOAD_TO_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
+        if constexpr (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
           AckLoadSchedGreater = (LoadAckSched[iLd][CmnLoopDepth] >=
                                  NextStoreSched[iSt][CmnLoopDepth]);
           NextLoadSchedGreater = (NextLoadSched[iLd][CmnLoopDepth] >=
@@ -390,7 +390,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     };
 
     auto checkNoWAW = [&](const auto iSt, const auto iStOther) {
-      constexpr int CmnLoopDepth = DI.COMMON_STORE_LOOP_DEPTH[iSt][iStOther];
+      constexpr int CmnLoopDepth = DI.STORE_STORE_COMMON_LOOP_DEPTH[iSt][iStOther];
       constexpr int OtherLoopDepth = DI.STORE_LOOP_DEPTH[iStOther];
       constexpr DEP_DIR DepDir = (iSt < iStOther) ? BACK : FORWARD;
 
@@ -638,7 +638,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         });
         bool NoWAR = true;
         UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-          if constexpr (!DI.ARE_IN_SAME_LOOP[iLd][iSt]) {
+          if constexpr (!DI.LOAD_STORE_IN_SAME_LOOP[iLd][iSt]) {
             NoWAR &= checkNoWAR(iLd, iSt);
           }
         });

@@ -32,69 +32,35 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
   float *p_new = fpga_tools::toDevice(h_p, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    uint tag_p_new = 0u, tag_p = 0u;
-    uint cycle = 0u;
-
-    for (int iter = 0; iter < maxIters; ++iter) {
+    for (uint iter = 0; iter < maxIters; ++iter) {
 
       // Initialize p_new as a vector of n 0.0 cells
       for (int i = 0; i < numNodes; i++) {
-        tag_p_new++;
         p_new[i] = 0.0f;
-        // PRINTF("(%d, %d) st0 p_new %f\n", iter, i, 0.0f);
       }
 
       int rowel = 0;
       int curcol = 0;
 
       // Sparse PageRank algorithm using an adjacency matrix in CSR format.
-      for (int i = 0; i < numNodes; i++) {
+      for (uint i = 0; i < numNodes; i++) {
+        auto p_val = p[i];
+        int local_curcol = curcol;
         rowel = row_ptr[i + 1] - row_ptr[i];
-        for (int j = 0; j < rowel; j++) {
-          auto p_val = p[i];
-          PRINTF("ld0 (%d, %d, %d), p[%d] = %f\n", iter, i, j, i, p_val);
+        curcol += rowel;
+        for (uint j = 0; j < rowel; j++) {
+          auto p_new_load = p_new[col_idx[local_curcol]];
+          auto p_new_store = p_new_load + (val[local_curcol] * p_val);
+          p_new[col_idx[local_curcol]] = p_new_store;
 
-          auto p_new_load = p_new[col_idx[curcol]];
-          PRINTF("ld1 (%d, %d, %d), p_new[%d] = %f\n", iter, i, j,
-                 col_idx[curcol], p_new_load);
-
-
-          tag_p++;
-          auto p_new_store = p_new_load + (val[curcol] * p_val);
-          p_new[col_idx[curcol]] = p_new_store;
-          PRINTF("st1 (%d, %d, %d), p_new[%d] = %f\n", iter, i, j,
-                 col_idx[curcol], p_new_store);
-
-          // PRINTF("(%d, %d, %d) ld0 p_new %f\n"
-          //        "(%d, %d, %d) ld0 p %f\n"
-          //        "(%d, %d, %d) st1 p_new %f\n",
-          //        iter, i, j, p_new_load, iter, i, j, p_val, iter, i, j,
-          //        p_new_store);
-
-          curcol++;
+          local_curcol++;
         }
       }
 
-      // Optional early termination: check if we have to stop
-      // float error = 0.0;
-      // for (int i = 0; i < numNodes; i++) {
-      //   error = error + fabs(p_new[i] - p[i]);
-      // }
-      // if (error < 0.000001) {
-      //   break;
-      // }
-
       // Update p[]
-      for (int i = 0; i < numNodes; i++) {
-        auto p_new_val = p_new[i];
-        PRINTF("ld2 (%d, %d), p_new[%d] = %f\n", iter, i, i, p_new_val);
-        // PRINTF("(%d, %d) ld1 p_new %f\n", iter, i, i, p_new_val);
-
-        tag_p++;
+      for (uint i = 0; i < numNodes; i++) {
         auto p_val = d * p_new[i] + (1.0f - d) / numNodes;
         p[i] = p_val; 
-        PRINTF("st2 (%d, %d), p[%d] = %f\n", iter, i, i, p_val);
-        // PRINTF("(%d, %d) st0 p %f\n", iter, i, i, p_val);
       }
     }
   });

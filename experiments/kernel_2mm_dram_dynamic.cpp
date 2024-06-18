@@ -12,7 +12,7 @@
 #include "pipe_utils.hpp"
 #include "exception_handler.hpp"
 
-#include "TaggedStreamingMemory.hpp"
+#include "StreamingMemory.hpp"
 
 using namespace sycl;
 using namespace fpga_tools;
@@ -26,8 +26,8 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
-                  const int NJ, const int NK, std::vector<int> &h_A,
+double kernel_2mm(queue &q, const int alpha, const int beta, const uint NI,
+                  const uint NJ, const uint NK, std::vector<int> &h_A,
                   std::vector<int> &h_B, std::vector<int> &h_C,
                   std::vector<int> &h_D) {
 
@@ -42,16 +42,16 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
   constexpr int NUM_LOADS = 2;
   constexpr int NUM_STORES = 1;
   constexpr int LOOP_DEPTH = 3;
-  using LoadAddrPipes = PipeArray<class _LoadAddr_p, load_req_t<NUM_STORES, LOOP_DEPTH>, 16, NUM_LOADS>;
+  using LoadAddrPipes = PipeArray<class _LoadAddr_p, ld_req_t<NUM_STORES, LOOP_DEPTH>, 16, NUM_LOADS>;
   using LoadValPipes = PipeArray<class _LoadVal_p, int, 16, NUM_LOADS>;
-  using StoreAddrPipes = PipeArray<class _StoreAddr_p, store_req_t<LOOP_DEPTH>, 16, NUM_STORES>;
+  using StoreAddrPipes = PipeArray<class _StoreAddr_p, st_req_t<LOOP_DEPTH>, 16, NUM_STORES, 2>;
   using StoreValPipes = PipeArray<class _StoreVal_p, int, 16, NUM_STORES>;
 
   using LoadValA = sycl::pipe<class _LoadValA, int, 16>;
   auto sldA = q.single_task<class sldA>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < NI; i++) {
-      for (int j = 0; j < NJ; j++) {
-        for (int k = 0; k < NJ; ++k) {
+    for (uint i = 0; i < NI; i++) {
+      for (uint j = 0; j < NJ; j++) {
+        for (uint k = 0; k < NJ; ++k) {
           LoadValA::write(A[i * NI + k]);
         }
       }
@@ -59,9 +59,9 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
   });
   using LoadValB = sycl::pipe<class _LoadValB, int, 16>;
   auto sldB = q.single_task<class sldB>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < NI; i++) {
-      for (int j = 0; j < NJ; j++) {
-        for (int k = 0; k < NJ; ++k) {
+    for (uint i = 0; i < NI; i++) {
+      for (uint j = 0; j < NJ; j++) {
+        for (uint k = 0; k < NJ; ++k) {
           LoadValB::write(B[k * NK + j]);
         }
       }
@@ -69,9 +69,9 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
   });
   using LoadValC = sycl::pipe<class _LoadValC, int, 16>;
   auto sldC = q.single_task<class sldC>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < NI; i++) {
-      for (int j = 0; j < NJ; j++) {
-        for (int k = 0; k < NJ; ++k) {
+    for (uint i = 0; i < NI; i++) {
+      for (uint j = 0; j < NJ; j++) {
+        for (uint k = 0; k < NJ; ++k) {
           LoadValC::write(C[k * NK + j]);
         }
       }
@@ -79,8 +79,8 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
   });
   using LoadValD = sycl::pipe<class _LoadValD, int, 16>;
   auto sldD = q.single_task<class sldD>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < NI; i++) {
-      for (int j = 0; j < NJ; j++) {
+    for (uint i = 0; i < NI; i++) {
+      for (uint j = 0; j < NJ; j++) {
         // BurstCoalescedLSU
         LoadValD::write(D[i * NK + j]);
       }
@@ -88,8 +88,8 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
   });
   using StoreValD = sycl::pipe<class _StoreValD, int, 16>;
   auto sstD = q.single_task<class sstD>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < NI; i++) {
-      for (int j = 0; j < NJ; j++) {
+    for (uint i = 0; i < NI; i++) {
+      for (uint j = 0; j < NJ; j++) {
         // BurstCoalescedLSU
         D[i * NK + j] = StoreValD::read();
       }
@@ -98,62 +98,65 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
 
 
   auto agu0 = q.single_task<class agu0>([=]() [[intel::kernel_args_restrict]] {
-    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
+    ld_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {0u};
     InitBundle(ld_req_1.sched, 0u);
     InitBundle(ld_req_1.posDepDist, false);
     InitBundle(ld_req_1.isMaxIter, false);
 
-    store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
+    st_req_t<LOOP_DEPTH> st_req_1 {0u};
     InitBundle(st_req_1.sched, 0u);
     InitBundle(st_req_1.isMaxIter, false);
 
-    for (int i = 0; i < NI; i++) {
+    for (uint i = 0; i < NI; i++) {
       ld_req_1.sched[0]++;
       st_req_1.sched[0]++;
       ld_req_1.isMaxIter[0] = (i+1) == NI;
       st_req_1.isMaxIter[0] = (i+1) == NI;
 
-      for (int j = 0; j < NJ; j++) {
+      for (uint j = 0; j < NJ; j++) {
         ld_req_1.sched[1]++;
         ld_req_1.isMaxIter[1] = (j+1) == NJ;
-        ld_req_1.addr++;
+        ld_req_1.addr = i * NI + j;
         ld_req_1.posDepDist[0] = ld_req_1.addr > st_req_1.addr;
         LoadAddrPipes::PipeAt<0>::write(ld_req_1);
 
         st_req_1.isMaxIter[1] = (j+1) == NJ;
         st_req_1.sched[1]++;
         st_req_1.addr = i * NI + j;
-        StoreAddrPipes::PipeAt<0>::write(st_req_1);
+        StoreAddrPipes::PipeAt<0, 0>::write(st_req_1);
+        StoreAddrPipes::PipeAt<0, 1>::write(st_req_1);
       }
     }
 
     ld_req_1.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_1.sched, SCHED_SENTINEL);
     InitBundle(ld_req_1.isMaxIter, true);
+    InitBundle(ld_req_1.posDepDist, true);
     LoadAddrPipes::PipeAt<0>::write(ld_req_1);
 
     st_req_1.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_1.sched, SCHED_SENTINEL);
     InitBundle(st_req_1.isMaxIter, true);
-    StoreAddrPipes::PipeAt<0>::write(st_req_1);
+    StoreAddrPipes::PipeAt<0, 0>::write(st_req_1);
+    StoreAddrPipes::PipeAt<0, 1>::write(st_req_1);
   });
 
   auto agu1 = q.single_task<class agu1>([=]() [[intel::kernel_args_restrict]] {
-    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
+    ld_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {0};
     InitBundle(ld_req_1.sched, 0u);
     InitBundle(ld_req_1.isMaxIter, false);
     InitBundle(ld_req_1.posDepDist, false);
 
     // [[intel::loop_coalesce(3)]]
-    for (int i = 0; i < NI; i++) {
+    for (uint i = 0; i < NI; i++) {
       ld_req_1.sched[0]++;
       ld_req_1.isMaxIter[0] = ((i+1) == NI);
 
-      for (int j = 0; j < NJ; j++) {
+      for (uint j = 0; j < NJ; j++) {
         ld_req_1.sched[1]++;
         ld_req_1.isMaxIter[1] = ((j+1) == NJ);
 
-        for (int k = 0; k < NJ; ++k) {
+        for (uint k = 0; k < NJ; ++k) {
           ld_req_1.sched[2]++;
           ld_req_1.isMaxIter[2] = ((k+1) == NJ);
 
@@ -162,10 +165,11 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
         }
       }
     }
-    
+
     ld_req_1.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_1.sched, SCHED_SENTINEL);
     InitBundle(ld_req_1.isMaxIter, true);
+    InitBundle(ld_req_1.posDepDist, true);
     LoadAddrPipes::PipeAt<1>::write(ld_req_1);
   });
 
@@ -174,25 +178,26 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
                       StoreValPipes, NUM_LOADS, NUM_STORES, LOOP_DEPTH>(q, tmp);
 
   auto event0 = q.single_task<MainKernel0>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < NI; i++) {
-      for (int j = 0; j < NJ; j++) {
+    for (uint i = 0; i < NI; i++) {
+      for (uint j = 0; j < NJ; j++) {
         // int x = tmp[i * NI + j];
         int x = LoadValPipes::PipeAt<0>::read();
-        for (int k = 0; k < NK; ++k) {
+        for (uint k = 0; k < NK; ++k) {
           x += alpha * LoadValA::read() * LoadValB::read();
         }
         // tmp[i * NI + j] = x;
         StoreValPipes::PipeAt<0>::write(x);
       }
     }
+    StoreValPipes::PipeAt<0>::write({});
   });
 
   auto event1 = q.single_task<MainKernel1>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < NI; i++) {
-      for (int j = 0; j < NJ; j++) {
+    for (uint i = 0; i < NI; i++) {
+      for (uint j = 0; j < NJ; j++) {
         // int x = D[i * NI + j] * beta;
         int x = LoadValD::read() * beta;
-        for (int k = 0; k < NJ; ++k) {
+        for (uint k = 0; k < NJ; ++k) {
           // x += tmp[i * NI + k] * C[k * NK + j];
           x += LoadValPipes::PipeAt<1>::read() * LoadValC::read();
         }
@@ -207,7 +212,7 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const int NI,
   sstD.wait();
 
   for (auto &e : memEvents) e.wait();
-  
+
   q.copy(D, h_D.data(), h_D.size()).wait();
 
   auto start = event0.get_profiling_info<info::event_profiling::command_start>();
@@ -259,7 +264,7 @@ int main(int argc, char *argv[]) {
 
 #if FPGA_SIM
   auto d_selector = sycl::ext::intel::fpga_simulator_selector_v;
-#elif FPGA_HW 
+#elif FPGA_HW
   auto d_selector = sycl::ext::intel::fpga_selector_v;
 #else  // #if FPGA_EMULATOR
   auto d_selector = sycl::ext::intel::fpga_emulator_selector_v;
@@ -279,10 +284,10 @@ int main(int argc, char *argv[]) {
     const int S = N*N;
 
     std::vector<int> A(S, 1);
-    std::vector<int> B(S, 2); 
-    std::vector<int> C(S, 3); 
-    std::vector<int> D(S, 0); 
-    std::vector<int> D_cpu(S, 0); 
+    std::vector<int> B(S, 2);
+    std::vector<int> C(S, 3);
+    std::vector<int> D(S, 0);
+    std::vector<int> D_cpu(S, 0);
 
     auto kernel_time = kernel_2mm(q, 2, 2, NI, NJ, NK, A, B, C, D);
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
@@ -299,7 +304,7 @@ int main(int argc, char *argv[]) {
         std::cout << i << ": " << D[i] << " != " << D_cpu[i] << "\n";
       }
     }
-    
+
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

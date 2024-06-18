@@ -16,22 +16,22 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-double lud_cmp_kernel(queue &q, std::vector<float> &h_A, const int kN) {
+double lud_cmp_kernel(queue &q, std::vector<float> &h_A, const uint kN) {
   float *A = fpga_tools::toDevice(h_A, q);
   
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < kN; i++) {
-      for (int j1 = 0; j1 < i; j1++) {
+    for (uint i = 0; i < kN; i++) {
+      for (uint j1 = 0; j1 < i; j1++) {
         auto w = A[i * kN + j1];
-        for (int k = 0; k < j1; k++) {
+        for (uint k = 0; k < j1; k++) {
           w -= A[i * kN + k] * A[k * kN + j1];
         }
         A[i * kN + j1] = w / A[j1 * kN + j1];
       }
 
-      for (int j2 = i; j2 < kN; j2++) {
+      for (uint j2 = i; j2 < kN; j2++) {
         auto w = A[i * kN + j2];
-        for (int m = 0; m < i; m++) {
+        for (uint m = 0; m < i; m++) {
           w -= A[i * kN + m] * A[m * kN + j2];
         }
         A[i * kN + j2] = w;

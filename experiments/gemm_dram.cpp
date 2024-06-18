@@ -21,7 +21,7 @@ class MainKernel;
 
 double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
                    std::vector<float> &h_C, const float alpha, const float beta,
-                   const int NI, const int NJ, const int NK) {
+                   const uint NI, const uint NJ, const uint NK) {
   auto *A = fpga_tools::toDevice(h_A, q);
   auto *B = fpga_tools::toDevice(h_B, q);
   auto *C = fpga_tools::toDevice(h_C, q);
@@ -36,34 +36,18 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
     // C is NIxNJ
     //
     // 19k cycles for a 10x10 array
-    uint tag = 0;
-    for (int i = 0; i < NI; i++) {
-      for (int j = 0; j < NJ; j++) {
-        auto ld0_addr = i * NI + j;
-        auto ld0_tag = tag;
+    
+    for (uint i = 0; i < NI; i++) {
+      for (uint j = 0; j < NJ; j++) {
         auto ld0_val = C[i * NI + j];
-        tag++;
         auto st0_val = ld0_val + beta;
-        auto st0_tag = tag;
-        auto st0_addr = i*NI + j;
-        // PRINTF("ld0 (%d, %d) = %f\nst0 (%d, %d) = %f\n", 
-        //        ld0_addr, ld0_tag, ld0_val, st0_addr, st0_tag, st0_val);
         C[i * NI + j] = st0_val;
       }
 
-      for (int k = 0; k < NK; k++) {
-        for (int j = 0; j < NJ; j++) {
+      for (uint k = 0; k < NK; k++) {
+        for (uint j = 0; j < NJ; j++) {
           auto ld1_val = C[i * NI + j];
-          auto ld1_addr = i * NI + j;
-          auto ld1_tag = tag;
-          tag++;
           auto st1_val = ld1_val + (alpha * A[i * NI + k] * B[k * NK + j]);
-          auto st1_addr = i * NI + j;
-          auto st1_tag = tag;
-
-        PRINTF("ld1 (%d, %d) = %f\nst1 (%d, %d) = %f\n", 
-               ld1_addr, ld1_tag, ld1_val, st1_addr, st1_tag, st1_val);
-
           C[i * NI + j] = st1_val;
         }
       }

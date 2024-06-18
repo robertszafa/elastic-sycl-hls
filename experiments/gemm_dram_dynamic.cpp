@@ -14,7 +14,7 @@
 #include "memory_utils.hpp"
 #include "device_print.hpp"
 
-#include "TaggedStreamingMemory.hpp"
+#include "StreamingMemory.hpp"
 
 using namespace sycl;
 using namespace fpga_tools;
@@ -24,7 +24,7 @@ class MainKernel;
 
 double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
                    std::vector<float> &h_C, const float alpha, const float beta,
-                   const int NI, const int NJ, const int NK) {
+                   const uint NI, const uint NJ, const int NK) {
   auto *A = fpga_tools::toDevice(h_A, q);
   auto *B = fpga_tools::toDevice(h_B, q);
   auto *C = fpga_tools::toDevice(h_C, q);
@@ -33,18 +33,18 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
   constexpr int NUM_LOADS = 2;
   constexpr int NUM_STORES = 2;
   constexpr int LOOP_DEPTH = 3;
-  using LoadAddrPipes = PipeArray<class _LoadAddr_p, load_req_t<NUM_STORES, LOOP_DEPTH>, 16, NUM_LOADS>;
+  using LoadAddrPipes = PipeArray<class _LoadAddr_p, ld_req_t<NUM_STORES, LOOP_DEPTH>, 16, NUM_LOADS>;
   using LoadValPipes = PipeArray<class _LoadVal_p, float, 16, NUM_LOADS>;
-  using StoreAddrPipes = PipeArray<class _StoreAddr_p, store_req_t<LOOP_DEPTH>, 16, NUM_STORES>;
+  using StoreAddrPipes = PipeArray<class _StoreAddr_p, st_req_t<LOOP_DEPTH>, 16, NUM_STORES, 2>;
   using StoreValPipes = PipeArray<class _StoreVal_p, float, 16, NUM_STORES>;
 
   // using TagPipe = PipeArray<class _TagPipe, tag_t, 16, NUM_AGUS, NUM_AGUS>;
   // using LoopTagPipe = PipeArray<class _TagAfterLoop_p_new, uint, 16, NUM_AGUS, NUM_AGUS>;
-  
+
   using LoadValA0 = sycl::pipe<class LoadValA0Pipe, float, 16>;
   using LoadValB0 = sycl::pipe<class LoadValB0Pipe, float, 16>;
   q.single_task<class sldAB>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < NI; i++) { 
+    for (int i = 0; i < NI; i++) {
       for (int k = 0; k < NK; k++) {
         for (int j = 0; j < NJ; j++) {
           LoadValA0::write(A[i * NI + k]);
@@ -55,21 +55,21 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
   });
 
   q.single_task<class AGU0>([=]() [[intel::kernel_args_restrict]] {
-    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_0 {INVALID_ADDR};
+    ld_req_t<NUM_STORES, LOOP_DEPTH> ld_req_0 {0u};
     InitBundle(ld_req_0.sched, 0u);
     InitBundle(ld_req_0.posDepDist, false);
     InitBundle(ld_req_0.isMaxIter, false);
-    store_req_t<LOOP_DEPTH> st_req_0 {INVALID_ADDR};
+    st_req_t<LOOP_DEPTH> st_req_0 {0u};
     InitBundle(st_req_0.sched, 0u);
     InitBundle(st_req_0.isMaxIter, false);
 
-    for (int i = 0; i < NI; i++) { 
+    for (uint i = 0; i < NI; i++) {
       st_req_0.sched[0]++;
       ld_req_0.sched[0]++;
       st_req_0.isMaxIter[0] = (i+1) == NI;
       ld_req_0.isMaxIter[0] = (i+1) == NI;
 
-      for (int j = 0; j < NJ; j++) {
+      for (uint j = 0; j < NJ; j++) {
         st_req_0.sched[1]++;
         ld_req_0.sched[1]++;
         st_req_0.isMaxIter[1] = (j+1) == NJ;
@@ -80,7 +80,8 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
         LoadAddrPipes::PipeAt<0>::write(ld_req_0);
 
         st_req_0.addr = i * NI + j;
-        StoreAddrPipes::PipeAt<0>::write(st_req_0);
+        StoreAddrPipes::PipeAt<0, 0>::write(st_req_0);
+        StoreAddrPipes::PipeAt<0, 1>::write(st_req_0);
       }
     }
 
@@ -89,32 +90,33 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
     st_req_0.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_0.sched, SCHED_SENTINEL);
     LoadAddrPipes::PipeAt<0>::write(ld_req_0);
-    StoreAddrPipes::PipeAt<0>::write(st_req_0);
+    StoreAddrPipes::PipeAt<0, 0>::write(st_req_0);
+    StoreAddrPipes::PipeAt<0, 1>::write(st_req_0);
     // PRINTF("Done AGU0\n");
   });
-  
+
   q.single_task<class AGU1>([=]() [[intel::kernel_args_restrict]] {
-    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
+    ld_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {0u};
     InitBundle(ld_req_1.sched, 0u);
     InitBundle(ld_req_1.posDepDist, false);
     InitBundle(ld_req_1.isMaxIter, false);
-    store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
+    st_req_t<LOOP_DEPTH> st_req_1 {0u};
     InitBundle(st_req_1.sched, 0u);
     InitBundle(st_req_1.isMaxIter, false);
 
-    for (int i = 0; i < NI; i++) { 
+    for (uint i = 0; i < NI; i++) {
       st_req_1.sched[0]++;
       ld_req_1.sched[0]++;
       st_req_1.isMaxIter[0] = (i+1) == NI;
       ld_req_1.isMaxIter[0] = (i+1) == NI;
 
-      for (int k = 0; k < NK; k++) {
+      for (uint k = 0; k < NK; k++) {
         st_req_1.sched[1]++;
         ld_req_1.sched[1]++;
         st_req_1.isMaxIter[1] = (k+1) == NK;
         ld_req_1.isMaxIter[1] = (k+1) == NK;
 
-        for (int j = 0; j < NJ; j++) {
+        for (uint j = 0; j < NJ; j++) {
           st_req_1.sched[2]++;
           ld_req_1.sched[2]++;
           st_req_1.isMaxIter[2] = (j+1) == NJ;
@@ -125,7 +127,8 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
           LoadAddrPipes::PipeAt<1>::write(ld_req_1);
 
           st_req_1.addr = i * NI + j;
-          StoreAddrPipes::PipeAt<1>::write(st_req_1);
+          StoreAddrPipes::PipeAt<1, 0>::write(st_req_1);
+          StoreAddrPipes::PipeAt<1, 1>::write(st_req_1);
         }
       }
     }
@@ -135,7 +138,8 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
     st_req_1.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_1.sched, SCHED_SENTINEL);
     LoadAddrPipes::PipeAt<1>::write(ld_req_1);
-    StoreAddrPipes::PipeAt<1>::write(st_req_1);
+    StoreAddrPipes::PipeAt<1, 0>::write(st_req_1);
+    StoreAddrPipes::PipeAt<1, 1>::write(st_req_1);
     // PRINTF("Done AGU1\n");
   });
 
@@ -144,18 +148,19 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
                       StoreValPipes, NUM_LOADS, NUM_STORES, LOOP_DEPTH>(q, C);
 
   auto eventL0 = q.single_task<class Loop0>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < NI; i++) { 
-      for (int j = 0; j < NJ; j++) {
+    for (uint i = 0; i < NI; i++) {
+      for (uint j = 0; j < NJ; j++) {
         StoreValPipes::PipeAt<0>::write(LoadValPipes::PipeAt<0>::read() * beta);
         // PRINTF("Done loop0 %d, %d\n", i, j);
       }
     }
+    StoreValPipes::PipeAt<0>::write({});
   });
 
   auto eventL1 = q.single_task<class Loop1>([=]() [[intel::kernel_args_restrict]] {
-    for (int i = 0; i < NI; i++) { 
-      for (int k = 0; k < NK; k++) {
-        for (int j = 0; j < NJ; j++) {
+    for (uint i = 0; i < NI; i++) {
+      for (uint k = 0; k < NK; k++) {
+        for (uint j = 0; j < NJ; j++) {
           StoreValPipes::PipeAt<1>::write(
               LoadValPipes::PipeAt<1>::read() +
               (beta * LoadValA0::read() * LoadValB0::read()));
@@ -164,6 +169,7 @@ double gemm_kernel(queue &q, std::vector<float> &h_A, std::vector<float> &h_B,
         }
       }
     }
+    StoreValPipes::PipeAt<1>::write({});
   });
 
   eventL0.wait();

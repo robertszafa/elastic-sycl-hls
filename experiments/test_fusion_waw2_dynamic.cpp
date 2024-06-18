@@ -15,7 +15,7 @@
 #include "pipe_utils.hpp"
 #include "unrolled_loop.hpp"
 
-#include "TaggedStreamingMemory.hpp"
+#include "StreamingMemory.hpp"
 
 
 using namespace sycl;
@@ -31,141 +31,160 @@ double test_kernel_war(queue &q, const int NI, const int NJ, const int NK,
   constexpr int NUM_LOADS = 1;
   constexpr int NUM_STORES = 3;
   constexpr int LOOP_DEPTH = 3;
-  using LoadAddrPipes = PipeArray<class _LoadAddrC, load_req_t<NUM_STORES, LOOP_DEPTH>, 16, NUM_LOADS>;
+  using LoadAddrPipes = PipeArray<class _LoadAddrC, ld_req_t<NUM_STORES, LOOP_DEPTH>, 16, NUM_LOADS>;
   using LoadValPipes = PipeArray<class _LoadValC, int, 16, NUM_LOADS>;
 
-  using StoreAddrPipes = PipeArray<class _StoreAddrC, store_req_t<LOOP_DEPTH>, 16, NUM_STORES>;
+  using StoreAddrPipes = PipeArray<class _StoreAddrC, st_req_t<LOOP_DEPTH>, 16, NUM_STORES, 2>;
   using StoreValPipes = PipeArray<class _StoreValC, int, 16, NUM_STORES>;
 
   q.single_task<class AGU0>([=]() [[intel::kernel_args_restrict]] {
-    store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
+    st_req_t<LOOP_DEPTH> st_req_1 {0u};
     InitBundle(st_req_1.sched, 0u);
     InitBundle(st_req_1.isMaxIter, false);
 
-    for (int iters = 0; iters < NUM_ITERS; iters++) {
+    for (uint iters = 0; iters < NUM_ITERS; iters++) {
       st_req_1.sched[0]++;
       st_req_1.isMaxIter[0] = (iters + 1) == NUM_ITERS;
-     
-      for (int j = 0; j < NI; j++) {
+
+      for (uint j = 0; j < NI; j++) {
         st_req_1.sched[1]++;
         st_req_1.isMaxIter[1] = (j + 1) == NI;
-      
-        for (int i = 0; i < NI; i++) {
+
+        for (uint i = 0; i < NI; i++) {
           st_req_1.sched[2]++;
           st_req_1.isMaxIter[2] = (i + 1) == NI;
-          
+
           st_req_1.addr = i;
-          StoreAddrPipes::PipeAt<0>::write(st_req_1);
+          StoreAddrPipes::PipeAt<0, 0>::write(st_req_1);
+          StoreAddrPipes::PipeAt<0, 1>::write(st_req_1);
         }
       }
     }
-  
+
     st_req_1.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_1.sched, SCHED_SENTINEL);
     InitBundle(st_req_1.isMaxIter, true);
-    StoreAddrPipes::PipeAt<0>::write(st_req_1);
+    StoreAddrPipes::PipeAt<0, 0>::write(st_req_1);
+    StoreAddrPipes::PipeAt<0, 1>::write(st_req_1);
     // PRINTF("DONE AGU 0\n");
   });
 
   q.single_task<class AGU1>([=]() [[intel::kernel_args_restrict]] {
-    store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
+    st_req_t<LOOP_DEPTH> st_req_1 {0u};
     InitBundle(st_req_1.sched, 0u);
     InitBundle(st_req_1.isMaxIter, false);
 
-    for (int iters = 0; iters < NUM_ITERS; iters++) {
+    for (uint iters = 0; iters < NUM_ITERS; iters++) {
       st_req_1.sched[0]++;
       st_req_1.isMaxIter[0] = (iters + 1) == NUM_ITERS;
-     
-      for (int j = 0; j < NI; j++) {
+
+      for (uint j = 0; j < NI; j++) {
         st_req_1.sched[1]++;
         st_req_1.isMaxIter[1] = (j + 1) == NI;
-      
+
         st_req_1.addr = j;
-        StoreAddrPipes::PipeAt<1>::write(st_req_1);
+        StoreAddrPipes::PipeAt<1, 0>::write(st_req_1);
+        StoreAddrPipes::PipeAt<1, 1>::write(st_req_1);
       }
     }
-  
+
     st_req_1.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_1.sched, SCHED_SENTINEL);
-    InitBundle(st_req_1.isMaxIter, false);
-    StoreAddrPipes::PipeAt<1>::write(st_req_1);
+    InitBundle(st_req_1.isMaxIter, true);
+    StoreAddrPipes::PipeAt<1, 0>::write(st_req_1);
+    StoreAddrPipes::PipeAt<1, 1>::write(st_req_1);
     // PRINTF("DONE AGU 1\n");
   });
 
   q.single_task<class AGU2>([=]() [[intel::kernel_args_restrict]] {
-    load_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {INVALID_ADDR};
+    ld_req_t<NUM_STORES, LOOP_DEPTH> ld_req_1 {0u};
     InitBundle(ld_req_1.sched, 0u);
     InitBundle(ld_req_1.posDepDist, false);
-    store_req_t<LOOP_DEPTH> st_req_1 {INVALID_ADDR};
+    InitBundle(ld_req_1.isMaxIter, false);
+    st_req_t<LOOP_DEPTH> st_req_1 {0u};
     InitBundle(st_req_1.sched, 0u);
+    InitBundle(st_req_1.isMaxIter, false);
 
-    for (int iters = 0; iters < NUM_ITERS; iters++) {
+    for (uint iters = 0; iters < NUM_ITERS; iters++) {
       st_req_1.sched[0]++;
       ld_req_1.sched[0]++;
+      st_req_1.isMaxIter[0] = (iters + 1) == NUM_ITERS;
+      ld_req_1.isMaxIter[0] = (iters + 1) == NUM_ITERS;
 
-      for (int i = 0; i < NI; i++) {
+      for (uint i = 0; i < NI; i++) {
         st_req_1.sched[1]++;
         ld_req_1.sched[1]++;
+        st_req_1.isMaxIter[1] = (i+1) == NI;
+        ld_req_1.isMaxIter[1] = (i+1) == NI;
 
         ld_req_1.addr = i;
+        ld_req_1.posDepDist[2] = ld_req_1.addr > st_req_1.addr;
         LoadAddrPipes::PipeAt<0>::write(ld_req_1);
 
         st_req_1.addr = i;
-        StoreAddrPipes::PipeAt<2>::write(st_req_1);
+        StoreAddrPipes::PipeAt<2, 0>::write(st_req_1);
+        StoreAddrPipes::PipeAt<2, 1>::write(st_req_1);
       }
     }
 
     ld_req_1.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_1.sched, SCHED_SENTINEL);
+    InitBundle(ld_req_1.isMaxIter, true);
+    InitBundle(ld_req_1.posDepDist, true);
     st_req_1.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_1.sched, SCHED_SENTINEL);
+    InitBundle(st_req_1.isMaxIter, true);
     LoadAddrPipes::PipeAt<0>::write(ld_req_1);
-    StoreAddrPipes::PipeAt<2>::write(st_req_1);
-    
+    StoreAddrPipes::PipeAt<2, 0>::write(st_req_1);
+    StoreAddrPipes::PipeAt<2, 1>::write(st_req_1);
+
     // PRINTF("DONE AGU 2\n");
   });
 
   auto memEvents = StreamingMemory<2, LoadAddrPipes, LoadValPipes,
-                                   StoreAddrPipes, StoreValPipes, 
+                                   StoreAddrPipes, StoreValPipes,
                                    NUM_LOADS, NUM_STORES, LOOP_DEPTH>(q, D);
 
   auto event = q.single_task<class MainKernel0>([=]() [[intel::kernel_args_restrict]] {
-    for (int iters = 0; iters < NUM_ITERS; iters++) {
+    for (uint iters = 0; iters < NUM_ITERS; iters++) {
 
-      for (int j = 0; j < NI; j++) {
-        for (int i = 0; i < NI; i++) {
+      for (uint j = 0; j < NI; j++) {
+        for (uint i = 0; i < NI; i++) {
           // D[i] = iters;
-          StoreValPipes::PipeAt<0>::write(1);
+          StoreValPipes::PipeAt<0>::write(1000);
         }
       }
     }
+          // StoreValPipes::PipeAt<0>::write(1000);
   });
-  
-  auto event1 = q.single_task<class MainKernel1>([=]() [[intel::kernel_args_restrict]] {
-    for (int iters = 0; iters < NUM_ITERS; iters++) {
 
-      for (int j = 0; j < NI; j++) {
+  auto event1 = q.single_task<class MainKernel1>([=]() [[intel::kernel_args_restrict]] {
+    for (uint iters = 0; iters < NUM_ITERS; iters++) {
+
+      for (uint j = 0; j < NI; j++) {
         // for (int i = 0; i < NI; i++) {
           // D[i] = iters;
-          StoreValPipes::PipeAt<1>::write(2);
+          StoreValPipes::PipeAt<1>::write(1);
         // }
       }
     }
+          // StoreValPipes::PipeAt<1>::write(1);
   });
 
   auto event2 = q.single_task<class MainKernel2>([=]() [[intel::kernel_args_restrict]] {
-    for (int iters = 0; iters < NUM_ITERS; iters++) {
-      for (int i = 0; i < NI; i++) {
+    for (uint iters = 0; iters < NUM_ITERS; iters++) {
+      for (uint i = 0; i < NI; i++) {
         // D[i] += 1;
         // if () {
         auto ldVal = LoadValPipes::PipeAt<0>::read();
         // PRINTF("ldVal at i=%d is %d\n", i, ldVal)
-        StoreValPipes::PipeAt<2>::write(ldVal + 1);
+        StoreValPipes::PipeAt<2>::write(ldVal + 20);
         // if (ldVal != 2) {
         // }
       }
     }
 
+        // StoreValPipes::PipeAt<2>::write(20);
     // MemEndSignal::write(0);
   });
 
@@ -173,7 +192,7 @@ double test_kernel_war(queue &q, const int NI, const int NJ, const int NK,
   event1.wait();
   event2.wait();
   for (auto &e : memEvents) e.wait();
-  
+
   q.copy(D, h_D.data(), h_D.size()).wait();
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
@@ -189,19 +208,19 @@ void test_kernel_cpu(const int NI, const int NJ, const int NK, const int NUM_ITE
 
       for (int j = 0; j < NI; j++) {
         for (int i = 0; i < NI; i++) {
-          D[i] = 1;
+          D[i] = 1000;
         }
       }
-      
+
       for (int j = 0; j < NI; j++) {
         // for (int i = 0; i < NI; i++) {
-          D[j] = 2;
+          D[j] = 1;
         // }
       }
 
       for (int i = 0; i < NI; i++) {
         // if (D[i] < 1000000)
-          D[i] += 1;
+          D[i] += 20;
       }
 
     }
@@ -224,7 +243,7 @@ int main(int argc, char *argv[]) {
 
 #if FPGA_SIM
   auto d_selector = sycl::ext::intel::fpga_simulator_selector_v;
-#elif FPGA_HW 
+#elif FPGA_HW
   auto d_selector = sycl::ext::intel::fpga_selector_v;
 #else  // #if FPGA_EMULATOR
   auto d_selector = sycl::ext::intel::fpga_emulator_selector_v;
@@ -243,8 +262,8 @@ int main(int argc, char *argv[]) {
     const int NK = N;
     const int S = N*N;
 
-    std::vector<int> D(S, 4); 
-    std::vector<int> D_cpu(S, 4); 
+    std::vector<int> D(S, 4);
+    std::vector<int> D_cpu(S, 4);
 
     auto kernel_time = test_kernel_war(q, NI, NJ, NK, NUM_ITERS, D);
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
@@ -262,7 +281,7 @@ int main(int argc, char *argv[]) {
         }
       }
     }
-    
+
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

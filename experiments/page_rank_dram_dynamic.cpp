@@ -12,7 +12,7 @@
 #include "exception_handler.hpp"
 #include "device_print.hpp"
 
-#include "TaggedStreamingMemory.hpp"
+#include "StreamingMemory.hpp"
 
 using namespace sycl;
 
@@ -33,68 +33,68 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
   float *p = fpga_tools::toDevice(h_p, q);
   float *p_new = fpga_tools::toDevice(h_p, q);
   
-  constexpr int LOOP_DEPTH = 3;
-
   constexpr int NUM_LOADS_p_new = 2;
   constexpr int NUM_STORES_p_new = 2;
   constexpr int LOOP_DEPTH_p_new = 3;
-  using LoadAddrPipes_p_new = PipeArray<class _LoadAddr_p_new, load_req_t<NUM_STORES_p_new, LOOP_DEPTH_p_new>, 16, NUM_LOADS_p_new>;
+  using LoadAddrPipes_p_new = PipeArray<class _LoadAddr_p_new, ld_req_t<NUM_STORES_p_new, LOOP_DEPTH_p_new>, 16, NUM_LOADS_p_new>;
   using LoadValPipes_p_new = PipeArray<class _LoadVal_p_new, float, 16, NUM_LOADS_p_new>;
-  using StoreAddrPipes_p_new = PipeArray<class _StoreAddr_p_new, store_req_t<LOOP_DEPTH_p_new>, 16, NUM_STORES_p_new>;
+  using StoreAddrPipes_p_new = PipeArray<class _StoreAddr_p_new, st_req_t<LOOP_DEPTH_p_new>, 16, NUM_STORES_p_new, 2>;
   using StoreValPipes_p_new = PipeArray<class _StoreVal_p_new, float, 16, NUM_STORES_p_new>;
   
   constexpr int NUM_LOADS_p = 1;
   constexpr int NUM_STORES_p = 1;
-  constexpr int LOOP_DEPTH_p = 3;
-  using LoadAddrPipes_p = PipeArray<class _LoadAddr_p, load_req_t<NUM_STORES_p, LOOP_DEPTH_p>, 16, NUM_LOADS_p>;
+  constexpr int LOOP_DEPTH_p = 2;
+  using LoadAddrPipes_p = PipeArray<class _LoadAddr_p, ld_req_t<NUM_STORES_p, LOOP_DEPTH_p>, 16, NUM_LOADS_p>;
   using LoadValPipes_p = PipeArray<class _LoadVal_p, float, 16, NUM_LOADS_p>;
-  using StoreAddrPipes_p = PipeArray<class _StoreAddr_p, store_req_t<LOOP_DEPTH_p>, 16, NUM_STORES_p>;
+  using StoreAddrPipes_p = PipeArray<class _StoreAddr_p, st_req_t<LOOP_DEPTH_p>, 16, NUM_STORES_p, 2>;
   using StoreValPipes_p = PipeArray<class _StoreVal_p, float, 16, NUM_STORES_p>;
 
   // using LoopPredPipe = PipeArray<class _LoopPredPipe, bool, 16, LOOP_DEPTH_p, LOOP_DEPTH_p>;
 
   q.single_task<class AGU_l0>([=]() [[intel::kernel_args_restrict]] {
-    store_req_t<LOOP_DEPTH> st_req {INVALID_ADDR};
+    st_req_t<LOOP_DEPTH_p_new> st_req {0u};
     InitBundle(st_req.sched, 0u);
     InitBundle(st_req.isMaxIter, false);
 
-    for (int iter = 0; iter < maxIters; ++iter) {
+    for (uint iter = 0; iter < maxIters; ++iter) {
       st_req.sched[0]++;
       st_req.isMaxIter[0] = (iter + 1) == maxIters;
 
-      for (int i = 0; i < numNodes; i++) {
+      for (uint i = 0; i < numNodes; i++) {
         st_req.sched[1]++;
         st_req.isMaxIter[1] = (i + 1) == numNodes;
 
         st_req.addr = i;
-        StoreAddrPipes_p_new::PipeAt<0>::write(st_req);
+        StoreAddrPipes_p_new::PipeAt<0, 0>::write(st_req);
+        StoreAddrPipes_p_new::PipeAt<0, 1>::write(st_req);
       }
     }
 
     st_req.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req.sched, SCHED_SENTINEL);
     InitBundle(st_req.isMaxIter, true);
-    StoreAddrPipes_p_new::PipeAt<0>::write(st_req);
+    StoreAddrPipes_p_new::PipeAt<0, 0>::write(st_req);
+    StoreAddrPipes_p_new::PipeAt<0, 1>::write(st_req);
 
     // PRINTF("** DONE AGU 0\n");
   });
 
   q.single_task<class AGU_l1>([=]() [[intel::kernel_args_restrict]] {
-    store_req_t<LOOP_DEPTH> st_req_p_new {INVALID_ADDR};
+    st_req_t<LOOP_DEPTH_p_new> st_req_p_new {0u};
     InitBundle(st_req_p_new.sched, 0u);
     InitBundle(st_req_p_new.isMaxIter, false);
 
-    load_req_t<NUM_STORES_p_new, LOOP_DEPTH> ld_req_p_new {INVALID_ADDR};
+    ld_req_t<NUM_STORES_p_new, LOOP_DEPTH_p_new> ld_req_p_new {0u};
     InitBundle(ld_req_p_new.sched, 0u);
     InitBundle(ld_req_p_new.posDepDist, false);
     InitBundle(ld_req_p_new.isMaxIter, false);
 
-    load_req_t<NUM_STORES_p, LOOP_DEPTH> ld_req_p {INVALID_ADDR};
+    ld_req_t<NUM_STORES_p, LOOP_DEPTH_p> ld_req_p {0u};
     InitBundle(ld_req_p.sched, 0u);
     InitBundle(ld_req_p.posDepDist, false);
     InitBundle(ld_req_p.isMaxIter, false);
 
-    for (int iter = 0; iter < maxIters; ++iter) {
+    for (uint iter = 0; iter < maxIters; ++iter) {
       st_req_p_new.sched[0]++;
       st_req_p_new.isMaxIter[0] = (iter + 1) == maxIters;
 
@@ -104,107 +104,110 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
       ld_req_p.sched[0]++;
       ld_req_p.isMaxIter[0] = (iter + 1) == maxIters;
 
-      int rowel = 0;
       int curcol = 0;
-
-      for (int i = 0; i < numNodes; i++) {
+      for (uint i = 0; i < numNodes; i++) {
         st_req_p_new.sched[1]++;
-        ld_req_p_new.sched[1]++;
-        ld_req_p.sched[1]++;
         st_req_p_new.isMaxIter[1] = (i+1) == numNodes;
+
+        ld_req_p_new.sched[1]++;
         ld_req_p_new.isMaxIter[1] = (i+1) == numNodes;
+
+        ld_req_p.sched[1]++;
         ld_req_p.isMaxIter[1] = (i+1) == numNodes;
 
-        rowel = row_ptr[i + 1] - row_ptr[i];
+        const auto rowel = row_ptr[i + 1] - row_ptr[i];
 
         int local_curcol = curcol;
-        int local_i = i;
-        int local_rowel = rowel;
-        for (int j = 0; j < local_rowel; j++) {
-          
-          st_req_p_new.sched[2]++;
-          ld_req_p_new.sched[2]++;
-          ld_req_p.sched[2]++;
-          st_req_p_new.isMaxIter[2] = (j+1) == local_rowel;
-          ld_req_p_new.isMaxIter[2] = (j+1) == local_rowel;
-          ld_req_p.isMaxIter[2] = (j+1) == local_rowel;
+        ld_req_p.addr = i;
+        LoadAddrPipes_p::PipeAt<0>::write(ld_req_p);
 
-          ld_req_p.addr = local_i;
-          LoadAddrPipes_p::PipeAt<0>::write(ld_req_p);
+        for (int j = 0; j < rowel; j++) {
+          st_req_p_new.sched[2]++;
+          st_req_p_new.isMaxIter[2] = (j+1) == rowel;
+
+          ld_req_p_new.sched[2]++;
+          ld_req_p_new.isMaxIter[2] = (j+1) == rowel;
 
           ld_req_p_new.addr = col_idx[local_curcol];
           ld_req_p_new.posDepDist[1] = ld_req_p_new.addr > st_req_p_new.addr;
           LoadAddrPipes_p_new::PipeAt<0>::write(ld_req_p_new);
 
           st_req_p_new.addr = col_idx[local_curcol];
-          StoreAddrPipes_p_new::PipeAt<1>::write(st_req_p_new);
+          StoreAddrPipes_p_new::PipeAt<1, 0>::write(st_req_p_new);
+          StoreAddrPipes_p_new::PipeAt<1, 1>::write(st_req_p_new);
 
           local_curcol++;
         }
 
-        curcol += local_rowel;
+        curcol += rowel;
       }
     }
 
     ld_req_p.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_p.sched, SCHED_SENTINEL);
     InitBundle(ld_req_p.isMaxIter, true);
+    InitBundle(ld_req_p.posDepDist, true);
     LoadAddrPipes_p::PipeAt<0>::write(ld_req_p);
 
     ld_req_p_new.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_p_new.sched, SCHED_SENTINEL);
     InitBundle(ld_req_p_new.isMaxIter, true);
+    InitBundle(ld_req_p_new.posDepDist, true);
     LoadAddrPipes_p_new::PipeAt<0>::write(ld_req_p_new);
 
     st_req_p_new.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_p_new.sched, SCHED_SENTINEL);
     InitBundle(st_req_p_new.isMaxIter, true);
-    StoreAddrPipes_p_new::PipeAt<1>::write(st_req_p_new);
+    StoreAddrPipes_p_new::PipeAt<1, 0>::write(st_req_p_new);
+    StoreAddrPipes_p_new::PipeAt<1, 1>::write(st_req_p_new);
 
     // PRINTF("** DONE AGU 1\n");
   });
 
   q.single_task<class AGU_l2>([=]() [[intel::kernel_args_restrict]] {
-    store_req_t<LOOP_DEPTH> st_req_p {INVALID_ADDR};
+    st_req_t<LOOP_DEPTH_p> st_req_p {0u};
     InitBundle(st_req_p.sched, 0u);
     InitBundle(st_req_p.isMaxIter, false);
 
-    load_req_t<NUM_STORES_p_new, LOOP_DEPTH> ld_req_p_new {INVALID_ADDR};
+    ld_req_t<NUM_STORES_p_new, LOOP_DEPTH_p_new> ld_req_p_new {0u};
     InitBundle(ld_req_p_new.sched, 0u);
     InitBundle(ld_req_p_new.posDepDist, false);
     InitBundle(ld_req_p_new.isMaxIter, false);
 
-    for (int iter = 0; iter < maxIters; ++iter) {
+    for (uint iter = 0; iter < maxIters; ++iter) {
       st_req_p.sched[0]++;
       st_req_p.isMaxIter[0] = (iter + 1) == maxIters;
+
       ld_req_p_new.sched[0]++;
       ld_req_p_new.isMaxIter[0] = (iter + 1) == maxIters;
 
-      for (int i = 0; i < numNodes; i++) {
+      for (uint i = 0; i < numNodes; i++) {
         st_req_p.sched[1]++;
-        st_req_p.sched[1]++;
+        st_req_p.isMaxIter[1] = (i+1) == numNodes;
+
         ld_req_p_new.sched[1]++;
-        st_req_p.isMaxIter[1] = (i+1) == numNodes;
-        st_req_p.isMaxIter[1] = (i+1) == numNodes;
         ld_req_p_new.isMaxIter[1] = (i+1) == numNodes;
 
         ld_req_p_new.addr = i;
         LoadAddrPipes_p_new::PipeAt<1>::write(ld_req_p_new);
 
         st_req_p.addr = i;
-        StoreAddrPipes_p::PipeAt<0>::write(st_req_p);
+        StoreAddrPipes_p::PipeAt<0, 0>::write(st_req_p);
+        StoreAddrPipes_p::PipeAt<0, 1>::write(st_req_p);
       }
     }
 
     ld_req_p_new.addr = LOAD_ADDR_SENTINEL;
     InitBundle(ld_req_p_new.sched, SCHED_SENTINEL);
     InitBundle(ld_req_p_new.isMaxIter, true);
+    InitBundle(ld_req_p_new.posDepDist, true);
     LoadAddrPipes_p_new::PipeAt<1>::write(ld_req_p_new);
 
     st_req_p.addr = STORE_ADDR_SENTINEL;
     InitBundle(st_req_p.sched, SCHED_SENTINEL);
     InitBundle(st_req_p.isMaxIter, true);
-    StoreAddrPipes_p::PipeAt<0>::write(st_req_p);
+    StoreAddrPipes_p::PipeAt<0, 0>::write(st_req_p);
+    StoreAddrPipes_p::PipeAt<0, 1>::write(st_req_p);
 
     // PRINTF("** DONE AGU 1\n");
   });
@@ -221,25 +224,25 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
           q, p);
 
   auto event1 = q.single_task<class MainKernel0>([=]() [[intel::kernel_args_restrict]] {
-    for (int iter = 0; iter < maxIters; ++iter) {
-      for (int i = 0; i < numNodes; i++) {
+    for (uint iter = 0; iter < maxIters; ++iter) {
+      for (uint i = 0; i < numNodes; i++) {
         StoreValPipes_p_new::PipeAt<0>::write(0.0f);
       }
     }
 
+    // StoreValPipes_p_new::PipeAt<0>::write({});
     // PRINTF("** DONE MainKernel0\n");
   });
 
   auto event2 = q.single_task<class MainKernel1>([=]() [[intel::kernel_args_restrict]] {
-    for (int iter = 0; iter < maxIters; ++iter) {
+    for (uint iter = 0; iter < maxIters; ++iter) {
       int curcol = 0;
-      for (int i = 0; i < numNodes; i++) {
+      for (uint i = 0; i < numNodes; i++) {
 
         int rowel = row_ptr[i + 1] - row_ptr[i];
-        int local_curcol = curcol;
+        auto local_curcol = curcol;
+        auto LoadVal_p = LoadValPipes_p::PipeAt<0>::read();
         for (int j = 0; j < rowel; j++) {
-          
-          auto LoadVal_p = LoadValPipes_p::PipeAt<0>::read();
           // PRINTF("ld0 (%d, %d, %d), p[%d] = %f\n", iter, i, j, i, LoadVal_p);
 
           auto LoadVal_p_new = LoadValPipes_p_new::PipeAt<0>::read();
@@ -257,13 +260,13 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
         curcol += rowel;
       }
     }
-
+    // StoreValPipes_p_new::PipeAt<1>::write({});
     // PRINTF("** DONE MainKernel1\n");
   });
 
   auto event3 = q.single_task<class MainKernel2>([=]() [[intel::kernel_args_restrict]] {
-    for (int iter = 0; iter < maxIters; ++iter) {
-      for (int i = 0; i < numNodes; i++) {
+    for (uint iter = 0; iter < maxIters; ++iter) {
+      for (uint i = 0; i < numNodes; i++) {
         auto LoadVal_p_new = LoadValPipes_p_new::PipeAt<1>::read();
         // PRINTF("ld2 (%d, %d), p_new[%d] = %f\n", iter, i, i, LoadVal_p_new);
 
@@ -273,6 +276,7 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
       }
     }
 
+    // StoreValPipes_p::PipeAt<0>::write({});
     // PRINTF("** DONE MainKernel2\n");
   });
 

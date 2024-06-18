@@ -6,6 +6,11 @@ using namespace llvm;
 
 namespace llvm {
 
+using MemoryRequest = DynamicLoopFusionAnalysis::MemoryRequest;
+using DecoupledLoopInfo = DynamicLoopFusionAnalysis::DecoupledLoopInfo;
+using MemoryDependencyInfo = DynamicLoopFusionAnalysis::MemoryDependencyInfo;
+using DepDir = DynamicLoopFusionAnalysis::DepDir;
+
 template <typename ChildT>
 bool loopSpanContains(Loop *Inner, Loop *Outer, ChildT *Child) {
   static_assert(std::is_same_v<ChildT, BasicBlock> ||
@@ -40,9 +45,10 @@ Instruction *getBasePtrOfInstr(Instruction *I) {
 /// Collect loops to decouple. A loop will be marked for decoupling if it has
 /// a body (not counting sub-loops) with side effects (memory operations).
 void DynamicLoopFusionAnalysis::collectLoopsToDecouple(LoopInfo &LI) {
+  int id = 0;
   for (auto L : LI.getLoopsInPreorder()) {
     if (L->isInnermost()) {
-      DecoupledLoopInfo DecoupleInfo = {};
+      DecoupledLoopInfo DecoupleInfo = {id++};
 
       auto ParentL = L;
       while (ParentL) {
@@ -65,7 +71,7 @@ void DynamicLoopFusionAnalysis::collectMemoriesToProtect(LoopInfo &LI) {
       for (auto storeI : getUniqueLoopInstructions(L)) {
         if (isa<StoreInst>(storeI)) {
           const auto BasePtr = getBasePtrOfInstr(storeI);
-          if (memoryToProtect.contains(BasePtr))
+          if (basePtrsToProtect.contains(BasePtr))
             continue;
 
           for (auto otherDecoupleInfo : loopsToDecouple) {
@@ -73,7 +79,7 @@ void DynamicLoopFusionAnalysis::collectMemoriesToProtect(LoopInfo &LI) {
               if (otherL != L) {
                 for (auto otherI : getUniqueLoopInstructions(otherL)) {
                   if (getBasePtrOfInstr(storeI) == getBasePtrOfInstr(otherI)) {
-                    memoryToProtect.insert(BasePtr);
+                    basePtrsToProtect.insert(BasePtr);
                   }
                 }
               }
@@ -85,12 +91,12 @@ void DynamicLoopFusionAnalysis::collectMemoriesToProtect(LoopInfo &LI) {
   }
 
   auto getBasePtrId = [&](Instruction *BasePtr) -> int {
-    for (size_t i = 0; i < memoryToProtect.size(); ++i) {
-      if (memoryToProtect[i] == BasePtr) {
+    for (size_t i = 0; i < basePtrsToProtect.size(); ++i) {
+      if (basePtrsToProtect[i] == BasePtr) {
         return i;
       }
     }
-    return memoryToProtect.size();
+    return basePtrsToProtect.size();
   };
 
   for (auto &decoupleInfo : loopsToDecouple) {
@@ -100,7 +106,7 @@ void DynamicLoopFusionAnalysis::collectMemoriesToProtect(LoopInfo &LI) {
 
       for (auto I : getUniqueLoopInstructions(L)) {
         if (auto BasePtr = getBasePtrOfInstr(I)) {
-          if (memoryToProtect.contains(BasePtr)) {
+          if (basePtrsToProtect.contains(BasePtr)) {
             MemoryRequest Req{getBasePtrId(BasePtr), I, BasePtr,
                               int(L->getLoopDepth() - 1), currentLoopNest};
             if (isaLoad(I))
@@ -118,8 +124,9 @@ void DynamicLoopFusionAnalysis::collectAGUs(LoopInfo &LI) {
   for (auto decoupleInfo : loopsToDecouple) {
     for (auto I : getUniqueLoopInstructions(decoupleInfo.inner())) {
       if (auto BasePtr = getBasePtrOfInstr(I)) {
-        if (memoryToProtect.contains(BasePtr)) {
+        if (basePtrsToProtect.contains(BasePtr)) {
           agusToDecouple.push_back(decoupleInfo);
+          break;
         }
       }
     }
@@ -206,6 +213,147 @@ void DynamicLoopFusionAnalysis::checkIsMaxIterNeeded(LoopInfo &LI,
       }
     }
   }
+}
+
+MapVector<int, SmallVector<MemoryRequest *>>
+getCluesteredLoadRequests(SmallVector<DecoupledLoopInfo, 4> &loopsToDecouple) {
+  MapVector<int, SmallVector<MemoryRequest *>> loadsForMem;
+  for (auto &DecoupleInfo : loopsToDecouple) {
+    for (auto &Req : DecoupleInfo.loads) {
+      if (!loadsForMem.contains(Req.memoryId)) {
+        loadsForMem[Req.memoryId] = SmallVector<MemoryRequest *>{};
+      }
+      loadsForMem[Req.memoryId].push_back(&Req);
+    }
+  }
+  return loadsForMem;
+}
+
+MapVector<int, SmallVector<MemoryRequest *>>
+getCluesteredStoreRequests(SmallVector<DecoupledLoopInfo, 4> &loopsToDecouple) {
+  MapVector<int, SmallVector<MemoryRequest *>> storesForMem;
+  for (auto &DecoupleInfo : loopsToDecouple) {
+    for (auto &Req : DecoupleInfo.stores) {
+      if (!storesForMem.contains(Req.memoryId)) {
+        storesForMem[Req.memoryId] = SmallVector<MemoryRequest *>{};
+      }
+      storesForMem[Req.memoryId].push_back(&Req);
+    }
+  }
+  return storesForMem;
+}
+
+int getCommonLoopDepth(Loop *L1, Loop *L2) {
+  if (L1 == L2) 
+    return L1->getLoopDepth() - 1;
+  else if (L1->getLoopDepth() == 0 || L2->getLoopDepth() == 0)
+    return -1;
+
+  if (L1->getLoopDepth() > L2->getLoopDepth()) 
+    return getCommonLoopDepth(L1->getParentLoop(), L2);
+  else
+    return getCommonLoopDepth(L1, L2->getParentLoop());
+
+  return -1;
+}
+
+/// Return the direction of the A --depends-on--> B dependency. Return
+/// ENUM_DIR::BACK if A comes first in program order, else return FORWARD.
+DepDir getDependencyDir(Instruction *A, Instruction *B, LoopInfo &LI) {
+  auto LA = LI.getLoopFor(A->getParent());
+  auto LB = LI.getLoopFor(B->getParent());
+
+  if (LA == LB) {
+    if (A->getParent() == B->getParent()) {
+      return getIndexIntoParent(A) < getIndexIntoParent(B) ? DepDir::BACK
+                                                           : DepDir::FORWARD;
+    }
+
+    for (auto BB : LA->blocks()) {
+      if (BB == A->getParent()) {
+        return DepDir::BACK;
+      } else if (BB == B->getParent()) {
+        return DepDir::FORWARD;
+      }
+    }
+  }
+
+  for (auto L : LI.getLoopsInPreorder()) {
+    if (L == LA) {
+      return DepDir::BACK;
+    } else if (L == LB) {
+      return DepDir::FORWARD;
+    }
+  }
+
+  return DepDir::FORWARD;
+}
+
+void DynamicLoopFusionAnalysis::collectMemoryDepInfo(LoopInfo &LI) {
+  auto LoadsForMem = getCluesteredLoadRequests(loopsToDecouple);
+  auto StoresForMem = getCluesteredStoreRequests(loopsToDecouple);
+
+  // init
+  for (auto kv : StoresForMem) {
+    memDepInfo[kv.first] = MemoryDependencyInfo{
+        kv.first,
+        int(LoadsForMem[kv.first].size()),
+        int(StoresForMem[kv.first].size()),
+    };
+    memDepInfo[kv.first].cType = getTypeString(LoadsForMem[kv.first][0]->memOp);
+  }
+
+  for (auto &[MemId, LdRequests] : LoadsForMem) {
+    for (auto [ReqId, LdReq] : llvm::enumerate(LdRequests)) {
+      memDepInfo[MemId].loadReqIds[LdReq->memOp] = ReqId;
+
+      auto LdLoop = LI.getLoopFor(LdReq->memOp->getParent());
+      memDepInfo[MemId].maxLoopDepth = std::max(memDepInfo[MemId].maxLoopDepth, 
+                                                LdReq->loopDepth + 1);
+
+      memDepInfo[MemId].loadLoopDepth.push_back(LdReq->loopDepth);
+      memDepInfo[MemId].loadIsMaxIterNeeded.push_back(LdReq->isMaxIterNeeded);
+
+      SmallVector<bool> StoreInSameLoop;
+      SmallVector<int> StoreCommonLoopDepth;
+      SmallVector<DepDir> StoreDepDir;
+      for (auto &StReq : StoresForMem[MemId]) {
+        auto StLoop = LI.getLoopFor(StReq->memOp->getParent());
+        StoreInSameLoop.push_back(LdLoop == StLoop);
+        StoreCommonLoopDepth.push_back(getCommonLoopDepth(LdLoop, StLoop));
+        StoreDepDir.push_back(getDependencyDir(LdReq->memOp, StReq->memOp, LI));
+      }
+      memDepInfo[MemId].loadStoreInSameLoop.push_back(StoreInSameLoop);
+      memDepInfo[MemId].loadStoreCommonLoopDepth.push_back(StoreCommonLoopDepth);
+      memDepInfo[MemId].loadStoreDepDir.push_back(StoreDepDir);
+    }
+  }
+
+  for (auto &[MemId, StRequests] : StoresForMem) {
+    for (auto [ReqId, StReq] : llvm::enumerate(StRequests)) {
+      memDepInfo[MemId].loadReqIds[StReq->memOp] = ReqId;
+      auto StReqLoop = LI.getLoopFor(StReq->memOp->getParent());
+      memDepInfo[MemId].maxLoopDepth = std::max(memDepInfo[MemId].maxLoopDepth, 
+                                                StReq->loopDepth + 1);
+
+      memDepInfo[MemId].storeLoopDepth.push_back(StReq->loopDepth);
+      memDepInfo[MemId].storeIsMaxIterNeeded.push_back(StReq->isMaxIterNeeded);
+
+      SmallVector<bool> StoreInSameLoop;
+      SmallVector<int> StoreCommonLoopDepth;
+      SmallVector<DepDir> StoreDepDir;
+      for (auto &OtherStReq : StoresForMem[MemId]) {
+        auto OtherStLoop = LI.getLoopFor(OtherStReq->memOp->getParent());
+        StoreInSameLoop.push_back(StReqLoop == OtherStLoop);
+        StoreCommonLoopDepth.push_back(getCommonLoopDepth(StReqLoop, OtherStLoop));
+        StoreDepDir.push_back(getDependencyDir(StReq->memOp, OtherStReq->memOp, LI));
+      }
+      memDepInfo[MemId].storeStoreInSameLoop.push_back(StoreInSameLoop);
+      memDepInfo[MemId].storeStoreCommonLoopDepth.push_back(StoreCommonLoopDepth);
+      memDepInfo[MemId].storeStoreDepDir.push_back(StoreDepDir);
+    }
+  }
+
 }
 
 } // end namespace llvm

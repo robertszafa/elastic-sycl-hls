@@ -1,3 +1,6 @@
+#ifndef __DEPENDENCY_TABLE_HPP__
+#define __DEPENDENCY_TABLE_HPP__
+
 enum DEP_DIR {
   BACK,    // First load, then store in a loop.
   FORWARD, // First store, then load in a loop.
@@ -212,3 +215,5 @@ template <> struct DepInfo<8> {
   static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
       {true, false}, {false, true}};
 };
+
+#endif

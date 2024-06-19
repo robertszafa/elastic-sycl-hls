@@ -1,3 +1,6 @@
+#ifndef __STREAMING_MEMORY_HPP__
+#define __STREAMING_MEMORY_HPP__
+
 #include <sycl/ext/intel/fpga_extensions.hpp>
 #include <sycl/ext/intel/ac_types/ac_int.hpp>
 #include <sycl/sycl.hpp>
@@ -12,6 +15,7 @@
 using namespace sycl;
 using namespace fpga_tools;
 
+/// Add bits for higher capacity DRAM.
 using addr_t = uint;
 using sched_t = uint;
 
@@ -66,9 +70,11 @@ template <int PortId> class StorePortKernel;
 template <int PortId> class LoadPortKernel;
 
 template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
-          typename StoreReqPipes, typename StoreValPipes,
-          uint NUM_LOADS, uint NUM_STORES, uint LOOP_DEPTH, typename T>
-std::vector<event> StreamingMemory(queue &q, T *data) {
+          typename StoreReqPipes, typename StoreValPipes, typename T>
+std::vector<event> StreamingMemory(queue &q) {
+  constexpr uint NUM_LOADS = DepInfo<MEM_ID>{}.NUM_LOADS;
+  constexpr uint NUM_STORES = DepInfo<MEM_ID>{}.NUM_STORES;
+  constexpr uint LOOP_DEPTH = DepInfo<MEM_ID>{}.MAX_LOOP_DEPTH; 
   std::vector<event> events(NUM_STORES + 1);
 
   // Sizes of internal buffers.
@@ -101,7 +107,13 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
         if (Req.addr == STORE_ADDR_SENTINEL) break;
 
         auto Val = StorePortValPipes::template PipeAt<iSt>::read();
-        auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
+
+        // We construct a pointer from only 32 bits (incorrect for >4GB DRAMs).
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wint-to-pointer-cast"
+        auto StorePtr = ext::intel::device_ptr<T>((T*) Req.addr);
+        #pragma clang diagnostic pop
+
         BurstCoalescedLSU::store(StorePtr, Val);
         NextAck = Req;
       }
@@ -141,7 +153,10 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
           NumReused++;
           Val = Req.val;
         } else {
-          auto LoadPtr = ext::intel::device_ptr<T>(data + Req.ack.addr);
+          #pragma clang diagnostic push
+          #pragma clang diagnostic ignored "-Wint-to-pointer-cast"
+          auto LoadPtr = ext::intel::device_ptr<T>((T*) Req.ack.addr);
+          #pragma clang diagnostic pop
           Val = BurstCoalescedLSU::load(LoadPtr);
         }
 
@@ -267,7 +282,7 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
     // The dependency info is supplied by the compiler. 
     ///////////////////////////////////////////////////////////////////////////
     static constexpr auto DI = DepInfo<MEM_ID>{};
-
+    
     constexpr auto walkUpStoreToFirstWrap = [&](const auto iSt,
                                                 const auto start) {
       for (int i = start; i >= 0; --i) {
@@ -683,3 +698,5 @@ std::vector<event> StreamingMemory(queue &q, T *data) {
 
   return events;
 }
+
+#endif

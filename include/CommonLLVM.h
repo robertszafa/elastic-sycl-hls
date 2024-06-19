@@ -77,12 +77,31 @@ getSeqInBB(const SmallVector<Instruction *> &Range) {
   return seqInBB;
 }
 
-[[maybe_unused]] std::string getTypeString(const Instruction *I) {
+[[maybe_unused]] std::string getLLVMTypeString(const Instruction *I) {
   std::string typeStr;
   llvm::raw_string_ostream rso(typeStr);
   I->getType()->print(rso);
 
   return typeStr;
+}
+
+[[maybe_unused]] std::string getCTypeString(const Instruction *I) {
+  const std::string llvmtype = getLLVMTypeString(I);
+
+  if (llvmtype.find("i1") != std::string::npos)
+    return "bool";
+  else if (llvmtype.find("i8") != std::string::npos)
+    return "signed char";
+  else if (llvmtype.find("i16") != std::string::npos)
+    return "signed short";
+  else if (llvmtype.find("i32") != std::string::npos)
+    return "int";
+  else if (llvmtype.find("i64") != std::string::npos)
+    return "signed long int";
+  else if (llvmtype.find("addrspace") != std::string::npos)
+    return "int64_t";
+
+  return llvmtype;
 }
 
 /// Given a {val}, store it into the operand of the {pipe} write.

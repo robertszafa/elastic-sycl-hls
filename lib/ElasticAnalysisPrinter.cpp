@@ -85,7 +85,7 @@ void generateInfoLSQ(Function &F, DataHazardAnalysis *DHA,
     lsqInfo.isAddressGenDecoupled = DHA->getDecoupligDecisions()[iLSQ];
     lsqInfo.isAnySpeculation = DHA->getSpeculationDecisions()[iLSQ];
     lsqInfo.arraySize = DHA->getMemorySizes()[iLSQ];
-    lsqInfo.arrayType = getTypeString(dyn_cast<Instruction>(loads[0]));
+    lsqInfo.arrayType = getLLVMTypeString(dyn_cast<Instruction>(loads[0]));
     lsqInfo.aguKernelName = lsqInfo.isAddressGenDecoupled
                             ? mainKernelName + "_AGU_" + std::to_string(iLSQ)
                             : mainKernelName;
@@ -217,7 +217,7 @@ void generateInfoBlockPE(Function &F, LoopInfo &LI,
       RewriteRule ssaInWr{SSA_BB_IN_WRITE, mainKernelName, depIn[iDep], BB};
       ssaInWr.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_bb_dep_in_" +
                          std::to_string(iDep) + "_class";
-      ssaInWr.pipeType = getTypeString(depIn[iDep]);
+      ssaInWr.pipeType = getLLVMTypeString(depIn[iDep]);
       ssaInWr.loopHeaderBlock = loopHeader;
       ssaInWr.loopLatchBlock = loopLatch;
       ssaInWr.loopExitBlock = loopExit;
@@ -240,7 +240,7 @@ void generateInfoBlockPE(Function &F, LoopInfo &LI,
       RewriteRule ssaOutWr{SSA_BB_OUT_WRITE, peKernelName, depOut[iDep], BB};
       ssaOutWr.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_bb_dep_out_" +
                           std::to_string(iDep) + "_class";
-      ssaOutWr.pipeType = getTypeString(depOut[iDep]);
+      ssaOutWr.pipeType = getLLVMTypeString(depOut[iDep]);
       ssaOutWr.loopHeaderBlock = loopHeader;
       ssaOutWr.loopLatchBlock = loopLatch;
       ssaOutWr.loopExitBlock = loopExit;
@@ -299,7 +299,7 @@ void generateInfoLoopPE(Function &F,
                           loopHeader};
       ssaInWr.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_loop_dep_in_" +
                          std::to_string(iDep) + "_class";
-      ssaInWr.pipeType = getTypeString(depIn[iDep]);
+      ssaInWr.pipeType = getLLVMTypeString(depIn[iDep]);
       ssaInWr.loopHeaderBlock = loopHeader;
       ssaInWr.loopLatchBlock = loopLatch;
       ssaInWr.loopExitBlock = loopExit;
@@ -320,7 +320,7 @@ void generateInfoLoopPE(Function &F,
                            loopHeader};
       ssaOutWr.pipeName = "pipe_pe_" + std::to_string(peIdx) +
                           "_loop_dep_out_" + std::to_string(iDep) + "_class";
-      ssaOutWr.pipeType = getTypeString(depOut[iDep]);
+      ssaOutWr.pipeType = getLLVMTypeString(depOut[iDep]);
       ssaOutWr.loopHeaderBlock = loopHeader;
       ssaOutWr.loopLatchBlock = loopLatch;
       ssaOutWr.loopExitBlock = loopExit;

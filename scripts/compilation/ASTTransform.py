@@ -295,13 +295,11 @@ def do_dynamic_fusion_transform_ast(src_lines, report):
     new_kernels_forward_decl = []
     new_kernel_waits = []
     for kernel_info in report['loopsToDecouple']:
-        print(f"Info: Decoupled kernel {name.split(' ')[-1]}")
-
-        # already done
-        if kernel_info["kernelName"] == report["mainKernelName"]:
-            continue 
-
         name = kernel_info['kernelName']
+        print(f"Info: Decoupled kernel {name.split(' ')[-1]}")
+        if name == report["mainKernelName"]:
+            continue # already done
+
         new_kernels_forward_decl.append(f"class {name.split(' ')[-1]};")
         # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
         pe_kernel, pe_event = gen_kernel_copy(Q_NAME, kernel_body, name.split(' ')[-1])
@@ -319,7 +317,7 @@ def do_dynamic_fusion_transform_ast(src_lines, report):
     ip_waits = []
     mem_dep_structs = []
     for mem in report["memoryToProtect"]:
-        ip_calls.append(f'auto memEvents_{mem["id"]} = StreamingMemory<{mem["id"]}, LoadAddrPipes_{mem["id"]}, LoadValPipes_{mem["id"]}, StoreAddrPipes_{mem["id"]}, StoreValPipes_{mem["id"]}, {mem["cType"]}>({Q_NAME});')
+        ip_calls.append(f'auto memEvents_{mem["id"]} = StreamingMemory<{mem["id"]}, LoadReqPipes_{mem["id"]}, LoadValPipes_{mem["id"]}, StoreReqPipes_{mem["id"]}, StoreValPipes_{mem["id"]}, {mem["cType"]}>({Q_NAME});')
         ip_waits.append(f'for (auto &e : memEvents_{mem["id"]}) e.wait();')
         mem_dep_structs.append(mem["structDef"])
 

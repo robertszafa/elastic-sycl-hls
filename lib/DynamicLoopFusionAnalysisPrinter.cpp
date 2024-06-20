@@ -98,10 +98,10 @@ std::string getPipeDefString(MemoryDependencyInfo &MemDep) {
   constexpr unsigned kReqPipeDepth = 16;
 
   O << llvm::formatv(
-    "using LoadAddrPipes_{0} = PipeArray<class _LoadAddr_{0}, ld_req_t<{1}, {2}>, {3}, {4}>;\n"
-    "using LoadValPipes_{0} = PipeArray<class _LoadVal_{0}, {5}, {3}, {4}>;\n"
-    "using StoreAddrPipes_{0} = PipeArray<class _StoreAddr_{0}, st_req_t<{2}>, {3}, {1}, 2>;\n"
-    "using StoreValPipes_{0} = PipeArray<class _StoreVal_{0}, {5}, {3}, {1}>;\n",
+    "using LoadReqPipes_{0} = PipeArray<class _LoadReqPipes_{0}, ld_req_t<{1}, {2}>, {3}, {4}>;\n"
+    "using LoadValPipes_{0} = PipeArray<class _LoadValPipes_{0}, {5}, {3}, {4}>;\n"
+    "using StoreReqPipes_{0} = PipeArray<class _StoreReqPipes_{0}, st_req_t<{2}>, {3}, {1}, 2>;\n"
+    "using StoreValPipes_{0} = PipeArray<class _StoreValPipes_{0}, {5}, {3}, {1}>;\n",
     MemDep.id, MemDep.numStores, MemDep.maxLoopDepth, kReqPipeDepth, MemDep.numLoads, MemDep.cType);
 
   return res;
@@ -126,20 +126,19 @@ getPipeCallsInAguJson(DecoupledLoopInfo &DecoupleInfo,
                       MapVector<int, MemoryDependencyInfo> &MemDepInfos) {
   auto Res = json::Array();
 
-  for (auto &LdReq : DecoupleInfo.loads) {
+  for (auto LdReq : DecoupleInfo.loads) {
     auto MemDep = MemDepInfos[LdReq.memoryId];
-    int ReqId = MemDep.loadReqIds[LdReq.memOp];
-
     json::Object infoJson;
     std::string pipeCallStr;
     llvm::raw_string_ostream O(pipeCallStr);
-    O << llvm::formatv("ld_req_t<{0}, {1}> ld_req_{2}_{3};\n"
-                       "ld_req_{2}_{3}.addr = 0u;\n"
-                       "InitBundle(ld_req_{2}_{3}.sched, 0u);\n"
-                       "InitBundle(ld_req_{2}_{3}.posDepDist, false);\n"
-                       "InitBundle(ld_req_{2}_{3}.isMaxIter, false);\n"
-                       "LoadAddrPipes_{2}::PipeAt<{3}>::write(ld_req_{2}_{3});\n",
-                       MemDep.numStores, MemDep.maxLoopDepth, MemDep.id, ReqId);
+    O << llvm::formatv(
+        "ld_req_t<{0}, {1}> ld_req_{2}_{3};\n"
+        "ld_req_{2}_{3}.addr = 0u;\n"
+        "InitBundle(ld_req_{2}_{3}.sched, 0u);\n"
+        "InitBundle(ld_req_{2}_{3}.posDepDist, false);\n"
+        "InitBundle(ld_req_{2}_{3}.isMaxIter, false);\n"
+        "LoadReqPipes_{2}::PipeAt<{3}>::write(ld_req_{2}_{3});\n",
+        MemDep.numStores, MemDep.maxLoopDepth, MemDep.id, LdReq.reqId);
 
     infoJson["instructionIdx"] = getIndexIntoParent(LdReq.memOp);
     infoJson["instructionBasicBlockIdx"] =
@@ -149,9 +148,8 @@ getPipeCallsInAguJson(DecoupledLoopInfo &DecoupleInfo,
     Res.push_back(std::move(infoJson));
   }
 
-  for (auto &StReq : DecoupleInfo.stores) {
+  for (auto StReq : DecoupleInfo.stores) {
     auto MemDep = MemDepInfos[StReq.memoryId];
-    int ReqId = MemDep.storeReqIds[StReq.memOp];
 
     json::Object infoJson;
     std::string pipeCallStr;
@@ -160,9 +158,9 @@ getPipeCallsInAguJson(DecoupledLoopInfo &DecoupleInfo,
                        "st_req_{1}_{2}.addr = 0u;\n"
                        "InitBundle(st_req_{1}_{2}.sched, 0u);\n"
                        "InitBundle(st_req_{1}_{2}.isMaxIter, false);\n"
-                       "StoreAddrPipes_{1}::PipeAt<{2}, 0>::write(st_req_{1}_{2});\n"
-                       "StoreAddrPipes_{1}::PipeAt<{2}, 1>::write(st_req_{1}_{2});\n",
-                       MemDep.maxLoopDepth, MemDep.id, ReqId);
+                       "StoreReqPipes_{1}::PipeAt<{2}, 0>::write(st_req_{1}_{2});\n"
+                       "StoreReqPipes_{1}::PipeAt<{2}, 1>::write(st_req_{1}_{2});\n",
+                       MemDep.maxLoopDepth, MemDep.id, StReq.reqId);
 
     infoJson["instructionIdx"] = getIndexIntoParent(StReq.memOp);
     infoJson["instructionBasicBlockIdx"] =
@@ -182,15 +180,17 @@ getPipeCallsInComputeJson(DecoupledLoopInfo &DecoupleInfo,
 
   for (auto &LdReq : DecoupleInfo.loads) {
     auto MemDep = MemDepInfos[LdReq.memoryId];
-    int ReqId = MemDep.loadReqIds[LdReq.memOp];
 
     json::Object infoJson;
     std::string pipeCallStr;
     llvm::raw_string_ostream O(pipeCallStr);
     O << llvm::formatv("[[maybe_unused]] auto _ldVal_{0}_{1} = "
                        "LoadValPipes_{0}::PipeAt<{1}>::read();\n",
-                       MemDep.id, ReqId);
+                       MemDep.id, LdReq.reqId);
 
+    infoJson["memoryId"] = LdReq.memoryId;
+    infoJson["loopId"] = LdReq.loopId;
+    infoJson["reqId"] = LdReq.reqId;
     infoJson["instructionIdx"] = getIndexIntoParent(LdReq.memOp);
     infoJson["instructionBasicBlockIdx"] =
         getIndexIntoParent(LdReq.memOp->getParent());
@@ -201,14 +201,16 @@ getPipeCallsInComputeJson(DecoupledLoopInfo &DecoupleInfo,
 
   for (auto &StReq : DecoupleInfo.stores) {
     auto MemDep = MemDepInfos[StReq.memoryId];
-    int ReqId = MemDep.storeReqIds[StReq.memOp];
 
     json::Object infoJson;
     std::string pipeCallStr;
     llvm::raw_string_ostream O(pipeCallStr);
     O << llvm::formatv("StoreValPipes_{0}::PipeAt<{1}>::write(0);\n", MemDep.id,
-                       ReqId);
+                       StReq.reqId);
 
+    infoJson["memoryId"] = StReq.memoryId;
+    infoJson["loopId"] = StReq.loopId;
+    infoJson["reqId"] = StReq.reqId;
     infoJson["instructionIdx"] = getIndexIntoParent(StReq.memOp);
     infoJson["instructionBasicBlockIdx"] =
         getIndexIntoParent(StReq.memOp->getParent());
@@ -284,9 +286,6 @@ struct DynamicLoopFusionAnalysisPrinter
   void getAnalysisUsage(AnalysisUsage &AU) const {
     AU.addRequiredID(LoopAnalysis::ID());
     AU.addRequiredID(ScalarEvolutionAnalysis::ID());
-    AU.addRequiredID(DominatorTreeAnalysis::ID());
-    AU.addRequiredID(PostDominatorTreeAnalysis::ID());
-    AU.addRequiredID(DependenceAnalysis::ID());
   }
 };
 

@@ -66,7 +66,7 @@ void DynamicLoopFusionAnalysis::collectLoopsToDecouple(LoopInfo &LI) {
 /// protection, if there exist at least two decoupled loops accessing the base
 /// pointer and one of the accesses is a store.
 void DynamicLoopFusionAnalysis::collectMemoriesToProtect(LoopInfo &LI) {
-  for (auto decoupleInfo : loopsToDecouple) {
+  for (auto &decoupleInfo : loopsToDecouple) {
     for (auto L : decoupleInfo.loops) {
       for (auto storeI : getUniqueLoopInstructions(L)) {
         if (isa<StoreInst>(storeI)) {
@@ -90,14 +90,12 @@ void DynamicLoopFusionAnalysis::collectMemoriesToProtect(LoopInfo &LI) {
     }
   }
 
-  auto getBasePtrId = [&](Instruction *BasePtr) -> int {
-    for (size_t i = 0; i < basePtrsToProtect.size(); ++i) {
-      if (basePtrsToProtect[i] == BasePtr) {
-        return i + 100;
-      }
-    }
-    return basePtrsToProtect.size() + 100;
-  };
+  MapVector<Instruction *, int> BasePtrId, BasePtrNumStores, BasePtrNumLoads;
+  for (auto [id, BasePtr] : llvm::enumerate(basePtrsToProtect)) {
+    BasePtrId[BasePtr] = 100 + id;
+    BasePtrNumStores[BasePtr] = 0;
+    BasePtrNumLoads[BasePtr] = 0;
+  }
 
   for (auto &decoupleInfo : loopsToDecouple) {
     SmallVector<Loop *> currentLoopNest;
@@ -107,8 +105,11 @@ void DynamicLoopFusionAnalysis::collectMemoriesToProtect(LoopInfo &LI) {
       for (auto I : getUniqueLoopInstructions(L)) {
         if (auto BasePtr = getBasePtrOfInstr(I)) {
           if (basePtrsToProtect.contains(BasePtr)) {
-            MemoryRequest Req{getBasePtrId(BasePtr), I, BasePtr,
-                              int(L->getLoopDepth() - 1), currentLoopNest};
+            int ReqId = isaLoad(I) ? BasePtrNumLoads[BasePtr]++
+                                   : BasePtrNumStores[BasePtr]++;
+            int ReqLoopDepth = L->getLoopDepth() - 1;
+            MemoryRequest Req{BasePtrId[BasePtr], decoupleInfo.id, ReqId, I, 
+                              BasePtr, ReqLoopDepth, currentLoopNest};
             if (isaLoad(I))
               decoupleInfo.loads.push_back(Req);
             else
@@ -303,10 +304,8 @@ void DynamicLoopFusionAnalysis::collectMemoryDepInfo(LoopInfo &LI) {
     memDepInfo[kv.first].cType = getCTypeString(LoadsForMem[kv.first][0]->memOp);
   }
 
-  for (auto &[MemId, LdRequests] : LoadsForMem) {
-    for (auto [ReqId, LdReq] : llvm::enumerate(LdRequests)) {
-      memDepInfo[MemId].loadReqIds[LdReq->memOp] = ReqId;
-
+  for (auto [MemId, LdRequests] : LoadsForMem) {
+    for (auto &LdReq : LdRequests) {
       auto LdLoop = LI.getLoopFor(LdReq->memOp->getParent());
       memDepInfo[MemId].maxLoopDepth = std::max(memDepInfo[MemId].maxLoopDepth, 
                                                 LdReq->loopDepth + 1);
@@ -329,9 +328,8 @@ void DynamicLoopFusionAnalysis::collectMemoryDepInfo(LoopInfo &LI) {
     }
   }
 
-  for (auto &[MemId, StRequests] : StoresForMem) {
-    for (auto [ReqId, StReq] : llvm::enumerate(StRequests)) {
-      memDepInfo[MemId].storeReqIds[StReq->memOp] = ReqId;
+  for (auto [MemId, StRequests] : StoresForMem) {
+    for (auto StReq : StRequests) {
       auto StReqLoop = LI.getLoopFor(StReq->memOp->getParent());
       memDepInfo[MemId].maxLoopDepth = std::max(memDepInfo[MemId].maxLoopDepth, 
                                                 StReq->loopDepth + 1);

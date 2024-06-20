@@ -192,19 +192,22 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   return json::Value(nullptr);
 }
 
-/// Return the pipe call instruction corresponding to the pipeInfo json obj.
-[[maybe_unused]] CallInst *getPipeCall(Function &F, json::Object &pipeInfo) {
+/// Return the pipe call instruction corresponding to the pipeName and idx pack.
+[[maybe_unused]] CallInst *getPipeCall(Function &F, const std::string &pipeName,
+                                       const SmallVector<int> pipeIdxs) {
   static StringMap<int> collectedCalls;
 
-  auto pipeNameOpt = pipeInfo.getString("pipeName");
-  assert(pipeNameOpt && "Pipe in getPipeCall(F, json::Object) not found.");
-  auto pipeName = pipeNameOpt->str();
-  // If no pipe_array_idx or repeat_id, then use defaults.
-  auto seqNumOpt = pipeInfo.getInteger("pipeArrayIdx");
-  auto seqNum = seqNumOpt ? seqNumOpt.value() : -1;
+  // Flatten the index pack into a single string.
+  std::string pipeIdxAccess = "StructId<";
+  for (size_t i = 0; i < pipeIdxs.size(); ++i) {
+    if (i > 0)
+      pipeIdxAccess += ", ";
+    pipeIdxAccess += std::to_string(pipeIdxs[i]) + "ul";
+  }
+  pipeIdxAccess += ">";
 
-  const std::string pipeIdKey =
-      std::string(F.getName()) + pipeName + std::to_string(seqNum);
+  // Keep track of already found pipe calls.
+  std::string pipeIdKey = std::string(F.getName()) + pipeName + pipeIdxAccess;
   int pipeCallsToSkip = 0;
   if (collectedCalls.contains(pipeIdKey)) {
     pipeCallsToSkip = collectedCalls[pipeIdKey];
@@ -214,19 +217,18 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   }
 
   /// Lambda. Returns true if {call} is a call to our pipe.
-  auto isThisPipe = [&pipeName, &seqNum](std::string call) {
-    std::regex pipe_regex{pipeName, std::regex_constants::ECMAScript};
-    std::smatch pipe_match;
-    std::regex_search(call, pipe_match, pipe_regex);
+  auto isThisPipe = [&](std::string &thisPipeName) {
+    std::regex pipeNameRegex{pipeName, std::regex_constants::ECMAScript};
+    std::smatch pipeNameMatch;
+    std::regex_search(thisPipeName, pipeNameMatch, pipeNameRegex);
 
-    std::regex struct_regex{"StructId<" + std::to_string(seqNum) + "ul>",
+    std::regex pipeIdxRegex{pipeIdxAccess,
                             std::regex_constants::ECMAScript};
-    std::smatch struct_match;
-    std::regex_search(call, struct_match, struct_regex);
+    std::smatch pipeIdxMatch;
+    std::regex_search(thisPipeName, pipeIdxMatch, pipeIdxRegex);
 
-    // If structId < 0, then this is not a pipe array and don't check the id.
-    if ((pipe_match.size() > 0 && seqNum < 0) ||
-        (pipe_match.size() > 0 && struct_match.size() > 0)) {
+    if ((pipeNameMatch.size() > 0 && pipeIdxs.empty()) ||
+        (pipeNameMatch.size() > 0 && pipeIdxMatch.size() > 0)) {
       return true;
     }
 
@@ -237,9 +239,9 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   for (auto &bb : F) {
     for (auto &instruction : bb) {
       if (auto pipeCall = getPipeCall(&instruction)) {
-        auto pipeName =
+        auto thisPipeName =
             demangle(std::string(pipeCall->getCalledFunction()->getName()));
-        if (isThisPipe(pipeName)) {
+        if (isThisPipe(thisPipeName)) {
           if (numCallsSkipped == pipeCallsToSkip)
             return pipeCall;
           else
@@ -252,6 +254,18 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   errs() << "Pipe name " << pipeName << "\n";
   assert(false && "Pipe in getPipeCall(F, json::Object) not found.");
   return nullptr;
+}
+
+[[maybe_unused]] CallInst *getPipeCall(Function &F, json::Object &pipeInfo) {
+  auto pipeNameOpt = pipeInfo.getString("pipeName");
+  assert(pipeNameOpt && "Pipe in getPipeCall(F, json::Object) not found.");
+  auto pipeName = pipeNameOpt->str();
+
+  // If no pipe_array_idx or repeat_id, then use defaults.
+  auto pipeIdxOpt = pipeInfo.getInteger("pipeArrayIdx");
+  int pipeIdx = pipeIdxOpt ? pipeIdxOpt.value() : -1;
+
+  return getPipeCall(F, pipeName, {pipeIdx});
 }
 
 [[maybe_unused]] CallInst *getPipeWithPattern(BasicBlock &BB,

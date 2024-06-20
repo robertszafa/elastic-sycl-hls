@@ -2,7 +2,6 @@
 #define DYNAMIC_LOOP_FUSION_ANALYSIS_H
 
 #include "CommonLLVM.h"
-#include "CDG.h"
 #include "llvm/Analysis/DDG.h"
 
 using namespace llvm;
@@ -20,6 +19,8 @@ public:
 
   struct MemoryRequest {
     int memoryId;
+    int loopId;
+    int reqId;
 
     Instruction *memOp;
     Instruction *basePtr;
@@ -28,6 +29,8 @@ public:
     // Index 0 has outermost loop, index size-1 has innermost loop.
     SmallVector<Loop *> loopNest;
     SmallVector<bool> isMaxIterNeeded;
+
+    SmallVector<CallInst *> pipeCalls;
   };
 
   struct DecoupledLoopInfo {
@@ -69,9 +72,6 @@ public:
     SmallVector<SmallVector<bool>> storeStoreInSameLoop;
     SmallVector<SmallVector<int>> storeStoreCommonLoopDepth;
     SmallVector<SmallVector<DepDir>> storeStoreDepDir;
-
-    MapVector<Instruction *, int> loadReqIds;
-    MapVector<Instruction *, int> storeReqIds;
   };
 
   explicit DynamicLoopFusionAnalysis(LoopInfo &LI, ScalarEvolution &SE) {
@@ -80,26 +80,6 @@ public:
     collectAGUs(LI);
     checkIsMaxIterNeeded(LI, SE);
     collectMemoryDepInfo(LI);
-
-    for (auto decoupleInfo : loopsToDecouple) {
-      errs() << "\nDecoupling loop span [" 
-             << decoupleInfo.inner()->getHeader()->getNameOrAsOperand()  << " -- "
-             << decoupleInfo.outer()->getHeader()->getNameOrAsOperand() << "]\n";
-      
-      errs() << "Loads:\n";
-      for (auto Ld : decoupleInfo.loads) {
-        errs() << "\n";
-        Ld.memOp->print(errs());
-        errs() << "\n";
-        errs() << "  memId = " << Ld.memoryId << "\n";
-        errs() << "  isMaxIterNeeded: [";
-        for (auto isNeeded : Ld.isMaxIterNeeded) {
-          errs() << isNeeded << ", ";
-        }
-        errs() << "]\n";
-      }
-    }
-
   }
 
   ~DynamicLoopFusionAnalysis();

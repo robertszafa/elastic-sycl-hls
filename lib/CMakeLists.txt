@@ -8,6 +8,7 @@ set(OPT_PASSES_PLUGINS
     ElasticTransform
     DDGDotPrinter
     DynamicLoopFusionAnalysisPrinter
+    DynamicLoopFusionTransform
 )
 
 set(HoistConstantGepTransform_SOURCES 
@@ -33,7 +34,11 @@ set(DDGDotPrinter_SOURCES
 set(DynamicLoopFusionAnalysisPrinter_SOURCES
   DynamicLoopFusionAnalysisPrinter.cpp
   DynamicLoopFusionAnalysis.cpp
-  CDG.cpp
+)
+
+set(DynamicLoopFusionTransform_SOURCES
+  DynamicLoopFusionTransform.cpp
+  DynamicLoopFusionAnalysis.cpp
 )
 
 # CONFIGURE THE PLUGIN LIBRARIES

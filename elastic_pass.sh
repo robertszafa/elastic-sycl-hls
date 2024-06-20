@@ -2,9 +2,15 @@
 
 # $1 - sim/emu/hw
 # $2 - filename to compile
-# $3 - -d (Debug flag, optional. If passed, temporary files are preserved.)
+# Optional flags:
+#   -f (Run dynamic loop fusion pass).
+#   -d (Debug flag, optional. If passed, temporary files are preserved.)
 TARGET="$1"
 SRC_FILE="$2"
+IS_FUSION=0
+if [[ "$*" == *"-f"* ]]; then 
+  IS_FUSION=1
+fi
 
 set -e
 
@@ -20,6 +26,17 @@ SRC_FILE_WORKDIR=$PASS_WORKDIR/$SRC_FILE_BASENAME_WITH_EXT
 SRC_FILE_AST="$PASS_WORKDIR/$SRC_FILE_BASENAME.ast.cpp"
 ANALYSIS_REPORT="$PASS_WORKDIR/elastic_pass_report.json"
 FINAL_BINARY="$SRC_FILE_DIR/bin/${SRC_FILE_BASENAME}.elastic.fpga_$TARGET"
+
+ANALYSIS_PASS="elastic-analysis"
+ANALYSIS_PASS_SO="$ELASTIC_SYCL_HLS_DIR/build/lib/libElasticAnalysisPrinter.so"
+TRANSFORM_PASS="elastic-transform"
+TRANSFORM_PASS_SO="$ELASTIC_SYCL_HLS_DIR/build/lib/libElasticTransform.so"
+if [ $IS_FUSION == 1 ]; then
+  ANALYSIS_PASS="dynamic-loop-fusion-analysis"
+  ANALYSIS_PASS_SO="$ELASTIC_SYCL_HLS_DIR/build/lib/libDynamicLoopFusionAnalysisPrinter.so"
+  TRANSFORM_PASS="dynamic-loop-fusion-transform"
+  TRANSFORM_PASS_SO="$ELASTIC_SYCL_HLS_DIR/build/lib/libDynamicLoopFusionTransform.so"
+fi
 
 # Run the following passes to ensure canonical SSA form for analysis:
 # hoist-const-gep: Ensure SYCL global pointers are declared in function entry block.
@@ -50,6 +67,11 @@ cleanup_ir() {
 # During compilation, change the pipe and bram verilog IPs to our amended 
 # versions located in {ELASTIC_SYCL_HLS_DIR}/ip.
 change_ip() {
+  if [ $IS_FUSION == 1 ]; then
+    # No need to change IPs if we only do dynamic loop fusion.
+    return
+  fi
+
   if ! test -d $ELASTIC_SYCL_HLS_DIR/ip; then
     echo "No amended IPs in {ELASTIC_SYCL_HLS_DIR}/ip (see README to generate). Will use default IPs."
     return
@@ -96,8 +118,9 @@ prepare_ir $SRC_FILE_WORKDIR.bc
 ###
 echo "Info: Generating analysis report: $ANALYSIS_REPORT" 
 export ELASTIC_PASS_REPORT=$ANALYSIS_REPORT
-$LLVM_BIN_DIR/opt -load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libElasticAnalysisPrinter.so \
-                                   -passes=elastic-analysis $SRC_FILE_WORKDIR.bc -o /dev/null > $ANALYSIS_REPORT
+$LLVM_BIN_DIR/opt -load-pass-plugin $ANALYSIS_PASS_SO -passes=$ANALYSIS_PASS \
+                  $SRC_FILE_WORKDIR.bc -o /dev/null > $ANALYSIS_REPORT
+                  # $SRC_FILE_WORKDIR.bc -o /dev/null 
 
 ###
 ### STAGE 3: Generate kernel & pipe scaffolding code based on report. 
@@ -105,29 +128,31 @@ $LLVM_BIN_DIR/opt -load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libElasticAn
 # Given json report, make kernel copies and pipe read/write calls from correct kernels.
 # The json report provides a precise src location range for the kernel body.
 # Nothing else is required (no variable/array names, etc.).
-python3 $ELASTIC_SYCL_HLS_DIR/scripts/compilation/ASTTransform.py $ANALYSIS_REPORT $SRC_FILE_WORKDIR $SRC_FILE_AST
+python3 $ELASTIC_SYCL_HLS_DIR/scripts/compilation/ASTTransform.py $ANALYSIS_REPORT $SRC_FILE_WORKDIR $SRC_FILE_AST $IS_FUSION
 
-###
-### STAGE 4: Fix IR inside kernels.
-###
+# ###
+# ### STAGE 4: Fix IR inside kernels.
+# ###
 echo "Info: Swapping instructions for pipe calls" 
 $ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_to_bc.sh $TARGET $SRC_FILE_AST $HASHED_FILENAME
 prepare_ir $SRC_FILE_AST.bc
-$LLVM_BIN_DIR/opt -load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libElasticTransform.so \
-                                   -passes=elastic-transform $SRC_FILE_AST.bc -o $SRC_FILE_AST.elastic.bc
+$LLVM_BIN_DIR/opt -load-pass-plugin $TRANSFORM_PASS_SO -passes=$TRANSFORM_PASS \
+                                    $SRC_FILE_AST.bc -o $SRC_FILE_AST.elastic.bc
 echo "Info: Removing dead code" 
 cleanup_ir $SRC_FILE_AST.elastic.bc
 
-###
-### STAGE 5: Produce final binary.
-###
-echo "Info: Passing transformed IR to downstream HLS compiler" 
-echo "---------------- Elastic passes end ----------------"
-echo "Compiling $FINAL_BINARY"
-change_ip & \
-$ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_from_bc.sh $TARGET $SRC_FILE_AST.elastic.bc $SRC_FILE_AST $FINAL_BINARY $HASHED_FILENAME
+# ###
+# ### STAGE 5: Produce final binary.
+# ###
+# echo "Info: Passing transformed IR to downstream HLS compiler" 
+# echo "---------------- Elastic passes end ----------------"
+# echo "Compiling $FINAL_BINARY"
+# change_ip & \
+# $ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_from_bc.sh $TARGET $SRC_FILE_AST.elastic.bc $SRC_FILE_AST $FINAL_BINARY $HASHED_FILENAME
 
 # Remove created temporaries, if the "-d" flag was not supplied.
 if [[ "$*" != *"-d"* ]]; then 
   rm -rf $TMP_DIR/${HASHED_FILENAME}* $TMP_DIR/**/${HASHED_FILENAME}* 
+else
+  echo "Demnagled original IR: $SRC_FILE_WORKDIR.bc.demangled.ll"
 fi

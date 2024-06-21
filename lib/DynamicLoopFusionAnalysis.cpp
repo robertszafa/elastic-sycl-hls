@@ -65,7 +65,7 @@ void DynamicLoopFusionAnalysis::collectLoopsToDecouple(LoopInfo &LI) {
 /// A given memory (identified by an opencl base ptr) will be marked for
 /// protection, if there exist at least two decoupled loops accessing the base
 /// pointer and one of the accesses is a store.
-void DynamicLoopFusionAnalysis::collectMemoriesToProtect(LoopInfo &LI) {
+void DynamicLoopFusionAnalysis::collectBasePointersToProtect(LoopInfo &LI) {
   for (auto &decoupleInfo : loopsToDecouple) {
     for (auto L : decoupleInfo.loops) {
       for (auto storeI : getUniqueLoopInstructions(L)) {
@@ -89,12 +89,17 @@ void DynamicLoopFusionAnalysis::collectMemoriesToProtect(LoopInfo &LI) {
       }
     }
   }
+}
 
-  MapVector<Instruction *, int> BasePtrId, BasePtrNumStores, BasePtrNumLoads;
+/// For each base pointer to protect, collect all memory requests using it.
+void DynamicLoopFusionAnalysis::collectMemoryRequests(LoopInfo &LI) {
+  MapVector<Instruction *, int> BasePtrId, BasePtrNumStores, BasePtrNumLoads,
+      BasePtrMaxLoopDepth;
   for (auto [id, BasePtr] : llvm::enumerate(basePtrsToProtect)) {
     BasePtrId[BasePtr] = 100 + id;
     BasePtrNumStores[BasePtr] = 0;
     BasePtrNumLoads[BasePtr] = 0;
+    BasePtrMaxLoopDepth[BasePtr] = 0;
   }
 
   for (auto &decoupleInfo : loopsToDecouple) {
@@ -105,9 +110,12 @@ void DynamicLoopFusionAnalysis::collectMemoriesToProtect(LoopInfo &LI) {
       for (auto I : getUniqueLoopInstructions(L)) {
         if (auto BasePtr = getBasePtrOfInstr(I)) {
           if (basePtrsToProtect.contains(BasePtr)) {
+            // LLVM starts loops depths at 1, we start at 0.
+            int ReqLoopDepth = L->getLoopDepth() - 1;
+            BasePtrMaxLoopDepth[BasePtr] =
+                std::max(BasePtrMaxLoopDepth[BasePtr], ReqLoopDepth + 1);
             int ReqId = isaLoad(I) ? BasePtrNumLoads[BasePtr]++
                                    : BasePtrNumStores[BasePtr]++;
-            int ReqLoopDepth = L->getLoopDepth() - 1;
             MemoryRequest Req{BasePtrId[BasePtr], decoupleInfo.id, ReqId, I, 
                               BasePtr, ReqLoopDepth, currentLoopNest};
             if (isaLoad(I))
@@ -119,17 +127,15 @@ void DynamicLoopFusionAnalysis::collectMemoriesToProtect(LoopInfo &LI) {
       }
     }
   }
-}
 
-void DynamicLoopFusionAnalysis::collectAGUs(LoopInfo &LI) {
-  for (auto decoupleInfo : loopsToDecouple) {
-    for (auto I : getUniqueLoopInstructions(decoupleInfo.inner())) {
-      if (auto BasePtr = getBasePtrOfInstr(I)) {
-        if (basePtrsToProtect.contains(BasePtr)) {
-          agusToDecouple.push_back(decoupleInfo);
-          break;
-        }
-      }
+  // Add info about max loop depth and num of other memory requests.
+  for (auto &DecoupleInfo : loopsToDecouple) {
+    auto &&AllMemoryRequests = llvm::concat<MemoryRequest>(DecoupleInfo.loads, 
+                                                           DecoupleInfo.stores);
+    for (auto &Req : AllMemoryRequests) {
+      Req.numLoadsInMemoryId = BasePtrNumLoads[Req.basePtr];
+      Req.numStoresInMemoryId = BasePtrNumStores[Req.basePtr];
+      Req.maxLoopDepthInMemoryId = BasePtrMaxLoopDepth[Req.basePtr];
     }
   }
 }
@@ -307,9 +313,7 @@ void DynamicLoopFusionAnalysis::collectMemoryDepInfo(LoopInfo &LI) {
   for (auto [MemId, LdRequests] : LoadsForMem) {
     for (auto &LdReq : LdRequests) {
       auto LdLoop = LI.getLoopFor(LdReq->memOp->getParent());
-      memDepInfo[MemId].maxLoopDepth = std::max(memDepInfo[MemId].maxLoopDepth, 
-                                                LdReq->loopDepth + 1);
-
+      memDepInfo[MemId].maxLoopDepth = LdReq->maxLoopDepthInMemoryId;
       memDepInfo[MemId].loadLoopDepth.push_back(LdReq->loopDepth);
       memDepInfo[MemId].loadIsMaxIterNeeded.push_back(LdReq->isMaxIterNeeded);
 
@@ -331,9 +335,7 @@ void DynamicLoopFusionAnalysis::collectMemoryDepInfo(LoopInfo &LI) {
   for (auto [MemId, StRequests] : StoresForMem) {
     for (auto StReq : StRequests) {
       auto StReqLoop = LI.getLoopFor(StReq->memOp->getParent());
-      memDepInfo[MemId].maxLoopDepth = std::max(memDepInfo[MemId].maxLoopDepth, 
-                                                StReq->loopDepth + 1);
-
+      memDepInfo[MemId].maxLoopDepth = StReq->maxLoopDepthInMemoryId;
       memDepInfo[MemId].storeLoopDepth.push_back(StReq->loopDepth);
       memDepInfo[MemId].storeIsMaxIterNeeded.push_back(StReq->isMaxIterNeeded);
 
@@ -352,6 +354,19 @@ void DynamicLoopFusionAnalysis::collectMemoryDepInfo(LoopInfo &LI) {
     }
   }
 
+}
+
+void DynamicLoopFusionAnalysis::collectAGUs() {
+  for (auto decoupleInfo : loopsToDecouple) {
+    for (auto I : getUniqueLoopInstructions(decoupleInfo.inner())) {
+      if (auto BasePtr = getBasePtrOfInstr(I)) {
+        if (basePtrsToProtect.contains(BasePtr)) {
+          agusToDecouple.push_back(decoupleInfo);
+          break;
+        }
+      }
+    }
+  }
 }
 
 } // end namespace llvm

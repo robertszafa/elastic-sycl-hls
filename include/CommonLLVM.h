@@ -505,6 +505,17 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   return isReachable;
 }
 
+[[maybe_unused]] BasicBlock *getFirstBodyBlock(Loop *L) {
+  auto brI = dyn_cast<BranchInst>(L->getHeader()->getTerminator());
+  for (auto BB : brI->successors()) {
+    if (BB != L->getLoopLatch() && BB != L->getExitBlock())
+      return BB;
+  }
+
+  // The header is also the body.
+  return L->getHeader();
+}
+
 } // namespace
 
 #endif

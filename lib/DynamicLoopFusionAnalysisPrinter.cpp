@@ -131,14 +131,22 @@ getPipeCallsInAguJson(DecoupledLoopInfo &DecoupleInfo,
     json::Object infoJson;
     std::string pipeCallStr;
     llvm::raw_string_ostream O(pipeCallStr);
+    O << llvm::formatv("ld_req_t<{0}, {1}> ld_req_{2}_{3};\n"
+                       "ld_req_{2}_{3}.addr = 0u;\n",
+                       MemDep.numStores, MemDep.maxLoopDepth, MemDep.id,
+                       LdReq.reqId);
+    for (int iSt = 0; iSt < MemDep.numStores; ++iSt) {
+      O << llvm::formatv("ld_req_{0}_{1}.posDepDist[{2}] = false;\n", MemDep.id,
+                         LdReq.reqId, iSt);
+    }
+    for (int iD = 0; iD < MemDep.maxLoopDepth; ++iD) {
+      O << llvm::formatv("ld_req_{0}_{1}.sched[{2}] = 0u;\n"
+                         "ld_req_{0}_{1}.isMaxIter[{2}] = false;\n",
+                         MemDep.id, LdReq.reqId, iD);
+    }
     O << llvm::formatv(
-        "ld_req_t<{0}, {1}> ld_req_{2}_{3};\n"
-        "ld_req_{2}_{3}.addr = 0u;\n"
-        "InitBundle(ld_req_{2}_{3}.sched, 0u);\n"
-        "InitBundle(ld_req_{2}_{3}.posDepDist, false);\n"
-        "InitBundle(ld_req_{2}_{3}.isMaxIter, false);\n"
-        "LoadReqPipes_{2}::PipeAt<{3}>::write(ld_req_{2}_{3});\n",
-        MemDep.numStores, MemDep.maxLoopDepth, MemDep.id, LdReq.reqId);
+        "LoadReqPipes_{0}::PipeAt<{1}>::write(ld_req_{0}_{1});\n", MemDep.id,
+        LdReq.reqId);
 
     infoJson["instructionIdx"] = getIndexIntoParent(LdReq.memOp);
     infoJson["instructionBasicBlockIdx"] =
@@ -155,12 +163,17 @@ getPipeCallsInAguJson(DecoupledLoopInfo &DecoupleInfo,
     std::string pipeCallStr;
     llvm::raw_string_ostream O(pipeCallStr);
     O << llvm::formatv("st_req_t<{0}> st_req_{1}_{2};\n"
-                       "st_req_{1}_{2}.addr = 0u;\n"
-                       "InitBundle(st_req_{1}_{2}.sched, 0u);\n"
-                       "InitBundle(st_req_{1}_{2}.isMaxIter, false);\n"
-                       "StoreReqPipes_{1}::PipeAt<{2}, 0>::write(st_req_{1}_{2});\n"
-                       "StoreReqPipes_{1}::PipeAt<{2}, 1>::write(st_req_{1}_{2});\n",
+                       "st_req_{1}_{2}.addr = 0u;\n",
                        MemDep.maxLoopDepth, MemDep.id, StReq.reqId);
+    for (int iD = 0; iD < MemDep.maxLoopDepth; ++iD) {
+      O << llvm::formatv("st_req_{0}_{1}.sched[{2}] = 0u;\n"
+                         "st_req_{0}_{1}.isMaxIter[{2}] = false;\n",
+                         MemDep.id, StReq.reqId, iD);
+    }
+    O << llvm::formatv(
+        "StoreReqPipes_{0}::PipeAt<{1}, 0>::write(st_req_{0}_{1});\n"
+        "StoreReqPipes_{0}::PipeAt<{1}, 1>::write(st_req_{0}_{1});\n",
+        MemDep.id, StReq.reqId);
 
     infoJson["instructionIdx"] = getIndexIntoParent(StReq.memOp);
     infoJson["instructionBasicBlockIdx"] =

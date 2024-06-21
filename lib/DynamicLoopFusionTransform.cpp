@@ -22,7 +22,7 @@ getLoopsToDecouple(DynamicLoopFusionAnalysis &DLFA,
   
   SmallVector<DecoupledLoopInfo, 4> LoopsToDecouple;
   auto MemDepInfos = DLFA.getMemoryDependencyInfo();
-  for (auto &&decoupleInfo : loopsToDecouple) {
+  for (auto &decoupleInfo : loopsToDecouple) {
     std::string decoupleInfoKernelName =
         isAGU ? originalKernelName + "_agu" : originalKernelName;
     if (decoupleInfo.id > 0)
@@ -36,20 +36,51 @@ getLoopsToDecouple(DynamicLoopFusionAnalysis &DLFA,
   return LoopsToDecouple;
 }
 
+void collectMemoryRequestStores(Function &F, MemoryRequest &Req) {
+  auto currI = dyn_cast<Instruction>(Req.pipeCalls[0]->getArgOperand(0));
+
+  SmallVector<StoreInst *> reqStores;
+  while (currI != Req.pipeCalls[0]) {
+    if (auto stI = dyn_cast<StoreInst>(currI)) 
+      reqStores.push_back(stI);
+    currI = currI->getNextNonDebugInstruction(true);
+  }
+
+  auto currSt = reqStores.begin();
+  Req.addrReqStore = *currSt;
+  currSt++;
+
+  if (isaLoad(Req.memOp)) {
+    for (int iSt = 0; iSt < Req.numStoresInMemoryId; ++iSt) {
+      Req.isPosDepDistReqStore.push_back(*currSt);
+      currSt++;
+    }
+  }
+
+  for (int iD = 0; iD < Req.maxLoopDepthInMemoryId; ++iD) {
+    Req.schedReqStore.push_back(*currSt);
+    currSt++;
+    Req.isMaxIterReqStore.push_back(*currSt);
+    currSt++;
+  }
+}
+
 /// Get the memory requests in this function that will be connected to our IP.
 /// Also collect the corresponding pipe calls that the requets will be replcaed
 /// with.
-SmallVector<MemoryRequest>
+SmallVector<MemoryRequest, 4>
 getMemoryRequests(Function &F,
                   SmallVector<DecoupledLoopInfo, 4> &loopsToDecouple,
                   const bool isAGU) {
-  SmallVector<MemoryRequest> MemoryRequests;
-  for (auto decoupleInfo : loopsToDecouple) {
+  SmallVector<MemoryRequest, 4> MemoryRequests;
+  for (auto &decoupleInfo : loopsToDecouple) {
     for (auto &LdReq : decoupleInfo.loads) {
       std::string pipeName =
           isAGU ? "LoadReqPipes_" + std::to_string(LdReq.memoryId)
                 : "LoadValPipes_" + std::to_string(LdReq.memoryId);
       LdReq.pipeCalls.push_back(getPipeCall(F, pipeName, {LdReq.reqId}));
+      if (isAGU)
+        collectMemoryRequestStores(F, LdReq);
       MemoryRequests.push_back(LdReq);
     }
 
@@ -61,6 +92,7 @@ getMemoryRequests(Function &F,
         // In the agu, the stReq pipe has another dimension.
         StReq.pipeCalls.push_back(getPipeCall(F, pipeName, {StReq.reqId, 0}));
         StReq.pipeCalls.push_back(getPipeCall(F, pipeName, {StReq.reqId, 1}));
+        collectMemoryRequestStores(F, StReq);
       } else {
         StReq.pipeCalls.push_back(getPipeCall(F, pipeName, {StReq.reqId}));
       }
@@ -69,52 +101,6 @@ getMemoryRequests(Function &F,
   }
 
   return MemoryRequests;
-}
-
-/// Create and return a new basic blocks on the predBB --> succBB CFG edge.
-/// Cache the created block and return it if called again with the same edge.
-BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB,
-                              const std::string name = "") {
-  // Map of CFG edges to poison basic blocks that already have been created.
-  static MapVector<CFGEdge, BasicBlock *> createdBlocks;
-  
-  const CFGEdge requestedEdge{predBB, succBB};
-  if (!createdBlocks.contains(requestedEdge)) {
-    auto F = predBB->getParent();
-    IRBuilder<> Builder(F->getContext());
-    auto newBB = BasicBlock::Create(F->getContext(), name, F, succBB);
-    createdBlocks[requestedEdge] = newBB;
-
-    // Insert BB on pred-->succ edge
-    // Before changing edges, make all phis from predBB now come from PoisonBB
-    predBB->replaceSuccessorsPhiUsesWith(predBB, newBB);
-    Builder.SetInsertPoint(newBB);
-    Builder.CreateBr(succBB);
-    auto branchInPredBB = dyn_cast<BranchInst>(predBB->getTerminator());
-    branchInPredBB->replaceSuccessorWith(succBB, newBB);
-  } 
-  
-  return createdBlocks[requestedEdge];
-}
-
-/// Move non-terminating instructions in {BB} to the end of {hoistLocation}.
-void hoistBlock(BasicBlock *BB, BasicBlock *hoistLocation) {
-  static SetVector<CFGEdge> alreadyHoisted;
-
-  const CFGEdge requestedEdge{BB, hoistLocation};
-  if (!alreadyHoisted.contains(requestedEdge)) {
-    SmallVector<Instruction *> toMove;
-    for (auto &I : *BB) {
-      if (!I.isTerminator()) {
-        toMove.push_back(&I);
-      }
-    }
-
-    for (auto I : toMove)
-      I->moveBefore(hoistLocation->getTerminator());
-
-    alreadyHoisted.insert(requestedEdge);
-  }
 }
 
 /// Create a zero-init uint32 tag using alloca at {F.entry}. Return its address.
@@ -153,27 +139,156 @@ Instruction *castIfNeeded(CallInst *pipeCall, Instruction *I) {
   return nullptr;
 }
 
-/// Given a {pipeWrite} with a struct address as its operand, collect stores to
-/// the struct fields.
-SmallVector<StoreInst *> getPipeOpStructStores(const CallInst *pipeWrite) {
-  SmallVector<StoreInst *> storesToStruct;
-  for (auto user : pipeWrite->getArgOperand(0)->users()) {
-    if (auto gep = dyn_cast<GetElementPtrInst>(user)) {
-      for (auto userGEP : gep->users()) {
-        if (auto stInstr = dyn_cast<StoreInst>(userGEP)) {
-          storesToStruct.push_back(stInstr);
-          break;
-        }
-      }
-    } else if (auto stInstr = dyn_cast<StoreInst>(user)) {
-      storesToStruct.push_back(stInstr);
-      break;
-    }
+void addSentinelPipeWrite(Function &F, MemoryRequest &Req) {
+  const uint ADDR_SENTINEL = isaLoad(Req.memOp) ?  (1<<29) - 2 : (1<<29) - 1;
+  const uint SCHED_SENTINEL = (1<<30);
+
+  auto returnI = getReturnBlock(F)->getTerminator();
+
+  auto sentinelAddrStore = Req.addrReqStore->clone();
+  sentinelAddrStore->insertBefore(returnI);
+  sentinelAddrStore->setOperand(
+      0, ConstantInt::get(Req.addrReqStore->getOperand(0)->getType(),
+                          ADDR_SENTINEL));
+
+  for (auto &st : Req.schedReqStore) {
+    auto newSt = st->clone();
+    newSt->insertBefore(returnI);
+    newSt->setOperand(
+        0, ConstantInt::get(st->getOperand(0)->getType(), SCHED_SENTINEL));
   }
 
-  // The struct stores were collected in reverse above.
-  std::reverse(storesToStruct.begin(), storesToStruct.end());
-  return storesToStruct;
+  // Req.isPosDepDistReqStore will be empty for stores.
+  for (auto &st : Req.isPosDepDistReqStore) {
+    auto newSt = st->clone();
+    newSt->insertBefore(returnI);
+    newSt->setOperand(0, ConstantInt::get(st->getOperand(0)->getType(), 1));
+  }
+
+  for (auto &st : Req.isMaxIterReqStore) {
+    auto newSt = st->clone();
+    newSt->insertBefore(returnI);
+    newSt->setOperand(0, ConstantInt::get(st->getOperand(0)->getType(), 1));
+  }
+
+  Req.pipeCalls[0]->clone()->insertBefore(returnI);
+}
+
+void addScheduleInstructions(Function &F, MemoryRequest &Req) {
+  for (int iD = 0; iD <= Req.loopDepth; ++iD) {
+    auto entrySchedSt = Req.schedReqStore[iD];
+    auto entrySchedAddr = getLoadStorePointerOperand(entrySchedSt);
+    auto entrySchedType = entrySchedSt->getOperand(0)->getType();
+
+    IRBuilder<> Builder(getFirstBodyBlock(Req.loopNest[iD])->getFirstNonPHI());
+    auto constantOne = ConstantInt::get(entrySchedType, 1);
+    Value *oldSchedVal = Builder.CreateLoad(entrySchedType, entrySchedAddr);
+    Value *newSchedVal = Builder.CreateAdd(oldSchedVal, constantOne);
+
+    auto newSchedSt = entrySchedSt->clone();
+    newSchedSt->insertAfter(dyn_cast<Instruction>(newSchedVal));
+    newSchedSt->setOperand(0, newSchedVal);
+  }
+}
+
+Value *getLoopHeaderExecutedNum(Loop *L) {
+  static MapVector<Loop *, Value *> done;
+  if (done.contains(L))
+    return done[L];
+
+  IRBuilder<> Builder(L->getHeader()->getFirstNonPHI());
+  
+  auto iterPhi = Builder.CreatePHI(Builder.getInt32Ty(), 2, "num_header_exec");
+  auto iterPlusOne =
+      dyn_cast<Instruction>(Builder.CreateAdd(iterPhi, Builder.getInt32(1)));
+  iterPlusOne->moveBefore(L->getLoopLatch()->getFirstNonPHI());
+
+  // We start at one because on the first evaluation (i.e. coming from
+  // preheader), the loop header will have been executed once
+  iterPhi->addIncoming(Builder.getInt32(1), L->getLoopPreheader());
+  iterPhi->addIncoming(iterPlusOne, L->getLoopLatch());
+
+  done[L] = iterPhi;
+
+  return iterPhi;
+}
+
+void addIsMaxIterInstructions(Function &F, MemoryRequest &Req,
+                              ScalarEvolution &SE) {
+  for (int iD = 0; iD <= Req.loopDepth; ++iD) {
+    if (!Req.isMaxIterNeeded[iD])
+      continue;
+
+    auto backedgeTakenScev = SE.getBackedgeTakenCount(Req.loopNest[iD]);
+    if (backedgeTakenScev->getSCEVType() == SCEVTypes::scCouldNotCompute) {
+      // outs() << "Backedge taken count non-analyzable for loop with header "
+      errs() << "Backedge taken count non-analyzable for loop with header "
+             << Req.loopNest[iD]->getHeader()->getNameOrAsOperand()
+             << "\nIsMaxIter hint is ommited for this loop\n";
+      continue;
+    }
+
+    auto insertBeforeI = getFirstBodyBlock(Req.loopNest[iD])->getFirstNonPHI();
+    IRBuilder<> Builder(insertBeforeI);
+    // Value evaluating to the number of times the backedge will be taken.
+    auto numBackedgesInL = buildSCEVExpr(F, backedgeTakenScev, insertBeforeI);
+    // Value evaluating to the number of times the backedge was taken so far.
+    auto numTimesHeaderExec = getLoopHeaderExecutedNum(Req.loopNest[iD]);
+    // Compare the two. If equal, then this is the last iteration of the loop.
+    auto cmpRes = Builder.CreateCmp(CmpInst::Predicate::ICMP_EQ,
+                                    numBackedgesInL, numTimesHeaderExec);
+    auto isMaxIterType = Req.isMaxIterReqStore[iD]->getOperand(0)->getType();
+    auto cmpResCasted = Builder.CreateCast(Instruction::CastOps::ZExt,
+                                           cmpRes, isMaxIterType);
+
+    auto newIsMaxIterSt = Req.isMaxIterReqStore[iD]->clone();
+    newIsMaxIterSt->insertAfter(dyn_cast<Instruction>(cmpResCasted));
+    newIsMaxIterSt->setOperand(0, cmpResCasted);
+  }
+}
+
+void addIsPosDepDistInstructions(Function &F, MemoryRequest &LdReq,
+                                 SmallVector<MemoryRequest, 4> &OtherRequests) {
+  for (auto &StReq : OtherRequests) {
+    if (isaStore(StReq.memOp) && (StReq.memoryId == LdReq.memoryId) &&
+        (StReq.loopNest.back() == LdReq.loopNest.back())) {
+      IRBuilder<> Builder(LdReq.memOp);
+
+      auto AddrType = LdReq.addrReqStore->getOperand(0)->getType();
+      auto LdAddr = Builder.CreateLoad(
+          AddrType, getLoadStorePointerOperand(LdReq.addrReqStore), "ldAddr");
+      auto StAddr = Builder.CreateLoad(
+          AddrType, getLoadStorePointerOperand(StReq.addrReqStore), "stAddr");
+
+      auto LdAddrIsGreater = Builder.CreateCmp(CmpInst::Predicate::ICMP_UGT,
+                                               LdAddr, StAddr, "isPosDepDist");
+
+      auto IsPosDepDistSt = LdReq.isPosDepDistReqStore[StReq.reqId]->clone();
+      auto IsPosDepDistStType =
+          LdReq.isPosDepDistReqStore[StReq.reqId]->getOperand(0)->getType();
+      auto LdAddrIsGreaterCasted = Builder.CreateCast(
+          Instruction::CastOps::ZExt, LdAddrIsGreater, IsPosDepDistStType);
+      IsPosDepDistSt->setOperand(0, LdAddrIsGreaterCasted);
+      IsPosDepDistSt->insertBefore(LdReq.memOp);
+    }
+  }
+}
+
+void addAddrInstructions(Function &F, MemoryRequest &Req) {
+  auto ReqAddrSt = Req.addrReqStore->clone();
+  ReqAddrSt->insertBefore(Req.memOp);
+
+  Value *AddrVal = getLoadStorePointerOperand(Req.memOp);
+  auto AddrType = ReqAddrSt->getOperand(0)->getType();
+  auto AddrValCasted =
+      BitCastInst::CreateBitOrPointerCast(AddrVal, AddrType, "", ReqAddrSt);
+  ReqAddrSt->setOperand(0, AddrValCasted);
+}
+
+void swapReqForPipe(MemoryRequest &Req) {
+  for (auto &pipe : Req.pipeCalls)
+    pipe->moveBefore(Req.memOp);
+  deleteInstruction(Req.memOp);
 }
 
 struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
@@ -198,9 +313,38 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
     auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
     auto *DLFA = new DynamicLoopFusionAnalysis(LI, SE);
 
-    auto loopsToDecouple = getLoopsToDecouple(*DLFA, thisKernelName, 
+    errs() << "\n***********\n" << thisKernelName << "\n***********\n";
+
+    auto LoopsToDecouple = getLoopsToDecouple(*DLFA, thisKernelName, 
                                               originalKernelName, isAGU);
-    auto memoryRequests = getMemoryRequests(F, loopsToDecouple, isAGU);
+    auto MemoryRequests = getMemoryRequests(F, LoopsToDecouple, isAGU);
+
+    // TODO: verify that each memory request has the correct struct stores.
+    // Seems like stores use the req.addr struct store from load pipes.
+    // for (auto &Req : MemoryRequests) {
+    //   errs() << "Req.memOp: ";
+    //   Req.memOp->print(errs());
+    // }
+
+    for (auto &Req : MemoryRequests) {
+      if (isAGU) {
+        addAddrInstructions(F, Req);
+        addScheduleInstructions(F, Req);
+        addIsMaxIterInstructions(F, Req, SE);
+        if (isaLoad(Req.memOp))
+          addIsPosDepDistInstructions(F, Req, MemoryRequests);
+        addSentinelPipeWrite(F, Req);
+        swapReqForPipe(Req);
+      } else {
+
+      }
+    }
+
+    // if (isAGU) {
+    //   errs() << "**********************\n";
+    //   F.print(errs());
+    //   errs() << "\n**********************\n";
+    // }
 
     return PreservedAnalyses::none();
   }

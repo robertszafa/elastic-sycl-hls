@@ -155,4 +155,6 @@ if [[ "$*" != *"-d"* ]]; then
   rm -rf $TMP_DIR/${HASHED_FILENAME}* $TMP_DIR/**/${HASHED_FILENAME}* 
 else
   echo "Demnagled original IR: $SRC_FILE_WORKDIR.bc.demangled.ll"
+  echo "Demnagled ast IR: $SRC_FILE_AST.bc.demangled.ll"
+  echo "Demnagled transformed IR: $SRC_FILE_AST.elastic.bc.demangled.ll"
 fi

@@ -30,7 +30,15 @@ public:
     SmallVector<Loop *> loopNest;
     SmallVector<bool> isMaxIterNeeded;
 
+    int numLoadsInMemoryId;
+    int numStoresInMemoryId;
+    int maxLoopDepthInMemoryId;
+
     SmallVector<CallInst *> pipeCalls;
+    StoreInst *addrReqStore;
+    SmallVector<StoreInst *> schedReqStore;
+    SmallVector<StoreInst *> isMaxIterReqStore;
+    SmallVector<StoreInst *> isPosDepDistReqStore;
   };
 
   struct DecoupledLoopInfo {
@@ -39,8 +47,8 @@ public:
     // Index 0 has outermost loop, index size-1 has innermost loop.
     SmallVector<Loop *> loops;
     
-    SmallVector<MemoryRequest> loads;
-    SmallVector<MemoryRequest> stores;
+    SmallVector<MemoryRequest, 4> loads;
+    SmallVector<MemoryRequest, 4> stores;
     // SmallVector<LoopDependency> inputDeps;
     // SmallVector<LoopDependency> outputDeps;
 
@@ -76,10 +84,12 @@ public:
 
   explicit DynamicLoopFusionAnalysis(LoopInfo &LI, ScalarEvolution &SE) {
     collectLoopsToDecouple(LI);
-    collectMemoriesToProtect(LI);
-    collectAGUs(LI);
+    collectBasePointersToProtect(LI);
+    collectMemoryRequests(LI);
     checkIsMaxIterNeeded(LI, SE);
     collectMemoryDepInfo(LI);
+
+    collectAGUs();
   }
 
   ~DynamicLoopFusionAnalysis();
@@ -98,10 +108,11 @@ private:
   SetVector<Instruction *> basePtrsToProtect;
 
   void collectLoopsToDecouple(LoopInfo &LI);
-  void collectMemoriesToProtect(LoopInfo &LI);
-  void collectAGUs(LoopInfo &LI);
+  void collectBasePointersToProtect(LoopInfo &LI);
+  void collectMemoryRequests(LoopInfo &LI);
   void checkIsMaxIterNeeded(LoopInfo &LI, ScalarEvolution &SE);
   void collectMemoryDepInfo(LoopInfo &LI);
+  void collectAGUs();
   // void collectLoopIO(LoopInfo &LI, ControlDependenceGraph &CDG);
 };
 

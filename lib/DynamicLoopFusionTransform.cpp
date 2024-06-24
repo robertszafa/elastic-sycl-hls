@@ -36,18 +36,22 @@ getLoopsToDecouple(DynamicLoopFusionAnalysis &DLFA,
   return LoopsToDecouple;
 }
 
-void collectMemoryRequestStores(Function &F, MemoryRequest &Req) {
-  // Get all stores between pipe call and basic block start.
-  SmallVector<StoreInst *> reqStores;
-  Instruction *currI = Req.pipeCalls[0];
+SmallVector<StoreInst *> getAllStoresInBlockUpTo(Instruction *UpToI) {
+  SmallVector<StoreInst *> AllStores;
+  Instruction *currI = UpToI;
   while (currI) {
-    if (auto stI = dyn_cast<StoreInst>(currI)) 
-      reqStores.push_back(stI);
+    if (auto stI = dyn_cast<StoreInst>(currI))
+      AllStores.push_back(stI);
     currI = currI->getPrevNonDebugInstruction(true);
   }
 
-  // Now go backwards in the stores, starting at the pipe call, until everything
+  return AllStores;
+}
+
+void collectMemoryRequestStores(Function &F, MemoryRequest &Req) {
+  // Go backwards in the stores, starting at the pipe call, until everything
   // is filled.
+  auto reqStores = getAllStoresInBlockUpTo(Req.pipeCalls[0]);
   auto currSt = reqStores.begin();
 
   for (int iD = 0; iD < Req.maxLoopDepthInMemoryId; ++iD) {
@@ -288,11 +292,22 @@ void addAddrInstructions(Function &F, MemoryRequest &Req) {
   ReqAddrSt->setOperand(0, AddrValCasted);
 }
 
-void swapReqForPipe(MemoryRequest &Req) {
+void swapMemOpForReqPipe(MemoryRequest &Req) {
   for (auto &pipe : Req.pipeCalls)
     pipe->moveBefore(Req.memOp);
   deleteInstruction(Req.memOp);
 }
+
+void swapMemOpForValPipe(MemoryRequest &Req) {
+  Req.pipeCalls[0]->moveAfter(Req.memOp);
+
+  if (isaStore(Req.memOp)) {
+    Req.memOp->setOperand(1, Req.pipeCalls[0]->getOperand(0));
+  } else {
+    Req.memOp->replaceAllUsesWith(Req.pipeCalls[0]);
+  }
+}
+
 
 struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
   json::Object report;
@@ -330,9 +345,9 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
         if (isaLoad(Req.memOp))
           addIsPosDepDistInstructions(F, Req, MemoryRequests);
         addSentinelPipeWrite(F, Req);
-        swapReqForPipe(Req);
+        swapMemOpForReqPipe(Req);
       } else {
-
+        swapMemOpForValPipe(Req);
       }
     }
 

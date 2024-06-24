@@ -37,18 +37,25 @@ getLoopsToDecouple(DynamicLoopFusionAnalysis &DLFA,
 }
 
 void collectMemoryRequestStores(Function &F, MemoryRequest &Req) {
-  auto currI = dyn_cast<Instruction>(Req.pipeCalls[0]->getArgOperand(0));
-
+  // Get all stores between pipe call and basic block start.
   SmallVector<StoreInst *> reqStores;
-  while (currI != Req.pipeCalls[0]) {
+  Instruction *currI = Req.pipeCalls[0];
+  while (currI) {
     if (auto stI = dyn_cast<StoreInst>(currI)) 
       reqStores.push_back(stI);
-    currI = currI->getNextNonDebugInstruction(true);
+    currI = currI->getPrevNonDebugInstruction(true);
   }
 
+  // Now go backwards in the stores, starting at the pipe call, until everything
+  // is filled.
   auto currSt = reqStores.begin();
-  Req.addrReqStore = *currSt;
-  currSt++;
+
+  for (int iD = 0; iD < Req.maxLoopDepthInMemoryId; ++iD) {
+    Req.isMaxIterReqStore.push_back(*currSt);
+    currSt++;
+    Req.schedReqStore.push_back(*currSt);
+    currSt++;
+  }
 
   if (isaLoad(Req.memOp)) {
     for (int iSt = 0; iSt < Req.numStoresInMemoryId; ++iSt) {
@@ -57,12 +64,8 @@ void collectMemoryRequestStores(Function &F, MemoryRequest &Req) {
     }
   }
 
-  for (int iD = 0; iD < Req.maxLoopDepthInMemoryId; ++iD) {
-    Req.schedReqStore.push_back(*currSt);
-    currSt++;
-    Req.isMaxIterReqStore.push_back(*currSt);
-    currSt++;
-  }
+  Req.addrReqStore = *currSt;
+  currSt++;
 }
 
 /// Get the memory requests in this function that will be connected to our IP.
@@ -318,13 +321,6 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
     auto LoopsToDecouple = getLoopsToDecouple(*DLFA, thisKernelName, 
                                               originalKernelName, isAGU);
     auto MemoryRequests = getMemoryRequests(F, LoopsToDecouple, isAGU);
-
-    // TODO: verify that each memory request has the correct struct stores.
-    // Seems like stores use the req.addr struct store from load pipes.
-    // for (auto &Req : MemoryRequests) {
-    //   errs() << "Req.memOp: ";
-    //   Req.memOp->print(errs());
-    // }
 
     for (auto &Req : MemoryRequests) {
       if (isAGU) {

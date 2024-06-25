@@ -70,6 +70,11 @@ void collectMemoryRequestStores(Function &F, MemoryRequest &Req) {
 
   Req.addrReqStore = *currSt;
   currSt++;
+
+  // Since we were collecting from the back, need to reverse.
+  std::reverse(Req.schedReqStore.begin(), Req.schedReqStore.end());
+  std::reverse(Req.isMaxIterReqStore.begin(), Req.isMaxIterReqStore.end());
+  std::reverse(Req.isPosDepDistReqStore.begin(), Req.isPosDepDistReqStore.end());
 }
 
 /// Get the memory requests in this function that will be connected to our IP.
@@ -110,42 +115,6 @@ getMemoryRequests(Function &F,
   return MemoryRequests;
 }
 
-/// Create a zero-init uint32 tag using alloca at {F.entry}. Return its address.
-Value *createTag(Function &F, SetVector<Instruction *> &toKeep) {
-  IRBuilder<> Builder(F.getEntryBlock().getTerminator());
-  // LLVM doesn't make a distinction between signed and unsigned. And the only
-  // op done on tags is 2's complement addition, so the bit pattern is the same.
-  auto tagType = Type::getInt32Ty(F.getContext());
-  Value *tagAddr = Builder.CreateAlloca(tagType, nullptr, "tagAddr");
-  auto initStore = Builder.CreateStore(ConstantInt::get(tagType, 0), tagAddr);
-  toKeep.insert(initStore);
-  return tagAddr;
-}
-
-/// If pipeCall is a write, then cast {I} to pipeType, if different types. 
-/// If pipeCall is a read, then cast {pipeCall} to iType, if different types. 
-/// Return the casted value, or the original  
-Instruction *castIfNeeded(CallInst *pipeCall, Instruction *I) {
-  // If writing, then cast I to pipeType
-  if (isPipeWrite(pipeCall)) {
-    auto pipeType =
-        pipeCall->getOperand(0)->getType()->getNonOpaquePointerElementType();
-    if (I->getType()->getTypeID() != pipeType->getTypeID()) {
-      return BitCastInst::CreateBitOrPointerCast(I, pipeType, "", pipeCall);
-    }
-    return I;
-  } else { // Otherwise, if read, cast pipeCall to iType
-    if (I->getType()->getTypeID() != pipeCall->getType()->getTypeID()) {
-      return BitCastInst::CreateBitOrPointerCast(pipeCall, I->getType(), "",
-                                                 pipeCall->getNextNode());
-    }
-    return pipeCall;
-  }
-
-  assert(false && "Unexpected behaviour in castIfNeeded(pipeCall, I).");
-  return nullptr;
-}
-
 void addSentinelPipeWrite(Function &F, MemoryRequest &Req) {
   const uint ADDR_SENTINEL = isaLoad(Req.memOp) ?  (1<<29) - 2 : (1<<29) - 1;
   const uint SCHED_SENTINEL = (1<<30);
@@ -178,21 +147,24 @@ void addSentinelPipeWrite(Function &F, MemoryRequest &Req) {
     newSt->setOperand(0, ConstantInt::get(st->getOperand(0)->getType(), 1));
   }
 
-  Req.pipeCalls[0]->clone()->insertBefore(returnI);
+  for (auto &pipeCall : Req.pipeCalls)
+    pipeCall->clone()->insertBefore(returnI);
 }
 
 void addScheduleInstructions(Function &F, MemoryRequest &Req) {
   for (int iD = 0; iD <= Req.loopDepth; ++iD) {
-    auto entrySchedSt = Req.schedReqStore[iD];
-    auto entrySchedAddr = getLoadStorePointerOperand(entrySchedSt);
-    auto entrySchedType = entrySchedSt->getOperand(0)->getType();
+    auto schedStInEntryBB = Req.schedReqStore[iD];
+    auto schedStAddr = getLoadStorePointerOperand(schedStInEntryBB);
+    auto schedStType = schedStInEntryBB->getOperand(0)->getType();
 
+    // Load sched value in appropriate loop and increment it.
     IRBuilder<> Builder(getFirstBodyBlock(Req.loopNest[iD])->getFirstNonPHI());
-    auto constantOne = ConstantInt::get(entrySchedType, 1);
-    Value *oldSchedVal = Builder.CreateLoad(entrySchedType, entrySchedAddr);
+    auto constantOne = ConstantInt::get(schedStType, 1);
+    Value *oldSchedVal = Builder.CreateLoad(schedStType, schedStAddr);
     Value *newSchedVal = Builder.CreateAdd(oldSchedVal, constantOne);
 
-    auto newSchedSt = entrySchedSt->clone();
+    // Store incremented value.
+    auto newSchedSt = schedStInEntryBB->clone();
     newSchedSt->insertAfter(dyn_cast<Instruction>(newSchedVal));
     newSchedSt->setOperand(0, newSchedVal);
   }
@@ -308,6 +280,55 @@ void swapMemOpForValPipe(MemoryRequest &Req) {
   }
 }
 
+SmallVector<Instruction *>
+getSideEffectsToDelete(Function &F, const bool isAGU,
+                       SmallVector<DecoupledLoopInfo, 4> &DecoupledLoops) {
+  if (!isAGU)
+    return {};
+
+  SetVector<Instruction *> ToKeep;
+  for (auto &Info : DecoupledLoops) {
+    for (auto StReq : Info.stores)
+      ToKeep.insert(StReq.memOp);
+  }
+
+  SmallVector<Instruction *> ToDelete;
+  for (auto &BB : F) {
+    for (auto &I : BB) {
+      if (isaStore(&I) && !ToKeep.contains(&I)) {
+        ToDelete.push_back(&I);
+      }
+    }
+  }
+
+  return ToDelete;
+}
+
+SmallVector<Loop *>
+getLoopsToDelete(Function &F, LoopInfo &LI,
+                 SmallVector<DecoupledLoopInfo, 4> &DecoupledLoops) {
+  SetVector<Loop *> ToKeep;
+  for (auto &Info : DecoupledLoops) {
+    for (auto &L : Info.loops)
+      ToKeep.insert(L);
+  }
+
+  SmallVector<Loop *> ToDelete;
+  for (auto &L : LI.getLoopsInPreorder()) {
+    if (!ToKeep.contains(L))
+      ToDelete.push_back(L);
+  }
+
+  return ToDelete;
+}
+
+void deleteCode(SmallVector<Loop *> &toDeleteL,
+                SmallVector<Instruction *> &toDeleteI) {
+  for (auto &L : toDeleteL)
+    deleteLoop(L);
+  for (auto &I : toDeleteI)
+    deleteInstruction(I);
+}
 
 struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
   json::Object report;
@@ -331,11 +352,11 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
     auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
     auto *DLFA = new DynamicLoopFusionAnalysis(LI, SE);
 
-    errs() << "\n***********\n" << thisKernelName << "\n***********\n";
-
-    auto LoopsToDecouple = getLoopsToDecouple(*DLFA, thisKernelName, 
-                                              originalKernelName, isAGU);
-    auto MemoryRequests = getMemoryRequests(F, LoopsToDecouple, isAGU);
+    auto DecoupledLoops =
+        getLoopsToDecouple(*DLFA, thisKernelName, originalKernelName, isAGU);
+    auto MemoryRequests = getMemoryRequests(F, DecoupledLoops, isAGU);
+    auto LoopsToDelete = getLoopsToDelete(F, LI, DecoupledLoops);
+    auto InstrToDelete = getSideEffectsToDelete(F, isAGU, DecoupledLoops); 
 
     for (auto &Req : MemoryRequests) {
       if (isAGU) {
@@ -351,11 +372,7 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
       }
     }
 
-    // if (isAGU) {
-    //   errs() << "**********************\n";
-    //   F.print(errs());
-    //   errs() << "\n**********************\n";
-    // }
+    deleteCode(LoopsToDelete, InstrToDelete);
 
     return PreservedAnalyses::none();
   }

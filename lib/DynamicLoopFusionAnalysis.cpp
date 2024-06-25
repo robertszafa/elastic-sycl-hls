@@ -213,9 +213,13 @@ void DynamicLoopFusionAnalysis::checkIsMaxIterNeeded(LoopInfo &LI,
         auto AddrScev = SE.removePointerBase(SE.getSCEV(AddrVal));
         auto Loop2AddRec = getLoopToAddrRecMap(AddrScev, Req.loopNest);
 
-        for (auto L : Req.loopNest) {
-          Req.isMaxIterNeeded.push_back(
-              isMaxIterNeededForLoop(SE, L, Loop2AddRec));
+        for (int iD = 0; iD < Req.maxLoopDepthInMemoryId; ++iD) {
+          if (iD <= Req.loopDepth) {
+            Req.isMaxIterNeeded.push_back(
+                isMaxIterNeededForLoop(SE, Req.loopNest[iD], Loop2AddRec));
+          } else {
+            Req.isMaxIterNeeded.push_back(false);
+          }
         }
       }
     }
@@ -251,14 +255,13 @@ getCluesteredStoreRequests(SmallVector<DecoupledLoopInfo, 4> &loopsToDecouple) {
 }
 
 int getCommonLoopDepth(Loop *L1, Loop *L2) {
-  if (L1 == L2) 
-    return L1->getLoopDepth() - 1;
-  else if (L1->getLoopDepth() == 0 || L2->getLoopDepth() == 0)
+  if (!L1 || !L2)
     return -1;
-
-  if (L1->getLoopDepth() > L2->getLoopDepth()) 
+  else if (L1 == L2) 
+    return L1->getLoopDepth() - 1;
+  else if (L1->getLoopDepth() > L2->getLoopDepth()) 
     return getCommonLoopDepth(L1->getParentLoop(), L2);
-  else
+  else if (L1->getLoopDepth() < L2->getLoopDepth()) 
     return getCommonLoopDepth(L1, L2->getParentLoop());
 
   return -1;
@@ -357,14 +360,31 @@ void DynamicLoopFusionAnalysis::collectMemoryDepInfo(LoopInfo &LI) {
 }
 
 void DynamicLoopFusionAnalysis::collectAGUs() {
+  auto loopHasAnyProtectedMemOp = [&](Loop *L) {
+    for (auto I : getUniqueLoopInstructions(L)) 
+      if (auto BasePtr = getBasePtrOfInstr(I)) 
+        if (basePtrsToProtect.contains(BasePtr)) 
+          return true;
+    
+    return false;
+  };
+
   for (auto decoupleInfo : loopsToDecouple) {
-    for (auto I : getUniqueLoopInstructions(decoupleInfo.inner())) {
-      if (auto BasePtr = getBasePtrOfInstr(I)) {
-        if (basePtrsToProtect.contains(BasePtr)) {
-          agusToDecouple.push_back(decoupleInfo);
-          break;
-        }
+    for (auto L : decoupleInfo.loops) {
+      if (loopHasAnyProtectedMemOp(L)) {
+        agusToDecouple.push_back(decoupleInfo);
+        break;
       }
+    }
+  }
+
+  // Remove loops from AGU that do not contribute to the generation of requests.
+  for (auto &agu : agusToDecouple) {
+    for (auto L : llvm::reverse(agu.loops)) {
+      if (!loopHasAnyProtectedMemOp(L))
+        agu.loops.pop_back();
+      else
+        break;
     }
   }
 }

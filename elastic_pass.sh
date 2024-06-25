@@ -59,7 +59,7 @@ prepare_ir() {
 # the rest: remove dead code
 cleanup_ir() {
   $LLVM_BIN_DIR/opt $1 -o $1 -passes='adce,simplifycfg' 
-  $LLVM_BIN_DIR/opt $1 -o $1 -passes='deadargelim-sycl,strip-debug-declare' 
+  # $LLVM_BIN_DIR/opt $1 -o $1 -passes='deadargelim-sycl,strip-debug-declare' 
   # Save human readable bitcode
   $LLVM_BIN_DIR/llvm-dis $1 -o $1.ll && $LLVM_BIN_DIR/llvm-cxxfilt < $1.ll > $1.demangled.ll
 }
@@ -141,14 +141,14 @@ $LLVM_BIN_DIR/opt -load-pass-plugin $TRANSFORM_PASS_SO -passes=$TRANSFORM_PASS \
 echo "Info: Removing dead code" 
 cleanup_ir $SRC_FILE_AST.elastic.bc
 
-# ###
-# ### STAGE 5: Produce final binary.
-# ###
-# echo "Info: Passing transformed IR to downstream HLS compiler" 
-# echo "---------------- Elastic passes end ----------------"
-# echo "Compiling $FINAL_BINARY"
-# change_ip & \
-# $ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_from_bc.sh $TARGET $SRC_FILE_AST.elastic.bc $SRC_FILE_AST $FINAL_BINARY $HASHED_FILENAME
+###
+### STAGE 5: Produce final binary.
+###
+echo "Info: Passing transformed IR to downstream HLS compiler" 
+echo "---------------- Elastic passes end ----------------"
+echo "Compiling $FINAL_BINARY"
+change_ip & \
+$ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_from_bc.sh $TARGET $SRC_FILE_AST.elastic.bc $SRC_FILE_AST $FINAL_BINARY $HASHED_FILENAME
 
 # Remove created temporaries, if the "-d" flag was not supplied.
 if [[ "$*" != *"-d"* ]]; then 

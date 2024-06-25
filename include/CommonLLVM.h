@@ -130,6 +130,14 @@ getSeqInBB(const SmallVector<Instruction *> &Range) {
   I->eraseFromParent();
 }
 
+/// Delete loop from function by unconditionally connecting header and exit.
+[[maybe_unused]] void deleteLoop(Loop *L) {
+  IRBuilder<> Builder(L->getHeader());
+  auto oldBranch = L->getHeader()->getTerminator();
+  Builder.CreateBr(L->getExitBlock());
+  deleteInstruction(oldBranch);
+}
+
 /// Return the Basic Block with the return instruction from {F}. {F} is assumed
 /// to have a single return, if not, then the first block is returned.
 [[maybe_unused]] BasicBlock *getReturnBlock(Function &F) {
@@ -508,7 +516,7 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
 [[maybe_unused]] BasicBlock *getFirstBodyBlock(Loop *L) {
   auto brI = dyn_cast<BranchInst>(L->getHeader()->getTerminator());
   for (auto BB : brI->successors()) {
-    if (BB != L->getLoopLatch() && BB != L->getExitBlock())
+    if (BB != L->getExitBlock())
       return BB;
   }
 

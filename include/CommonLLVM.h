@@ -419,9 +419,9 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
     else if (type == scUDivExpr)
       return IR.CreateUDiv(LHS, RHS);
     else if (type == scUMaxExpr || type == scSMaxExpr)
-      return IR.CreateMaximum(LHS, RHS);
+      return IR.CreateSelect(IR.CreateICmpSGT(LHS, RHS), LHS, RHS);
     else if (type == scUMinExpr || type == scSMinExpr)
-      return IR.CreateMaximum(LHS, RHS);
+      return IR.CreateSelect(IR.CreateICmpSLT(LHS, RHS), LHS, RHS);
   }
 
   return nullptr;

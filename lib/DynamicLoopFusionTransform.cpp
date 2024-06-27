@@ -109,12 +109,8 @@ void addScheduleInstructions(Function &F, MemoryRequest &Req) {
 }
 
 Value *getLoopHeaderExecutedNum(Loop *L) {
-  static MapVector<Loop *, Value *> done;
-  if (done.contains(L))
-    return done[L];
-
   IRBuilder<> Builder(L->getHeader()->getFirstNonPHI());
-  
+
   auto iterPhi = Builder.CreatePHI(Builder.getInt32Ty(), 2, "num_header_exec");
   auto iterPlusOne =
       dyn_cast<Instruction>(Builder.CreateAdd(iterPhi, Builder.getInt32(1)));
@@ -124,8 +120,6 @@ Value *getLoopHeaderExecutedNum(Loop *L) {
   // preheader), the loop header will have been executed once
   iterPhi->addIncoming(Builder.getInt32(1), L->getLoopPreheader());
   iterPhi->addIncoming(iterPlusOne, L->getLoopLatch());
-
-  done[L] = iterPhi;
 
   return iterPhi;
 }
@@ -332,6 +326,12 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
     }
 
     deleteCode(LoopsToDelete, InstrToDelete);
+
+    // if (loopType == DecoupledLoopType::agu) {
+    //   errs() << "***********\n" << fName << "***********\n";
+    //   F.print(errs());
+    //   errs() << "\n\n";
+    // }
 
     return PreservedAnalyses::none();
   }

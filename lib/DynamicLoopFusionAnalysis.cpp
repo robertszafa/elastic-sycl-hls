@@ -383,12 +383,10 @@ void DynamicLoopFusionAnalysis::collectProtectedMemoryInfo(LoopInfo &LI) {
   // init
   for (auto kv : StoresForMem) {
     ProtectedMemoryInfo[kv.first] = MemoryDependencyInfo{
-        kv.first,
-        int(LoadsForMem[kv.first].size()),
-        int(StoresForMem[kv.first].size()),
-    };
-    ProtectedMemoryInfo[kv.first].cType =
-        getCTypeString(LoadsForMem[kv.first][0]->memOp);
+        .id = kv.first,
+        .numLoads = int(LoadsForMem[kv.first].size()),
+        .numStores = int(StoresForMem[kv.first].size()),
+        .cType = getCTypeString(LoadsForMem[kv.first][0]->memOp)};
   }
 
   for (auto [MemId, LdRequests] : LoadsForMem) {

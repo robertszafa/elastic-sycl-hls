@@ -70,8 +70,9 @@ template <int PortId> class StorePortKernel;
 template <int PortId> class LoadPortKernel;
 
 template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
-          typename StoreReqPipes, typename StoreValPipes, typename T>
-std::vector<event> StreamingMemory(queue &q) {
+          typename StoreReqPipes, typename StoreValPipes>
+[[clang::optnone]] std::vector<event> StreamingMemory(queue &q) {
+  using T = decltype(LoadValPipes::template PipeAt<0>::read());
   constexpr uint NUM_LOADS = DepInfo<MEM_ID>{}.NUM_LOADS;
   constexpr uint NUM_STORES = DepInfo<MEM_ID>{}.NUM_STORES;
   constexpr uint LOOP_DEPTH = DepInfo<MEM_ID>{}.MAX_LOOP_DEPTH; 

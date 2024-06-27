@@ -99,7 +99,6 @@ json::Array getMemoryDependenciesJson(DynamicLoopFusionAnalysis &DLFA) {
     json::Object infoJson;
     infoJson["id"] = int(id);
     infoJson["structDef"] = getDepInfoStructDef(memDepInfo);
-    infoJson["cType"] = memDepInfo.cType;
     Res.push_back(std::move(infoJson));
   }
 
@@ -112,7 +111,8 @@ std::string getPipeDefenitionsString(DynamicLoopFusionAnalysis &DLFA) {
   std::string AllDefs;
   llvm::raw_string_ostream O(AllDefs);
 
-  for (auto &[_, MemDepInfo] : DLFA.getProtectedMemoryInfo()) {
+  auto ProtectedMeories = DLFA.getProtectedMemoryInfo();
+  for (auto &[_, MemDepInfo] : ProtectedMeories) {
     O << llvm::formatv("using LoadReqPipes_{0} = PipeArray<class "
                        "LoadReqPipes_{0}_, ld_req_t<{1}, {2}>, {3}, {4}>;\n"
                        "using LoadValPipes_{0} = PipeArray<class "
@@ -129,10 +129,7 @@ std::string getPipeDefenitionsString(DynamicLoopFusionAnalysis &DLFA) {
   for (auto DecoupleInfo : DLFA.getSimpleMemoryLoops()) {
     for (auto &Req :
          llvm::concat<MemoryRequest>(DecoupleInfo.loads, DecoupleInfo.stores)) {
-      std::string cType =
-          isaLoad(Req.memOp)
-              ? getCTypeString(Req.memOp)
-              : getCTypeString(dyn_cast<Instruction>(Req.memOp->getOperand(0)));
+      std::string cType = getLoadStoreCTypeString(Req.memOp);
       O << llvm::formatv("using {0} = pipe<class _{0}, {1}, {2}>;\n",
                          Req.getPipeName(), cType, PIPE_DEPTH);
     }

@@ -104,6 +104,16 @@ getSeqInBB(const SmallVector<Instruction *> &Range) {
   return llvmtype;
 }
 
+[[maybe_unused]] std::string getLoadStoreCTypeString(const Instruction *I) {
+  if (isaLoad(I))
+    return getCTypeString(I); 
+  else if (isaStore(I))
+    return getCTypeString(dyn_cast<Instruction>(I->getOperand(0)));
+
+  assert(false && "Not a load or store.");
+  return "";
+}
+
 /// Given a {val}, store it into the operand of the {pipe} write.
 /// Return the created store.
 [[maybe_unused]] Instruction *storeValIntoPipe(Value *val, CallInst *pipe) {

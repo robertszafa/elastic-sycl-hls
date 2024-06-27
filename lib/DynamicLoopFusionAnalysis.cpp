@@ -326,17 +326,22 @@ getCluesteredStoreRequests(SmallVector<DecoupledLoopInfo, 4> &loopsToDecouple) {
   return storesForMem;
 }
 
+/// Return the deepest loop depth where the L1 and L2 loop nests share a loop. 
 int getCommonLoopDepth(Loop *L1, Loop *L2) {
-  if (!L1 || !L2)
-    return -1;
-  else if (L1 == L2) 
-    return L1->getLoopDepth() - 1;
-  else if (L1->getLoopDepth() > L2->getLoopDepth()) 
-    return getCommonLoopDepth(L1->getParentLoop(), L2);
-  else if (L1->getLoopDepth() < L2->getLoopDepth()) 
-    return getCommonLoopDepth(L1, L2->getParentLoop());
+  SmallVector<Loop *> nestL1 = getLoopNest(L1);
+  SmallVector<Loop *> nestL2 = getLoopNest(L2);
 
-  return -1;
+  int Res = -1;
+  for (auto &l1 : nestL1) {
+    for (auto &l2 : nestL2) {
+      // We start counting at 0, LLVM starts at 1.
+      int loopDepth = l1->getLoopDepth() - 1;
+      if (l1 == l2 && loopDepth > Res)
+        Res = loopDepth;
+    }
+  }
+
+  return Res;
 }
 
 /// Return the direction of the A --depends-on--> B dependency. Return

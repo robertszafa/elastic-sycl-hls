@@ -202,7 +202,7 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
 
 /// Return the pipe call instruction corresponding to the pipeName and idx pack.
 [[maybe_unused]] CallInst *getPipeCall(Function &F, const std::string &pipeName,
-                                       const SmallVector<int> pipeIdxs) {
+                                       const SmallVector<int> pipeIdxs={}) {
   static StringMap<int> collectedCalls;
 
   // Flatten the index pack into a single string.
@@ -226,21 +226,16 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
 
   /// Lambda. Returns true if {call} is a call to our pipe.
   auto isThisPipe = [&](std::string &thisPipeName) {
-    std::regex pipeNameRegex{pipeName, std::regex_constants::ECMAScript};
-    std::smatch pipeNameMatch;
-    std::regex_search(thisPipeName, pipeNameMatch, pipeNameRegex);
+    std::regex pipeNameReg{pipeName + "_?", std::regex_constants::ECMAScript};
+    std::regex pipeIdxRegex{pipeIdxAccess, std::regex_constants::ECMAScript};
 
-    std::regex pipeIdxRegex{pipeIdxAccess,
-                            std::regex_constants::ECMAScript};
-    std::smatch pipeIdxMatch;
-    std::regex_search(thisPipeName, pipeIdxMatch, pipeIdxRegex);
+    std::smatch nameMatch;
+    std::smatch idxMatch;
+    bool pipeNameOk = std::regex_search(thisPipeName, nameMatch, pipeNameReg);
+    bool pipeIdxOk = pipeIdxs.empty() ||
+                     std::regex_search(thisPipeName, idxMatch, pipeIdxRegex);
 
-    if ((pipeNameMatch.size() > 0 && pipeIdxs.empty()) ||
-        (pipeNameMatch.size() > 0 && pipeIdxMatch.size() > 0)) {
-      return true;
-    }
-
-    return false;
+    return pipeNameOk && pipeIdxOk;
   };
 
   int numCallsSkipped = 0;
@@ -259,7 +254,9 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
     }
   }
 
-  errs() << "Pipe name " << pipeName << "\n";
+  errs() << "ERROR: Not found pipe name " << pipeName
+         << " with idxs: " << pipeIdxAccess << " in kernel "
+         << demangle(std::string(F.getNameOrAsOperand())) << "\n";
   assert(false && "Pipe in getPipeCall(F, json::Object) not found.");
   return nullptr;
 }
@@ -522,6 +519,19 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
 
   // The header is also the body.
   return L->getHeader();
+}
+
+[[maybe_unused]] SmallVector<StoreInst *>
+getAllStoresInBlockUpTo(Instruction *UpToI) {
+  SmallVector<StoreInst *> AllStores;
+  Instruction *currI = UpToI;
+  while (currI) {
+    if (auto stI = dyn_cast<StoreInst>(currI))
+      AllStores.push_back(stI);
+    currI = currI->getPrevNonDebugInstruction(true);
+  }
+
+  return AllStores;
 }
 
 } // namespace

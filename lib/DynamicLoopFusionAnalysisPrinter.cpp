@@ -6,6 +6,8 @@ using namespace llvm;
 
 namespace llvm {
 
+using DecoupledLoopType = DynamicLoopFusionAnalysis::DecoupledLoopType;
+using MemoryRequestType = DynamicLoopFusionAnalysis::MemoryRequestType;
 using MemoryRequest = DynamicLoopFusionAnalysis::MemoryRequest;
 using DecoupledLoopInfo = DynamicLoopFusionAnalysis::DecoupledLoopInfo;
 using MemoryDependencyInfo = DynamicLoopFusionAnalysis::MemoryDependencyInfo;
@@ -91,29 +93,12 @@ std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
   return res;
 }
 
-std::string getPipeDefString(MemoryDependencyInfo &MemDep) {
-  std::string res;
-  llvm::raw_string_ostream O(res);
-
-  constexpr unsigned kReqPipeDepth = 16;
-
-  O << llvm::formatv(
-    "using LoadReqPipes_{0} = PipeArray<class _LoadReqPipes_{0}, ld_req_t<{1}, {2}>, {3}, {4}>;\n"
-    "using LoadValPipes_{0} = PipeArray<class _LoadValPipes_{0}, {5}, {3}, {4}>;\n"
-    "using StoreReqPipes_{0} = PipeArray<class _StoreReqPipes_{0}, st_req_t<{2}>, {3}, {1}, 2>;\n"
-    "using StoreValPipes_{0} = PipeArray<class _StoreValPipes_{0}, {5}, {3}, {1}>;\n",
-    MemDep.id, MemDep.numStores, MemDep.maxLoopDepth, kReqPipeDepth, MemDep.numLoads, MemDep.cType);
-
-  return res;
-}
-
 json::Array getMemoryDependenciesJson(DynamicLoopFusionAnalysis &DLFA) {
   auto Res = json::Array();
-  for (auto &[id, memDepInfo] : DLFA.getMemoryDependencyInfo()) {
+  for (auto &[id, memDepInfo] : DLFA.getProtectedMemoryInfo()) {
     json::Object infoJson;
     infoJson["id"] = int(id);
     infoJson["structDef"] = getDepInfoStructDef(memDepInfo);
-    infoJson["pipeDefs"] = getPipeDefString(memDepInfo);
     infoJson["cType"] = memDepInfo.cType;
     Res.push_back(std::move(infoJson));
   }
@@ -121,16 +106,49 @@ json::Array getMemoryDependenciesJson(DynamicLoopFusionAnalysis &DLFA) {
   return Res;
 }
 
-json::Array
-getPipeCallsInAguJson(DecoupledLoopInfo &DecoupleInfo,
-                      MapVector<int, MemoryDependencyInfo> &MemDepInfos) {
-  auto Res = json::Array();
+std::string getPipeDefenitionsString(DynamicLoopFusionAnalysis &DLFA) {
+  constexpr unsigned PIPE_DEPTH = 16;
 
+  std::string AllDefs;
+  llvm::raw_string_ostream O(AllDefs);
+
+  for (auto &[_, MemDepInfo] : DLFA.getProtectedMemoryInfo()) {
+    O << llvm::formatv("using LoadReqPipes_{0} = PipeArray<class "
+                       "LoadReqPipes_{0}_, ld_req_t<{1}, {2}>, {3}, {4}>;\n"
+                       "using LoadValPipes_{0} = PipeArray<class "
+                       "LoadValPipes_{0}_, {5}, {3}, {4}>;\n"
+                       "using StoreReqPipes_{0} = PipeArray<class "
+                       "StoreReqPipes_{0}_, st_req_t<{2}>, {3}, {1}, 2>;\n"
+                       "using StoreValPipes_{0} = PipeArray<class "
+                       "StoreValPipes_{0}_, {5}, {3}, {1}>;\n",
+                       MemDepInfo.id, MemDepInfo.numStores,
+                       MemDepInfo.maxLoopDepth, PIPE_DEPTH, MemDepInfo.numLoads,
+                       MemDepInfo.cType);
+  }
+
+  for (auto DecoupleInfo : DLFA.getSimpleMemoryLoops()) {
+    for (auto &Req :
+         llvm::concat<MemoryRequest>(DecoupleInfo.loads, DecoupleInfo.stores)) {
+      std::string cType =
+          isaLoad(Req.memOp)
+              ? getCTypeString(Req.memOp)
+              : getCTypeString(dyn_cast<Instruction>(Req.memOp->getOperand(0)));
+      O << llvm::formatv("using {0} = pipe<class _{0}, {1}, {2}>;\n",
+                         Req.getPipeName(), cType, PIPE_DEPTH);
+    }
+  }
+
+  return AllDefs;
+}
+
+std::string
+getPipeCallsInAgu(DecoupledLoopInfo &DecoupleInfo,
+                  MapVector<int, MemoryDependencyInfo> &ProtectedMemInfo) {
+  std::string PipeCalls;
+  llvm::raw_string_ostream O(PipeCalls);
   for (auto LdReq : DecoupleInfo.loads) {
-    auto MemDep = MemDepInfos[LdReq.memoryId];
-    json::Object infoJson;
-    std::string pipeCallStr;
-    llvm::raw_string_ostream O(pipeCallStr);
+    auto MemDep = ProtectedMemInfo[LdReq.memoryId];
+    auto PipeName = LdReq.getPipeName(DecoupledLoopType::agu);
     O << llvm::formatv("ld_req_t<{0}, {1}> ld_req_{2}_{3};\n"
                        "ld_req_{2}_{3}.addr = 0u;\n",
                        MemDep.numStores, MemDep.maxLoopDepth, MemDep.id,
@@ -144,24 +162,13 @@ getPipeCallsInAguJson(DecoupledLoopInfo &DecoupleInfo,
                          "ld_req_{0}_{1}.isMaxIter[{2}] = false;\n",
                          MemDep.id, LdReq.reqId, iD);
     }
-    O << llvm::formatv(
-        "LoadReqPipes_{0}::PipeAt<{1}>::write(ld_req_{0}_{1});\n", MemDep.id,
-        LdReq.reqId);
-
-    infoJson["instructionIdx"] = getIndexIntoParent(LdReq.memOp);
-    infoJson["instructionBasicBlockIdx"] =
-        getIndexIntoParent(LdReq.memOp->getParent());
-    infoJson["isWrite"] = true;
-    infoJson["pipeCall"] = pipeCallStr;
-    Res.push_back(std::move(infoJson));
+    O << llvm::formatv("{0}::PipeAt<{2}>::write(ld_req_{1}_{2});\n", PipeName,
+                       MemDep.id, LdReq.reqId);
   }
 
   for (auto StReq : DecoupleInfo.stores) {
-    auto MemDep = MemDepInfos[StReq.memoryId];
-
-    json::Object infoJson;
-    std::string pipeCallStr;
-    llvm::raw_string_ostream O(pipeCallStr);
+    auto MemDep = ProtectedMemInfo[StReq.memoryId];
+    auto PipeName = StReq.getPipeName(DecoupledLoopType::agu);
     O << llvm::formatv("st_req_t<{0}> st_req_{1}_{2};\n"
                        "st_req_{1}_{2}.addr = 0u;\n",
                        MemDep.maxLoopDepth, MemDep.id, StReq.reqId);
@@ -170,98 +177,72 @@ getPipeCallsInAguJson(DecoupledLoopInfo &DecoupleInfo,
                          "st_req_{0}_{1}.isMaxIter[{2}] = false;\n",
                          MemDep.id, StReq.reqId, iD);
     }
-    O << llvm::formatv(
-        "StoreReqPipes_{0}::PipeAt<{1}, 0>::write(st_req_{0}_{1});\n"
-        "StoreReqPipes_{0}::PipeAt<{1}, 1>::write(st_req_{0}_{1});\n",
-        MemDep.id, StReq.reqId);
-
-    infoJson["instructionIdx"] = getIndexIntoParent(StReq.memOp);
-    infoJson["instructionBasicBlockIdx"] =
-        getIndexIntoParent(StReq.memOp->getParent());
-    infoJson["isWrite"] = true;
-    infoJson["pipeCall"] = pipeCallStr;
-    Res.push_back(std::move(infoJson));
+    O << llvm::formatv("{0}::PipeAt<{2}, 0>::write(st_req_{1}_{2});\n"
+                       "{0}::PipeAt<{2}, 1>::write(st_req_{1}_{2});\n",
+                       PipeName, MemDep.id, StReq.reqId);
   }
 
-  return Res;
+  return PipeCalls;
 }
 
-json::Array
-getPipeCallsInComputeJson(DecoupledLoopInfo &DecoupleInfo,
-                      MapVector<int, MemoryDependencyInfo> &MemDepInfos) {
-  auto Res = json::Array();
+std::string getPipeCallsInCompute(DecoupledLoopInfo &DecoupleInfo) {
+  std::string PipeCalls;
+  llvm::raw_string_ostream O(PipeCalls);
 
-  for (auto &LdReq : DecoupleInfo.loads) {
-    auto MemDep = MemDepInfos[LdReq.memoryId];
+  for (auto &Req :
+       llvm::concat<MemoryRequest>(DecoupleInfo.loads, DecoupleInfo.stores)) {
+    auto PipeName = Req.getPipeName(DecoupledLoopType::compute);
 
-    json::Object infoJson;
-    std::string pipeCallStr;
-    llvm::raw_string_ostream O(pipeCallStr);
-    O << llvm::formatv("[[maybe_unused]] auto _ldVal_{0}_{1} = "
-                       "LoadValPipes_{0}::PipeAt<{1}>::read();\n",
-                       MemDep.id, LdReq.reqId);
+    if (isaLoad(Req.memOp))
+      O << llvm::formatv("[[maybe_unused]] auto _ldVal_{0} = ", PipeName);
+    O << PipeName;
+    if (Req.type == MemoryRequestType::protectedMem)
+      O << llvm::formatv("::PipeAt<{0}>", Req.reqId);
 
-    infoJson["memoryId"] = LdReq.memoryId;
-    infoJson["loopId"] = LdReq.loopId;
-    infoJson["reqId"] = LdReq.reqId;
-    infoJson["instructionIdx"] = getIndexIntoParent(LdReq.memOp);
-    infoJson["instructionBasicBlockIdx"] =
-        getIndexIntoParent(LdReq.memOp->getParent());
-    infoJson["isWrite"] = false;
-    infoJson["pipeCall"] = pipeCallStr;
-    Res.push_back(std::move(infoJson));
+    if (isaLoad(Req.memOp))
+      O << "::read();\n";
+    else
+      O << "::write({});\n";
   }
 
-  for (auto &StReq : DecoupleInfo.stores) {
-    auto MemDep = MemDepInfos[StReq.memoryId];
+  return PipeCalls;
+}
 
-    json::Object infoJson;
-    std::string pipeCallStr;
-    llvm::raw_string_ostream O(pipeCallStr);
-    O << llvm::formatv("StoreValPipes_{0}::PipeAt<{1}>::write(0);\n", MemDep.id,
-                       StReq.reqId);
+std::string getPipeCallsInSimpleMemory(DecoupledLoopInfo &DecoupleInfo) {
+  std::string PipeCalls;
+  llvm::raw_string_ostream O(PipeCalls);
 
-    infoJson["memoryId"] = StReq.memoryId;
-    infoJson["loopId"] = StReq.loopId;
-    infoJson["reqId"] = StReq.reqId;
-    infoJson["instructionIdx"] = getIndexIntoParent(StReq.memOp);
-    infoJson["instructionBasicBlockIdx"] =
-        getIndexIntoParent(StReq.memOp->getParent());
-    infoJson["isWrite"] = true;
-    infoJson["pipeCall"] = pipeCallStr;
-    Res.push_back(std::move(infoJson));
-  }
+  for (auto &Req : DecoupleInfo.loads) 
+    O << llvm::formatv("{0}::write({{});\n", Req.getPipeName());
+  for (auto &Req : DecoupleInfo.stores) 
+    O << llvm::formatv("auto {0} = {0}::read();\n", Req.getPipeName());
 
-  return Res;
+  return PipeCalls;
 }
 
 json::Array getLoopsToDecoupleJson(DynamicLoopFusionAnalysis &DLFA,
-                                   LoopInfo &LI, const std::string &kernelName) {
+                                   LoopInfo &LI) {
   auto Res = json::Array();
 
-  auto memDepInfo = DLFA.getMemoryDependencyInfo();
-  for (auto [iK, decoupleInfo] : llvm::enumerate(DLFA.getAgusToDecouple())) {
+  auto ProtectedMemInfo = DLFA.getProtectedMemoryInfo();
+  auto AllDecoupledLoops = llvm::concat<DecoupledLoopInfo>(
+      DLFA.getSimpleMemoryLoops(), DLFA.getAguLoops(), DLFA.getComputeLoops());
+  for (auto decoupleInfo : AllDecoupledLoops) {
     json::Object info;
-    info["type"] = "agu";
     info["id"] = decoupleInfo.id;
-    info["kernelName"] =
-        (iK == 0) ?  kernelName + "_agu"
-                  :  kernelName + "_agu_" + std::to_string(decoupleInfo.id);
-    info["innerLoopBlockId"] =
-        getIndexIntoParent(decoupleInfo.inner()->getHeader());
-    info["pipeCalls"] = getPipeCallsInAguJson(decoupleInfo, memDepInfo);
-    Res.push_back(std::move(info));
-  }
-  for (auto [iK, decoupleInfo] : llvm::enumerate(DLFA.getLoopsToDecouple())) {
-    json::Object info;
-    info["type"] = "compute";
-    info["id"] = decoupleInfo.id;
-    info["kernelName"] =
-        (iK == 0) ? kernelName
-                  : kernelName + "_" + std::to_string(decoupleInfo.id);
-    info["innerLoopBlockId"] =
-        getIndexIntoParent(decoupleInfo.inner()->getHeader());
-    info["pipeCalls"] = getPipeCallsInComputeJson(decoupleInfo, memDepInfo);
+    info["kernelName"] = decoupleInfo.kernelName;
+
+    if (decoupleInfo.type == DynamicLoopFusionAnalysis::agu) {
+      info["type"] = "agu";
+      info["pipeCalls"] = getPipeCallsInAgu(decoupleInfo, ProtectedMemInfo);
+    } else if (decoupleInfo.type == DynamicLoopFusionAnalysis::compute) {
+      info["type"] = "compute";
+      info["pipeCalls"] = getPipeCallsInCompute(decoupleInfo);
+    } else if (decoupleInfo.type == DynamicLoopFusionAnalysis::memory) {
+      info["type"] = "memory";
+      info["pipeCalls"] = getPipeCallsInSimpleMemory(decoupleInfo);
+    }
+
     Res.push_back(std::move(info));
   }
 
@@ -273,17 +254,18 @@ struct DynamicLoopFusionAnalysisPrinter
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     if (F.getCallingConv() == CallingConv::SPIR_KERNEL) {
+      const std::string fName = demangle(std::string(F.getName()));
+
       auto &LI = AM.getResult<LoopAnalysis>(F);
       auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
-      auto *DLFA = new DynamicLoopFusionAnalysis(LI, SE);
-
-      const std::string kernelName = demangle(std::string(F.getName()));
+      auto *DLFA = new DynamicLoopFusionAnalysis(LI, SE, fName);
   
       json::Object report;
-      report["mainKernelName"] = kernelName;
+      report["mainKernelName"] = fName;
       report["kernelStartLine"] = F.getSubprogram()->getLine();
+      report["pipeDefs"] = getPipeDefenitionsString(*DLFA);
       report["memoryToProtect"] = getMemoryDependenciesJson(*DLFA);
-      report["loopsToDecouple"] = getLoopsToDecoupleJson(*DLFA, LI, kernelName);
+      report["loopsToDecouple"] = getLoopsToDecoupleJson(*DLFA, LI);
 
       outs() << formatv("{0:2}", json::Value(std::move(report))) << "\n";
     }

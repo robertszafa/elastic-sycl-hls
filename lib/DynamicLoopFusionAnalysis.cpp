@@ -6,32 +6,88 @@ using namespace llvm;
 
 namespace llvm {
 
+using MemoryRequestType = DynamicLoopFusionAnalysis::MemoryRequestType;
+using DecoupledLoopType = DynamicLoopFusionAnalysis::DecoupledLoopType;
 using MemoryRequest = DynamicLoopFusionAnalysis::MemoryRequest;
 using DecoupledLoopInfo = DynamicLoopFusionAnalysis::DecoupledLoopInfo;
 using MemoryDependencyInfo = DynamicLoopFusionAnalysis::MemoryDependencyInfo;
 using DepDir = DynamicLoopFusionAnalysis::DepDir;
 
-template <typename ChildT>
-bool loopSpanContains(Loop *Inner, Loop *Outer, ChildT *Child) {
-  static_assert(std::is_same_v<ChildT, BasicBlock> ||
-                    std::is_same_v<ChildT, Instruction>,
-                "Only basic blocks and instructions supported.");
-
-  auto Parent = Inner;
-  do {
-    SmallVector<ChildT *> ElemsInParent;
-    if constexpr (std::is_same_v<ChildT, BasicBlock>)
-      ElemsInParent = getUniqueLoopBlocks(Parent);
+std::string DynamicLoopFusionAnalysis::MemoryRequest::getPipeName(
+    DecoupledLoopType loopType) {
+  if (type == MemoryRequestType::protectedMem &&
+      loopType == DecoupledLoopType::agu) {
+    if (isaLoad(memOp))
+      return "LoadReqPipes_" + std::to_string(memoryId);
     else
-      ElemsInParent = getUniqueLoopInstructions(Parent);
+      return "StoreReqPipes_" + std::to_string(memoryId);
+  } else if (type == MemoryRequestType::protectedMem &&
+             loopType == DecoupledLoopType::compute) {
+    if (isaLoad(memOp))
+      return "LoadValPipes_" + std::to_string(memoryId);
+    else
+      return "StoreValPipes_" + std::to_string(memoryId);
+  } else if (type == MemoryRequestType::simpleMem) {
+    if (isaLoad(memOp))
+      return "MemoryLoadPipe_" + std::to_string(loopId) + "_" +
+             std::to_string(reqId);
+    else
+      return "MemoryStorePipe_" + std::to_string(loopId) + "_" +
+             std::to_string(reqId);
+  }
 
-    if (llvm::is_contained(ElemsInParent, Child)) {
-      return true;
+  assert(false && "Could not create pipe name.");
+  return "";
+}
+
+void DynamicLoopFusionAnalysis::MemoryRequest::collectPipeCalls(
+    Function &F, DecoupledLoopType loopType) {
+  std::string pipeName = getPipeName(loopType);
+  if (type == MemoryRequestType::protectedMem) {
+    // In the AGU, stores to protected memory have another dimension.
+    if (loopType == DecoupledLoopType::agu && isaStore(memOp)) {
+      pipeCalls.push_back(getPipeCall(F, pipeName, {reqId, 0}));
+      pipeCalls.push_back(getPipeCall(F, pipeName, {reqId, 1}));
+    } else {
+      pipeCalls.push_back(getPipeCall(F, pipeName, {reqId}));
     }
-    Parent = Parent->getParentLoop();
-  } while (Parent != Outer && Parent);
+  } else {
+    // A store to a non-protected memory uses a 1D pipe.
+    pipeCalls.push_back(getPipeCall(F, pipeName));
+  }
+}
 
-  return false;
+void DynamicLoopFusionAnalysis::MemoryRequest::collectStoresToRequestStruct(
+    Function &F, DecoupledLoopType loopType) {
+  // We only have stores to memory request stores in the AGU kernels.
+  if (loopType != DecoupledLoopType::agu)
+    return;
+
+  // Go backwards in the stores, starting at the pipe call.
+  auto reqStores = getAllStoresInBlockUpTo(pipeCalls[0]);
+  auto currSt = reqStores.begin();
+
+  for (int iD = 0; iD < maxLoopDepthInMemoryId; ++iD) {
+    isMaxIterReqStore.push_back(*currSt);
+    currSt++;
+    schedReqStore.push_back(*currSt);
+    currSt++;
+  }
+
+  if (isaLoad(memOp)) {
+    for (int iSt = 0; iSt < numStoresInMemoryId; ++iSt) {
+      isPosDepDistReqStore.push_back(*currSt);
+      currSt++;
+    }
+  }
+
+  addrReqStore = *currSt;
+  currSt++;
+
+  // Since we were collecting from the back, need to reverse.
+  std::reverse(schedReqStore.begin(), schedReqStore.end());
+  std::reverse(isMaxIterReqStore.begin(), isMaxIterReqStore.end());
+  std::reverse(isPosDepDistReqStore.begin(), isPosDepDistReqStore.end());
 }
 
 Instruction *getBasePtrOfInstr(Instruction *I) {
@@ -42,22 +98,31 @@ Instruction *getBasePtrOfInstr(Instruction *I) {
   return nullptr;
 };
 
+SmallVector<Loop *> getLoopNest(Loop *L) {
+  SmallVector<Loop *> LoopNest;
+  auto ParentL = L;
+  while (ParentL) {
+    LoopNest.push_back(ParentL);
+    ParentL = ParentL->getParentLoop();
+  }
+  std::reverse(LoopNest.begin(), LoopNest.end());
+
+  return LoopNest;
+}
+
 /// Collect loops to decouple. A loop will be marked for decoupling if it has
 /// a body (not counting sub-loops) with side effects (memory operations).
-void DynamicLoopFusionAnalysis::collectLoopsToDecouple(LoopInfo &LI) {
+void DynamicLoopFusionAnalysis::collectComputeLoops(LoopInfo &LI) {
   int id = 0;
   for (auto L : LI.getLoopsInPreorder()) {
     if (L->isInnermost()) {
-      DecoupledLoopInfo DecoupleInfo = {id++};
-
-      auto ParentL = L;
-      while (ParentL) {
-        DecoupleInfo.loops.push_back(ParentL);
-        ParentL = ParentL->getParentLoop();
-      }
-      std::reverse(DecoupleInfo.loops.begin(), DecoupleInfo.loops.end());
-
-      loopsToDecouple.push_back(DecoupleInfo);
+      std::string kernelName =
+          (id == 0) ? fName : fName + "_" + std::to_string(id);
+      DecoupledLoopInfo DecoupleInfo = {.id = id++,
+                                        .type = DecoupledLoopType::compute,
+                                        .loops = getLoopNest(L),
+                                        .kernelName = kernelName};
+      ComputeLoops.push_back(DecoupleInfo);
     }
   }
 }
@@ -66,25 +131,25 @@ void DynamicLoopFusionAnalysis::collectLoopsToDecouple(LoopInfo &LI) {
 /// protection, if there exist at least two decoupled loops accessing the base
 /// pointer and one of the accesses is a store.
 void DynamicLoopFusionAnalysis::collectBasePointersToProtect(LoopInfo &LI) {
-  for (auto &decoupleInfo : loopsToDecouple) {
+  auto anotherLoopHasMemOpWithBasePtr = [&](Loop *L, Instruction *BasePtr) {
+    for (auto otherDecoupleInfo : ComputeLoops)
+      for (auto otherL : otherDecoupleInfo.loops)
+        if (otherL != L)
+          for (auto otherI : getUniqueLoopInstructions(otherL))
+            if (getBasePtrOfInstr(otherI) == BasePtr)
+              return true;
+
+    return false;
+  };
+
+  for (auto &decoupleInfo : ComputeLoops) {
     for (auto L : decoupleInfo.loops) {
       for (auto storeI : getUniqueLoopInstructions(L)) {
         if (isa<StoreInst>(storeI)) {
           const auto BasePtr = getBasePtrOfInstr(storeI);
-          if (basePtrsToProtect.contains(BasePtr))
-            continue;
-
-          for (auto otherDecoupleInfo : loopsToDecouple) {
-            for (auto otherL : otherDecoupleInfo.loops) {
-              if (otherL != L) {
-                for (auto otherI : getUniqueLoopInstructions(otherL)) {
-                  if (getBasePtrOfInstr(storeI) == getBasePtrOfInstr(otherI)) {
-                    basePtrsToProtect.insert(BasePtr);
-                  }
-                }
-              }
-            }
-          }
+          if (!BasePtrsToProtect.contains(BasePtr) &&
+              anotherLoopHasMemOpWithBasePtr(L, BasePtr))
+            BasePtrsToProtect.insert(BasePtr);
         }
       }
     }
@@ -92,36 +157,43 @@ void DynamicLoopFusionAnalysis::collectBasePointersToProtect(LoopInfo &LI) {
 }
 
 /// For each base pointer to protect, collect all memory requests using it.
-void DynamicLoopFusionAnalysis::collectMemoryRequests(LoopInfo &LI) {
+void DynamicLoopFusionAnalysis::collectProtectedMemoryRequests(LoopInfo &LI) {
   MapVector<Instruction *, int> BasePtrId, BasePtrNumStores, BasePtrNumLoads,
       BasePtrMaxLoopDepth;
-  for (auto [id, BasePtr] : llvm::enumerate(basePtrsToProtect)) {
+  for (auto [id, BasePtr] : llvm::enumerate(BasePtrsToProtect)) {
     BasePtrId[BasePtr] = 100 + id;
     BasePtrNumStores[BasePtr] = 0;
     BasePtrNumLoads[BasePtr] = 0;
     BasePtrMaxLoopDepth[BasePtr] = 0;
   }
 
-  for (auto &decoupleInfo : loopsToDecouple) {
-    SmallVector<Loop *> currentLoopNest;
+  for (auto &decoupleInfo : ComputeLoops) {
+    SmallVector<Loop *> CurrentLoopNest;
     for (auto L : decoupleInfo.loops) {
-      currentLoopNest.push_back(L);
+      CurrentLoopNest.push_back(L);
 
       for (auto I : getUniqueLoopInstructions(L)) {
         if (auto BasePtr = getBasePtrOfInstr(I)) {
-          if (basePtrsToProtect.contains(BasePtr)) {
+          if (BasePtrsToProtect.contains(BasePtr)) {
             // LLVM starts loops depths at 1, we start at 0.
             int ReqLoopDepth = L->getLoopDepth() - 1;
+            MemoryRequest Req{.memoryId = BasePtrId[BasePtr],
+                              .loopId = decoupleInfo.id,
+                              .type = MemoryRequestType::protectedMem,
+                              .memOp = I,
+                              .basePtr = BasePtr,
+                              .loopDepth = ReqLoopDepth,
+                              .loopNest = CurrentLoopNest};
+            if (isaLoad(I)) {
+              Req.reqId = BasePtrNumLoads[BasePtr]++;
+              decoupleInfo.loads.push_back(Req);
+            } else {
+              Req.reqId = BasePtrNumStores[BasePtr]++;
+              decoupleInfo.stores.push_back(Req);
+            }
+
             BasePtrMaxLoopDepth[BasePtr] =
                 std::max(BasePtrMaxLoopDepth[BasePtr], ReqLoopDepth + 1);
-            int ReqId = isaLoad(I) ? BasePtrNumLoads[BasePtr]++
-                                   : BasePtrNumStores[BasePtr]++;
-            MemoryRequest Req{BasePtrId[BasePtr], decoupleInfo.id, ReqId, I, 
-                              BasePtr, ReqLoopDepth, currentLoopNest};
-            if (isaLoad(I))
-              decoupleInfo.loads.push_back(Req);
-            else
-              decoupleInfo.stores.push_back(Req);
           }
         }
       }
@@ -129,7 +201,7 @@ void DynamicLoopFusionAnalysis::collectMemoryRequests(LoopInfo &LI) {
   }
 
   // Add info about max loop depth and num of other memory requests.
-  for (auto &DecoupleInfo : loopsToDecouple) {
+  for (auto &DecoupleInfo : ComputeLoops) {
     auto &&AllMemoryRequests = llvm::concat<MemoryRequest>(DecoupleInfo.loads, 
                                                            DecoupleInfo.stores);
     for (auto &Req : AllMemoryRequests) {
@@ -204,7 +276,7 @@ bool isMaxIterNeededForLoop(
 
 void DynamicLoopFusionAnalysis::checkIsMaxIterNeeded(LoopInfo &LI,
                                                      ScalarEvolution &SE) {
-  for (auto &DecoupleInfo : loopsToDecouple) {
+  for (auto &DecoupleInfo : ComputeLoops) {
     auto &&AllMemoryRequests =
         llvm::concat<MemoryRequest>(DecoupleInfo.loads, DecoupleInfo.stores);
 
@@ -299,26 +371,28 @@ DepDir getDependencyDir(Instruction *A, Instruction *B, LoopInfo &LI) {
   return DepDir::FORWARD;
 }
 
-void DynamicLoopFusionAnalysis::collectMemoryDepInfo(LoopInfo &LI) {
-  auto LoadsForMem = getCluesteredLoadRequests(loopsToDecouple);
-  auto StoresForMem = getCluesteredStoreRequests(loopsToDecouple);
+void DynamicLoopFusionAnalysis::collectProtectedMemoryInfo(LoopInfo &LI) {
+  auto LoadsForMem = getCluesteredLoadRequests(ComputeLoops);
+  auto StoresForMem = getCluesteredStoreRequests(ComputeLoops);
 
   // init
   for (auto kv : StoresForMem) {
-    memDepInfo[kv.first] = MemoryDependencyInfo{
+    ProtectedMemoryInfo[kv.first] = MemoryDependencyInfo{
         kv.first,
         int(LoadsForMem[kv.first].size()),
         int(StoresForMem[kv.first].size()),
     };
-    memDepInfo[kv.first].cType = getCTypeString(LoadsForMem[kv.first][0]->memOp);
+    ProtectedMemoryInfo[kv.first].cType =
+        getCTypeString(LoadsForMem[kv.first][0]->memOp);
   }
 
   for (auto [MemId, LdRequests] : LoadsForMem) {
     for (auto &LdReq : LdRequests) {
       auto LdLoop = LI.getLoopFor(LdReq->memOp->getParent());
-      memDepInfo[MemId].maxLoopDepth = LdReq->maxLoopDepthInMemoryId;
-      memDepInfo[MemId].loadLoopDepth.push_back(LdReq->loopDepth);
-      memDepInfo[MemId].loadIsMaxIterNeeded.push_back(LdReq->isMaxIterNeeded);
+      ProtectedMemoryInfo[MemId].maxLoopDepth = LdReq->maxLoopDepthInMemoryId;
+      ProtectedMemoryInfo[MemId].loadLoopDepth.push_back(LdReq->loopDepth);
+      ProtectedMemoryInfo[MemId].loadIsMaxIterNeeded.push_back(
+          LdReq->isMaxIterNeeded);
 
       SmallVector<bool> StoreInSameLoop;
       SmallVector<int> StoreCommonLoopDepth;
@@ -329,18 +403,20 @@ void DynamicLoopFusionAnalysis::collectMemoryDepInfo(LoopInfo &LI) {
         StoreCommonLoopDepth.push_back(getCommonLoopDepth(LdLoop, StLoop));
         StoreDepDir.push_back(getDependencyDir(LdReq->memOp, StReq->memOp, LI));
       }
-      memDepInfo[MemId].loadStoreInSameLoop.push_back(StoreInSameLoop);
-      memDepInfo[MemId].loadStoreCommonLoopDepth.push_back(StoreCommonLoopDepth);
-      memDepInfo[MemId].loadStoreDepDir.push_back(StoreDepDir);
+      ProtectedMemoryInfo[MemId].loadStoreInSameLoop.push_back(StoreInSameLoop);
+      ProtectedMemoryInfo[MemId].loadStoreCommonLoopDepth.push_back(
+          StoreCommonLoopDepth);
+      ProtectedMemoryInfo[MemId].loadStoreDepDir.push_back(StoreDepDir);
     }
   }
 
   for (auto [MemId, StRequests] : StoresForMem) {
     for (auto StReq : StRequests) {
       auto StReqLoop = LI.getLoopFor(StReq->memOp->getParent());
-      memDepInfo[MemId].maxLoopDepth = StReq->maxLoopDepthInMemoryId;
-      memDepInfo[MemId].storeLoopDepth.push_back(StReq->loopDepth);
-      memDepInfo[MemId].storeIsMaxIterNeeded.push_back(StReq->isMaxIterNeeded);
+      ProtectedMemoryInfo[MemId].maxLoopDepth = StReq->maxLoopDepthInMemoryId;
+      ProtectedMemoryInfo[MemId].storeLoopDepth.push_back(StReq->loopDepth);
+      ProtectedMemoryInfo[MemId].storeIsMaxIterNeeded.push_back(
+          StReq->isMaxIterNeeded);
 
       SmallVector<bool> StoreInSameLoop;
       SmallVector<int> StoreCommonLoopDepth;
@@ -348,43 +424,101 @@ void DynamicLoopFusionAnalysis::collectMemoryDepInfo(LoopInfo &LI) {
       for (auto &OtherStReq : StoresForMem[MemId]) {
         auto OtherStLoop = LI.getLoopFor(OtherStReq->memOp->getParent());
         StoreInSameLoop.push_back(StReqLoop == OtherStLoop);
-        StoreCommonLoopDepth.push_back(getCommonLoopDepth(StReqLoop, OtherStLoop));
-        StoreDepDir.push_back(getDependencyDir(StReq->memOp, OtherStReq->memOp, LI));
+        StoreCommonLoopDepth.push_back(
+            getCommonLoopDepth(StReqLoop, OtherStLoop));
+        StoreDepDir.push_back(
+            getDependencyDir(StReq->memOp, OtherStReq->memOp, LI));
       }
-      memDepInfo[MemId].storeStoreInSameLoop.push_back(StoreInSameLoop);
-      memDepInfo[MemId].storeStoreCommonLoopDepth.push_back(StoreCommonLoopDepth);
-      memDepInfo[MemId].storeStoreDepDir.push_back(StoreDepDir);
+      ProtectedMemoryInfo[MemId].storeStoreInSameLoop.push_back(
+          StoreInSameLoop);
+      ProtectedMemoryInfo[MemId].storeStoreCommonLoopDepth.push_back(
+          StoreCommonLoopDepth);
+      ProtectedMemoryInfo[MemId].storeStoreDepDir.push_back(StoreDepDir);
     }
   }
 
 }
 
-void DynamicLoopFusionAnalysis::collectAGUs() {
+void DynamicLoopFusionAnalysis::collectAguLoops() {
   auto loopHasAnyProtectedMemOp = [&](Loop *L) {
     for (auto I : getUniqueLoopInstructions(L)) 
       if (auto BasePtr = getBasePtrOfInstr(I)) 
-        if (basePtrsToProtect.contains(BasePtr)) 
+        if (BasePtrsToProtect.contains(BasePtr)) 
           return true;
     
     return false;
   };
 
-  for (auto decoupleInfo : loopsToDecouple) {
+  for (auto &decoupleInfo : ComputeLoops) {
     for (auto L : decoupleInfo.loops) {
       if (loopHasAnyProtectedMemOp(L)) {
-        agusToDecouple.push_back(decoupleInfo);
+        DecoupledLoopInfo AguLoop = {decoupleInfo};
+        AguLoop.type = DecoupledLoopType::agu;
+        AguLoop.kernelName += "_agu";
+        AguLoops.push_back(AguLoop);
         break;
       }
     }
   }
 
   // Remove loops from AGU that do not contribute to the generation of requests.
-  for (auto &agu : agusToDecouple) {
-    for (auto L : llvm::reverse(agu.loops)) {
+  for (auto &AguLoop : AguLoops) {
+    for (auto L : llvm::reverse(AguLoop.loops)) {
       if (!loopHasAnyProtectedMemOp(L))
-        agu.loops.pop_back();
+        AguLoop.loops.pop_back();
       else
         break;
+    }
+  }
+}
+
+void addRequestToComputeLoop(MemoryRequest &Req, SmallVector<DecoupledLoopInfo, 4> &ComputeLoops) {
+  for (auto &decoupleInfo : ComputeLoops) {
+    if (llvm::is_contained(decoupleInfo.loops, Req.loopNest.back())) {
+      MemoryRequest NewReq = {Req};
+      NewReq.loopId = decoupleInfo.id;
+      if (isaLoad(Req.memOp))
+        decoupleInfo.loads.push_back(Req);
+      else
+        decoupleInfo.stores.push_back(Req);
+    }
+  }
+}
+
+/// Each memory load/store, that does not require hazard protection, gets
+/// decoupled into its own loop.
+void DynamicLoopFusionAnalysis::collectSimpleMemoryLoops(LoopInfo &LI) {
+  int id = 0;
+  for (auto L : LI.getLoopsInPreorder()) {
+    for (auto I : getUniqueLoopInstructions(L)) {
+      if (auto BasePtr = getBasePtrOfInstr(I)) {
+        bool isGlobalPtr = BasePtr->getParent() ==
+                           &BasePtr->getParent()->getParent()->getEntryBlock();
+        if (!BasePtrsToProtect.contains(BasePtr) && isGlobalPtr) {
+          std::string kernelName = fName + "_mem_" + std::to_string(id);
+          DecoupledLoopInfo DecoupleInfo = {.id = id,
+                                            .type = DecoupledLoopType::memory,
+                                            .loops = getLoopNest(L),
+                                            .kernelName = kernelName};
+
+          MemoryRequest Req = {.loopId = id,
+                               .reqId = 0,
+                               .type = MemoryRequestType::simpleMem,
+                               .memOp = I,
+                               .basePtr = BasePtr,
+                               .loopDepth = int(L->getLoopDepth() - 1),
+                               .loopNest = getLoopNest(L)};
+          if (isaLoad(I))
+            DecoupleInfo.loads.push_back(Req);
+          else
+            DecoupleInfo.stores.push_back(Req);
+
+          addRequestToComputeLoop(Req, ComputeLoops);
+
+          SimpleMemoryLoops.push_back(DecoupleInfo);
+          id++;
+        }
+      }
     }
   }
 }

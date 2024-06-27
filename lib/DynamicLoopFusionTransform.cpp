@@ -8,107 +8,45 @@ namespace llvm {
 const std::string REPORT_ENV_NAME = "ELASTIC_PASS_REPORT";
 
 using MemoryRequest = DynamicLoopFusionAnalysis::MemoryRequest;
+using DecoupledLoopType = DynamicLoopFusionAnalysis::DecoupledLoopType;
 using DecoupledLoopInfo = DynamicLoopFusionAnalysis::DecoupledLoopInfo;
 using MemoryDependencyInfo = DynamicLoopFusionAnalysis::MemoryDependencyInfo;
 using DepDir = DynamicLoopFusionAnalysis::DepDir;
 
+DecoupledLoopType getLoopType(Function &F) {
+  std::string fName = demangle(std::string(F.getNameOrAsOperand()));
+  return (fName.find("_agu") < fName.size())    ? DecoupledLoopType::agu
+         : (fName.find("_mem_") < fName.size()) ? DecoupledLoopType::memory
+                                                : DecoupledLoopType::compute;
+}
+
 /// Get loops to be decoupled in this function.
 SmallVector<DecoupledLoopInfo, 4>
-getLoopsToDecouple(DynamicLoopFusionAnalysis &DLFA,
-                   const std::string &thisKernelName,
-                   const std::string &originalKernelName, const bool isAGU) {
-  auto loopsToDecouple =
-      isAGU ? DLFA.getAgusToDecouple() : DLFA.getLoopsToDecouple();
-  
-  SmallVector<DecoupledLoopInfo, 4> LoopsToDecouple;
-  auto MemDepInfos = DLFA.getMemoryDependencyInfo();
+getLoopsToDecouple(Function &F, DynamicLoopFusionAnalysis &DLFA) {
+  auto loopsToDecouple = DLFA.getDecoupledLoopsWithType(getLoopType(F));
+  auto thisFName = demangle(std::string(F.getNameOrAsOperand()));
+
+  SmallVector<DecoupledLoopInfo, 4> LoopsForThisFunction;
   for (auto &decoupleInfo : loopsToDecouple) {
-    std::string decoupleInfoKernelName =
-        isAGU ? originalKernelName + "_agu" : originalKernelName;
-    if (decoupleInfo.id > 0)
-      decoupleInfoKernelName += "_" + std::to_string(decoupleInfo.id);
-    
-    if (decoupleInfoKernelName == thisKernelName) {
-      LoopsToDecouple.push_back(decoupleInfo);
-    }
+    if (thisFName == decoupleInfo.kernelName) 
+      LoopsForThisFunction.push_back(decoupleInfo);
   }
 
-  return LoopsToDecouple;
+  return LoopsForThisFunction;
 }
 
-SmallVector<StoreInst *> getAllStoresInBlockUpTo(Instruction *UpToI) {
-  SmallVector<StoreInst *> AllStores;
-  Instruction *currI = UpToI;
-  while (currI) {
-    if (auto stI = dyn_cast<StoreInst>(currI))
-      AllStores.push_back(stI);
-    currI = currI->getPrevNonDebugInstruction(true);
-  }
-
-  return AllStores;
-}
-
-void collectMemoryRequestStores(Function &F, MemoryRequest &Req) {
-  // Go backwards in the stores, starting at the pipe call, until everything
-  // is filled.
-  auto reqStores = getAllStoresInBlockUpTo(Req.pipeCalls[0]);
-  auto currSt = reqStores.begin();
-
-  for (int iD = 0; iD < Req.maxLoopDepthInMemoryId; ++iD) {
-    Req.isMaxIterReqStore.push_back(*currSt);
-    currSt++;
-    Req.schedReqStore.push_back(*currSt);
-    currSt++;
-  }
-
-  if (isaLoad(Req.memOp)) {
-    for (int iSt = 0; iSt < Req.numStoresInMemoryId; ++iSt) {
-      Req.isPosDepDistReqStore.push_back(*currSt);
-      currSt++;
-    }
-  }
-
-  Req.addrReqStore = *currSt;
-  currSt++;
-
-  // Since we were collecting from the back, need to reverse.
-  std::reverse(Req.schedReqStore.begin(), Req.schedReqStore.end());
-  std::reverse(Req.isMaxIterReqStore.begin(), Req.isMaxIterReqStore.end());
-  std::reverse(Req.isPosDepDistReqStore.begin(), Req.isPosDepDistReqStore.end());
-}
-
-/// Get the memory requests in this function that will be connected to our IP.
-/// Also collect the corresponding pipe calls that the requets will be replcaed
-/// with.
+/// Get the memory requests in this function.
 SmallVector<MemoryRequest, 4>
 getMemoryRequests(Function &F,
-                  SmallVector<DecoupledLoopInfo, 4> &loopsToDecouple,
-                  const bool isAGU) {
+                  SmallVector<DecoupledLoopInfo, 4> &loopsToDecouple) {
+  auto loopType = getLoopType(F);
   SmallVector<MemoryRequest, 4> MemoryRequests;
   for (auto &decoupleInfo : loopsToDecouple) {
-    for (auto &LdReq : decoupleInfo.loads) {
-      std::string pipeName =
-          isAGU ? "LoadReqPipes_" + std::to_string(LdReq.memoryId)
-                : "LoadValPipes_" + std::to_string(LdReq.memoryId);
-      LdReq.pipeCalls.push_back(getPipeCall(F, pipeName, {LdReq.reqId}));
-      if (isAGU)
-        collectMemoryRequestStores(F, LdReq);
-      MemoryRequests.push_back(LdReq);
-    }
-
-    for (auto &StReq : decoupleInfo.stores) {
-      std::string pipeName =
-          isAGU ? "StoreReqPipes_" + std::to_string(StReq.memoryId)
-                : "StoreValPipes_" + std::to_string(StReq.memoryId);
-      if (isAGU) {
-        // In the agu, the stReq pipe has another dimension.
-        StReq.pipeCalls.push_back(getPipeCall(F, pipeName, {StReq.reqId, 0}));
-        StReq.pipeCalls.push_back(getPipeCall(F, pipeName, {StReq.reqId, 1}));
-        collectMemoryRequestStores(F, StReq);
-      } else {
-        StReq.pipeCalls.push_back(getPipeCall(F, pipeName, {StReq.reqId}));
-      }
-      MemoryRequests.push_back(StReq);
+    for (auto &Req :
+         llvm::concat<MemoryRequest>(decoupleInfo.loads, decoupleInfo.stores)) {
+      Req.collectPipeCalls(F, loopType);
+      Req.collectStoresToRequestStruct(F, loopType);
+      MemoryRequests.push_back(Req);
     }
   }
 
@@ -280,11 +218,27 @@ void swapMemOpForValPipe(MemoryRequest &Req) {
   }
 }
 
+void swapMemOpForPipeReadWrite(MemoryRequest &Req) {
+  if (isaLoad(Req.memOp)) {
+    auto storeIntoPipe = getAllStoresInBlockUpTo(Req.pipeCalls[0])[0];
+    Req.pipeCalls[0]->moveAfter(Req.memOp);
+    storeIntoPipe->moveBefore(Req.pipeCalls[0]);
+    storeIntoPipe->setOperand(0, Req.memOp);
+  } else {
+    Req.pipeCalls[0]->moveBefore(Req.memOp);
+    Req.memOp->setOperand(0, Req.pipeCalls[0]);
+  }
+}
+
 SmallVector<Instruction *>
-getSideEffectsToDelete(Function &F, const bool isAGU,
+getSideEffectsToDelete(Function &F,
                        SmallVector<DecoupledLoopInfo, 4> &DecoupledLoops) {
-  if (!isAGU)
+  if (getLoopType(F) == DecoupledLoopType::compute) {
+    // Compute loops will contain all side effects belonging to their loop
+    // nests. Side effects from other loops nests will be deleted by deleting
+    // that whole loop nest.
     return {};
+  }
 
   SetVector<Instruction *> ToKeep;
   for (auto &Info : DecoupledLoops) {
@@ -294,6 +248,9 @@ getSideEffectsToDelete(Function &F, const bool isAGU,
 
   SmallVector<Instruction *> ToDelete;
   for (auto &BB : F) {
+    if (BB.isEntryBlock())
+      continue;
+
     for (auto &I : BB) {
       if (isaStore(&I) && !ToKeep.contains(&I)) {
         ToDelete.push_back(&I);
@@ -305,7 +262,7 @@ getSideEffectsToDelete(Function &F, const bool isAGU,
 }
 
 SmallVector<Loop *>
-getLoopsToDelete(Function &F, LoopInfo &LI,
+getLoopsToDelete(LoopInfo &LI,
                  SmallVector<DecoupledLoopInfo, 4> &DecoupledLoops) {
   SetVector<Loop *> ToKeep;
   for (auto &Info : DecoupledLoops) {
@@ -341,25 +298,25 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
       originalKernelName = *report["mainKernelName"].getAsString();
     }
 
-    std::string thisKernelName = demangle(std::string(F.getNameOrAsOperand()));
-    bool isAGU = thisKernelName.find("_agu") < thisKernelName.size();
+    std::string fName = demangle(std::string(F.getNameOrAsOperand()));
     if ((F.getCallingConv() != CallingConv::SPIR_KERNEL) ||
-        (thisKernelName.find(originalKernelName) >= thisKernelName.size())) {
+        (fName.find(originalKernelName) >= fName.size())) {
       return PreservedAnalyses::all();
     }
 
     auto &LI = AM.getResult<LoopAnalysis>(F);
     auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
-    auto *DLFA = new DynamicLoopFusionAnalysis(LI, SE);
+    auto *DLFA = new DynamicLoopFusionAnalysis(LI, SE, originalKernelName);
 
-    auto DecoupledLoops =
-        getLoopsToDecouple(*DLFA, thisKernelName, originalKernelName, isAGU);
-    auto MemoryRequests = getMemoryRequests(F, DecoupledLoops, isAGU);
-    auto LoopsToDelete = getLoopsToDelete(F, LI, DecoupledLoops);
-    auto InstrToDelete = getSideEffectsToDelete(F, isAGU, DecoupledLoops); 
+    auto DecoupledLoops = getLoopsToDecouple(F, *DLFA);
+    auto MemoryRequests = getMemoryRequests(F, DecoupledLoops);
 
+    auto LoopsToDelete = getLoopsToDelete(LI, DecoupledLoops);
+    auto InstrToDelete = getSideEffectsToDelete(F, DecoupledLoops); 
+
+    const auto loopType = getLoopType(F);
     for (auto &Req : MemoryRequests) {
-      if (isAGU) {
+      if (loopType == DecoupledLoopType::agu) {
         addAddrInstructions(F, Req);
         addScheduleInstructions(F, Req);
         addIsMaxIterInstructions(F, Req, SE);
@@ -367,6 +324,8 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
           addIsPosDepDistInstructions(F, Req, MemoryRequests);
         addSentinelPipeWrite(F, Req);
         swapMemOpForReqPipe(Req);
+      } else if (loopType == DecoupledLoopType::memory) {
+        swapMemOpForPipeReadWrite(Req);
       } else {
         swapMemOpForValPipe(Req);
       }

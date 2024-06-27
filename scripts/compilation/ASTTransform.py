@@ -276,7 +276,7 @@ def do_dynamic_fusion_transform_ast(src_lines, report):
     Q_NAME = get_queue_name(src_lines[kernel_start_line-1])
 
     # Insert pipe type declarations into the src file.
-    pipe_declarations = [mem["pipeDefs"] for mem in report["memoryToProtect"]]
+    pipe_declarations = report["pipeDefs"].splitlines()
     src_after_pipe_decl = insert_before_line(src_lines, kernel_start_line, pipe_declarations)
     kernel_start_line += len(pipe_declarations)
     kernel_end_line += len(pipe_declarations)
@@ -285,8 +285,7 @@ def do_dynamic_fusion_transform_ast(src_lines, report):
     main_kernel_pipe_ops = []
     for kernel_info in report["loopsToDecouple"]:
         if kernel_info["kernelName"] == report["mainKernelName"]:
-            for pipe_call_info in kernel_info["pipeCalls"]:
-                main_kernel_pipe_ops.append(pipe_call_info["pipeCall"])
+            main_kernel_pipe_ops = kernel_info["pipeCalls"].splitlines()
     src_after_main_kernel_pipes = insert_after_line(src_after_pipe_decl, kernel_start_line, main_kernel_pipe_ops)
     kernel_end_line += len(main_kernel_pipe_ops)
 
@@ -304,8 +303,8 @@ def do_dynamic_fusion_transform_ast(src_lines, report):
         # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
         pe_kernel, pe_event = gen_kernel_copy(Q_NAME, kernel_body, name.split(' ')[-1])
         new_kernel_waits.append(f"{pe_event}.wait();\n")
-        pe_pipe_ops = [info["pipeCall"] for info in kernel_info["pipeCalls"]]
-        pe_kernel_str = "\n".join(insert_after_line(pe_kernel, 1, pe_pipe_ops))
+        pe_pipe_calls = kernel_info["pipeCalls"].splitlines()
+        pe_kernel_str = "\n".join(insert_after_line(pe_kernel, 1, pe_pipe_calls))
         new_kernels.append(pe_kernel_str)
     # Combine the created PE kernel with the original kernel.
     src_after_new_kernels = insert_before_line(src_after_main_kernel_pipes, kernel_start_line, new_kernels)

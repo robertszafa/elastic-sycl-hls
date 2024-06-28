@@ -494,6 +494,10 @@ void DynamicLoopFusionAnalysis::collectSimpleMemoryLoops(LoopInfo &LI) {
   int id = 0;
   for (auto L : LI.getLoopsInPreorder()) {
     for (auto I : getUniqueLoopInstructions(L)) {
+      // Don't decouple loads.
+      if (isaLoad(I))
+        continue;
+
       if (auto BasePtr = getBasePtrOfInstr(I)) {
         bool isGlobalPtr = BasePtr->getParent() ==
                            &BasePtr->getParent()->getParent()->getEntryBlock();

@@ -25,30 +25,28 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
                         const std::vector<int> &h_col_idx,
                         std::vector<float> &h_val, std::vector<float> &h_p,
                         const int numNodes, const int maxIters) {
+  float *p_new = fpga_tools::toDevice(h_p, q);
+  float *p = fpga_tools::toDevice(h_p, q);
   const int *row_ptr = fpga_tools::toDevice(h_row_ptr, q);
   const int *col_idx = fpga_tools::toDevice(h_col_idx, q);
   const float *val = fpga_tools::toDevice(h_val, q);
-  float *p = fpga_tools::toDevice(h_p, q);
-  float *p_new = fpga_tools::toDevice(h_p, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (uint iter = 0; iter < maxIters; ++iter) {
 
       // Initialize p_new as a vector of n 0.0 cells
-      for (int i = 0; i < numNodes; i++) {
+      for (uint i = 0; i < numNodes; i++) {
         p_new[i] = 0.0f;
       }
 
-      int rowel = 0;
-      int curcol = 0;
-
       // Sparse PageRank algorithm using an adjacency matrix in CSR format.
+      int curcol = 0;
       for (uint i = 0; i < numNodes; i++) {
         auto p_val = p[i];
+        int rowel = row_ptr[i + 1] - row_ptr[i];
         int local_curcol = curcol;
-        rowel = row_ptr[i + 1] - row_ptr[i];
         curcol += rowel;
-        for (uint j = 0; j < rowel; j++) {
+        for (int j = 0; j < rowel; j++) {
           auto p_new_load = p_new[col_idx[local_curcol]];
           auto p_new_store = p_new_load + (val[local_curcol] * p_val);
           p_new[col_idx[local_curcol]] = p_new_store;
@@ -87,13 +85,11 @@ void page_rank_cpu(const std::vector<int> &row_ptr,
                    const int maxIters) {
   std::vector<float> p_new(p.size());
 
-  uint64_t numStores = 0;
   for (int iter = 0; iter < maxIters; ++iter) {
 
     // Initialize p_new as a vector of n 0.0 cells
     for (int i = 0; i < numNodes; i++) {
       p_new[i] = 0.0f;
-      numStores++;
     }
 
     int rowel = 0;
@@ -104,7 +100,6 @@ void page_rank_cpu(const std::vector<int> &row_ptr,
       rowel = row_ptr[i + 1] - row_ptr[i];
       for (int j = 0; j < rowel; j++) {
         p_new[col_idx[curcol]] += val[curcol] * p[i];
-        numStores++;
         curcol++;
       }
     }
@@ -123,10 +118,6 @@ void page_rank_cpu(const std::vector<int> &row_ptr,
       p[i] = d * p_new[i] + (1.0f - d) / numNodes;
     }
   }
-
-  PRINTF("Num stores %llu\n", numStores);
-  if (numStores > (uint64_t(1) << 32))
-    PRINTF("Num stores above %llu\n", numStores);
 }
 
 inline bool almost_equal(const float x, const float y) {
@@ -181,8 +172,9 @@ int main(int argc, char *argv[]) {
   // DEBUG: Print the number of nodes and edges, skip everything else
   printf("\nGraph data: Nodes: %d, Edges: %d \n\n", numNodes, numEdges);
 
-  std::vector<int> row_ptr(numNodes + 1, 0), col_idx(numEdges, 0);
-  std::vector<float> val(numEdges, 0.0f), p(numNodes, 0.0f);
+  auto sizeArr = std::max(numEdges + 1, numNodes + 1);
+  std::vector<int> row_ptr(sizeArr, 0), col_idx(sizeArr, 0);
+  std::vector<float> val(sizeArr, 0.0f), p(sizeArr, 0.0f);
   
   int fromnode, tonode;
   int cur_row = 0;
@@ -228,7 +220,7 @@ int main(int argc, char *argv[]) {
     property_list properties{property::queue::enable_profiling()};
     queue q(d_selector, exception_handler, properties);
 
-    std::vector<float> p_cpu(numNodes, 0.0f);
+    std::vector<float> p_cpu(sizeArr, 0.0f);
     std::copy(p.begin(), p.end(), p_cpu.begin());
 
     // Print out the device information used for the kernel code.
@@ -247,7 +239,7 @@ int main(int argc, char *argv[]) {
 
       for (int i = 0; i < numNodes; ++i) {
         if (!almost_equal(p[i], p_cpu[i])) {
-          std::cout << "fpga != cpu " << p[i] << " != " << p_cpu[i] << "\n";
+          std::cout << i << ": fpga != cpu, " << p[i] << " != " << p_cpu[i] << "\n";
         }
       }
     }

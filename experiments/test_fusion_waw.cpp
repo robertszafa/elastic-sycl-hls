@@ -21,39 +21,27 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-double kernel_2mm(queue &q, const int alpha, const int beta, const uint NI,
-                  const uint NJ, const uint NK, std::vector<int> &h_A,
-                  std::vector<int> &h_B, std::vector<int> &h_C,
-                  std::vector<int> &h_D) {
+double test_kernel_war(queue &q, const int NUM_ITERS, const int NI,
+                       const int NJ, const int NK, std::vector<int> &h_D) {
 
-  int *A = fpga_tools::toDevice(h_A, q);
-  int *B = fpga_tools::toDevice(h_B, q);
-  int *C = fpga_tools::toDevice(h_C, q);
   int *D = fpga_tools::toDevice(h_D, q);
 
   std::vector zeroVec(h_D.size(), 0);
   int* tmp = fpga_tools::toDevice(zeroVec, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    for (uint i = 0; i < NI; i++) {
-      for (uint j = 0; j < NJ; j++) {
-        int x = tmp[i * NI + j];
-        for (uint k = 0; k < NK; ++k) {
-          x += alpha * A[i * NI + k] * B[k * NK + j];
-        }
-        tmp[i * NI + j] = x;
+    for (uint iters = 0; iters < NUM_ITERS; iters++) {
+
+      for (uint i = 0; i < NI; i++) {
+        D[i] = iters;
       }
+
+      for (uint i = 0; i < NI; i++) {
+        D[i] += 1;
+      }
+
     }
 
-    for (uint i = 0; i < NI; i++) {
-      for (uint j = 0; j < NJ; j++) {
-        int x = D[i * NI + j] * beta;
-        for (uint k = 0; k < NJ; ++k) {
-          x += tmp[i * NI + k] * C[k * NK + j];
-        }
-        D[i * NI + j] = x;
-      }
-    }
   });
 
   event.wait();
@@ -67,38 +55,27 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const uint NI,
   return time_in_ms;
 }
 
-void kernel_2mm_cpu(const int alpha, const int beta, const int NI, const int NJ,
-                    const int NK, const std::vector<int> &A,
-                    const std::vector<int> &B, const std::vector<int> &C,
-                    std::vector<int> &D) {
-  std::vector<int> tmp(NI * NJ, 0);
-
-  for (int i = 0; i < NI; i++) {
-    for (int j = 0; j < NJ; j++) {
-      int x = tmp[i * NI + j];
-      for (int k = 0; k < NK; ++k) {
-        x += alpha * A[i * NI + k] * B[k * NK + j];
-      }
-      tmp[i * NI + j] = x;
+void test_kernel_cpu(const int NUM_ITERS, const int NI, const int NJ,
+                     const int NK, std::vector<int> &D) {
+  for (int iters = 0; iters < NUM_ITERS; iters++) {
+    for (int i = 0; i < NI; i++) {
+      D[i] = iters;
     }
-  }
 
-  for (int i = 0; i < NI; i++) {
-    for (int j = 0; j < NJ; j++) {
-      int x = D[i * NI + j] * beta;
-      for (int k = 0; k < NJ; ++k) {
-        x += tmp[i * NI + k] * C[k * NK + j];
-      }
-      D[i * NI + j] = x;
+    for (int i = 0; i < NI; i++) {
+      D[i] += 1;
     }
   }
 }
 
 int main(int argc, char *argv[]) {
   int N = 10;
+  int NUM_ITERS = 1;
   try {
-    if (argc > 1) 
+    if (argc > 1)
       N = int(atoi(argv[1]));
+    if (argc > 1)
+      NUM_ITERS = int(atoi(argv[2]));
   } catch (exception const &e) {
     std::cout << "Incorrect argv.\nUsage:\n"
               << "  ./executable [ARRAY_SIZE] [PERCENTAGE (% of iterations "
@@ -125,18 +102,15 @@ int main(int argc, char *argv[]) {
     const int NI = N;
     const int NJ = N;
     const int NK = N;
-    const int S = N*N;
+    const int S = N;
 
-    std::vector<int> A(S, 1);
-    std::vector<int> B(S, 2); 
-    std::vector<int> C(S, 3); 
     std::vector<int> D(S, 4); 
     std::vector<int> D_cpu(S, 4); 
 
-    auto kernel_time = kernel_2mm(q, 2, 2, NI, NJ, NK, A, B, C, D);
+    auto kernel_time = test_kernel_war(q, NUM_ITERS, NI, NJ, NK, D);
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    kernel_2mm_cpu(2, 2, NI, NJ, NK, A, B, C, D_cpu);
+    test_kernel_cpu(NUM_ITERS, NI, NJ, NK, D_cpu);
 
     if (std::equal(D.begin(), D.end(), D_cpu.begin()))
       std::cout << "Passed\n";

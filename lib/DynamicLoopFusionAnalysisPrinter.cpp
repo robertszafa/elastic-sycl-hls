@@ -191,7 +191,8 @@ std::string getPipeCallsInCompute(DecoupledLoopInfo &DecoupleInfo) {
     auto PipeName = Req.getPipeName(DecoupledLoopType::compute);
 
     if (isaLoad(Req.memOp))
-      O << llvm::formatv("[[maybe_unused]] auto _ldVal_{0} = ", PipeName);
+      O << llvm::formatv("[[maybe_unused]] auto _ldVal_{0}_{1} = ", PipeName,
+                         Req.reqId);
     O << PipeName;
     if (Req.type == MemoryRequestType::protectedMem)
       O << llvm::formatv("::PipeAt<{0}>", Req.reqId);

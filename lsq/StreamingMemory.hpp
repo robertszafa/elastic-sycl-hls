@@ -59,6 +59,7 @@ using BurstCoalescedLSU =
                     ext::intel::statically_coalesce<false>,
                     ext::intel::prefetch<false>>;
 
+constexpr addr_t INIT_ACK_ADDR = (1<<29);
 constexpr addr_t STORE_ADDR_SENTINEL = (1<<29) - 1;
 constexpr addr_t LOAD_ADDR_SENTINEL = (1<<29) - 2;
 constexpr addr_t FINAL_LD_ADDR_ACK = STORE_ADDR_SENTINEL + 1;
@@ -95,9 +96,9 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
   UnrolledLoop<NUM_STORES>([&](auto iSt) {
     constexpr int StPortId = 100*(MEM_ID+1) + iSt;
     events[iSt] = q.single_task<StorePortKernel<StPortId>>([=]() KERNEL_PRAGMAS {
-      ack_t<LOOP_DEPTH> NextAck {0u};
+      ack_t<LOOP_DEPTH> NextAck {INIT_ACK_ADDR};
       InitBundle(NextAck.sched, 0u);
-      InitBundle(NextAck.isMaxIter, false);
+      InitBundle(NextAck.isMaxIter, true);
 
       [[intel::ivdep]]
       [[intel::initiation_interval(1)]]
@@ -115,6 +116,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         auto StorePtr = ext::intel::device_ptr<T>((T*) Req.addr);
         #pragma clang diagnostic pop
 
+        // PRINTF("MEM%d st%d stores address %u\n", MEM_ID, int(iSt), Req.addr);
         BurstCoalescedLSU::store(StorePtr, Val);
         NextAck = Req;
       }
@@ -154,6 +156,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
           NumReused++;
           Val = Req.val;
         } else {
+          // Silence clang warning about int to pointer conversion.
           #pragma clang diagnostic push
           #pragma clang diagnostic ignored "-Wint-to-pointer-cast"
           auto LoadPtr = ext::intel::device_ptr<T>((T*) Req.ack.addr);
@@ -171,7 +174,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       InitBundle(maxAck.sched, SCHED_SENTINEL);
       InitBundle(maxAck.isMaxIter, true);
       LoadAckPipes::template PipeAt<iLd>::write(maxAck);
-      // PRINTF("MEM%d ld%d reused %d/%d\n", MEM_ID int(iLd), NumReused, NumTotal);
+      // PRINTF("MEM%d ld%d reused %d/%d\n", MEM_ID, int(iLd), NumReused, NumTotal);
     });
   });
 
@@ -201,7 +204,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
     addr_t StoreAckAddr[NUM_STORES];
     sched_t StoreAckSched[NUM_STORES][LOOP_DEPTH];
     bool StoreAckIsMaxIter[NUM_STORES][LOOP_DEPTH];
-  // Set to true when all stores have been served (sentinel request value).
+    // Set to true when all stores have been served (sentinel request value).
     bool StoreDone[NUM_STORES];
 
     // Init store registers
@@ -222,9 +225,9 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       InitBundle(StoreButrstBuffAddr[iSt], STORE_ADDR_SENTINEL);
       InitBundle(StoreBurstBuffVal[iSt], T{});
 
-      StoreAckAddr[iSt] = 0u;
+      StoreAckAddr[iSt] = INIT_ACK_ADDR;
       InitBundle(StoreAckSched[iSt], 0u);
-      InitBundle(StoreAckIsMaxIter[iSt], false);
+      InitBundle(StoreAckIsMaxIter[iSt], true);
 
       StoreDone[iSt] = false;
     });
@@ -263,9 +266,9 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         InitBundle(LoadIsMaxIter[iLd][iD], false);
       });
 
-      LoadAckAddr[iLd] = 0u;
-      InitBundle(LoadAckSched[iLd], 1u);
-      InitBundle(LoadAckIsMaxIter[iLd], false);
+      LoadAckAddr[iLd] = INIT_ACK_ADDR;
+      InitBundle(LoadAckSched[iLd], 0u);
+      InitBundle(LoadAckIsMaxIter[iLd], true);
 
       NextLoadAddr[iLd] = 0u;
       InitBundle(NextLoadSched[iLd], 0u);
@@ -421,7 +424,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
           OtherSchedEqual = (StoreAckSched[iStOther][EqCheckLoopDepth] ==
                              NextStoreSched[iSt][EqCheckLoopDepth]);
           if constexpr (DepDir == BACK) {
-            OtherSchedEqual |= ((StoreAckSched[iStOther][EqCheckLoopDepth] +1) == 
+            OtherSchedEqual |= ((StoreAckSched[iStOther][EqCheckLoopDepth] + 1) == 
                                 NextStoreSched[iSt][EqCheckLoopDepth]);
           }
         }
@@ -477,7 +480,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       /////////////////////////////////////////////////////////////////////////
       UnrolledLoop<NUM_LOADS>([&](auto iLd) {
         // This load is done if we receive an ACK with a sentinel value.
-        LoadDone[iLd] = (LoadAckAddr[iLd] == FINAL_LD_ADDR_ACK);
+        LoadDone[iLd] = (LoadAckSched[iLd][0] == SCHED_SENTINEL);
 
         LoadNoOutstandingAcks[iLd] = (LastSentLoadSched[iLd] ==
                                       LoadAckSched[iLd][DI.LOAD_LOOP_DEPTH[iLd]]);
@@ -593,7 +596,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       /////////////////////////////////////////////////////////////////////////
       UnrolledLoop<NUM_STORES>([&](auto iSt) {
         // This store is done if we receive an ACK with a sentinel value.
-        StoreDone[iSt] = (StoreAckAddr[iSt] == STORE_ADDR_SENTINEL);
+        StoreDone[iSt] = (StoreAckSched[iSt][0] == SCHED_SENTINEL);
 
         /** Rule for reading store ACKs (always enabled). */
         bool succ = false;

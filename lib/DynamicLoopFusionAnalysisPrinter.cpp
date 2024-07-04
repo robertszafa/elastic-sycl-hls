@@ -59,6 +59,10 @@ std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
   print2D(DepI.loadStoreInSameLoop);
   O << ";\n";
 
+  O << "  static constexpr bool LOAD_STORE_IN_SAME_THREAD[NUM_LOADS][NUM_STORES] = ";
+  print2D(DepI.loadStoreInSameThread);
+  O << ";\n";
+
   O << "  static constexpr int LOAD_STORE_COMMON_LOOP_DEPTH[NUM_LOADS][NUM_STORES] = ";
   print2D(DepI.loadStoreCommonLoopDepth);
   O << ";\n";

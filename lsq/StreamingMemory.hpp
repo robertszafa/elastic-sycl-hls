@@ -657,7 +657,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         });
         bool NoWAR = true;
         UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-          if constexpr (!DI.LOAD_STORE_IN_SAME_LOOP[iLd][iSt]) {
+          if constexpr (!DI.LOAD_STORE_IN_SAME_THREAD[iLd][iSt]) {
             NoWAR &= checkNoWAR(iLd, iSt);
           }
         });

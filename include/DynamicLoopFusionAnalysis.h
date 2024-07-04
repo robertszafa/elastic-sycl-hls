@@ -87,6 +87,7 @@ public:
     SmallVector<int> loadLoopDepth;
     SmallVector<SmallVector<bool>> loadIsMaxIterNeeded;
     SmallVector<SmallVector<bool>> loadStoreInSameLoop;
+    SmallVector<SmallVector<bool>> loadStoreInSameThread;
     SmallVector<SmallVector<int>> loadStoreCommonLoopDepth;
     SmallVector<SmallVector<DepDir>> loadStoreDepDir;
 

@@ -156,6 +156,39 @@ void DynamicLoopFusionAnalysis::collectBasePointersToProtect(LoopInfo &LI) {
   }
 }
 
+/// Return true if {I} should not be included in the DecoupledLoop.
+/// For example, ld0 should be included in loop j, ld1 and ld2 go into loop k:
+///   for i:
+///     ld0
+///     for j: ...
+///     ld1
+///     for k: ...
+///     ld2
+bool instrBelongsToAnotherDecoupledLoop(Instruction *I, Loop *ILoop,
+                                        DecoupledLoopInfo &DecoupledInfo) {
+  auto getImmediateSubLoops = [](auto ParentL, auto Loops) {
+    SmallVector<Loop *> Res;
+    for (auto L : Loops) {
+      if (L->getParentLoop() == ParentL)
+        Res.push_back(L);
+    }
+
+    return Res;
+  };
+
+  if (ILoop == DecoupledInfo.inner())
+    return false;
+
+  auto ILoopChildren = getImmediateSubLoops(ILoop, ILoop->getLoopsInPreorder());
+  Loop *PointInDecoupled = getImmediateSubLoops(ILoop, DecoupledInfo.loops)[0];
+  bool DecoupledLoopComesBeforeI = isReachableWithinLoop(
+      PointInDecoupled->getHeader(), I->getParent(), ILoop);
+  bool DecoupledLoopIsLastImmediateChildOfILoop =
+      ILoopChildren.back() != PointInDecoupled;
+
+  return DecoupledLoopIsLastImmediateChildOfILoop && DecoupledLoopComesBeforeI;
+}
+
 /// For each base pointer to protect, collect all memory requests using it.
 void DynamicLoopFusionAnalysis::collectProtectedMemoryRequests(LoopInfo &LI) {
   MapVector<Instruction *, int> BasePtrId, BasePtrNumStores, BasePtrNumLoads,
@@ -167,18 +200,30 @@ void DynamicLoopFusionAnalysis::collectProtectedMemoryRequests(LoopInfo &LI) {
     BasePtrMaxLoopDepth[BasePtr] = 0;
   }
 
-  for (auto &decoupleInfo : ComputeLoops) {
+  SetVector<Instruction *> done; 
+  for (auto &DecoupledInfo : ComputeLoops) {
     SmallVector<Loop *> CurrentLoopNest;
-    for (auto L : decoupleInfo.loops) {
+    for (auto L : DecoupledInfo.loops) {
       CurrentLoopNest.push_back(L);
 
       for (auto I : getUniqueLoopInstructions(L)) {
+        // 1. Only mem ops. 
+        // 2. One memory request object per mem op.
+        // 3. If a memory requests is part of loop nests of multiple decoupled
+        //    threads, then add it to the first thread whose inner loop is
+        //    dominated by the memory request.
+        if (!(isaLoad(I) || isaStore(I)) || done.contains(I) ||
+            instrBelongsToAnotherDecoupledLoop(I, L, DecoupledInfo))
+          continue;
+
         if (auto BasePtr = getBasePtrOfInstr(I)) {
           if (BasePtrsToProtect.contains(BasePtr)) {
+            done.insert(I);
+
             // LLVM starts loops depths at 1, we start at 0.
             int ReqLoopDepth = L->getLoopDepth() - 1;
             MemoryRequest Req{.memoryId = BasePtrId[BasePtr],
-                              .loopId = decoupleInfo.id,
+                              .loopId = DecoupledInfo.id,
                               .type = MemoryRequestType::protectedMem,
                               .memOp = I,
                               .basePtr = BasePtr,
@@ -186,10 +231,10 @@ void DynamicLoopFusionAnalysis::collectProtectedMemoryRequests(LoopInfo &LI) {
                               .loopNest = CurrentLoopNest};
             if (isaLoad(I)) {
               Req.reqId = BasePtrNumLoads[BasePtr]++;
-              decoupleInfo.loads.push_back(Req);
+              DecoupledInfo.loads.push_back(Req);
             } else {
               Req.reqId = BasePtrNumStores[BasePtr]++;
-              decoupleInfo.stores.push_back(Req);
+              DecoupledInfo.stores.push_back(Req);
             }
 
             BasePtrMaxLoopDepth[BasePtr] =
@@ -398,15 +443,19 @@ void DynamicLoopFusionAnalysis::collectProtectedMemoryInfo(LoopInfo &LI) {
           LdReq->isMaxIterNeeded);
 
       SmallVector<bool> StoreInSameLoop;
+      SmallVector<bool> StoreInSameThread;
       SmallVector<int> StoreCommonLoopDepth;
       SmallVector<DepDir> StoreDepDir;
       for (auto &StReq : StoresForMem[MemId]) {
         auto StLoop = LI.getLoopFor(StReq->memOp->getParent());
         StoreInSameLoop.push_back(LdLoop == StLoop);
+        StoreInSameThread.push_back(LdReq->loopId == StReq->loopId);
         StoreCommonLoopDepth.push_back(getCommonLoopDepth(LdLoop, StLoop));
         StoreDepDir.push_back(getDependencyDir(LdReq->memOp, StReq->memOp, LI));
       }
       ProtectedMemoryInfo[MemId].loadStoreInSameLoop.push_back(StoreInSameLoop);
+      ProtectedMemoryInfo[MemId].loadStoreInSameThread.push_back(
+          StoreInSameThread);
       ProtectedMemoryInfo[MemId].loadStoreCommonLoopDepth.push_back(
           StoreCommonLoopDepth);
       ProtectedMemoryInfo[MemId].loadStoreDepDir.push_back(StoreDepDir);
@@ -475,7 +524,8 @@ void DynamicLoopFusionAnalysis::collectAguLoops() {
   }
 }
 
-void addRequestToComputeLoop(MemoryRequest &Req, SmallVector<DecoupledLoopInfo, 4> &ComputeLoops) {
+void addRequestToComputeLoop(MemoryRequest &Req,
+                             SmallVector<DecoupledLoopInfo, 4> &ComputeLoops) {
   for (auto &decoupleInfo : ComputeLoops) {
     if (llvm::is_contained(decoupleInfo.loops, Req.loopNest.back())) {
       MemoryRequest NewReq = {Req};

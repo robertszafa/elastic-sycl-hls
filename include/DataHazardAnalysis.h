@@ -75,7 +75,7 @@ public:
 
 private:
   /// For testing, to turn off decoupling and speculation.
-  bool decouplingEnabled;
+  bool aguDecouplingOff;
 
   /// Memory load and store instructions for each base address that is part
   /// of a data hazard.

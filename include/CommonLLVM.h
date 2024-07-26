@@ -307,7 +307,8 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
                                        ->getParent()
                                        ->getParent()
                                        ->getEntryBlock();
-  if (dyn_cast<Instruction>(pointerOperand)->getParent() == entryBlockF) {
+  if (dyn_cast<Instruction>(pointerOperand)->getParent() == entryBlockF &&
+      !isa<GetElementPtrInst>(pointerOperand)) {
     // stop;
   } else if (auto cast = dyn_cast<BitCastInst>(pointerOperand)) {
     return getPointerBase(dyn_cast<Instruction>(cast->getOperand(0)));

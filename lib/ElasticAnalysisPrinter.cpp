@@ -617,7 +617,10 @@ void composeDecoupledKernels(Function &F, DataHazardAnalysis &DHA,
 struct ElasticAnalysisPrinter : PassInfoMixin<ElasticAnalysisPrinter> {
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
-    if (F.getCallingConv() == CallingConv::SPIR_KERNEL) {
+    std::string thisKernelName = demangle(std::string(F.getNameOrAsOperand()));
+    bool isMain = thisKernelName.find("MainKernel") < thisKernelName.size();
+
+    if (F.getCallingConv() == CallingConv::SPIR_KERNEL && isMain) {
       // Get all required analysis'. Only the CDG is custom written.
       auto &LI = AM.getResult<LoopAnalysis>(F);
       auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);

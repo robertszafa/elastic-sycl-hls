@@ -266,6 +266,7 @@ struct RewriteRule {
 }
 
 [[maybe_unused]] RewriteRule jsonToRewriteRule(Function &F, LoopInfo &LI,
+                                               const json::Object &report,
                                                json::Object obj) {
   RewriteRule res;
 
@@ -276,7 +277,14 @@ struct RewriteRule {
          "Tried to deserialize a rewriteRule for another function.");
 
   auto instrBB = getBlock(F, *obj.getInteger("instructionBasicBlockIdx"));
-  res.instruction = getInstruction(*instrBB, *obj.getInteger("instructionIdx"));
+  // If the instruction is in the entry block, then its index will have shifted
+  // by the number of instructions added during the AST phase.
+  int offset =
+      instrBB->isEntryBlock()
+          ? instrBB->size() - *report.getInteger("numInstrInEntryBlock")
+          : 0;
+  res.instruction =
+      getInstruction(*instrBB, *obj.getInteger("instructionIdx") + offset);
   res.basicBlock = getBlock(F, *obj.getInteger("basicBlockIdx"));
   res.pipeCall = getPipeCall(F, obj);
 
@@ -416,6 +424,7 @@ serializeAnalysis(Function &F, SmallVector<LSQInfo> &lsqArray,
   json::Object report;
   report["mainKernelName"] = demangle(std::string(F.getName()));
   report["kernelStartLine"] = F.getSubprogram()->getLine();
+  report["numInstrInEntryBlock"] = int(F.getEntryBlock().size());
 
   auto peArrayJson = json::Array();
   for (auto &peInfo : peArray)
@@ -445,7 +454,7 @@ deserializeAnalysis(Function &F, LoopInfo &LI, const json::Object &report,
   for (auto ruleJsonVal : *report.getArray("rewriteRules")) {
     auto ruleJson = *ruleJsonVal.getAsObject();
     if (ruleJson.getString("kernelName") == thisKernelName) 
-      rewriteRules.push_back(jsonToRewriteRule(F, LI, ruleJson));
+      rewriteRules.push_back(jsonToRewriteRule(F, LI, report, ruleJson));
   }
 
   for (auto peInfoJson : *report.getArray("peArray")) 

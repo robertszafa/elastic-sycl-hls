@@ -110,7 +110,7 @@ void hoistBlock(BasicBlock *BB, BasicBlock *hoistLocation) {
 
 /// Create a zero-init uint32 tag using alloca at {F.entry}. Return its address.
 Value *createTag(Function &F, SetVector<Instruction *> &toKeep) {
-  IRBuilder<> Builder(F.getEntryBlock().getTerminator());
+  IRBuilder<> Builder(F.getEntryBlock().getFirstNonPHI());
   // LLVM doesn't make a distinction between signed and unsigned. And the only
   // op done on tags is 2's complement addition, so the bit pattern is the same.
   auto tagType = Type::getInt32Ty(F.getContext());

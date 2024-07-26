@@ -35,10 +35,11 @@ Instruction *DataHazardAnalysis::getLodDataDependencySrc(Instruction *I) {
 BasicBlock *
 DataHazardAnalysis::getLodControlDependencySrc(BasicBlock *BB, LoopInfo &LI,
                                                ControlDependenceGraph &CDG) {
-  // Check all branches from BB up to loop header.
-  const BasicBlock *LoopHeader = LI.getLoopFor(BB)->getHeader();
+  // Check all ctrl dependencies of BB. Stop at inner loop header (if exists).
+  auto L = LI.getLoopFor(BB);
+  const BasicBlock *LoopHeader = L ? L->getHeader() : nullptr;
   BasicBlock *CurrBB = BB;
-  while (CurrBB && CurrBB != LoopHeader) {
+  while (CurrBB && CurrBB != LoopHeader && !CurrBB->isEntryBlock()) {
     // Get control depenency.
     if (auto ctrlDepSrcBB = CDG.getControlDependencySource(CurrBB)) {
       // Check if that control dependency depends on values from the CU.
@@ -56,11 +57,12 @@ DataHazardAnalysis::getLodControlDependencySrc(BasicBlock *BB, LoopInfo &LI,
 
 /// Return values for the {instr} key in {addr2InstMap}.
 /// Return nullptr if {addr2InstMap} doesn't have the {instr} key.
-SetVector<Instruction *> *getEquivalentInMap(
+SetVector<Instruction *> *getClusterForBasePtr(
     DenseMap<Instruction *, SetVector<Instruction *>> &addr2InstMap,
     const Instruction *instr) {
   for (auto &kv : addr2InstMap) {
     if (kv.getFirst()->isIdenticalTo(instr))
+    // if (kv.getFirst()->isSameOperationAs(instr))
       return &kv.getSecond();
   }
 
@@ -158,7 +160,7 @@ void DataHazardAnalysis::calculateDecoupling(ControlDependenceGraph &CDG,
       return getLodDataDependencySrc(memOp) == nullptr;
     };
     bool canDecoupleCluster =
-        llvm::all_of(cluster, noLodDataDep) && decouplingEnabled;
+        !aguDecouplingOff && llvm::all_of(cluster, noLodDataDep);
 
     // If there is no data dependency LoD, then check if speculation is needed.
     SmallVector<BasicBlock *> thisSpecialCtrlDepSrsBlocks;
@@ -375,7 +377,8 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
                                        PostDominatorTree &PDT,
                                        DataDependenceGraph &DDG,
                                        ControlDependenceGraph &CDG) {
-  decouplingEnabled = std::getenv("NO_DECOUPLING") == nullptr;
+  aguDecouplingOff = std::getenv("NO_AGU_DECOUPLING") && 
+                     strcmp(std::getenv("NO_AGU_DECOUPLING"), "1") == 0;
 
   // Collect all base addresses that are stored to
   // and that have an uncomputable Scalar Evolution index.
@@ -423,8 +426,8 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
   // unpredictable store to the same base address.
   for (auto &I : discardedStores) {
     auto ptrBase = getPointerBase(dyn_cast<StoreInst>(I)->getPointerOperand());
-    if (auto bucketToInsert = getEquivalentInMap(addr2InstMap, ptrBase)) 
-      bucketToInsert->insert(I);
+    if (auto cluster = getClusterForBasePtr(addr2InstMap, ptrBase)) 
+      cluster->insert(I);
   }
 
   // Collect loads seperately, once all unpredictable stores are known.
@@ -440,9 +443,9 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
             auto pointerBaseInstr = getPointerBase(li->getPointerOperand());
             // We are only intersted in loads where there 
             // is a store to the the same base address.
-            if (auto bucketToInsert =
-                    getEquivalentInMap(addr2InstMap, pointerBaseInstr)) {
-              bucketToInsert->insert(&I);
+            if (auto cluster =
+                    getClusterForBasePtr(addr2InstMap, pointerBaseInstr)) {
+              cluster->insert(&I);
             }
           }
         }
@@ -454,6 +457,17 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
   llvm::remove_if(addr2InstMap, [](auto kv) {
     return llvm::all_of(kv.getSecond(), isaStore);
   });
+
+  // Add any loads & stores done in function entry. They will not form
+  // a RAW hazard that decreases performance, but if other mem ops using the
+  // same address are protected by an LSQ, then they also have to be.
+  for (auto &I : F.getEntryBlock()) {
+    if (auto pointerOp = getLoadStorePointerOperand(&I)) {
+      auto pointerBaseInstr = getPointerBase(pointerOp);
+      if (auto cluster = getClusterForBasePtr(addr2InstMap, pointerBaseInstr))
+        cluster->insert(&I);
+    }
+  }
 
   // Take only the mem instrs and ensure the order is deterministic.
   hazardInstrs = getSortedVectorClusters(addr2InstMap, PDT);

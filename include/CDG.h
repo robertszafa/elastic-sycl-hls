@@ -28,7 +28,7 @@ using CDGNodeBase = DGNode<CDGNode, CDGEdge>;
 using CDGEdgeBase = DGEdge<CDGNode, CDGEdge>;
 using CDGBase = DirectedGraph<CDGNode, CDGEdge>;
 
-/// Control Dependence Graph Node corresponding.
+/// Control Dependence Graph. Currently without switch instruction support.
 /// The graph can represent the following types of nodes:
 /// 1. Basic block of instructions.
 /// 2. Root node is a special node that represents the entry to a function.

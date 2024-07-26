@@ -43,12 +43,14 @@ auto isaStore = [](auto i) { return isa<StoreInst>(i); };
 
 [[maybe_unused]] CallInst *getPipeCall(Instruction *I) {
   const std::string PIPE_CALL = "ext::intel::pipe";
+  const std::string EXP_PIPE_CALL = "ext::intel::experimental::pipe";
 
   if (CallInst *callInst = dyn_cast<CallInst>(I)) {
     if (Function *f = callInst->getCalledFunction()) {
       auto fName = demangle(std::string(f->getName()));
       if (f->getCallingConv() == CallingConv::SPIR_FUNC &&
-          fName.find(PIPE_CALL) != std::string::npos) {
+          (fName.find(PIPE_CALL) != std::string::npos ||
+           fName.find(EXP_PIPE_CALL) != std::string::npos)) {
         return callInst;
       }
     }
@@ -57,30 +59,41 @@ auto isaStore = [](auto i) { return isa<StoreInst>(i); };
   return nullptr;
 }
 
-/// Given a range of instructions, for each I return its position in its basic
-/// block relative to all other instructions in the range.
-[[maybe_unused]] SmallVector<int>
-getSeqInBB(const SmallVector<Instruction *> &Range) {
-  SmallMapVector<BasicBlock *, int, 4> seen;
-  SmallVector<int> seqInBB;
-  for (auto &I : Range) {
-    if (seen.contains(I->getParent()))
-      seen[I->getParent()]++;
-    else
-      seen[I->getParent()] = 0;
-
-    seqInBB.push_back(seen[I->getParent()]);
-  }
-
-  return seqInBB;
-}
-
-[[maybe_unused]] std::string getTypeString(const Instruction *I) {
+[[maybe_unused]] std::string getLLVMTypeString(const Instruction *I) {
   std::string typeStr;
   llvm::raw_string_ostream rso(typeStr);
   I->getType()->print(rso);
 
   return typeStr;
+}
+
+[[maybe_unused]] std::string getCTypeString(const Instruction *I) {
+  const std::string llvmtype = getLLVMTypeString(I);
+
+  if (llvmtype.find("i1") != std::string::npos)
+    return "bool";
+  else if (llvmtype.find("i8") != std::string::npos)
+    return "signed char";
+  else if (llvmtype.find("i16") != std::string::npos)
+    return "signed short";
+  else if (llvmtype.find("i32") != std::string::npos)
+    return "int";
+  else if (llvmtype.find("i64") != std::string::npos)
+    return "signed long int";
+  else if (llvmtype.find("addrspace") != std::string::npos)
+    return "int64_t";
+
+  return llvmtype;
+}
+
+[[maybe_unused]] std::string getLoadStoreCTypeString(const Instruction *I) {
+  if (isaLoad(I))
+    return getCTypeString(I); 
+  else if (isaStore(I))
+    return getCTypeString(dyn_cast<Instruction>(I->getOperand(0)));
+
+  assert(false && "Not a load or store.");
+  return "";
 }
 
 /// Given a {val}, store it into the operand of the {pipe} write.
@@ -171,19 +184,22 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   return json::Value(nullptr);
 }
 
-/// Return the pipe call instruction corresponding to the pipeInfo json obj.
-[[maybe_unused]] CallInst *getPipeCall(Function &F, json::Object &pipeInfo) {
+/// Return the pipe call instruction corresponding to the pipeName and idx pack.
+[[maybe_unused]] CallInst *getPipeCall(Function &F, const std::string &pipeName,
+                                       const SmallVector<int> pipeIdxs={}) {
   static StringMap<int> collectedCalls;
 
-  auto pipeNameOpt = pipeInfo.getString("pipeName");
-  assert(pipeNameOpt && "Pipe in getPipeCall(F, json::Object) not found.");
-  auto pipeName = pipeNameOpt->str();
-  // If no pipe_array_idx or repeat_id, then use defaults.
-  auto seqNumOpt = pipeInfo.getInteger("pipeArrayIdx");
-  auto seqNum = seqNumOpt ? seqNumOpt.value() : -1;
+  // Flatten the index pack into a single string.
+  std::string pipeIdxAccess = "StructId<";
+  for (size_t i = 0; i < pipeIdxs.size(); ++i) {
+    if (i > 0)
+      pipeIdxAccess += ", ";
+    pipeIdxAccess += std::to_string(pipeIdxs[i]) + "ul";
+  }
+  pipeIdxAccess += ">";
 
-  const std::string pipeIdKey =
-      std::string(F.getName()) + pipeName + std::to_string(seqNum);
+  // Keep track of already found pipe calls.
+  std::string pipeIdKey = std::string(F.getName()) + pipeName + pipeIdxAccess;
   int pipeCallsToSkip = 0;
   if (collectedCalls.contains(pipeIdKey)) {
     pipeCallsToSkip = collectedCalls[pipeIdKey];
@@ -193,32 +209,26 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   }
 
   /// Lambda. Returns true if {call} is a call to our pipe.
-  auto isThisPipe = [&pipeName, &seqNum](std::string call) {
-    std::regex pipe_regex{pipeName, std::regex_constants::ECMAScript};
-    std::smatch pipe_match;
-    std::regex_search(call, pipe_match, pipe_regex);
+  auto isThisPipe = [&](std::string &thisPipeName) {
+    std::regex pipeNameReg{pipeName + "_?", std::regex_constants::ECMAScript};
+    std::regex pipeIdxRegex{pipeIdxAccess, std::regex_constants::ECMAScript};
 
-    std::regex struct_regex{"StructId<" + std::to_string(seqNum) + "ul>",
-                            std::regex_constants::ECMAScript};
-    std::smatch struct_match;
-    std::regex_search(call, struct_match, struct_regex);
+    std::smatch nameMatch;
+    std::smatch idxMatch;
+    bool pipeNameOk = std::regex_search(thisPipeName, nameMatch, pipeNameReg);
+    bool pipeIdxOk = pipeIdxs.empty() ||
+                     std::regex_search(thisPipeName, idxMatch, pipeIdxRegex);
 
-    // If structId < 0, then this is not a pipe array and don't check the id.
-    if ((pipe_match.size() > 0 && seqNum < 0) ||
-        (pipe_match.size() > 0 && struct_match.size() > 0)) {
-      return true;
-    }
-
-    return false;
+    return pipeNameOk && pipeIdxOk;
   };
 
   int numCallsSkipped = 0;
   for (auto &bb : F) {
     for (auto &instruction : bb) {
       if (auto pipeCall = getPipeCall(&instruction)) {
-        auto pipeName =
+        auto thisPipeName =
             demangle(std::string(pipeCall->getCalledFunction()->getName()));
-        if (isThisPipe(pipeName)) {
+        if (isThisPipe(thisPipeName)) {
           if (numCallsSkipped == pipeCallsToSkip)
             return pipeCall;
           else
@@ -228,9 +238,24 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
     }
   }
 
-  errs() << "Pipe name " << pipeName << "\n";
+  errs() << "ERROR: Not found pipe name " << pipeName
+         << " with idxs: " << pipeIdxAccess << " in kernel "
+         << demangle(std::string(F.getNameOrAsOperand())) << "\n";
   assert(false && "Pipe in getPipeCall(F, json::Object) not found.");
   return nullptr;
+}
+
+[[maybe_unused]] CallInst *getPipeCall(Function &F, json::Object &pipeInfo) {
+  auto pipeNameOpt = pipeInfo.getString("pipeName");
+  assert(pipeNameOpt && "Pipe in getPipeCall(F, json::Object) not found.");
+  auto pipeName = pipeNameOpt->str();
+
+  // If no pipe_array_idx or repeat_id, then use defaults.
+  auto pipeIdxOpt = pipeInfo.getInteger("pipeArrayIdx");
+  if (pipeIdxOpt)
+    return getPipeCall(F, pipeName, {int(pipeIdxOpt.value())});
+  else
+    return getPipeCall(F, pipeName, {});
 }
 
 [[maybe_unused]] CallInst *getPipeWithPattern(BasicBlock &BB,
@@ -379,9 +404,9 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
     else if (type == scUDivExpr)
       return IR.CreateUDiv(LHS, RHS);
     else if (type == scUMaxExpr || type == scSMaxExpr)
-      return IR.CreateMaximum(LHS, RHS);
+      return IR.CreateSelect(IR.CreateICmpSGT(LHS, RHS), LHS, RHS);
     else if (type == scUMinExpr || type == scSMinExpr)
-      return IR.CreateMaximum(LHS, RHS);
+      return IR.CreateSelect(IR.CreateICmpSLT(LHS, RHS), LHS, RHS);
   }
 
   return nullptr;
@@ -391,8 +416,10 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
 [[maybe_unused]] SmallVector<BasicBlock *> getUniqueLoopBlocks(Loop *L) {
   SetVector<BasicBlock *> blocksOfSubloops;
   for (auto subLoop : L->getSubLoops()) {
-    for (auto BB : subLoop->blocks())
-      blocksOfSubloops.insert(BB);
+    for (auto BB : subLoop->blocks()) {
+      if (BB != L->getHeader())
+        blocksOfSubloops.insert(BB);
+    }
   }
 
   SmallVector<BasicBlock *> thisLoopBlocks;
@@ -466,6 +493,46 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   }
 
   return isReachable;
+}
+
+/// Return true, if there is a possibility that {src} could be executed on any
+/// of the def-use path leading to {dst}.
+[[maybe_unused]] bool isInDefUsePath(Instruction *src, Instruction *dst) {
+  SmallVector<Instruction *> workList, doneList;
+  workList.push_back(dst);
+
+  // Work up the def-use chain of {dst} until hitting {src} or arriving the the
+  // F.entry. Special treatment of phi nodes: add terminating instructions of
+  // the incoming basic blocks to the worklist (if {src} is in the def-use chain
+  // of the terminator, then there is a possibility that it will be executed on
+  // the path to {dst}.
+  while (!workList.empty()) {
+    auto currDst = workList.pop_back_val();
+    doneList.push_back(currDst);
+
+    // Case 1: There is a direct data dependency, so this def-use chain exists: 
+    // F.entry ~> .. ~> {src} .. ~> {dst}
+    for (auto &Use : currDst->operands()) {
+      if (auto UseI = dyn_cast<Instruction>(Use.get())) {
+        if (UseI == src)
+          return true;
+
+        if (!llvm::is_contained(doneList, UseI))
+          workList.push_back(UseI);
+      }
+    }
+
+    // Case 2: Some value in {dst} def-use chain is a phi node and the
+    // terminator of the incoming basic block has {src} in this def-use chain.
+    if (auto dstPhi = dyn_cast<PHINode>(currDst)) {
+      for (auto incomingBB : dstPhi->blocks()) {
+        if (!llvm::is_contained(doneList, incomingBB->getTerminator()))
+          workList.push_back(incomingBB->getTerminator());
+      }
+    }
+  }
+
+  return false;
 }
 
 } // namespace

@@ -118,6 +118,8 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
 
       NTuple<ld_req_lsq_bram_t, NUM_LDS> ld_req_tuple;
       NTuple<bool, NUM_LDS> read_succ_tuple;
+      UnrolledLoop<NUM_LDS>(
+          [&](auto k) { read_succ_tuple.template get<k>() = false; });
 
       bool end_signal = false;
       [[intel::initiation_interval(1)]] 
@@ -128,7 +130,6 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         // Choose one, based on tag.
         bool is_req_valid = false;
         ld_req_lsq_bram_t req_to_write;
-        int next_port;
         UnrolledLoop<NUM_LDS>([&](auto k) {
           auto& read_succ = read_succ_tuple. template get<k>();
           auto& ld_req = ld_req_tuple. template get<k>();
@@ -169,8 +170,10 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
       uint last_st_req_tag = 0;
       // Initialize store allocation queue with invalid entries.
       #pragma unroll
-      for (int i=0; i<ST_Q_SIZE; ++i)
+      for (int i = 0; i < ST_Q_SIZE; ++i) {
         st_alloc_addr[i] = INVALID_BRAM_ADDR;
+        st_alloc_tag[i] = 0u;
+      }
 
       // Registers for load logic. 
       [[intel::fpga_register]] addr_bram_t ld_addr[LD_Q_SIZE];
@@ -179,6 +182,9 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
       [[intel::fpga_register]] bool ld_val_valid[LD_Q_SIZE];
       [[intel::fpga_register]] bool ld_is_safe[LD_Q_SIZE];
       [[intel::fpga_register]] uint ld_port[LD_Q_SIZE]; // used if NUM_LDS>1
+      #pragma unroll
+      for (int i = 0; i < LD_Q_SIZE; ++i) ld_addr[i] = 0;
+
       // Only the head of load queue will have values.
       value_t ld_val;
       value_t ld_memory_val;
@@ -227,8 +233,8 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
             st_val = _rd.value;
             // Optional support for speculative address allocations. 
             // If enabled, then the store value needs a valid bit to commit.
-            if constexpr (USE_SPECULATION) 
-              st_val_valid = _rd.valid; 
+            if constexpr (USE_SPECULATION)
+              st_val_valid = st_val_arrived && _rd.valid; 
             else
               st_val_valid = st_val_arrived;
           } else { 
@@ -328,7 +334,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
 
             bool ld_wait = false;
             #pragma unroll
-            for (int i=0; i<ST_Q_SIZE; ++i)
+            for (int i = 0; i < ST_Q_SIZE; ++i)
               ld_wait |= match[i];
 
             // Once a load is marked as safe, it cannot go back to unsafe.

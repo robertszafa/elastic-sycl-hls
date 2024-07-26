@@ -8,13 +8,64 @@ using namespace llvm;
 namespace llvm {
 
 const std::string REPORT_ENV_NAME = "ELASTIC_PASS_REPORT";
+const std::string POISON_BB_NAME = "poisonBB";
 
 enum PE_PREDICATE_CODES { EXECUTE, RESET, EXIT, POISON };
 
+/// Merge poison blocks that have the same list of posion pipe calls, and the
+/// same (one) successor basic block.
+void mergePoisonBlocks(Function &F) {
+  using VecOfPipes = SmallVector<CallInst *>;
+  MapVector<BasicBlock *, VecOfPipes> poisonBB2PipeCalls;
+
+  for (auto &BB : F) {
+    // Hacky approach to getting poison blocks but okay for now.
+    auto bbName = BB.getNameOrAsOperand();
+    bool isPoisonBB = bbName.find(POISON_BB_NAME) < bbName.size();
+
+    if (isPoisonBB) {
+      poisonBB2PipeCalls[&BB] = VecOfPipes();
+
+      for (auto &I : BB) {
+        if (auto PipeCallI = getPipeCall(&I)) {
+          poisonBB2PipeCalls[&BB].push_back(PipeCallI);
+        }
+      }
+    }
+  }
+
+  auto areEquivalent = [](VecOfPipes Vec1, VecOfPipes Vec2) {
+    if (Vec1.size() != Vec2.size() || Vec1.size() == 0)
+      return false;
+    
+    for (size_t i = 0; i < Vec1.size(); ++i) {
+      if (!Vec1[i]->isSameOperationAs(Vec2[i]))
+        return false;
+    }
+    return true;
+  };
+
+  auto mergeBlocks = [](BasicBlock *BB1, BasicBlock *BB2) {
+    for (auto &BB : *BB1->getParent()) {
+      BB.getTerminator()->replaceSuccessorWith(BB2, BB1);
+      BB2->replacePhiUsesWith(BB2, BB1);
+    }
+  };
+
+  // Merge poison blocks that have equivalent pipe calls and the same successor.
+  for (auto &[poisonBB1, pipeCalls1] : poisonBB2PipeCalls) {
+    for (auto &[poisonBB2, pipeCalls2] : poisonBB2PipeCalls) {
+      if (poisonBB1 != poisonBB2 && areEquivalent(pipeCalls1, pipeCalls2)) {
+        // Repeated merge(A, B) and merge(B, A) are not a problem.
+        mergeBlocks(poisonBB1, poisonBB2);
+      }
+    }
+  }
+}
+
 /// Create and return a new basic blocks on the predBB --> succBB CFG edge.
 /// Cache the created block and return it if called again with the same edge.
-BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB,
-                              const std::string name = "") {
+BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB) {
   // Map of CFG edges to poison basic blocks that already have been created.
   static MapVector<CFGEdge, BasicBlock *> createdBlocks;
   
@@ -22,7 +73,7 @@ BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB,
   if (!createdBlocks.contains(requestedEdge)) {
     auto F = predBB->getParent();
     IRBuilder<> Builder(F->getContext());
-    auto newBB = BasicBlock::Create(F->getContext(), name, F, succBB);
+    auto newBB = BasicBlock::Create(F->getContext(), POISON_BB_NAME, F, succBB);
     createdBlocks[requestedEdge] = newBB;
 
     // Insert BB on pred-->succ edge
@@ -339,6 +390,11 @@ void doLdValRead(const RewriteRule &rule) {
   rule.pipeCall->moveAfter(rule.instruction);
   Value *loadVal = dyn_cast<Value>(rule.instruction);
   loadVal->replaceAllUsesWith(rule.pipeCall);
+
+  // Move load out of if-condition if specBB is set.
+  if (rule.specBasicBlock) {
+    rule.pipeCall->moveBefore(rule.specBasicBlock->getTerminator());
+  }
 }
 
 void doStValWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
@@ -365,26 +421,30 @@ void doStValWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
     tagStore->moveBefore(rule.pipeCall);
     IRBuilder<> IR(tagStore);
     LoadInst *tagVal = IR.CreateLoad(tagType, lsqInfo.stTagAddr);
-    auto tagPlusOne = IR.CreateAdd(tagVal, ConstantInt::get(tagType, 1));
-    tagStore->setOperand(0, tagPlusOne);
 
+    // If not decoupled, then the increment is already done by the st request.
+    if (lsqInfo.isAddressGenDecoupled) {
+      auto tagPlusOne = IR.CreateAdd(tagVal, ConstantInt::get(tagType, 1));
+      toKeep.insert(IR.CreateStore(tagPlusOne, lsqInfo.stTagAddr));
+      tagStore->setOperand(0, tagPlusOne);
+    } else {
+      tagStore->setOperand(0, tagVal);
+    }
+    
     toKeep.insert(tagStore);
-    toKeep.insert(IR.CreateStore(tagPlusOne, lsqInfo.stTagAddr));
   }
 }
 
 void doPoisonLdRead(const RewriteRule &rule) {
   // Move the pipe call to the poison block, and just don't use its value.
-  BasicBlock *poisonBB =
-      createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock, "poisonBB");
+  auto *poisonBB = createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock);
   rule.pipeCall->moveBefore(poisonBB->getTerminator());
 }
 
 void doPoisonStWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
-                    SetVector<Instruction *> &toKeep) {
+                     SetVector<Instruction *> &toKeep) {
   // Move the pipe call to the poison block.
-  BasicBlock *poisonBB =
-      createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock, "poisonBB");
+  auto *poisonBB = createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock);
   rule.pipeCall->moveBefore(poisonBB->getTerminator());
 
   // If store value tag is used, then we need to increment and use it.
@@ -730,10 +790,9 @@ void doStValTagToBBWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
                          SetVector<Instruction *> &toKeep) {
   // The write might happen in a poison block.
   auto isInPoisonBB = rule.predBasicBlock && rule.succBasicBlock;
-  auto insertInBlock = isInPoisonBB
-                           ? createBlockOnEdge(rule.predBasicBlock,
-                                               rule.succBasicBlock, "poisonBB")
-                           : rule.basicBlock;
+  auto insertInBlock =
+      isInPoisonBB ? createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock)
+                   : rule.basicBlock;
   rule.pipeCall->moveBefore(insertInBlock->getFirstNonPHI());
 
   // Load lsq st tag and store into pipe 
@@ -756,8 +815,7 @@ void doStValTagToBBWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
 /// Create a new basic block with a poison pipe to the LSQ.
 void doPoisonPredBbWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
                          SetVector<Instruction *> &toKeep) {
-  auto poisonBB =
-      createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock, "poisonBB");
+  auto poisonBB = createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock);
 
   rule.pipeCall->moveBefore(poisonBB->getTerminator());
 
@@ -940,6 +998,8 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
       else if (rule.ruleType == ST_VAL_TAG_LOOP_OUT_WRITE)
         doStValTagLoopOutWrite(rule, lsqArray[rule.lsqIdx], peArray[rule.peIdx], toKeepI);
     }
+
+    mergePoisonBlocks(F);
 
     // After all rules executed, delete code decoupled out of this kernel. 
     deleteCode(F, isAGU, toDeleteI, toKeepI, toDeleteBB, toKeepBB);

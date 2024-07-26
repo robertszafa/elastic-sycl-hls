@@ -29,7 +29,8 @@ std::string getKernelName(BasicBlock *BB, const SmallVector<PEInfo> &peArray) {
 
 /// Fill the lsqArray with info about LSQs to generate.
 /// Fill the rewriteRules with info about transformations needed to use the LSQ.
-void generateInfoLSQ(Function &F, DataHazardAnalysis *DHA,
+void generateInfoLSQ(Function &F, LoopInfo &LI, DataHazardAnalysis *DHA,
+                     ControlDependentDataDependencyAnalysis *CDDD,
                      const SmallVector<PEInfo> &peArray,
                      SmallVector<LSQInfo> &lsqArray,
                      SmallVector<RewriteRule> &rewriteRules) {
@@ -51,6 +52,24 @@ void generateInfoLSQ(Function &F, DataHazardAnalysis *DHA,
     return (peUse.size() == 0) || (peUse.size() == 1 && mainUse.size() == 0);
   };
 
+  /// Given a range of instructions, for each I return its position in its basic
+  /// block relative to all other instructions in the range.
+  auto getMaxMemOpsInAnyLoop = [&LI](const SmallVector<Instruction *> &Range) {
+    SmallMapVector<Loop *, int, 4> seen;
+    int maxSoFar = 1;
+    for (auto &I : Range) {
+      auto L = LI.getLoopFor(I->getParent());
+      if (L && seen.contains(L))
+        seen[L]++;
+      else if (L)
+        seen[L] = 1;
+
+      maxSoFar = (seen[L] > maxSoFar) ? seen[L] : maxSoFar;
+    }
+
+    return maxSoFar;
+  };
+
   for (size_t iLSQ = 0; iLSQ < DHA->getHazardInstructions().size(); ++iLSQ) {
     // First collect some info about the memory accesses for this LSQ.
     auto instrCluster = DHA->getHazardInstructions()[iLSQ];
@@ -61,23 +80,22 @@ void generateInfoLSQ(Function &F, DataHazardAnalysis *DHA,
       else
         stores.push_back(instrCluster[i]);
     }
+    // LSQ ld/st pipes are represented as an array of pipes (name + idx).
+    // If we can reuse pipes across loops, then we need to keep track of the
+    // indexes, otherwsise we can use a unique pipe for every ld/st. First we 
+    // check, if all loops where the pipe array is used, are in the same kernel.
     const bool reuseLdPipesLSQ = canReuseLSQPipes(loads);
     const bool reuseStPipesLSQ = canReuseLSQPipes(stores);
-    // LSQ ld/st pipes are represented as an array of pipes (name + idx).
-    // If we can reuse pipes across BBs, then we need to keep track of the
-    // indexes, otherwsise we can use a unique pipe for every ld/st.
-    SmallVector<int> ldSeqInBB = getSeqInBB(loads);
-    SmallVector<int> stSeqInBB = getSeqInBB(stores);
-    int maxLdsBB = *std::max_element(ldSeqInBB.begin(), ldSeqInBB.end()) + 1;
-    int maxStsBB = *std::max_element(stSeqInBB.begin(), stSeqInBB.end()) + 1;
-    // Mapping used to reuse LSQ pipes across basic blocks.
-    MapVector<BasicBlock *, int> loadsPerBB, storesPerBB;
+    int maxLdsInLoop = getMaxMemOpsInAnyLoop(loads);
+    int maxStsInLoop = getMaxMemOpsInAnyLoop(stores);
+    // Mapping used to reuse LSQ pipes across loops.
+    MapVector<Loop *, int> loadsPerLoop, storesPerLoop;
 
     // General info about the LSQ as a whole.
     LSQInfo lsqInfo;
     lsqInfo.lsqIdx = iLSQ;
-    lsqInfo.numLoadPipes = reuseLdPipesLSQ ? maxLdsBB : int(loads.size());
-    lsqInfo.numStorePipes = reuseStPipesLSQ ? maxStsBB : int(stores.size());
+    lsqInfo.numLoadPipes = reuseLdPipesLSQ ? maxLdsInLoop : int(loads.size());
+    lsqInfo.numStorePipes = reuseStPipesLSQ ? maxStsInLoop : int(stores.size());
     lsqInfo.reuseLdPipesAcrossBB = reuseLdPipesLSQ;
     lsqInfo.reuseStPipesAcrossBB = reuseStPipesLSQ;
     lsqInfo.isOnChipMem = DHA->getIsOnChip()[iLSQ];
@@ -85,7 +103,7 @@ void generateInfoLSQ(Function &F, DataHazardAnalysis *DHA,
     lsqInfo.isAddressGenDecoupled = DHA->getDecoupligDecisions()[iLSQ];
     lsqInfo.isAnySpeculation = DHA->getSpeculationDecisions()[iLSQ];
     lsqInfo.arraySize = DHA->getMemorySizes()[iLSQ];
-    lsqInfo.arrayType = getTypeString(dyn_cast<Instruction>(loads[0]));
+    lsqInfo.arrayType = getLLVMTypeString(dyn_cast<Instruction>(loads[0]));
     lsqInfo.aguKernelName = lsqInfo.isAddressGenDecoupled
                             ? mainKernelName + "_AGU_" + std::to_string(iLSQ)
                             : mainKernelName;
@@ -98,9 +116,10 @@ void generateInfoLSQ(Function &F, DataHazardAnalysis *DHA,
     for (size_t iLd = 0; iLd < loads.size(); ++iLd) {
       // {loadsPerBB} is only used when reusePipesLSQ is true.
       auto ldBB = loads[iLd]->getParent();
-      if (!loadsPerBB.contains(ldBB))
-        loadsPerBB[ldBB] = 0;
-      int pipeIdx = reuseLdPipesLSQ ? loadsPerBB[ldBB]++ : iLd;
+      auto ldLoop = LI.getLoopFor(ldBB);
+      if (!loadsPerLoop.contains(ldLoop))
+        loadsPerLoop[ldLoop] = 0;
+      int pipeIdx = reuseLdPipesLSQ ? loadsPerLoop[ldLoop]++ : iLd;
 
       RewriteRule ldReq{LD_REQ_WRITE, lsqInfo.aguKernelName, loads[iLd], ldBB};
       ldReq.lsqIdx = iLSQ;
@@ -116,32 +135,41 @@ void generateInfoLSQ(Function &F, DataHazardAnalysis *DHA,
       ldVal.pipeName = "pipes_ld_val_" + std::to_string(iLSQ) + "_class";
       ldVal.pipeType = lsqInfo.arrayType;
       ldVal.pipeArrayIdx = pipeIdx;
+      
+      // If the speculated load is used in another PE, then add a poison load.
+      // Otherwise, hoist the load to the same location where it is speculated.
+      if (!CDDD->getBlocksToDecouple().contains(ldVal.basicBlock)) {
+        ldVal.specBasicBlock = DHA->getSpeculationBlock(loads[iLd]);
+      } else {
+        // If loads cannot be reordered for some reason, then we can also insert 
+        // poison blocks (same as for stores).
+        if (auto specBB = DHA->getSpeculationBlock(loads[iLd])) {
+          for (auto [predBB, succBB] : DHA->getPoisonLocations(loads[iLd])) {
+            RewriteRule poison{POISON_LD_READ, mainKernelName, loads[iLd], ldBB};
+            poison.lsqIdx = iLSQ;
+            poison.pipeName = "pipes_ld_val_" + std::to_string(iLSQ) + "_class";
+            poison.predBasicBlock = predBB;
+            poison.succBasicBlock = succBB;
+            poison.specBasicBlock = specBB;
+            poison.pipeArrayIdx = pipeIdx;
+
+            rewriteRules.push_back(poison);
+          }
+        } 
+      }
 
       rewriteRules.push_back(ldReq);
       rewriteRules.push_back(ldVal);
-
-      if (auto specBB = DHA->getSpeculationBlock(loads[iLd])) {
-        for (auto [predBB, succBB] : DHA->getPoisonLocations(loads[iLd])) {
-          RewriteRule poison{POISON_LD_READ, mainKernelName, loads[iLd], ldBB};
-          poison.lsqIdx = iLSQ;
-          poison.pipeName = "pipes_ld_val_" + std::to_string(iLSQ) + "_class";
-          poison.predBasicBlock = predBB;
-          poison.succBasicBlock = succBB;
-          poison.specBasicBlock = specBB;
-          poison.pipeArrayIdx = pipeIdx;
-
-          rewriteRules.push_back(poison);
-        }
-      } 
     }
 
     // Stores
     for (size_t iSt = 0; iSt < stores.size(); ++iSt) {
       // {storesPerBB} i only used when reusePipesLSQ is true.
       auto stBB = stores[iSt]->getParent();
-      if (!storesPerBB.contains(stBB))
-        storesPerBB[stBB] = 0;
-      int pipeIdx = reuseStPipesLSQ ? storesPerBB[stBB]++ : iSt;
+      auto stLoop = LI.getLoopFor(stBB);
+      if (!storesPerLoop.contains(stLoop))
+        storesPerLoop[stLoop] = 0;
+      int pipeIdx = reuseStPipesLSQ ? storesPerLoop[stLoop]++ : iSt;
 
       RewriteRule stReq{ST_REQ_WRITE, lsqInfo.aguKernelName, stores[iSt], stBB};
       stReq.lsqIdx = iLSQ;
@@ -217,7 +245,7 @@ void generateInfoBlockPE(Function &F, LoopInfo &LI,
       RewriteRule ssaInWr{SSA_BB_IN_WRITE, mainKernelName, depIn[iDep], BB};
       ssaInWr.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_bb_dep_in_" +
                          std::to_string(iDep) + "_class";
-      ssaInWr.pipeType = getTypeString(depIn[iDep]);
+      ssaInWr.pipeType = getLLVMTypeString(depIn[iDep]);
       ssaInWr.loopHeaderBlock = loopHeader;
       ssaInWr.loopLatchBlock = loopLatch;
       ssaInWr.loopExitBlock = loopExit;
@@ -240,7 +268,7 @@ void generateInfoBlockPE(Function &F, LoopInfo &LI,
       RewriteRule ssaOutWr{SSA_BB_OUT_WRITE, peKernelName, depOut[iDep], BB};
       ssaOutWr.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_bb_dep_out_" +
                           std::to_string(iDep) + "_class";
-      ssaOutWr.pipeType = getTypeString(depOut[iDep]);
+      ssaOutWr.pipeType = getLLVMTypeString(depOut[iDep]);
       ssaOutWr.loopHeaderBlock = loopHeader;
       ssaOutWr.loopLatchBlock = loopLatch;
       ssaOutWr.loopExitBlock = loopExit;
@@ -299,7 +327,7 @@ void generateInfoLoopPE(Function &F,
                           loopHeader};
       ssaInWr.pipeName = "pipe_pe_" + std::to_string(peIdx) + "_loop_dep_in_" +
                          std::to_string(iDep) + "_class";
-      ssaInWr.pipeType = getTypeString(depIn[iDep]);
+      ssaInWr.pipeType = getLLVMTypeString(depIn[iDep]);
       ssaInWr.loopHeaderBlock = loopHeader;
       ssaInWr.loopLatchBlock = loopLatch;
       ssaInWr.loopExitBlock = loopExit;
@@ -320,7 +348,7 @@ void generateInfoLoopPE(Function &F,
                            loopHeader};
       ssaOutWr.pipeName = "pipe_pe_" + std::to_string(peIdx) +
                           "_loop_dep_out_" + std::to_string(iDep) + "_class";
-      ssaOutWr.pipeType = getTypeString(depOut[iDep]);
+      ssaOutWr.pipeType = getLLVMTypeString(depOut[iDep]);
       ssaOutWr.loopHeaderBlock = loopHeader;
       ssaOutWr.loopLatchBlock = loopLatch;
       ssaOutWr.loopExitBlock = loopExit;
@@ -355,9 +383,9 @@ void generateInfoLoopPE(Function &F,
 /// loops ensure that the pipe calls specified by the rewrite rules are placed
 /// in the correct kernel. Some compositions require the creation of additional
 /// rewrite rules (e.g. to communicate a store value tag across kernels).
-void composeDecoupledKernels(Function &F, ControlDependenceGraph &CDG,
-                             ScalarEvolution &SE, LoopInfo &LI,
-                             SmallVector<LSQInfo> &lsqArray,
+void composeDecoupledKernels(Function &F, DataHazardAnalysis &DHA,
+                             ControlDependenceGraph &CDG, ScalarEvolution &SE,
+                             LoopInfo &LI, SmallVector<LSQInfo> &lsqArray,
                              SmallVector<PEInfo> &peArray,
                              SmallVector<RewriteRule> &rewriteRules) {
   /// Return the number of stores to {lsqIdx} in {BB}.
@@ -614,9 +642,9 @@ struct ElasticAnalysisPrinter : PassInfoMixin<ElasticAnalysisPrinter> {
       generateInfoBlockPE(F, LI, CDDD, peArray, rewriteRules);
       generateInfoLoopPE(F, CDDD, peArray, rewriteRules);
       // Do LSQ at the end, to check if LSQ is used across kernels.
-      generateInfoLSQ(F, DHA, peArray, lsqArray, rewriteRules);
+      generateInfoLSQ(F, LI, DHA, CDDD, peArray, lsqArray, rewriteRules);
 
-      composeDecoupledKernels(F, *CDG, SE, LI, lsqArray, peArray, rewriteRules);
+      composeDecoupledKernels(F, *DHA, *CDG, SE, LI, lsqArray, peArray, rewriteRules);
 
       // Remove UNDEF rules and ensure deterministic order.
       llvm::remove_if(rewriteRules,

@@ -57,7 +57,26 @@ public:
     return nullptr;
   }
 
+  /// Collect all loads that will be routed through an LSQ.
+  SmallVector<Instruction *> getAllLoads();
+
+  /// Return the src of a data dependency that causes a loss-of-decoupling
+  /// for the memOp
+  Instruction* getLodDataDependencySrc(Instruction *I);
+  
+  /// Return the src of a control dependency that causes a loss-of-decoupling
+  /// for the memOp
+  BasicBlock *getLodControlDependencySrc(BasicBlock *BB, LoopInfo &LI,
+                                         ControlDependenceGraph &CDG);
+  BasicBlock *getLodControlDependencySrc(Instruction *memOp, LoopInfo &LI,
+                                         ControlDependenceGraph &CDG) {
+    return getLodControlDependencySrc(memOp->getParent(), LI, CDG);
+  }
+
 private:
+  /// For testing, to turn off decoupling and speculation.
+  bool decouplingEnabled;
+
   /// Memory load and store instructions for each base address that is part
   /// of a data hazard.
   SmallVector<SmallVector<Instruction *>> hazardInstrs;
@@ -92,7 +111,7 @@ private:
   /// For each base address, an ideal size for the store alloc queue in an LSQ.
   SmallVector<int> storeQueueSizes;
 
-  void calculateDecoupling(ControlDependenceGraph &CDG);
+  void calculateDecoupling(ControlDependenceGraph &CDG, LoopInfo &LI);
   
   void calculatePoisonBlocks(DominatorTree &DT, LoopInfo &LI);
 };

@@ -42,7 +42,7 @@ prepare_ir() {
 # the rest: remove dead code
 cleanup_ir() {
   $LLVM_BIN_DIR/opt $1 -o $1 -passes='adce,simplifycfg' 
-  $LLVM_BIN_DIR/opt $1 -o $1 -passes='deadargelim-sycl,strip-debug-declare' 
+  # $LLVM_BIN_DIR/opt $1 -o $1 -passes='deadargelim-sycl,strip-debug-declare' 
   # Save human readable bitcode
   $LLVM_BIN_DIR/llvm-dis $1 -o $1.ll && $LLVM_BIN_DIR/llvm-cxxfilt < $1.ll > $1.demangled.ll
 }
@@ -130,4 +130,6 @@ $ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_from_bc.sh $TARGET $SRC_FILE_A
 # Remove created temporaries, if the "-d" flag was not supplied.
 if [[ "$*" != *"-d"* ]]; then 
   rm -rf $TMP_DIR/${HASHED_FILENAME}* $TMP_DIR/**/${HASHED_FILENAME}* 
+else
+  echo "$SRC_FILE_AST.elastic.bc.demangled.ll"
 fi

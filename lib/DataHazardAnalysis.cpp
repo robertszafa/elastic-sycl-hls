@@ -8,45 +8,51 @@ using namespace llvm;
 
 namespace llvm {
 
-/// Return true, if there is a possibility that {src} could be executed on any
-/// of the def-use path leading to {dst}.
-bool isInDefUsePath(Instruction *src, Instruction *dst) {
-  SmallVector<Instruction *> workList, doneList;
-  workList.push_back(dst);
+SmallVector<Instruction *> DataHazardAnalysis::getAllLoads() {
+  SmallVector<Instruction *> lsqLoads;
+  for (auto cluster : hazardInstrs)
+    for (auto li : llvm::make_filter_range(cluster, isaLoad))
+      lsqLoads.push_back(li);
 
-  // Work up the def-use chain of {dst} until hitting {src} or arriving the the
-  // F.entry. Special treatment of phi nodes: add terminating instructions of
-  // the incoming basic blocks to the worklist (if {src} is in the def-use chain
-  // of the terminator, then there is a possibility that it will be executed on
-  // the path to {dst}.
-  while (!workList.empty()) {
-    auto currDst = workList.pop_back_val();
-    doneList.push_back(currDst);
+  return lsqLoads;
+}
 
-    // Case 1: There is a direct data dependency, so this def-use chain exists: 
-    // F.entry ~> .. ~> {src} .. ~> {dst}
-    for (auto &Use : currDst->operands()) {
-      if (auto UseI = dyn_cast<Instruction>(Use.get())) {
-        if (UseI == src)
-          return true;
+Instruction *DataHazardAnalysis::getLodDataDependencySrc(Instruction *I) {
+  // If we have a mem op as I, then get the address instruction
+  if (auto addrVal = getLoadStorePointerOperand(I)) 
+    I = dyn_cast<Instruction>(addrVal);
+  
+  // In our implementation, a src of a LoD data dependency can be any load
+  // coming from a LSQ. Another implementation could only have a LoD on loads
+  // from the same LSQ.
+  for (auto li : getAllLoads())
+    if (isInDefUsePath(li, I))
+      return li;
 
-        if (!llvm::is_contained(doneList, UseI))
-          workList.push_back(UseI);
-      }
-    }
+  return nullptr;
+}
 
-    // Case 2: Some value in {dst} def-use chain is a phi node and the
-    // terminator of the incoming basic block has {src} in this def-use chain.
-    if (auto dstPhi = dyn_cast<PHINode>(currDst)) {
-      for (auto incomingBB : dstPhi->blocks()) {
-        if (!llvm::is_contained(doneList, incomingBB->getTerminator()))
-          workList.push_back(incomingBB->getTerminator());
-      }
+BasicBlock *
+DataHazardAnalysis::getLodControlDependencySrc(BasicBlock *BB, LoopInfo &LI,
+                                               ControlDependenceGraph &CDG) {
+  // Check all branches from BB up to loop header.
+  const BasicBlock *LoopHeader = LI.getLoopFor(BB)->getHeader();
+  BasicBlock *CurrBB = BB;
+  while (CurrBB && CurrBB != LoopHeader) {
+    // Get control depenency.
+    if (auto ctrlDepSrcBB = CDG.getControlDependencySource(CurrBB)) {
+      // Check if that control dependency depends on values from the CU.
+      if (getLodDataDependencySrc(ctrlDepSrcBB->getTerminator()))
+        return ctrlDepSrcBB;
+
+      // If this control dependency doesn't cause a LoD, there might still be
+      // one "hogher up" that does.
+      CurrBB = ctrlDepSrcBB;
     }
   }
 
-  return false;
-}
+  return nullptr;
+};
 
 /// Return values for the {instr} key in {addr2InstMap}.
 /// Return nullptr if {addr2InstMap} doesn't have the {instr} key.
@@ -141,52 +147,31 @@ int getTargetMemorySize(Instruction *basePointer) {
 /// order to achieve decoupling.
 /// Decoupling is not possible if the address of a memOp depends on another
 /// memOp from the same base address.
-void DataHazardAnalysis::calculateDecoupling(ControlDependenceGraph &CDG) {
-  // Collect all loads that will be routed through an LSQ.
-  SmallVector<Instruction *> lsqLoads;
-  for (auto cluster : hazardInstrs) 
-    for (auto li : llvm::make_filter_range(cluster, isaLoad)) 
-      lsqLoads.push_back(li);
-
-  // Given a ld/st, return false if its address depends on any lsq load.
-  auto canDecouple = [&lsqLoads] (Instruction *memOp) -> bool {
-    auto addrVal = isaLoad(memOp) ? dyn_cast<LoadInst>(memOp)->getOperand(0)
-                                  : dyn_cast<StoreInst>(memOp)->getOperand(1);
-    for (auto li : lsqLoads) {
-      if (isInDefUsePath(li, dyn_cast<Instruction>(addrVal)))
-        return false;
-    }
-    return true;
-  };
-
-  // Given a BB, return its special control dep. src block, if it exists.
-  auto getSpecialCtrlDepSrc = [&lsqLoads, &CDG] (BasicBlock *BB) -> BasicBlock * {
-    if (auto ctrlDepSrcBB = CDG.getControlDependencySource(BB)) {
-      for (auto li : lsqLoads) {
-        if (isInDefUsePath(li, ctrlDepSrcBB->getTerminator())) {
-          return ctrlDepSrcBB;
-        }
-      }
-    }
-
-    return nullptr;
-  };
-
+void DataHazardAnalysis::calculateDecoupling(ControlDependenceGraph &CDG,
+                                             LoopInfo &LI) {
   // For each LSQ (cluster), check if its address generation can be decoupled,
   // and if yes, check if any of its address allocations need to be speculated.
+  using InstructionSet = SetVector<Instruction *, SmallVector<Instruction *>>;
+  MapVector<BasicBlock *, InstructionSet> tmpSpeculationStack;
   for (auto cluster : hazardInstrs) {
-    bool canDecoupleCluster = llvm::all_of(cluster, canDecouple);
+    auto noLodDataDep = [&](auto *memOp) {
+      return getLodDataDependencySrc(memOp) == nullptr;
+    };
+    bool canDecoupleCluster =
+        llvm::all_of(cluster, noLodDataDep) && decouplingEnabled;
 
+    // If there is no data dependency LoD, then check if speculation is needed.
     SmallVector<BasicBlock *> thisSpecialCtrlDepSrsBlocks;
     if (canDecoupleCluster) {
       for (auto memOp : cluster)  {
-        auto specCtrlDepSrc = getSpecialCtrlDepSrc(memOp->getParent());
+        auto specCtrlDepSrc =
+            getLodControlDependencySrc(memOp->getParent(), LI, CDG);
         thisSpecialCtrlDepSrsBlocks.push_back(specCtrlDepSrc);
 
         if (specCtrlDepSrc) {
-          if (!speculationStack.contains(specCtrlDepSrc))
-            speculationStack[specCtrlDepSrc] = SmallVector<Instruction *>();
-          speculationStack[specCtrlDepSrc].push_back(memOp);
+          if (!tmpSpeculationStack.contains(specCtrlDepSrc))
+            tmpSpeculationStack[specCtrlDepSrc] = InstructionSet();
+          tmpSpeculationStack[specCtrlDepSrc].insert(memOp);
         }
       }
     }
@@ -206,19 +191,27 @@ void DataHazardAnalysis::calculateDecoupling(ControlDependenceGraph &CDG) {
   bool done = false;
   while (!done) {
     done = true;
-    MapVector<BasicBlock *, SmallVector<Instruction *>> newSpeculationStack;
+    for (auto [currentSpecCtrlDepSrc, allocStack] : tmpSpeculationStack) {
+      // Check if we have already moved everything out of this basic block.
+      if (tmpSpeculationStack[currentSpecCtrlDepSrc].empty())
+        continue;
 
-    for (auto [specBB, allocStack] : speculationStack) {
-      if (auto ctrlDepSrcBB = getSpecialCtrlDepSrc(specBB)) {
-        if (!newSpeculationStack.contains(ctrlDepSrcBB))
-          newSpeculationStack[ctrlDepSrcBB] = SmallVector<Instruction *>();
-        llvm::append_range(newSpeculationStack[ctrlDepSrcBB], allocStack);
+      if (auto newSpecCtrlDepSrc =
+              getLodControlDependencySrc(currentSpecCtrlDepSrc, LI, CDG)) {
         done = false;
+
+        if (!tmpSpeculationStack.contains(newSpecCtrlDepSrc))
+          tmpSpeculationStack[newSpecCtrlDepSrc] = InstructionSet();
+        for (auto I : allocStack) {
+          tmpSpeculationStack[currentSpecCtrlDepSrc].remove(I);
+          tmpSpeculationStack[newSpecCtrlDepSrc].insert(I);
+        }
       }
     }
+  }
 
-    if (!done)
-      speculationStack = newSpeculationStack;
+  for (auto [specCtrlDepSrc, allocStack] : tmpSpeculationStack) {
+    speculationStack[specCtrlDepSrc] = allocStack.takeVector();
   }
 }
 
@@ -382,6 +375,8 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
                                        PostDominatorTree &PDT,
                                        DataDependenceGraph &DDG,
                                        ControlDependenceGraph &CDG) {
+  decouplingEnabled = std::getenv("NO_DECOUPLING") == nullptr;
+
   // Collect all base addresses that are stored to
   // and that have an uncomputable Scalar Evolution index.
   DenseMap<Instruction *, SetVector<Instruction *>> addr2InstMap;
@@ -465,7 +460,7 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
 
   // Check if address generation can be decoupled from execution. Also check if
   // addresses need to be speculatively generated to achieve decoupling.
-  calculateDecoupling(CDG);
+  calculateDecoupling(CDG, LI);
 
   calculatePoisonBlocks(DT, LI);
 

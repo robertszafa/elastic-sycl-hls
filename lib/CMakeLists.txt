@@ -7,6 +7,7 @@ set(OPT_PASSES_PLUGINS
     ElasticAnalysisPrinter
     ElasticTransform
     DDGDotPrinter
+    PipeDeduplicationPass
 )
 
 set(HoistConstantGepTransform_SOURCES 
@@ -27,6 +28,10 @@ set(ElasticTransform_SOURCES
 set(DDGDotPrinter_SOURCES
   DDGDotPrinter.cpp
   CDG.cpp
+)
+
+set(PipeDeduplicationPass_SOURCES
+  PipeDeduplicationPass.cpp
 )
 
 # CONFIGURE THE PLUGIN LIBRARIES

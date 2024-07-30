@@ -215,66 +215,68 @@ void forwardDuplicatedReads(
     Module &M,
     const std::map<const std::string, SetVector<Function *>> &DuplicatePipes) {
   for (auto &[PipeReadOpName, Functions] : DuplicatePipes) {
-    if (!isPipeRead(PipeReadOpName))
+    if (!isPipeRead(PipeReadOpName) || Functions.size() < 2)
       continue;
 
-    SmallVector<Function *> ChainOfFunctions;
+    Function *BroadcastSrcF = nullptr;
+    SmallVector<Function *> BroadcastDsts;
+    // AGUs have priority as broadcast src since they should run ahead.
     for (auto F : Functions) {
-      if (isSpirKernelWithSubstring(*F, AGU_KERNEL))
-        ChainOfFunctions.push_back(F);
+      if (isSpirKernelWithSubstring(*F, AGU_KERNEL)) {
+        BroadcastSrcF = F;
+        break;
+      }
     }
     for (auto F : Functions) {
-      if (!isSpirKernelWithSubstring(*F, AGU_KERNEL))
-        ChainOfFunctions.push_back(F);
+      if (!BroadcastSrcF) // It's possible that there are no AGUs.
+        BroadcastSrcF = F;
+      else if (F != BroadcastSrcF) {
+        BroadcastDsts.push_back(F);
+      }
     }
-
-    auto PipeStorage = getPipeStorageGlobalObj(M, PipeReadOpName);
 
     // Copy pipe storage global variable
-    for (size_t i = 0; i < ChainOfFunctions.size() - 1; ++i) {
-      // Sliding window over the chain of functions.
-      Function *LeftF = ChainOfFunctions[i];
-      Function *RightF = ChainOfFunctions[i + 1];
+    auto PipeStorage = getPipeStorageGlobalObj(M, PipeReadOpName);
 
-      SmallVector<CallInst *> ReadsToForwardInLeft =
-          getPipeCallsWithName(*LeftF, PipeReadOpName);
-      SmallVector<CallInst *> ReadsToForwardInRight =
-          getPipeCallsWithName(*RightF, PipeReadOpName);
+    std::string PipeWriteOpName =
+        getCorrespondingBlockingPipeWrite(M, PipeReadOpName);
+    Function *PipeWriteFunc = getPipeFunctionWithName(M, PipeWriteOpName);
+    Function *PipeReadFunc = getPipeFunctionWithName(M, PipeReadOpName);
 
-      std::string PipeWriteOpName =
-          getCorrespondingBlockingPipeWrite(M, PipeReadOpName);
-      Function *PipeWriteFunc = getPipeFunctionWithName(M, PipeWriteOpName);
-      Function *PipeReadFunc = getPipeFunctionWithName(M, PipeReadOpName);
+    for (auto BroadcastDstF : BroadcastDsts) {
+      // Each Src->Dst write gets a new pipe.
+      GlobalVariable *CopyOfPipeStorage = copyPipeStorage(M, PipeStorage);
+      // New pipe write call in src.
+      Function *CopyOfPipeWriteFunc =
+          copyPipeFunctionDef(*PipeWriteFunc, PipeStorage, CopyOfPipeStorage);
+      // New pipe read call in src.
+      Function *CopyOfPipeReadFunc =
+          copyPipeFunctionDef(*PipeReadFunc, PipeStorage, CopyOfPipeStorage);
 
-      // Create a Left -> Right Write(Read()) call for each read in left.
-      for (size_t i = 0; i < ReadsToForwardInLeft.size(); ++i) {
-        // Each Left/Write read() pair gets a new pipe.
-        GlobalVariable *CopyOfPipeStorage = copyPipeStorage(M, PipeStorage);
-        Function *CopyOfPipeWriteFunc =
-            copyPipeFunctionDef(*PipeWriteFunc, PipeStorage, CopyOfPipeStorage);
-        
-        // Create pipe write call in left, a struct to pass as argument, and a
-        // store to the struct storing the value of read in left.
-        CallInst *ReadInLeft = ReadsToForwardInLeft[i];
-        IRBuilder<> Builder(LeftF->getEntryBlock().getFirstNonPHI());
-        auto PipeReadType = ReadInLeft->getType();
-        Value *valAddr =
-            Builder.CreateAlloca(PipeReadType, nullptr, "forwardPipeVal");
-        auto PipeWriteFuncArgType = CopyOfPipeWriteFunc->getArg(0)->getType();
-        auto valAddrCasted =
-            Builder.CreateAddrSpaceCast(valAddr, PipeWriteFuncArgType);
-        auto storeIntoForwardPipe = Builder.CreateStore(ReadInLeft, valAddrCasted);
-        storeIntoForwardPipe->moveAfter(ReadInLeft);
+      // Create a relay pipe write/read pair in src/dst for each original read.
+      SmallVector<CallInst *> ReadsInSrc =
+          getPipeCallsWithName(*BroadcastSrcF, PipeReadOpName);
+      SmallVector<CallInst *> ReadsInDst =
+          getPipeCallsWithName(*BroadcastDstF, PipeReadOpName);
+      
+      IRBuilder<> Builder(BroadcastSrcF->getEntryBlock().getFirstNonPHI());
+      for (size_t i = 0; i < ReadsInSrc.size(); ++i) {
+        // Store original read to struct.
+        Value *ForwardValAddr = Builder.CreateAlloca(ReadsInSrc[i]->getType(),
+                                                     nullptr, "forwardPipeVal");
+        auto ValAddrCasted = Builder.CreateAddrSpaceCast(
+            ForwardValAddr, CopyOfPipeWriteFunc->getArg(0)->getType());
+        auto StoreIntoForwardPipe =
+            Builder.CreateStore(ReadsInSrc[i], ValAddrCasted);
+        StoreIntoForwardPipe->moveAfter(ReadsInSrc[i]);
+        // Insert pipe write call to new pipe.
         auto ForwardPipeCall =
-            Builder.CreateCall(CopyOfPipeWriteFunc, {valAddrCasted});
-        ForwardPipeCall->moveAfter(storeIntoForwardPipe);
-        ForwardPipeCall->setDebugLoc(ReadInLeft->getDebugLoc());
+            Builder.CreateCall(CopyOfPipeWriteFunc, {ValAddrCasted});
+        ForwardPipeCall->moveAfter(StoreIntoForwardPipe);
+        ForwardPipeCall->setDebugLoc(ReadsInSrc[i]->getDebugLoc());
 
-        // Change read in right to read from the new pipe.
-        CallInst *ReadInRight = ReadsToForwardInRight[i];
-        Function *CopyOfPipeReadFunc =
-            copyPipeFunctionDef(*PipeReadFunc, PipeStorage, CopyOfPipeStorage);
-        ReadInRight->setCalledFunction(CopyOfPipeReadFunc);
+        // The original pipe read in Dst is changed to read from new pipe.
+        ReadsInDst[i]->setCalledFunction(CopyOfPipeReadFunc);
       }
     }
   }

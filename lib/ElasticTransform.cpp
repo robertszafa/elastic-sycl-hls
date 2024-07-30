@@ -280,6 +280,20 @@ void deleteCode(Function &F, const bool isAGU,
   }
 }
 
+/// Cast {Address} value {ToType} if required and return the instruction.
+Value *castToMemReqAddress(Value *Address, Type *ToType,
+                           Instruction *InsertCastBeforeThis) {
+  if (Address->getType() != ToType && Address->getType()->isPointerTy()) {
+    return BitCastInst::CreateBitOrPointerCast(Address, ToType, "",
+                                               InsertCastBeforeThis);
+  } else if (Address->getType() != ToType) {
+    return BitCastInst::CreateIntegerCast(Address, ToType, true, "",
+                                          InsertCastBeforeThis);
+  }
+
+  return Address;
+}
+
 /************************ Rewrite rules start ************************/
 
 /******************** LSQ related: */ 
@@ -311,8 +325,7 @@ void doLdReqWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
     if (auto sextI = dyn_cast<SExtInst>(loadAddr)) 
       loadAddr = sextI->getOperand(0);
   }
-  auto addressCasted = BitCastInst::CreateBitOrPointerCast(
-      loadAddr, addrType, "", dyn_cast<Instruction>(addressStore));
+  auto addressCasted = castToMemReqAddress(loadAddr, addrType, addressStore);
   addressStore->setOperand(0, addressCasted);
 
   // Write store tag.
@@ -366,8 +379,7 @@ void doStReqWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
     if (auto sextI = dyn_cast<SExtInst>(stAddr)) 
       stAddr = sextI->getOperand(0);
   }
-  auto addressCasted = BitCastInst::CreateBitOrPointerCast(
-      stAddr, addrType, "", dyn_cast<Instruction>(addressStore));
+  auto addressCasted = castToMemReqAddress(stAddr, addrType, addressStore);
   addressStore->setOperand(0, addressCasted);
 
   // Write tag. Since it's a store, increment the tag first.

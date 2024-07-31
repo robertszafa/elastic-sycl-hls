@@ -70,6 +70,14 @@ void generateInfoLSQ(Function &F, LoopInfo &LI, DataHazardAnalysis *DHA,
     return maxSoFar;
   };
 
+  auto getAguKernelName = [&](LSQInfo &lsqInfo) -> std::string {
+    const bool useOneAgu = std::getenv("USE_ONE_AGU") &&
+                           strcmp(std::getenv("USE_ONE_AGU"), "1") == 0;
+    std::string AguIdx = useOneAgu ? "" : "_" + std::to_string(lsqInfo.lsqIdx);
+    return lsqInfo.isAddressGenDecoupled ? mainKernelName + "_AGU" + AguIdx
+                                         : mainKernelName;
+  };
+
   for (size_t iLSQ = 0; iLSQ < DHA->getHazardInstructions().size(); ++iLSQ) {
     // First collect some info about the memory accesses for this LSQ.
     auto instrCluster = DHA->getHazardInstructions()[iLSQ];
@@ -104,9 +112,7 @@ void generateInfoLSQ(Function &F, LoopInfo &LI, DataHazardAnalysis *DHA,
     lsqInfo.isAnySpeculation = DHA->getSpeculationDecisions()[iLSQ];
     lsqInfo.arraySize = DHA->getMemorySizes()[iLSQ];
     lsqInfo.arrayType = getLLVMTypeString(dyn_cast<Instruction>(loads[0]));
-    lsqInfo.aguKernelName = lsqInfo.isAddressGenDecoupled
-                            ? mainKernelName + "_AGU_" + std::to_string(iLSQ)
-                            : mainKernelName;
+    lsqInfo.aguKernelName = getAguKernelName(lsqInfo);
     lsqArray.push_back(lsqInfo);
 
     // Now generate rewrite rules needed to swap load/store instructions with

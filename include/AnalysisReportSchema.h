@@ -13,9 +13,9 @@ There are also functions to serialize and deserialize the structs to/from JSON.
 
 namespace llvm {
 
-const std::string AGU_ID = "_AGU_";
-const std::string LOOP_PE_ID = "_LOOP_PE_";
-const std::string BLOCK_PE_ID = "_BLOCK_PE_";
+const std::string AGU_ID = "_AGU";
+const std::string LOOP_PE_ID = "_LOOP_PE";
+const std::string BLOCK_PE_ID = "_BLOCK_PE";
 
 /// All types of transformations performed by our compiler pass to introduce
 /// selective dynamic scheduling. The enum also defines the easiest order in

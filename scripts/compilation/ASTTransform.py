@@ -144,9 +144,8 @@ def gen_all_pipe_declarations(report):
         st_val_type = f'tagged_val_lsq_bram_t<{val_type}>' if lsq_info['isOnChipMem'] else f'tagged_val_lsq_dram_t<{val_type}>'
 
         # ST pipes only need to be adjusted for BRAM LSQs, because DRAM has multiple ld ports.
-        st_pipe_mul = max(1, math.ceil(lsq_info['numStorePipes']/lsq_info['numLoadPipes'])) if lsq_info['isOnChipMem'] else 1
-        ld_pipe_depth = min(32, 4 * lsq_info['numLoadPipes'])
-        st_pipe_depth = min(32, 4 * lsq_info['numStorePipes'] * st_pipe_mul)
+        ld_pipe_depth = 16
+        st_pipe_depth = 16
 
         res.append(f"using pipes_ld_req_{i_lsq} = \
             PipeArray<class pipes_ld_req_{i_lsq}_class, {ld_req_type}, \
@@ -246,22 +245,32 @@ if __name__ == '__main__':
     kernel_start_line += len(pe_kernels)
     kernel_end_line += len(pe_kernels)
 
+    agus_to_pipe_ops = {}
+    for i_lsq, lsq_info in enumerate(report['lsqArray']):
+        if lsq_info['isAddressGenDecoupled']:
+            agu_pipe_ops = gen_pipe_ops(report, lsq_info['aguKernelName'])
+            if not lsq_info['aguKernelName'] in agus_to_pipe_ops:
+                agus_to_pipe_ops[lsq_info['aguKernelName']] = []
+            agus_to_pipe_ops[lsq_info['aguKernelName']] += agu_pipe_ops
+
     # Create address generation kernel if decoupled flag is set.
     # Add lsq pipe ops to it. If flag not set, add them to orginal kernel.
     agu_kernels = []
     agu_kernel_forward_decl = []
     agu_kernel_waits = []
-    for i_lsq, lsq_info in enumerate(report['lsqArray']):
+    for agu_name, agu_pipes in agus_to_pipe_ops.items():
+    # for i_lsq, lsq_info in enumerate(report['lsqArray']):
         # If the address is not decoupled, then the agu pipe calls are in the main kernel.
-        if lsq_info['isAddressGenDecoupled']:
-            agu_name = f"{report['mainKernelName']}_AGU_{i_lsq}"
-            agu_kernel_forward_decl.append(f"class {agu_name.split(' ')[-1]};")
-            # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
-            agu_kernel, agu_event = gen_kernel_copy(Q_NAME, kernel_body, agu_name.split(' ')[-1])
-            agu_kernel_waits.append(f'{agu_event}.wait();\n')
-            agu_pipe_ops = gen_pipe_ops(report, agu_name)
-            agu_kernel_str = "\n".join(insert_after_line(agu_kernel, 1, agu_pipe_ops))
-            agu_kernels.append(agu_kernel_str)
+        # if lsq_info['isAddressGenDecoupled']:
+            # agu_name = lsq_info['aguKernelName']
+        agu_kernel_forward_decl.append(f"class {agu_name.split(' ')[-1]};")
+        # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
+        agu_kernel, agu_event = gen_kernel_copy(Q_NAME, kernel_body, agu_name.split(' ')[-1])
+        agu_kernel_waits.append(f'{agu_event}.wait();\n')
+        # agu_pipe_ops = gen_pipe_ops(report, agu_name)
+        agu_kernel_str = "\n".join(insert_after_line(agu_kernel, 1, agu_pipe_ops))
+        agu_kernels.append(agu_kernel_str)
+
     # Combine the created AGU kernel with the original kernel (no-op if AGU is empty).
     src_after_agu = insert_before_line(src_after_pe, kernel_start_line, agu_kernels)
     kernel_start_line += len(agu_kernels)

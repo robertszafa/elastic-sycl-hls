@@ -50,6 +50,10 @@ class LoadReqInMux;
 template <typename LSQ_ID>
 class StoreReqInMux;
 
+// Applaying [[optnone]] to StreamingMemory doesn't apply the attribute to 
+// nested lambdas, so apply the attribute to a range of source code.
+#pragma clang attribute push (__attribute__((optnone)), apply_to=function)
+
 /// Always evaluates to true. Intended for creating artificial dependencies.
 template <typename T>
 [[clang::optnone]] bool mk_dependency(T dep_src) {
@@ -173,6 +177,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
       for (int i = 0; i < ST_Q_SIZE; ++i) {
         st_alloc_addr[i] = INVALID_BRAM_ADDR;
         st_alloc_tag[i] = 0u;
+        st_alloc_addr_valid[i] = false;
       }
 
       // Registers for load logic. 
@@ -204,7 +209,6 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
       // read from port 'k', the later ld_val will also be written to port 'k'.
       ld_req_lsq_bram_t ld_req_read[NUM_LDS];
       bool ld_req_read_succ[NUM_LDS];
-      uint next_ld_tag = 0;
 
       [[intel::ivdep(DATA)]]
       [[intel::initiation_interval(1)]] 
@@ -303,8 +307,6 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         if (!ld_addr_valid[LD_Q_SIZE-1]) {
           bool ld_req_valid = false;
           ld_req_lsq_bram_t ld_req;
-          uint next_ld_port;
-
           if constexpr (NUM_LDS == 1) {
             ld_req = ld_req_pipes::template PipeAt<0>::read(ld_req_valid);
           } else { // Ld_req mux. 
@@ -316,7 +318,6 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
             ld_tag[LD_Q_SIZE - 1] = ld_req.tag;
             ld_addr_valid[LD_Q_SIZE - 1] = true;
             ld_port[LD_Q_SIZE - 1] = ld_req.port_ldtag_union;
-            next_ld_tag++;
           }
         }
         /* End Rule for reading a load requst from a pipe. */
@@ -407,5 +408,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
 
   return lsqEvent;
 }
+
+#pragma clang attribute pop
 
 #endif // __LOAD_STORE_QUEUE_BRAM_HPP__

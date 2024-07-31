@@ -31,7 +31,7 @@ prepare_ir() {
   $LLVM_BIN_DIR/opt $1 -o $1 -passes=always-inline 
   $LLVM_BIN_DIR/opt $1 -o $1 --load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libHoistConstantGepTransform.so \
     -passes=hoist-const-gep
-  $LLVM_BIN_DIR/opt $1 -o $1 -passes='sroa,gvn,adce,loop-simplify,mergereturn,lowerswitch'
+  $LLVM_BIN_DIR/opt $1 -o $1 -passes='sroa,adce,loop-simplify,mergereturn,lowerswitch'
   # Save human readable bitcode
   $LLVM_BIN_DIR/llvm-dis $1 -o $1.ll && $LLVM_BIN_DIR/llvm-cxxfilt < $1.ll > $1.demangled.ll
 }
@@ -120,6 +120,14 @@ $LLVM_BIN_DIR/opt -load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libElasticTr
 echo "Info: Removing dead code" 
 cleanup_ir $SRC_FILE_AST.elastic.bc
 
+if [[ "$*" == *"-d"* ]]; then 
+  printf "========== Debug Info Start ==========\n"
+  printf "  Original IR: $SRC_FILE_WORKDIR.bc.demangled.ll\n"
+  printf "  IR with kernel copies: $SRC_FILE_AST.bc.demangled.ll\n"
+  printf "  Final transformed IR: $SRC_FILE_AST.elastic.bc.demangled.ll\n"
+  printf "========== Debug Info End ==========\n"
+fi
+
 ###
 ### STAGE 5: Produce final binary.
 ###
@@ -132,6 +140,4 @@ $ELASTIC_SYCL_HLS_DIR/scripts/compilation/compile_from_bc.sh $TARGET $SRC_FILE_A
 # Remove created temporaries, if the "-d" flag was not supplied.
 if [[ "$*" != *"-d"* ]]; then 
   rm -rf $TMP_DIR/${HASHED_FILENAME}* $TMP_DIR/**/${HASHED_FILENAME}* 
-else
-  echo "$SRC_FILE_AST.elastic.bc.demangled.ll"
 fi

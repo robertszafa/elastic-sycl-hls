@@ -1,8 +1,6 @@
 #include "CommonLLVM.h"
 #include "AnalysisReportSchema.h"
 
-#include <regex>
-
 using namespace llvm;
 
 namespace llvm {
@@ -39,7 +37,7 @@ void mergePoisonBlocks(Function &F) {
       return false;
     
     for (size_t i = 0; i < Vec1.size(); ++i) {
-      if (!Vec1[i]->isSameOperationAs(Vec2[i]))
+      if (Vec1[i]->getCalledFunction() != Vec2[i]->getCalledFunction())
         return false;
     }
     return true;
@@ -89,23 +87,15 @@ BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB) {
 }
 
 /// Move non-terminating instructions in {BB} to the end of {hoistLocation}.
+/// Repeated hoistBlock(bb1, bb2) calls are not a problem.
 void hoistBlock(BasicBlock *BB, BasicBlock *hoistLocation) {
-  static SetVector<CFGEdge> alreadyHoisted;
+  SmallVector<Instruction *> toMove;
+  for (auto &I : *BB)
+    if (!I.isTerminator())
+      toMove.push_back(&I);
 
-  const CFGEdge requestedEdge{BB, hoistLocation};
-  if (!alreadyHoisted.contains(requestedEdge)) {
-    SmallVector<Instruction *> toMove;
-    for (auto &I : *BB) {
-      if (!I.isTerminator()) {
-        toMove.push_back(&I);
-      }
-    }
-
-    for (auto I : toMove)
-      I->moveBefore(hoistLocation->getTerminator());
-
-    alreadyHoisted.insert(requestedEdge);
-  }
+  for (auto I : toMove)
+    I->moveBefore(hoistLocation->getTerminator());
 }
 
 /// Create a zero-init uint32 tag using alloca at {F.entry}. Return its address.

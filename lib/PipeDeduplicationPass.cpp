@@ -128,6 +128,9 @@ GlobalVariable *getPipeStorageGlobalObj(Module &M,
   auto nameEndPos = PipeReadOp.find(">::read");
   for (auto &GV : M.globals()) {
     auto GVName = demangle(GV.getNameOrAsOperand());
+    if (GVName.size() <= nameEndPos)
+      continue;
+
     bool equal = true;
     for (size_t i = 0; i < nameEndPos; ++i)
       equal &= (PipeReadOp[i] == GVName[i]);

@@ -235,15 +235,43 @@ void deleteCode(Function &F, const bool isAGU,
                 SetVector<Instruction *> &toKeepI,
                 SetVector<BasicBlock *> &toDeleteBB,
                 SetVector<BasicBlock *> &toKeepBB) {
+  auto isPrintf = [](Instruction *I) {
+    if (auto CallI = dyn_cast<CallInst>(I))
+      return isSpirFuncWithSubstring(*CallI->getCalledFunction(), "printf");
+    return false;
+  };
+
+  // Pipe argumenets are alloca instructions that are not cleaned by mem2reg
+  // If a store writes to memory from such an alloca, then we need to keep it.
+  auto isStoreToScalarAlloca = [&F](StoreInst *St) {
+    if (auto stPtr = dyn_cast<Instruction>(St->getPointerOperand())) {
+      for (auto &I : F.getEntryBlock()) {
+        if (auto AllocaI = dyn_cast<AllocaInst>(&I)) {
+          const bool isArrayAlloc = AllocaI->getAllocatedType()->isArrayTy();
+          if (!isArrayAlloc && isInDefUsePath(&I, stPtr)) {
+            return true;
+          }
+        } 
+      }
+    }
+    
+    return false;
+  };
+
   // In the AGU, we delete side-effect instructions not contributing to address
   // generation. The rest is deleted using an LLVM DCE pass.
   if (isAGU) {
     for (auto &BB : F) {
       if (&F.getEntryBlock() != &BB) {
         for (auto &I : BB) {
-          if (isaStore(&I)) {
+          // Delete debug instructions and printf calls in AGUs (only CU prints)
+          if (I.isDebugOrPseudoInst() || (isAGU && isPrintf(&I))) 
             toDeleteI.insert(&I);
-          }
+          // Delete stores that don't store into a pipe.
+          else if (auto stI = dyn_cast<StoreInst>(&I)) {
+            if (!isStoreToScalarAlloca(stI))
+              toDeleteI.insert(&I);
+          } 
         }
       }
     }
@@ -344,6 +372,9 @@ void doLdReqWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
   // If this address allocation is speculated, then move instructions to specBB. 
   if (rule.specBasicBlock)
     hoistBlock(rule.basicBlock, rule.specBasicBlock);
+
+  if (lsqInfo.isAddressGenDecoupled)
+    deleteInstruction(rule.instruction);
 }
 
 void doStReqWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
@@ -386,6 +417,9 @@ void doStReqWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
   // If this address allocation is speculated, then move instructions to specBB. 
   if (rule.specBasicBlock)
     hoistBlock(rule.basicBlock, rule.specBasicBlock);
+
+  if (lsqInfo.isAddressGenDecoupled)
+    deleteInstruction(rule.instruction);
 }
 
 void doLdValRead(const RewriteRule &rule) {
@@ -413,6 +447,7 @@ void doStValWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
 
   // Instead of storing value to memory, store into the valStore struct member.
   rule.pipeCall->moveAfter(rule.instruction);
+  validStore->moveBefore(rule.pipeCall);
   rule.instruction->setOperand(1, valStoreIntoPipe->getOperand(1));
   toKeep.insert(rule.instruction);
 

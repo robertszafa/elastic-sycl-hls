@@ -28,7 +28,7 @@ FINAL_BINARY="$SRC_FILE_DIR/bin/${SRC_FILE_BASENAME}.elastic.fpga_$TARGET"
 # sroa: Makes life simpler when dealing with stores to structs (e.g. LSQ requests).
 # adce: remove code produced by our AST transformation but not used anywhere (e.g. results of pipe reads)
 prepare_ir() {
-  $LLVM_BIN_DIR/opt $1 -o $1 -passes=always-inline 
+  $LLVM_BIN_DIR/opt $1 -o $1 -passes="always-inline,mem2reg,mldst-motion"
   $LLVM_BIN_DIR/opt $1 -o $1 --load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libHoistConstantGepTransform.so \
     -passes=hoist-const-gep
   $LLVM_BIN_DIR/opt $1 -o $1 -passes='sroa,adce,loop-simplify,mergereturn,lowerswitch'

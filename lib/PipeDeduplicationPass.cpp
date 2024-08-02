@@ -25,12 +25,6 @@ using namespace llvm;
 
 namespace llvm {
 
-bool isSpirKernelWithSubstring(Function &F, const std::string &SearchString) {
-  std::string fName = demangle(F.getNameOrAsOperand());
-  return (fName.find(SearchString) < fName.size()) &&
-         (F.getCallingConv() == CallingConv::SPIR_KERNEL);
-}
-
 std::string getPipeNameOrEmpty(Instruction *I) {
   if (auto PipeCall = getPipeCall(I)) {
     auto PipeCallFunction = PipeCall->getCalledFunction();

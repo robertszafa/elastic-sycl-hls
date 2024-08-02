@@ -41,16 +41,28 @@ using CFGEdge = std::pair<BasicBlock *, BasicBlock *>;
 auto isaLoad = [](auto i) { return isa<LoadInst>(i); };
 auto isaStore = [](auto i) { return isa<StoreInst>(i); };
 
+[[maybe_unused]] bool
+isSpirKernelWithSubstring(Function &F, const std::string &SearchString) {
+  std::string fName = demangle(F.getNameOrAsOperand());
+  return (fName.find(SearchString) < fName.size()) &&
+         (F.getCallingConv() == CallingConv::SPIR_KERNEL);
+}
+
+[[maybe_unused]] bool isSpirFuncWithSubstring(Function &F,
+                                              const std::string &SearchString) {
+  std::string fName = demangle(F.getNameOrAsOperand());
+  return (fName.find(SearchString) < fName.size()) &&
+         (F.getCallingConv() == CallingConv::SPIR_FUNC);
+}
+
 [[maybe_unused]] CallInst *getPipeCall(Instruction *I) {
   const std::string PIPE_CALL = "ext::intel::pipe";
   const std::string EXP_PIPE_CALL = "ext::intel::experimental::pipe";
 
   if (CallInst *callInst = dyn_cast<CallInst>(I)) {
     if (Function *f = callInst->getCalledFunction()) {
-      auto fName = demangle(std::string(f->getName()));
-      if (f->getCallingConv() == CallingConv::SPIR_FUNC &&
-          (fName.find(PIPE_CALL) != std::string::npos ||
-           fName.find(EXP_PIPE_CALL) != std::string::npos)) {
+      if (isSpirFuncWithSubstring(*f, PIPE_CALL) ||
+          isSpirFuncWithSubstring(*f, EXP_PIPE_CALL)) {
         return callInst;
       }
     }

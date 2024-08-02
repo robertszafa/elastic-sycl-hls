@@ -268,7 +268,7 @@ if __name__ == '__main__':
         agu_kernel, agu_event = gen_kernel_copy(Q_NAME, kernel_body, agu_name.split(' ')[-1])
         agu_kernel_waits.append(f'{agu_event}.wait();\n')
         # agu_pipe_ops = gen_pipe_ops(report, agu_name)
-        agu_kernel_str = "\n".join(insert_after_line(agu_kernel, 1, agu_pipe_ops))
+        agu_kernel_str = "\n".join(insert_after_line(agu_kernel, 1, agu_pipes))
         agu_kernels.append(agu_kernel_str)
 
     # Combine the created AGU kernel with the original kernel (no-op if AGU is empty).

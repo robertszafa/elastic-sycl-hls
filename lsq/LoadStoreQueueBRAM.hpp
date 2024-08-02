@@ -79,6 +79,10 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
 
       NTuple<st_req_lsq_bram_t, NUM_STS> st_req_tuple;
       NTuple<bool, NUM_STS> read_succ_tuple;
+      UnrolledLoop<NUM_STS>([&](auto k){
+        st_req_tuple.template get<k>() = st_req_lsq_bram_t{0, 0u};
+        read_succ_tuple.template get<k>() = false;
+      });
 
       bool end_signal = false;
       [[intel::initiation_interval(1)]] 
@@ -122,8 +126,10 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
 
       NTuple<ld_req_lsq_bram_t, NUM_LDS> ld_req_tuple;
       NTuple<bool, NUM_LDS> read_succ_tuple;
-      UnrolledLoop<NUM_LDS>(
-          [&](auto k) { read_succ_tuple.template get<k>() = false; });
+      UnrolledLoop<NUM_LDS>([&](auto k) {
+        read_succ_tuple.template get<k>() = false;
+        ld_req_tuple.template get<k>() = ld_req_lsq_bram_t{0, 0u, 0u};
+      });
 
       bool end_signal = false;
       [[intel::initiation_interval(1)]] 
@@ -188,7 +194,14 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
       [[intel::fpga_register]] bool ld_is_safe[LD_Q_SIZE];
       [[intel::fpga_register]] uint ld_port[LD_Q_SIZE]; // used if NUM_LDS>1
       #pragma unroll
-      for (int i = 0; i < LD_Q_SIZE; ++i) ld_addr[i] = 0;
+      for (int i = 0; i < LD_Q_SIZE; ++i) {
+        ld_addr[i] = 0;
+        ld_tag[i] = 0u;
+        ld_addr_valid[i] = false;
+        ld_val_valid[i] = false;
+        ld_is_safe[i] = false;
+        ld_port[i] = 0u;
+      }
 
       // Only the head of load queue will have values.
       value_t ld_val;
@@ -200,7 +213,6 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
       // Used if NUM_STS > 1. st_reqs and st_vals are muxed based on tag.
       st_req_lsq_bram_t st_req_read[NUM_STS];
       bool st_req_read_succ[NUM_STS];
-      uint next_st_req_tag = 1;
       tagged_val_lsq_bram_t<value_t> st_val_read[NUM_STS];
       bool st_val_read_succ[NUM_STS];
       uint next_st_val_tag = 1;
@@ -298,7 +310,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           if (pipe_succ) {
             ld_addr_valid[0] = false;
             ld_val_valid[0] = false;
-            ld_port[0] = -1;
+            ld_port[0] = NUM_LDS + 1;
           }
         }
         /* End Rule writing the ld_return value to a pipe. */
@@ -355,12 +367,12 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
             ld_is_safe[i] = ld_is_safe[i + 1];
             ld_port[i] = ld_port[i + 1];
           });
-          ld_addr[LD_Q_SIZE-1] = 0;
-          ld_tag[LD_Q_SIZE-1] = 0;
-          ld_addr_valid[LD_Q_SIZE-1] = false;
-          ld_val_valid[LD_Q_SIZE-1] = false;
-          ld_is_safe[LD_Q_SIZE-1] = false;
-          ld_port[LD_Q_SIZE-1] = 0;
+          ld_addr[LD_Q_SIZE - 1] = 0;
+          ld_tag[LD_Q_SIZE - 1] = 0u;
+          ld_addr_valid[LD_Q_SIZE - 1] = false;
+          ld_val_valid[LD_Q_SIZE - 1] = false;
+          ld_is_safe[LD_Q_SIZE - 1] = false;
+          ld_port[LD_Q_SIZE - 1] = NUM_LDS + 1;
         }
         /* End Rule for load queue shift register shift.*/
 
@@ -379,7 +391,6 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           if (st_req_valid) {
             next_addr = st_req.addr;
             next_tag = st_req.tag;
-            next_st_req_tag++;
             last_st_req_tag++;
           }
 
@@ -402,7 +413,6 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         st_req_mux_end_signal::write(0);
       if constexpr (NUM_LDS > 1) 
         ld_req_mux_end_signal::write(0);
-        
     });
   });
 

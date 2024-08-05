@@ -245,13 +245,12 @@ if __name__ == '__main__':
     kernel_start_line += len(pe_kernels)
     kernel_end_line += len(pe_kernels)
 
+    # For each agu kernel name, collect its pipe ops. Multiple lsq_info might share an AGU.
     agus_to_pipe_ops = {}
-    for i_lsq, lsq_info in enumerate(report['lsqArray']):
-        if lsq_info['isAddressGenDecoupled']:
-            agu_pipe_ops = gen_pipe_ops(report, lsq_info['aguKernelName'])
-            if not lsq_info['aguKernelName'] in agus_to_pipe_ops:
-                agus_to_pipe_ops[lsq_info['aguKernelName']] = []
-            agus_to_pipe_ops[lsq_info['aguKernelName']] += agu_pipe_ops
+    for lsq_info in report['lsqArray']:
+        agu_name = lsq_info['aguKernelName']
+        if lsq_info['isAddressGenDecoupled'] and not agu_name in agus_to_pipe_ops:
+            agus_to_pipe_ops[agu_name] = gen_pipe_ops(report, agu_name)
 
     # Create address generation kernel if decoupled flag is set.
     # Add lsq pipe ops to it. If flag not set, add them to orginal kernel.

@@ -1,12 +1,17 @@
 #include "CommonLLVM.h"
 #include "DataHazardAnalysis.h"
 #include "TableOperationLatency.h"
+#include "llvm/ADT/BreadthFirstIterator.h"
 
-#include <numeric>
 
 using namespace llvm;
 
 namespace llvm {
+
+using CFGEdge = std::pair<BasicBlock *, BasicBlock *>;
+using BlockPath = SmallVector<BasicBlock *>;
+using EdgePath = SmallVector<CFGEdge>;
+using InstructionSet = DataHazardAnalysis::InstructionSet;
 
 SmallVector<Instruction *> DataHazardAnalysis::getAllLoads() {
   SmallVector<Instruction *> lsqLoads;
@@ -32,40 +37,44 @@ Instruction *DataHazardAnalysis::getLodDataDependencySrc(Instruction *I) {
   return nullptr;
 }
 
-BasicBlock *
-DataHazardAnalysis::getLodControlDependencySrc(BasicBlock *BB, LoopInfo &LI,
-                                               ControlDependenceGraph &CDG) {
-  // Check all ctrl dependencies of BB. Stop at inner loop header (if exists).
+SmallVector<BasicBlock *>
+DataHazardAnalysis::getLodCtrlDepSources(BasicBlock *BB, LoopInfo &LI,
+                                         ControlDependenceGraph &CDG) {
+  SmallVector<BasicBlock *> Result;
   auto L = LI.getLoopFor(BB);
   const BasicBlock *LoopHeader = L ? L->getHeader() : nullptr;
-  BasicBlock *CurrBB = BB, *Result = nullptr;
-  while (CurrBB && CurrBB != LoopHeader && !CurrBB->isEntryBlock()) {
-    // Get control depenency.
-    if (auto ctrlDepSrcBB = CDG.getControlDependencySource(CurrBB)) {
-      // Check if that control dependency depends on values from the CU.
-      if (getLodDataDependencySrc(ctrlDepSrcBB->getTerminator()))
-        Result = ctrlDepSrcBB;
+  SetVector<BasicBlock *> Worklist, Done;
+  Worklist.insert(BB);
+  // Check all ctrl dependencies of BB. Stop at inner loop header (if exists).
+  while (!Worklist.empty()) {
+    auto CurrBB = Worklist.pop_back_val();
+    Done.insert(CurrBB);
 
-      // If this control dependency doesn't cause a LoD, there might still be
-      // one "hogher up" that does.
-      CurrBB = ctrlDepSrcBB;
-    } else {
-      break;
+    // Get control depenencies.
+    for (auto &ctrlDepSrcBB : CDG.getControlDependencySources(CurrBB)) {
+      // Check if that control dependency depends on values from the CU.
+      if (getLodDataDependencySrc(ctrlDepSrcBB->getTerminator())) {
+        Result.push_back(ctrlDepSrcBB);
+      } else if (ctrlDepSrcBB != LoopHeader && !Done.contains(ctrlDepSrcBB)) {
+        // If this control dependency doesn't cause a LoD, there might still be
+        // one "hogher up" that does.
+        Worklist.insert(ctrlDepSrcBB);
+      }
     }
   }
 
   return Result;
-};
+}
 
 /// Return values for the {instr} key in {addr2InstMap}.
 /// Return nullptr if {addr2InstMap} doesn't have the {instr} key.
-SetVector<Instruction *> *getClusterForBasePtr(
-    DenseMap<Instruction *, SetVector<Instruction *>> &addr2InstMap,
-    const Instruction *instr) {
+InstructionSet *
+getClusterPtrForBasePtr(MapVector<Instruction *, InstructionSet> &addr2InstMap,
+                        const Instruction *instr) {
   for (auto &kv : addr2InstMap) {
-    if (kv.getFirst()->isIdenticalTo(instr))
     // if (kv.getFirst()->isSameOperationAs(instr))
-      return &kv.getSecond();
+    if (kv.first->isIdenticalTo(instr))
+      return &kv.second;
   }
 
   return nullptr;
@@ -74,12 +83,11 @@ SetVector<Instruction *> *getClusterForBasePtr(
 /// Insert {instr} into the set associated with the {basePointer} key in
 /// {addr2InstMap}. If {addr2InstMap} doesn't have the {basePointer} key, then
 /// create it and insert there.
-void insertInMap(
-    DenseMap<Instruction *, SetVector<Instruction *>> &addr2InstMap,
-    Instruction *basePointer, Instruction *instr) {
+void insertInMap(MapVector<Instruction *, InstructionSet> &addr2InstMap,
+                 Instruction *basePointer, Instruction *instr) {
   for (const auto &kv : addr2InstMap) {
-    if (kv.getFirst()->isIdenticalTo(basePointer)) {
-      addr2InstMap[kv.getFirst()].insert(instr);
+    if (kv.first->isIdenticalTo(basePointer)) {
+      addr2InstMap[kv.first].insert(instr);
       return;
     }
   }
@@ -101,38 +109,6 @@ bool isAddressAnalyzable(ScalarEvolution &SE, const Loop *L,
   return idxRange.isAllNonNegative();
 }
 
-/// Sort clusters of instructions based on the postdominance relation
-/// of the instructions producing the base address. We don't care about the
-/// actual sorting relation, as long as it gives some ordering.
-SmallVector<SmallVector<Instruction *>> getSortedVectorClusters(
-    const DenseMap<Instruction *, SetVector<Instruction *>> &clusterMap,
-    PostDominatorTree &PDT) {
-  // Break up map into two corresponding vectors.
-  SmallVector<Instruction *> baseAddrI;
-  SmallVector<SmallVector<Instruction *>> iClusters;
-  for (auto &kv : clusterMap) {
-    baseAddrI.push_back(kv.getFirst());
-    SmallVector<Instruction *> newCluster;
-    llvm::copy(kv.getSecond(), std::back_inserter(newCluster));
-    iClusters.push_back(newCluster);
-  }
-
-  // Use base address instruction dominance relation
-  // to sort the collected instructions.
-  SmallVector<int> sortingIndices(iClusters.size());
-  std::iota(sortingIndices.begin(), sortingIndices.end(), 0);
-  llvm::sort(sortingIndices, [&](int a, int b) {
-    return PDT.dominates(baseAddrI[b], baseAddrI[a]);
-  });
-
-  // Create a new vector for the sorted instructions.
-  SmallVector<SmallVector<Instruction *>> iClustersSorted(iClusters.size());
-  for (uint i = 0; i < sortingIndices.size(); ++i)
-    iClustersSorted[i] = iClusters[sortingIndices[i]];
-
-  return iClustersSorted;
-}
-
 /// Given a pointer to memory, return its allocated number of elements if 
 /// this is known, otherwise return 0. 
 int getTargetMemorySize(Instruction *basePointer) {
@@ -144,80 +120,6 @@ int getTargetMemorySize(Instruction *basePointer) {
   }
 
   return 0;
-}
-
-/// For each baseAddress (i.e. for each LSQ), decide if the address generation
-/// can be decoupled, and check address allocations need to be speculated in
-/// order to achieve decoupling.
-/// Decoupling is not possible if the address of a memOp depends on another
-/// memOp from the same base address.
-void DataHazardAnalysis::calculateDecoupling(ControlDependenceGraph &CDG,
-                                             LoopInfo &LI) {
-  auto hasLodDataDep = [&](auto *memOp) {
-    return getLodDataDependencySrc(memOp) != nullptr;
-  };
-
-  // For each LSQ (cluster), check if its address generation can be decoupled,
-  // and if yes, check if any of its address allocations need to be speculated.
-  using InstructionSet = SetVector<Instruction *, SmallVector<Instruction *>>;
-  MapVector<BasicBlock *, InstructionSet> tmpSpeculationStack;
-  for (auto cluster : hazardInstrs) {
-    bool canDecoupleCluster =
-        !aguDecouplingOff && !llvm::any_of(cluster, hasLodDataDep);
-
-    // If there is no data dependency LoD, then check if speculation is needed.
-    SmallVector<BasicBlock *> thisSpecialCtrlDepSrsBlocks;
-    if (canDecoupleCluster) {
-      for (auto memOp : cluster)  {
-        auto specCtrlDepSrc =
-            getLodControlDependencySrc(memOp->getParent(), LI, CDG);
-        thisSpecialCtrlDepSrsBlocks.push_back(specCtrlDepSrc);
-
-        if (specCtrlDepSrc) {
-          if (!tmpSpeculationStack.contains(specCtrlDepSrc))
-            tmpSpeculationStack[specCtrlDepSrc] = InstructionSet();
-          tmpSpeculationStack[specCtrlDepSrc].insert(memOp);
-        }
-      }
-    }
-    bool isAnySpeculation = llvm::any_of(thisSpecialCtrlDepSrsBlocks,
-                                         [](auto BB) { return BB != nullptr; });
-
-    // Can the addresses for this LSQ be decoupled?
-    decouplingDecisions.push_back(canDecoupleCluster);
-    // If decoupled, do any of the addresses have to be speculated?
-    speculationDecisions.push_back(isAnySpeculation);
-    // If any speculation, record the special ctrl dep src block for each alloc.
-    specialCtrlDepSrsBlocks.push_back(thisSpecialCtrlDepSrsBlocks);
-  }
-
-  // Now iteratively move speculations to a block that doesn't have a special
-  // control dependency.
-  bool done = false;
-  while (!done) {
-    done = true;
-    for (auto [currentSpecCtrlDepSrc, allocStack] : tmpSpeculationStack) {
-      // Check if we have already moved everything out of this basic block.
-      if (tmpSpeculationStack[currentSpecCtrlDepSrc].empty())
-        continue;
-
-      if (auto newSpecCtrlDepSrc =
-              getLodControlDependencySrc(currentSpecCtrlDepSrc, LI, CDG)) {
-        done = false;
-
-        if (!tmpSpeculationStack.contains(newSpecCtrlDepSrc))
-          tmpSpeculationStack[newSpecCtrlDepSrc] = InstructionSet();
-        for (auto I : allocStack) {
-          tmpSpeculationStack[currentSpecCtrlDepSrc].remove(I);
-          tmpSpeculationStack[newSpecCtrlDepSrc].insert(I);
-        }
-      }
-    }
-  }
-
-  for (auto [specCtrlDepSrc, allocStack] : tmpSpeculationStack) {
-    speculationStack[specCtrlDepSrc] = allocStack.takeVector();
-  }
 }
 
 /// Given {memOps} which will be routed through an LSQ, return the required
@@ -320,54 +222,185 @@ int getStoreQueueSize(SmallVector<Instruction *> &memOps, LoopInfo &LI,
   return size;
 }
 
-/// Given the {speculationStack}, calculate where in the main CFG should given
-/// speculations be poisoned. I.e. at which point does the mem op for a given 
-/// speeculative address allocation become unreachable?
-/// Record the first {predBB} --> {succBB} edge where this is true.
-void DataHazardAnalysis::calculatePoisonBlocks(DominatorTree &DT,
-                                               LoopInfo &LI) {
-  // Go through every specBB that contains speculative allocations.
-  for (auto [specBB, allocStack] : speculationStack) {
-    const auto L = LI.getLoopFor(specBB);
+/// For each baseAddress (i.e. for each LSQ), decide if the address generation
+/// can be decoupled into a seperate thread of execution. 
+void DataHazardAnalysis::calculateDecoupling() {
+  for (auto cluster : hazardInstrs) {
+    bool noMemOpWithLodDataDep = llvm::all_of(cluster, [&](auto *memOp) {
+      return getLodDataDependencySrc(memOp) == nullptr;
+    });
+    bool canDecoupleCluster = !aguDecouplingOff && noMemOpWithLodDataDep;
+    decouplingDecisions.push_back(canDecoupleCluster);
+  }
+}
 
-    // Init
-    for (auto alloc : allocStack) 
-      poisonLocations[alloc] = SmallVector<PoisonLocation>();
+/// For each baseAddress (i.e. for each LSQ), decide if any of the address 
+/// generation instructions need to be speculated to avoid loss of decoupling.
+void DataHazardAnalysis::calculateSpeculation(ControlDependenceGraph &CDG,
+                                              LoopInfo &LI) {
+  for (size_t i = 0; i < hazardInstrs.size(); ++i) {
+    if (!decouplingDecisions[i]) {
+      // No need for speculation if AGU is not decoupled.
+      speculationDecisions.push_back(false);
+      continue;
+    }
 
-    // Go through speculative allocations in stack order.
-    for (auto alloc : allocStack) {
-      auto trueBB = alloc->getParent();
+    SmallVector<Instruction *> cluster = hazardInstrs[i];
+    bool needsSpeculation = llvm::any_of(cluster, [&](auto *memOp) {
+      return !getLodCtrlDepSources(memOp, LI, CDG).empty();
+    });
+    speculationDecisions.push_back(needsSpeculation);
+  }
+}
 
-      // Check every pred~>succ CFG edge dominated by specBB.
-      for (auto EdgeStart : L->blocks()) {
-        if (!DT.dominates(specBB, EdgeStart))
+/// Iteratively hoist memory operations to their LoD control dependency source block.
+/// At the end, we will have a requestMap with {block: instructions} pairs, 
+/// where the {block} is the location where the {instructions} were hoisted.
+void DataHazardAnalysis::hoistSpeculativeRequests(Function &F,
+                                                  ControlDependenceGraph &CDG,
+                                                  LoopInfo &LI) {
+  // Init request map, i.e. at the start each instruction is in its original BB.
+  for (auto BB : breadth_first(&F))
+    requestMap[BB] = InstructionSet();
+  for (size_t i = 0; i < hazardInstrs.size(); ++i) {
+    if (speculationDecisions[i]) {
+      for (auto &I : hazardInstrs[i]) {
+        // A mem op is added to the map only if it has a LoD ctrl dep.
+        if (getLodCtrlDepSources(I->getParent(), LI, CDG).size() > 0)
+          requestMap[I->getParent()].insert(I);
+      }
+    }
+  }
+
+  // Iterative hositing, Algorithm 1 from the paper. 
+  bool done = false;
+  while (!done) {
+    done = true;
+
+    for (auto &[fromBB, requests] : requestMap) {
+      // Instead of deleting keys in requestMap, skip keys without any requests.
+      if (requests.empty())
+        continue;
+
+      for (auto &toBB : getLodCtrlDepSources(fromBB, LI, CDG)) {
+        // Do not hoist across loops.
+        if (LI.getLoopFor(fromBB) != LI.getLoopFor(toBB))
           continue;
+        
+        done = false;
+        for (auto &r : requests) {
+          // hoist fromBB -> toBB
+          requestMap[toBB].insert(r);
+          requestMap[fromBB].remove(r);
+        }
+      }
+    }
+  }
 
-        for (auto EdgeEnd : successors(EdgeStart)) {
-          bool edgeLeadsToTrueBB = (EdgeStart == trueBB || EdgeEnd == trueBB);
-          if (edgeLeadsToTrueBB)
+  // Clean up: delete empty requestMap entries; remove non-speculated mem ops.
+  SmallVector<BasicBlock *> keysToDelete;
+  for (auto &[specBB, requests] : requestMap) {
+    // A requests whose specBB is the same as the original BB is not speculated.
+    for (auto &r : requests)
+      if (r->getParent() == specBB)
+        requestMap[specBB].remove(r);
+
+    if (requestMap[specBB].empty())
+      keysToDelete.push_back(specBB);
+  }
+  for (auto k : keysToDelete)
+    requestMap.erase(k);
+}
+
+/// Given a block {BB}, return all possible paths from {BB} to the loop latch
+/// (or function exit if BB not in loop).
+SmallVector<BlockPath> getAllBlockPathsInLoop(BasicBlock *BB, LoopInfo &LI) {
+  Loop *L = LI.getLoopFor(BB);
+  BasicBlock *StopAt = L ? L->getLoopLatch() : getReturnBlock(*BB->getParent()); 
+
+  SmallVector<BlockPath> AllPaths;
+  std::queue<BlockPath> Queue;
+  Queue.push({BB});
+
+  // BFS traversal.
+  while (!Queue.empty()) {
+    BlockPath CurrPath = Queue.front();
+    Queue.pop();
+
+    BasicBlock *PathFrontier = CurrPath.back();
+
+    if (PathFrontier == StopAt) {
+      AllPaths.push_back(CurrPath);
+      continue; 
+    }
+
+    for (auto SuccBB : successors(PathFrontier)) {
+      if (!LI.isLoopHeader(SuccBB)) {
+        BlockPath Continuation {CurrPath};
+        Continuation.push_back(SuccBB);
+        Queue.push(Continuation);
+      }
+    }
+  }
+
+  return AllPaths;
+}
+
+/// Given a vector of blocks where neighbours are successors in the CFG, return 
+/// a vector of CFG edges. 
+SmallVector<EdgePath> blockToEdgePath(SmallVector<BlockPath> &AllBlockPaths) {
+  SmallVector<EdgePath> AllEdgePaths;
+
+  for (auto &CurrBlockPath : AllBlockPaths) {
+    EdgePath CurrEdgePath;
+    BasicBlock *CurrBB = nullptr;
+    for (auto &BB : CurrBlockPath) {
+      if (CurrBB)
+        CurrEdgePath.push_back({CurrBB, BB});
+      CurrBB = BB;
+    }
+    
+    AllEdgePaths.push_back(CurrEdgePath);
+  }
+
+  return AllEdgePaths;
+}
+
+/// Algorithm 2 from the paper. 
+void DataHazardAnalysis::calculatePoisonBlocks(Function &F, DominatorTree &DT,
+                                               LoopInfo &LI) {
+  for (auto &[specBB, requests] : requestMap) {
+    auto L = LI.getLoopFor(specBB);
+    auto AllBlockPaths = getAllBlockPathsInLoop(specBB, LI);
+    auto AllEdgePaths = blockToEdgePath(AllBlockPaths);    
+
+    for (size_t iPath = 0; iPath < AllEdgePaths.size(); ++iPath) {
+      auto EdgePath = AllEdgePaths[iPath];
+      auto BlockPath = AllBlockPaths[iPath];
+
+      // Map of {trueBlock: requests originally in trueBlock}
+      MapVector<BasicBlock *, InstructionSet> requestsForPath;
+      for (auto &r : requests) {
+        if (!requestsForPath.contains(r->getParent()))
+          requestsForPath[r->getParent()] = InstructionSet();
+        requestsForPath[r->getParent()].insert(r);
+      }
+
+      for (auto &[EdgeSrc, EdgeDst] : EdgePath) {
+        for (auto &[trueBB, requests] : requestsForPath) {
+          if (requests.empty())
             continue;
 
-          // Check if poisonBB for {alloc} on this edge breaks allocStack order.
-          bool breaksSpeculationOrder = false;
-          for (auto allocI : allocStack) {
-            // Go up to current trueBB. 
-            if (allocI->getParent() == trueBB)
-              break;
-
-            if (isReachableWithinLoop(EdgeEnd, allocI->getParent(), L)) {
-              breaksSpeculationOrder = true;
-              break;
-            }
+          if (EdgeDst == trueBB) {
+            requestsForPath[trueBB].clear();
+            break; // to next edge
           }
 
-          // When taking the pred~>suc CFG edge, does trueBB become unreachable?
-          bool trueBlockBecomesUnreachable =
-              isReachableWithinLoop(EdgeStart, trueBB, L) &&
-              !isReachableWithinLoop(EdgeEnd, trueBB, L);
-
-          if (trueBlockBecomesUnreachable && !breaksSpeculationOrder) 
-            poisonLocations[alloc].push_back({EdgeStart, EdgeEnd});
+          if (!isReachableWithinLoop(EdgeDst, trueBB, L)) {
+            for (auto r : requests)
+              poisonLocations[r].insert({EdgeSrc, EdgeDst});
+            requestsForPath[trueBB].clear();
+          }
         }
       }
     }
@@ -385,11 +418,14 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
 
   // Collect all base addresses that are stored to
   // and that have an uncomputable Scalar Evolution index.
-  DenseMap<Instruction *, SetVector<Instruction *>> addr2InstMap;
+  MapVector<Instruction *, InstructionSet> addr2InstMap;
   for (Loop *TopLevelLoop : LI) {
-    for (Loop *L : depth_first(TopLevelLoop)) {
+    for (Loop *L : breadth_first(TopLevelLoop)) {
       SmallVector<Instruction *> loopLoads, loopStores;
-      for (auto &BB : L->getBlocks()) {
+      for (auto BB : breadth_first(L->getHeader())) {
+        if (!L->contains(BB))
+          continue;
+
         for (auto &I : *BB) {
           if (isaStore(&I)) 
             loopStores.push_back(&I);
@@ -398,7 +434,7 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
         }
       }
 
-      for (auto si : loopStores) {
+      for (auto &si : loopStores) {
         auto ptrOp = getLoadStorePointerOperand(si);
         auto siPointerSE = SE.getSCEV(ptrOp);
         auto siPointerBase = getPointerBase(ptrOp);
@@ -428,25 +464,24 @@ DataHazardAnalysis::DataHazardAnalysis(Function &F, LoopInfo &LI,
 
       if (auto pointerOperand = getLoadStorePointerOperand(&I)) {
         auto ptrBase = getPointerBase(pointerOperand);
-        if (auto cluster = getClusterForBasePtr(addr2InstMap, ptrBase))
+        if (auto cluster = getClusterPtrForBasePtr(addr2InstMap, ptrBase))
           cluster->insert(&I);
       }
     }
   }
 
-  // Remove clusters that only have stores (no RAW hazard).
-  llvm::remove_if(addr2InstMap, [](auto kv) {
-    return llvm::all_of(kv.getSecond(), isaStore);
-  });
+  // Take only memory instructions. Remove clusters with only stores (no RAW).
+  for (auto &kv : addr2InstMap) {
+    if (!llvm::all_of(kv.second, isaStore))
+      hazardInstrs.push_back(kv.second.takeVector());
+  }
 
-  // Take only the mem instrs and ensure the order is deterministic.
-  hazardInstrs = getSortedVectorClusters(addr2InstMap, PDT);
-
-  // Check if address generation can be decoupled from execution. Also check if
-  // addresses need to be speculatively generated to achieve decoupling.
-  calculateDecoupling(CDG, LI);
-
-  calculatePoisonBlocks(DT, LI);
+  // In a real implementation, these could all be done in a single pass, without
+  // intermediate storage. We factor the steps out into functions for clarity.
+  calculateDecoupling();
+  calculateSpeculation(CDG, LI);
+  hoistSpeculativeRequests(F, CDG, LI);
+  calculatePoisonBlocks(F, DT, LI);
 
   // For each cluster: 
   // - check if memory is on- or off-chip (on-chip memory has const size), 

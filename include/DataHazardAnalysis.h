@@ -13,10 +13,11 @@ namespace llvm {
 /// Collect all memory instruction, that have a RAW inter-iteration 
 /// memory dependence whose scalar evolution is not computable.
 class DataHazardAnalysis  {
+public:
   // A CFG edge.
   using PoisonLocation = std::pair<BasicBlock *, BasicBlock *>;
-
-public:
+  using InstructionSet = SetVector<Instruction *, SmallVector<Instruction *>>;
+  
   explicit DataHazardAnalysis(Function &F, LoopInfo &LI, ScalarEvolution &SE,
                               DominatorTree &DT, PostDominatorTree &PDT,
                               DataDependenceGraph &DDG,
@@ -35,42 +36,21 @@ public:
   SmallVector<int> getStoreQueueSizes() { return storeQueueSizes; }
   SmallVector<bool> getSpeculationDecisions() { return speculationDecisions; }
 
-  MapVector<BasicBlock *, SmallVector<Instruction *>> getSpeculationStack() {
-    return speculationStack;
-  }
-
-  MapVector<Instruction *, SmallVector<PoisonLocation>> getPoisonLocations() {
-    return poisonLocations;
-  }
-
-  SmallVector<PoisonLocation> getPoisonLocations(Instruction *I) {
-    return poisonLocations[I];
-  }
-
   /// Return the block at which {I} is speculated, or nullptr if not speculated.
   BasicBlock *getSpeculationBlock(Instruction *I) {
-    for (auto [specBB, allocStack] : speculationStack) {
-      if (llvm::is_contained(allocStack, I))
+    for (auto &[specBB, allocStack] : requestMap) {
+      if (allocStack.contains(I))
         return specBB;
     }
 
     return nullptr;
   }
 
-  /// Collect all loads that will be routed through an LSQ.
-  SmallVector<Instruction *> getAllLoads();
-
-  /// Return the src of a data dependency that causes a loss-of-decoupling
-  /// for the memOp
-  Instruction* getLodDataDependencySrc(Instruction *I);
-  
-  /// Return the src of a control dependency that causes a loss-of-decoupling
-  /// for the memOp
-  BasicBlock *getLodControlDependencySrc(BasicBlock *BB, LoopInfo &LI,
-                                         ControlDependenceGraph &CDG);
-  BasicBlock *getLodControlDependencySrc(Instruction *memOp, LoopInfo &LI,
-                                         ControlDependenceGraph &CDG) {
-    return getLodControlDependencySrc(memOp->getParent(), LI, CDG);
+  MapVector<Instruction *, SetVector<PoisonLocation>> getPoisonLocations() {
+    return poisonLocations;
+  }
+  SetVector<PoisonLocation> getPoisonLocations(Instruction *I) {
+    return poisonLocations[I];
   }
 
 private:
@@ -81,6 +61,7 @@ private:
   /// of a data hazard.
   SmallVector<SmallVector<Instruction *>> hazardInstrs;
   
+  /// Addresses that have hazard instructions.
   SmallVector<Instruction *> baseAddresses;
 
   /// For each base address, a bool indicating if the address generation
@@ -91,17 +72,15 @@ private:
   /// allocations need to be speculated in order to achieve decoupling.
   SmallVector<bool> speculationDecisions;
 
-  /// For each memory operation in each base address, a pointer to a basic block
-  /// that is the source of a special control-dependency (nullptr if doesn't
-  /// exist).
-  SmallVector<SmallVector<BasicBlock *>> specialCtrlDepSrsBlocks;
-
-  MapVector<BasicBlock *, SmallVector<Instruction *>> speculationStack;
+  /// Map of memory ops to the ctrl dep source block that causes a control
+  /// dependency loss of decoupling. If multiple such blocks exists, then the
+  /// key is the one that dominates all the rest. (Called "L" in paper).
+  MapVector<BasicBlock *, InstructionSet> requestMap;
 
   // Any needed poison read/writes for each LSQ.
   // SmallVector<SmallVector<PoisonInfo>> poisonInfo;
-  MapVector<Instruction *, SmallVector<PoisonLocation>> poisonLocations;
-
+  MapVector<Instruction *, SetVector<PoisonLocation>> poisonLocations;
+  
   /// For each base address, a bool indicating if the target memory is on-chip.
   SmallVector<bool> isOnChip;
 
@@ -111,9 +90,25 @@ private:
   /// For each base address, an ideal size for the store alloc queue in an LSQ.
   SmallVector<int> storeQueueSizes;
 
-  void calculateDecoupling(ControlDependenceGraph &CDG, LoopInfo &LI);
-  
-  void calculatePoisonBlocks(DominatorTree &DT, LoopInfo &LI);
+  /// Collect all loads that will be routed through an LSQ.
+  SmallVector<Instruction *> getAllLoads();
+  /// Return the src of a data dependency that causes a loss-of-decoupling
+  /// for the memOp
+  Instruction* getLodDataDependencySrc(Instruction *I);
+  /// Return control dependency src blocks that cause a loss-of-decoupling.
+  SmallVector<BasicBlock *> getLodCtrlDepSources(BasicBlock *BB, LoopInfo &LI,
+                                                 ControlDependenceGraph &CDG);
+  SmallVector<BasicBlock *> getLodCtrlDepSources(Instruction *I, LoopInfo &LI,
+                                                 ControlDependenceGraph &CDG) {
+    return getLodCtrlDepSources(I->getParent(), LI, CDG);
+  }
+
+  void calculateDecoupling();
+  void calculateSpeculation(ControlDependenceGraph &CDG, LoopInfo &LI);
+  void hoistSpeculativeRequests(Function &F, ControlDependenceGraph &CDG,
+                                LoopInfo &LI);
+  void calculatePoisonBlocks(Function &F, DominatorTree &DT, LoopInfo &LI);
+
 };
 
 } // end namespace llvm

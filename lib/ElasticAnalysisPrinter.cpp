@@ -653,14 +653,8 @@ struct ElasticAnalysisPrinter : PassInfoMixin<ElasticAnalysisPrinter> {
       // Do LSQ at the end, to check if LSQ is used across kernels.
       generateInfoLSQ(F, LI, DHA, CDDD, peArray, lsqArray, rewriteRules);
 
-      composeDecoupledKernels(F, *DHA, *CDG, SE, LI, lsqArray, peArray, rewriteRules);
-
-      // Remove UNDEF rules and ensure deterministic order.
-      llvm::remove_if(rewriteRules,
-                      [](RewriteRule &rule) { return rule.ruleType == UNDEF; });
-      llvm::sort(rewriteRules, [](RewriteRule &ruleA, RewriteRule &ruleB) {
-        return ruleA.ruleType < ruleB.ruleType;
-      });
+      composeDecoupledKernels(F, *DHA, *CDG, SE, LI, lsqArray, peArray,
+                              rewriteRules);
 
       // Print report to stdout to be picked up by later tools.
       auto reportJson = serializeAnalysis(F, lsqArray, peArray, rewriteRules);

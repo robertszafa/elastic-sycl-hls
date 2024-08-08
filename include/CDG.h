@@ -211,6 +211,9 @@ public:
   /// Return a pointer to the basic block which is the source of the control
   /// dependence of {BB}. Return nullptr if not control dependent.
   BasicBlock *getControlDependencySource(BasicBlock *BB);
+  
+  /// Return basic blocks which are the source of a control dependency for {BB}. 
+  SmallVector<BasicBlock *> getControlDependencySources(BasicBlock *BB);
 
   /// Return a pointer to the basic block which is the source of the control
   /// dependence of {I} basic block. Return nullptr if not control dependent.

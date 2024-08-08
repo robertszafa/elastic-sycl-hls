@@ -146,6 +146,31 @@ BasicBlock *ControlDependenceGraph::getControlDependencySource(BasicBlock *BB) {
   return nullptr;
 }
 
+SmallVector<BasicBlock *>
+ControlDependenceGraph::getControlDependencySources(BasicBlock *BB) {
+  SetVector<BasicBlock *, SmallVector<BasicBlock *>> Result;
+  
+  // If there is an edge from the CDG root to the parent of {interIterDep},
+  // then {interIterDep} is not control dependent.
+  auto cdgNode = this->getBlockNode(BB);
+  if (this->getRoot()->hasEdgeTo(*cdgNode))
+    return Result.takeVector();
+
+  // {I} is control dependent on some block. Find out the source block.
+  for (auto &N : *this) {
+    // We already checked the root.
+    if (isa<RootCDGNode>(N))
+      continue;
+
+    SmallVector<CDGEdge *, 2> edgesToNode;
+    N->findEdgesTo(*cdgNode, edgesToNode);
+    if (edgesToNode.size() > 0) 
+      Result.insert(dyn_cast<BlockCDGNode>(N)->getBasicBlock());
+  }
+
+  return Result.takeVector();
+}
+
 void ControlDependenceGraph::calculateCDG(Function &F, PostDominatorTree &PDT) {
   // Create a special node for the CDG root and a block node for each BB.
   auto &root = createRootNode();

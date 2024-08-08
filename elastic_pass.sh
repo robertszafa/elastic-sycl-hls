@@ -31,7 +31,7 @@ prepare_ir() {
   $LLVM_BIN_DIR/opt $1 -o $1 -passes="always-inline,mem2reg,mldst-motion"
   $LLVM_BIN_DIR/opt $1 -o $1 --load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libHoistConstantGepTransform.so \
     -passes=hoist-const-gep
-  $LLVM_BIN_DIR/opt $1 -o $1 -passes='sroa,adce,loop-simplify,mergereturn,lowerswitch'
+  $LLVM_BIN_DIR/opt $1 -o $1 -passes='sroa,adce,loop-simplify,simplifycfg,mergereturn,lowerswitch'
   # Save human readable bitcode
   $LLVM_BIN_DIR/llvm-dis $1 -o $1.ll && $LLVM_BIN_DIR/llvm-cxxfilt < $1.ll > $1.demangled.ll
 }
@@ -43,7 +43,7 @@ cleanup_ir() {
   $LLVM_BIN_DIR/opt $1 -o $1 --load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libPipeDeduplicationPass.so \
     -passes=pipe-deduplication
   # Remove dead code
-  $LLVM_BIN_DIR/opt $1 -o $1 -passes='adce,simplifycfg'  
+  $LLVM_BIN_DIR/opt $1 -o $1 -passes='adce,simplifycfg,loop-simplify'  
   # $LLVM_BIN_DIR/opt $1 -o $1 -passes='deadargelim-sycl,strip-debug-declare' 
   # Save human readable bitcode
   $LLVM_BIN_DIR/llvm-dis $1 -o $1.ll && $LLVM_BIN_DIR/llvm-cxxfilt < $1.ll > $1.demangled.ll
@@ -54,6 +54,9 @@ cleanup_ir() {
 change_ip() {
   if ! test -d $ELASTIC_SYCL_HLS_DIR/ip; then
     echo "No amended IPs in {ELASTIC_SYCL_HLS_DIR}/ip (see README to generate). Will use default IPs."
+    return
+  fi
+  if [[ $TARGET == "emu" ]]; then
     return
   fi
 

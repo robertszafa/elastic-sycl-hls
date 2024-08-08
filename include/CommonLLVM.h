@@ -334,6 +334,32 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   return dyn_cast<Instruction>(pointerOperand);
 }
 
+[[maybe_unused]] AllocaInst *getAllocaOfPointerBase(Value *pointerBase) {
+  SmallVector<Value *> Worklist {pointerBase};
+  SetVector<Value *> done;
+
+  while (!Worklist.empty()) {
+    auto CurrVal = Worklist.pop_back_val();
+
+    if (auto AllocaI = dyn_cast<AllocaInst>(CurrVal))
+      return AllocaI;
+
+    if (auto CurrI = dyn_cast<Instruction>(CurrVal)) {
+      for (auto &Op : CurrI->operands()) {
+        if (auto OpVal = dyn_cast<Value>(Op)) {
+          if (!done.contains(OpVal)) {
+            Worklist.push_back(OpVal);
+            done.insert(OpVal);
+          }
+        }
+      }
+
+    }
+  }
+
+  return nullptr;
+}
+
 /// Return true if the loop has a "llvm.loop.unroll.enable" metada attached.
 [[maybe_unused]] bool isLoopUnrolled(Loop *L) {
   auto latchI = L->getLoopLatch()->getTerminator();

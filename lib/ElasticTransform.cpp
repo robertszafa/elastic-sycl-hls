@@ -241,20 +241,15 @@ void deleteCode(Function &F, const bool isAGU,
     return false;
   };
 
-  // Pipe argumenets are alloca instructions that are not cleaned by mem2reg
+  // Pipe argumenets are alloca instructions that are not removed by mem2reg
   // If a store writes to memory from such an alloca, then we need to keep it.
-  auto isStoreToScalarAlloca = [&F](StoreInst *St) {
-    if (auto stPtr = dyn_cast<Instruction>(St->getPointerOperand())) {
-      for (auto &I : F.getEntryBlock()) {
-        if (auto AllocaI = dyn_cast<AllocaInst>(&I)) {
-          const bool isArrayAlloc = AllocaI->getAllocatedType()->isArrayTy();
-          if (!isArrayAlloc && isInDefUsePath(&I, stPtr)) {
-            return true;
-          }
-        } 
+  auto isStoreToScalarAlloc = [](Instruction *stI) {
+    if (auto stPtrOp = getLoadStorePointerOperand(stI)) {
+      auto siPointerBase = getPointerBase(stPtrOp);
+      if (auto AllocaI = getAllocaOfPointerBase(siPointerBase)) {
+        return !AllocaI->getAllocatedType()->isArrayTy();
       }
     }
-    
     return false;
   };
 
@@ -264,14 +259,12 @@ void deleteCode(Function &F, const bool isAGU,
     for (auto &BB : F) {
       if (&F.getEntryBlock() != &BB) {
         for (auto &I : BB) {
-          // Delete debug instructions and printf calls in AGUs (only CU prints)
-          if (I.isDebugOrPseudoInst() || (isAGU && isPrintf(&I))) 
+          bool isDebug = I.isDebugOrPseudoInst();
+          bool isPrintInAGU = isAGU && isPrintf(&I);
+          bool isNonPipeStore = isa<StoreInst>(&I) && !isStoreToScalarAlloc(&I);
+
+          if (isDebug || isPrintInAGU || isNonPipeStore)
             toDeleteI.insert(&I);
-          // Delete stores that don't store into a pipe.
-          else if (auto stI = dyn_cast<StoreInst>(&I)) {
-            if (!isStoreToScalarAlloca(stI))
-              toDeleteI.insert(&I);
-          } 
         }
       }
     }
@@ -473,16 +466,26 @@ void doStValWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
 }
 
 void doPoisonLdRead(const RewriteRule &rule) {
-  // Move the pipe call to the poison block, and just don't use its value.
-  auto *poisonBB = createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock);
-  rule.pipeCall->moveBefore(poisonBB->getTerminator());
+  // We just move the load to the speculation location. Alternatively it could 
+  // moved to the poison location.
+  // auto *poisonBB = createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock);
+  rule.pipeCall->moveBefore(rule.specBasicBlock->getTerminator());
 }
 
 void doPoisonStWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
-                     SetVector<Instruction *> &toKeep) {
-  // Move the pipe call to the poison block.
-  auto *poisonBB = createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock);
-  rule.pipeCall->moveBefore(poisonBB->getTerminator());
+                     const LoopInfo &LI, SetVector<Instruction *> &toKeep) {
+
+  // Check if the edge requires creating a new block (is the edge.dst reachable
+  // from trueBB?)
+  auto trueBB = rule.basicBlock;
+  auto L = LI.getLoopFor(trueBB);
+  if (isReachableWithinLoop(trueBB, rule.succBasicBlock, L)) {
+    // Triangle branch.
+    auto *newBB = createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock);
+    rule.pipeCall->moveBefore(newBB->getTerminator());
+  } else {
+    rule.pipeCall->moveBefore(rule.succBasicBlock->getFirstNonPHI());
+  }
 
   // If store value tag is used, then we need to increment and use it.
   if (lsqInfo.numStorePipes > 1) {
@@ -991,7 +994,7 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
       else if (rule.ruleType == POISON_LD_READ)
         doPoisonLdRead(rule);
       else if (rule.ruleType == POISON_ST_WRITE)
-        doPoisonStWrite(rule, lsqArray[rule.lsqIdx], toKeepI);
+        doPoisonStWrite(rule, lsqArray[rule.lsqIdx], LI, toKeepI);
       else if (rule.ruleType == END_LSQ_SIGNAL_WRITE)
         doEndLsqSignalWrite(rule);
       /******************** PE related: */ 

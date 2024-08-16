@@ -103,7 +103,9 @@ void generateInfoLSQ(Function &F, LoopInfo &LI, DataHazardAnalysis *DHA,
     LSQInfo lsqInfo;
     lsqInfo.lsqIdx = iLSQ;
     lsqInfo.numLoadPipes = reuseLdPipesLSQ ? maxLdsInLoop : int(loads.size());
-    lsqInfo.numStorePipes = reuseStPipesLSQ ? maxStsInLoop : int(stores.size());
+    lsqInfo.numStoreReqPipes = reuseStPipesLSQ ? maxStsInLoop : int(stores.size());
+    // Some poison writes get a new pipe.
+    lsqInfo.numStoreValPipes = lsqInfo.numStoreReqPipes;
     lsqInfo.reuseLdPipesAcrossBB = reuseLdPipesLSQ;
     lsqInfo.reuseStPipesAcrossBB = reuseStPipesLSQ;
     lsqInfo.isOnChipMem = DHA->getIsOnChip()[iLSQ];
@@ -113,7 +115,6 @@ void generateInfoLSQ(Function &F, LoopInfo &LI, DataHazardAnalysis *DHA,
     lsqInfo.arraySize = DHA->getMemorySizes()[iLSQ];
     lsqInfo.arrayType = getLLVMTypeString(dyn_cast<Instruction>(loads[0]));
     lsqInfo.aguKernelName = getAguKernelName(lsqInfo);
-    lsqArray.push_back(lsqInfo);
 
     // Now generate rewrite rules needed to swap load/store instructions with
     // pipe read/writes, and to implement speculated LSQ allocations, if needed.
@@ -197,6 +198,12 @@ void generateInfoLSQ(Function &F, LoopInfo &LI, DataHazardAnalysis *DHA,
       rewriteRules.push_back(stVal);
       
       if (auto specBB = DHA->getSpeculationBlock(stores[iSt])) {
+        int numPoisonsWrites = DHA->getPoisonLocations(stores[iSt]).size();
+        // Use a new pipe for the poison write if reusing some other pipe will
+        // cause II increase.
+        int poisonPipeIdx = (numPoisonsWrites > 1 && lsqInfo.isOnChipMem)
+                                ? lsqInfo.numStoreValPipes++
+                                : pipeIdx;
         for (auto [predBB, succBB] : DHA->getPoisonLocations(stores[iSt])) {
           RewriteRule poison{POISON_ST_WRITE, mainKernelName, stores[iSt], stBB};
           poison.lsqIdx = iLSQ;
@@ -204,12 +211,14 @@ void generateInfoLSQ(Function &F, LoopInfo &LI, DataHazardAnalysis *DHA,
           poison.predBasicBlock = predBB;
           poison.succBasicBlock = succBB;
           poison.specBasicBlock = specBB;
-          poison.pipeArrayIdx = pipeIdx;
+          poison.pipeArrayIdx = poisonPipeIdx;
 
           rewriteRules.push_back(poison);
         }
       } 
     }
+
+    lsqArray.push_back(lsqInfo);
 
     // At the end of the function, each LSQ needs an "end signal".
     auto funcExit = getReturnBlock(F);

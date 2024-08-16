@@ -107,14 +107,18 @@ def gen_lsq_kernel_calls(report, q_name):
         print(f"Info: Generating LSQ_{i_lsq}")
         print(f"  store queue size: {lsq_info['allocationQueueSize']}")
         print(f"  address gen. decoupled: {lsq_info['isAddressGenDecoupled']}")
-        print(f"  speculation: {lsq_info['isAnySpeculation']}")
+        print(f"  speculation needed: {lsq_info['isAnySpeculation']}")
+        print(f"  num ld pipes: {lsq_info['numLoadPipes']}")
+        print(f"  num st req pipes: {lsq_info['numStoreReqPipes']}")
+        num_poison_pipes = lsq_info['numStoreValPipes'] - lsq_info['numStoreReqPipes']
+        print(f"  num st val pipes: {lsq_info['numStoreValPipes']} ({num_poison_pipes} additional poison pipes)")
 
         if lsq_info['isOnChipMem']:
             lsq_kernel_calls.append(f'''
             auto lsqEvent_{i_lsq} = 
                 LoadStoreQueueBRAM<{llvm2ctype(lsq_info['arrayType'])}, pipes_ld_req_{i_lsq}, pipes_ld_val_{i_lsq}, 
                                     pipes_st_req_{i_lsq}, pipes_st_val_{i_lsq}, pipe_end_lsq_signal_{i_lsq}, {int(lsq_info['isAnySpeculation'])},
-                                    {lsq_info['arraySize']}, {lsq_info['numLoadPipes']}, {lsq_info['numStorePipes']}, 
+                                    {lsq_info['arraySize']}, {lsq_info['numLoadPipes']}, {lsq_info['numStoreReqPipes']}, {lsq_info['numStoreValPipes']},
                                     {LD_Q_SIZE}, {lsq_info['allocationQueueSize']}>({q_name});
             ''')
         else:
@@ -122,7 +126,7 @@ def gen_lsq_kernel_calls(report, q_name):
             auto lsqEvent_{i_lsq} = 
                 LoadStoreQueueDRAM<{llvm2ctype(lsq_info['arrayType'])}, pipes_ld_req_{i_lsq}, pipes_ld_val_{i_lsq}, 
                                     pipes_st_req_{i_lsq}, pipes_st_val_{i_lsq}, pipe_end_lsq_signal_{i_lsq}, {int(lsq_info['isAnySpeculation'])},
-                                    {lsq_info['numLoadPipes']}, {lsq_info['numStorePipes']}, {LD_Q_SIZE}, {lsq_info['allocationQueueSize']}>({q_name});
+                                    {lsq_info['numLoadPipes']}, {lsq_info['numStoreReqPipes']}, {lsq_info['numStoreValPipes']}, {LD_Q_SIZE}, {lsq_info['allocationQueueSize']}>({q_name});
             ''')
         lsq_events_waits.append(f'lsqEvent_{i_lsq}.wait();')
     
@@ -155,10 +159,10 @@ def gen_all_pipe_declarations(report):
                    {ld_pipe_depth}, {lsq_info['numLoadPipes']}>;")
         res.append(f"using pipes_st_req_{i_lsq} = \
             PipeArray<class pipes_st_req_{i_lsq}_class, {st_req_type}, \
-                   {st_pipe_depth}, {lsq_info['numStorePipes']}>;")
+                   {st_pipe_depth}, {lsq_info['numStoreReqPipes']}>;")
         res.append(f"using pipes_st_val_{i_lsq} = \
             PipeArray<class pipes_st_val_{i_lsq}_class, {st_val_type}, \
-                   {st_pipe_depth}, {lsq_info['numStorePipes']}>;")
+                   {st_pipe_depth}, {lsq_info['numStoreValPipes']}>;")
 
         res.append(f"using pipe_end_lsq_signal_{i_lsq} = \
             pipe<class pipe_end_lsq_signal_{i_lsq}_class, bool, 1>;")

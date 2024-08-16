@@ -445,7 +445,7 @@ void doStValWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
   toKeep.insert(rule.instruction);
 
   // If multiple store values are written in one BB, then add a tag for muxing.
-  if (lsqInfo.numStorePipes > 1) {
+  if (lsqInfo.numStoreValPipes > 1) {
     StoreInst *tagStore = stValStructStores[1];
     auto tagType = tagStore->getOperand(0)->getType();
     tagStore->moveBefore(rule.pipeCall);
@@ -487,9 +487,16 @@ void doPoisonStWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
     rule.pipeCall->moveBefore(rule.succBasicBlock->getFirstNonPHI());
   }
 
+  auto stValStructStores = getPipeOpStructStores(rule.pipeCall);
+  StoreInst *validStore = stValStructStores[2];
+  auto validBitType = validStore->getOperand(0)->getType();
+  validStore->setOperand(0, ConstantInt::get(validBitType, 0));
+  validStore->moveBefore(rule.pipeCall);
+  toKeep.insert(validStore);
+
   // If store value tag is used, then we need to increment and use it.
-  if (lsqInfo.numStorePipes > 1) {
-    StoreInst *tagStore = getPipeOpStructStores(rule.pipeCall)[1];
+  if (lsqInfo.numStoreValPipes > 1) {
+    StoreInst *tagStore = stValStructStores[1];
     auto tagType = tagStore->getOperand(0)->getType();
     tagStore->moveBefore(rule.pipeCall);
     IRBuilder<> IR(tagStore);
@@ -876,7 +883,7 @@ void doPoisonInBbPeStWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
   rule.pipeCall->moveBefore(peInfo.pePoisonBlock->getTerminator());
 
   // Use tag for the poison st_val write if needed.
-  if (lsqInfo.numStorePipes > 1) {
+  if (lsqInfo.numStoreValPipes > 1) {
     IRBuilder<> Builder(rule.pipeCall);
     auto stValPipeStructStores = getPipeOpStructStores(rule.pipeCall);
     StoreInst *tagStore = stValPipeStructStores[1];

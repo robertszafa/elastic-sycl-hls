@@ -119,7 +119,8 @@ struct LSQInfo {
   bool reuseLdPipesAcrossBB = false;
   bool reuseStPipesAcrossBB = false;
   int numLoadPipes = -1;
-  int numStorePipes = -1;
+  int numStoreReqPipes = -1;
+  int numStoreValPipes = -1;
   int allocationQueueSize = -1;
   bool isOnChipMem = false;
   /// Only used if this is a constant sized BRAM array.
@@ -240,7 +241,8 @@ struct RewriteRule {
   res.reuseLdPipesAcrossBB = *obj.getBoolean("reuseLdPipesAcrossBB");
   res.reuseStPipesAcrossBB = *obj.getBoolean("reuseStPipesAcrossBB");
   res.numLoadPipes = *obj.getInteger("numLoadPipes");
-  res.numStorePipes = *obj.getInteger("numStorePipes");
+  res.numStoreReqPipes = *obj.getInteger("numStoreReqPipes");
+  res.numStoreValPipes = *obj.getInteger("numStoreValPipes");
   res.isOnChipMem = *obj.getBoolean("isOnChipMem");
 
   return res;
@@ -257,7 +259,8 @@ struct RewriteRule {
   res["reuseLdPipesAcrossBB"] = lsqInfo.reuseLdPipesAcrossBB;
   res["reuseStPipesAcrossBB"] = lsqInfo.reuseStPipesAcrossBB;
   res["numLoadPipes"] = lsqInfo.numLoadPipes;
-  res["numStorePipes"] = lsqInfo.numStorePipes;
+  res["numStoreReqPipes"] = lsqInfo.numStoreReqPipes;
+  res["numStoreValPipes"] = lsqInfo.numStoreValPipes;
   res["allocationQueueSize"] = lsqInfo.allocationQueueSize;
   res["isOnChipMem"] = lsqInfo.isOnChipMem;
   res["arraySize"] = lsqInfo.arraySize;

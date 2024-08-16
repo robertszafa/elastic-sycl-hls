@@ -31,7 +31,7 @@ prepare_ir() {
   $LLVM_BIN_DIR/opt $1 -o $1 -passes="always-inline,mem2reg,mldst-motion"
   $LLVM_BIN_DIR/opt $1 -o $1 --load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libHoistConstantGepTransform.so \
     -passes=hoist-const-gep
-  $LLVM_BIN_DIR/opt $1 -o $1 -passes='sroa,adce,loop-simplify,simplifycfg,mergereturn,lowerswitch'
+  $LLVM_BIN_DIR/opt $1 -o $1 -passes='sroa,adce,loop-simplify,mergereturn,lowerswitch'
   # Save human readable bitcode
   $LLVM_BIN_DIR/llvm-dis $1 -o $1.ll && $LLVM_BIN_DIR/llvm-cxxfilt < $1.ll > $1.demangled.ll
 }
@@ -43,7 +43,7 @@ cleanup_ir() {
   $LLVM_BIN_DIR/opt $1 -o $1 --load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libPipeDeduplicationPass.so \
     -passes=pipe-deduplication
   # Remove dead code
-  $LLVM_BIN_DIR/opt $1 -o $1 -passes='adce,simplifycfg,loop-simplify'  
+  $LLVM_BIN_DIR/opt $1 -o $1 -passes='adce,loop-simplify' # ,simplifycfg
   # $LLVM_BIN_DIR/opt $1 -o $1 -passes='deadargelim-sycl,strip-debug-declare' 
   # Save human readable bitcode
   $LLVM_BIN_DIR/llvm-dis $1 -o $1.ll && $LLVM_BIN_DIR/llvm-cxxfilt < $1.ll > $1.demangled.ll

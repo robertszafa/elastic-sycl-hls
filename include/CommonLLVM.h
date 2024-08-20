@@ -327,8 +327,15 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   } else if (auto load = dyn_cast<LoadInst>(pointerOperand)) {
     return getPointerBase(dyn_cast<Instruction>(load->getOperand(0)));
   } else if (auto gep = dyn_cast<GetElementPtrInst>(pointerOperand)) {
-    if (gep->getPointerOperand()) // hasAllConstantIndices())
-      return getPointerBase(dyn_cast<Instruction>(gep->getPointerOperand()));
+    if (auto gepPtr = gep->getPointerOperand()) {
+      auto ptrSSaName = demangle(gepPtr->getNameOrAsOperand());
+      const std::string KERNEL_ARGS = "SYCLKernel";
+      bool isPtrToKernelArgs = ptrSSaName.find(KERNEL_ARGS) < ptrSSaName.size();
+      
+      // Stop if the ptrOp points to a struct of SYCL kernel arguments.
+      if (!isPtrToKernelArgs)
+        return getPointerBase(dyn_cast<Instruction>(gepPtr));
+    }
   }
 
   return dyn_cast<Instruction>(pointerOperand);

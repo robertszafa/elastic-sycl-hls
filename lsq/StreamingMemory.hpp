@@ -70,6 +70,10 @@ template <int MemId> class StreamingMemoryKernel;
 template <int PortId> class StorePortKernel;
 template <int PortId> class LoadPortKernel;
 
+// Applaying [[optnone]] to StreamingMemory doesn't apply the attribute to 
+// nested lambdas, so apply the attribute to a range of source code.
+#pragma clang attribute push (__attribute__((optnone)), apply_to=function)
+
 template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
           typename StoreReqPipes, typename StoreValPipes>
 [[clang::optnone]] std::vector<event> StreamingMemory(queue &q) {
@@ -702,5 +706,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
 
   return events;
 }
+
+#pragma clang attribute pop
 
 #endif

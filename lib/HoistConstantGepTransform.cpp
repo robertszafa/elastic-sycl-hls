@@ -7,6 +7,7 @@
 #include "llvm/Passes/PassPlugin.h"
 
 #include "llvm/ADT/SmallVector.h"
+#include <llvm/Demangle/Demangle.h>
 
 
 using namespace llvm;
@@ -49,8 +50,11 @@ bool hoistGepPass(Function &F, FunctionAnalysisManager &AM) {
 /// contant offsets into that structure. 
 struct HoistContGep : PassInfoMixin<HoistContGep> {
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
+    std::string thisKernelName = demangle(std::string(F.getNameOrAsOperand()));
+    bool isMain = thisKernelName.find("MainKernel") < thisKernelName.size();
+
     bool wasChanged = false;
-    if (F.getCallingConv() == CallingConv::SPIR_FUNC)
+    if (F.getCallingConv() == CallingConv::SPIR_KERNEL && isMain)
       wasChanged = hoistGepPass(F, AM);
 
     return wasChanged ? PreservedAnalyses::none() : PreservedAnalyses::all();

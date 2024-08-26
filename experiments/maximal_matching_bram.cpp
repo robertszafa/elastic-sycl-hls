@@ -21,12 +21,12 @@ constexpr int kN = 1000;
 
 // Setting TEST will ensure test data is transfered from FPGA DRAM to to BRAM
 // and back. This adds latency, so leave unset for the benchmarks.
-#define TEST 0
+#define TEST 1
 
 double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
                                std::vector<int> &h_vertices, int *h_out,
                                std::vector<int> &h_is_true,
-                               const int N) {
+                               const int numEdges) {
   const int *edges = fpga_tools::toDevice(h_edges, q);
   int *vertices_dram = fpga_tools::toDevice(h_vertices, q);
   int *is_true = fpga_tools::toDevice(h_is_true, q);
@@ -36,23 +36,25 @@ double maximal_matching_kernel(queue &q, const std::vector<int> &h_edges,
     int vertices[kN*2];
 
     #if TEST
-    for (int i = 0; i < kN*2; ++i)
+    for (int i = 0; i < numEdges*2; ++i)
       vertices[i] = vertices_dram[i];
     #endif
 
     int i = 0;
     int out_scalar = 0;
 
-    while (i < N*2) {
+    while (i < numEdges*2) {
       int e1 = edges[i];
       int e2 = edges[i + 1];
 
-      auto v1 = vertices[e1];
-      auto v2 = vertices[e2];
-      auto cond = (v1 == 0 && v2 == 0);
-      if (cond) {
-        vertices[e1] = v2;
-        vertices[e2] = v1;
+      // auto v1 = vertices[e1];
+      // auto v2 = vertices[e2];
+
+      // auto cond = (v1 == 0 && v2 == 0);
+      // if (cond) {
+      if (vertices[e1] == 0 && vertices[e2] == 0) {
+        vertices[e1] = e2;
+        vertices[e2] = e1;
 
         out_scalar = out_scalar + 1;
       } 
@@ -88,14 +90,11 @@ int maximal_matching_cpu(const std::vector<int> &edges,
     int e1 = edges[i];
     int e2 = edges[i + 1];
 
-    auto v1 = vertices[e1];
-    auto v2 = vertices[e2];
+    if (vertices[e1] == 0 && vertices[e2] == 0) {
+      vertices[e1] = e2;
+      vertices[e2] = e1;
 
-    if (v1 == 0 && v2 == 0) {
-      vertices[e1] = v2;
-      vertices[e2] = v1;
-
-      out = out + 1;
+      out++;
     }
 
     i = i + 2;
@@ -106,7 +105,7 @@ int maximal_matching_cpu(const std::vector<int> &edges,
 
 void init_data(std::vector<int> &edges, std::vector<int> &vertices,
                std::vector<int> &is_true, const int num_edges,
-               const uint percentage) {
+               const uint percentage, const uint PERCENTAGE_MISSPECULATION) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind (distribution, generator);
@@ -119,8 +118,10 @@ void init_data(std::vector<int> &edges, std::vector<int> &vertices,
 
     edges[i] = (dice() < percentage) ? rand() % 4 : i;
     edges[i+1] = (dice() < percentage) ? rand() % 4 : i+1;
+  }
 
-    vertices[i] = 0;
+  for (int i = 0; i < vertices.size(); i += 1) {
+    vertices[i] = (dice() < PERCENTAGE_MISSPECULATION) ? 1 : 0;
   }
 }
 
@@ -128,6 +129,7 @@ void init_data(std::vector<int> &edges, std::vector<int> &vertices,
 int main(int argc, char *argv[]) {
   int NUM_EDGES = 1000;
   int PERCENTAGE = 0;
+  int PERCENTAGE_MISSPECULATION = 0;
   try {
     if (argc > 1) {
       NUM_EDGES = int(atoi(argv[1]));
@@ -138,6 +140,11 @@ int main(int argc, char *argv[]) {
       
       if (PERCENTAGE < 0 || PERCENTAGE > 100)
         throw std::invalid_argument("Invalid percentage.");
+    }
+    if (argc > 3) {
+      PERCENTAGE_MISSPECULATION = int(atoi(argv[3]));
+      if (PERCENTAGE_MISSPECULATION < 0 || PERCENTAGE_MISSPECULATION > 100)
+        throw std::invalid_argument("Invalid branch percentage.");
     }
   } catch (exception const &e) {
     std::cout << "Incorrect argv.\nUsage:\n"
@@ -166,12 +173,12 @@ int main(int argc, char *argv[]) {
     std::vector<int> is_true(kN*2);
     int out = 0;
 
-    init_data(edges, vertices, is_true, kN, PERCENTAGE);
+    init_data(edges, vertices, is_true, kN, PERCENTAGE, PERCENTAGE_MISSPECULATION);
 
     std::vector<int> vertices_cpu(kN*2);
     std::copy(vertices.begin(), vertices.end(), vertices_cpu.begin());
 
-    auto kernel_time = maximal_matching_kernel(q, edges, vertices, &out, is_true, kN);
+    auto kernel_time = maximal_matching_kernel(q, edges, vertices, &out, is_true, NUM_EDGES);
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 

@@ -1,6 +1,4 @@
 /*
-Robert Szafarczyk, Glasgow, 2022
-
 Load Store Queue kernel for SYCL HLS. The LSQ is for off-chip memory.
 */
 
@@ -52,6 +50,10 @@ template <typename LSQ_ID>
 class LSQ_DRAM;
 template <typename LSQ_ID>
 class StoreReqMux;
+
+// Applaying [[optnone]] to StreamingMemory doesn't apply the attribute to 
+// nested lambdas, so apply the attribute to a range of source code.
+#pragma clang attribute push (__attribute__((optnone)), apply_to=function)
 
 template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           typename st_req_pipes, typename st_val_pipes,
@@ -393,5 +395,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
   // Return the event for the last kernel to finish.
   return storePortEvent;
 }
+
+#pragma clang attribute pop
 
 #endif

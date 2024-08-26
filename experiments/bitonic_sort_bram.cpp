@@ -17,7 +17,7 @@ using namespace sycl;
 class MainKernel;
 
 // Must be a power of 2
-constexpr int kN = 64;
+constexpr int MAX_N = 64;
 
 #define TEST 1
 
@@ -26,7 +26,10 @@ double sort_kernel(queue &q, std::vector<int> &h_A) {
   int *A_dram = fpga_tools::toDevice(h_A, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    int A[kN];
+    [[intel::singlepump]] 
+    [[intel::max_replicates(1)]] 
+    [[intel::numbanks(1)]] 
+    int A[MAX_N];
 
 #if TEST
     for (int i = 0; i < N; i++)
@@ -36,9 +39,12 @@ double sort_kernel(queue &q, std::vector<int> &h_A) {
     // From: https://en.wikipedia.org/wiki/Bitonic_sorter
     // given an array arr of length n, this code sorts it in place
     // all indices run from 0 to n-1
-    for (int k = 2; k <= kN; k <<= 1) { // k is doubled every iteration
+    for (int k = 2; k <= N; k <<= 1) { // k is doubled every iteration
       for (int j = k >> 1; j > 0; j >>= 1) { // j is halved at every iteration
-        for (int i = 0; i < kN; i++) {
+        // Give a favour to the INORDER version (the tool cannot prove that 
+        // i and l will never alias). Without this, our speedup grows to 20x.
+        [[intel::ivdep]]
+        for (int i = 0; i < N; i++) {
           int l = i ^ j; 
 
           if (l > i) {
@@ -78,11 +84,11 @@ double sort_kernel(queue &q, std::vector<int> &h_A) {
 
 
 int main(int argc, char *argv[]) {
-  int ARRAY_SIZE = 1000;
+  int N = MAX_N;
   int PERCENTAGE = 0;
   try {
     if (argc > 1) {
-      ARRAY_SIZE = int(atoi(argv[1]));
+      N = int(atoi(argv[1]));
     }
     if (argc > 2) {
       PERCENTAGE = int(atoi(argv[2]));
@@ -115,19 +121,19 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << device.get_info<sycl::info::device::name>().c_str() << "\n";
 
-    std::vector<int> arr(ARRAY_SIZE);
-    std::vector<int> arr_cpu(ARRAY_SIZE);
-    
-    for (size_t i=0; i<kN; ++i) {
+    std::vector<int> arr(N);
+    std::vector<int> arr_cpu(N);
+
+    for (size_t i = 0; i < N; ++i) {
       if (PERCENTAGE == 100)
-        arr[i] = kN - i;
+        arr[i] = N - i;
       else if (PERCENTAGE == 0)
         arr[i] = i;
       else
         arr[i] = rand();
     }
 
-    std::copy_n(arr.begin(), kN, arr_cpu.begin());
+    std::copy_n(arr.begin(), N, arr_cpu.begin());
 
     auto kernel_time = sort_kernel(q, arr);
 

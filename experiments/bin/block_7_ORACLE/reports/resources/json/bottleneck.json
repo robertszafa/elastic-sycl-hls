@@ -1,0 +1,1045 @@
+{
+  "bottlenecks":
+  [
+    {
+      "name":"'next_tag'"
+      , "id":1153
+      , "src":"251"
+      , "dst":"392"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":">.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Variable on critical loop carried feedback path: ":"'next_tag'"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"91"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"216.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"126"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"And(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"113"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"114"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"124"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"114"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"114"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"114"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"114"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"114"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"114"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Xor(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"126"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Zext(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"126"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"'next_tag'"
+          , "id":251
+          , "start":"3.00"
+          , "parent":"_ZTS13StoreReqInMuxIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":91
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":269
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":114
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":283
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":114
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"And"
+          , "id":282
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":113
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":304
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":114
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":325
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":114
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":346
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":114
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":367
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":114
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":388
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":114
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":389
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":124
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Xor"
+          , "id":390
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":126
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Zext"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":126
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":391
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":126
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":392
+          , "end":"3.00"
+          , "parent":"_ZTS13StoreReqInMuxIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":126
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":251
+          , "to":269
+        }
+        , {
+          "from":269
+          , "to":282
+        }
+        , {
+          "from":283
+          , "to":304
+        }
+        , {
+          "from":304
+          , "to":325
+        }
+        , {
+          "from":325
+          , "to":346
+        }
+        , {
+          "from":346
+          , "to":367
+        }
+        , {
+          "from":367
+          , "to":388
+        }
+        , {
+          "from":388
+          , "to":389
+        }
+        , {
+          "from":389
+          , "to":390
+        }
+        , {
+          "from":251
+          , "to":391
+        }
+        , {
+          "from":390
+          , "to":391
+        }
+        , {
+          "from":391
+          , "to":392
+        }
+        , {
+          "from":251
+          , "to":392
+          , "reverse":1
+        }
+      ]
+    }
+    , {
+      "name":"'next_tag'"
+      , "id":1154
+      , "src":"402"
+      , "dst":"576"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":">.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Variable on critical loop carried feedback path: ":"'next_tag'"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"137"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"216.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"+(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"172"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"And(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"159"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"160"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"170"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"160"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"160"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"160"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"160"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"160"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"160"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Xor(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"172"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Zext(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"172"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"'next_tag'"
+          , "id":402
+          , "start":"3.00"
+          , "parent":"_ZTS13StoreValInMuxIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":137
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":494
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":160
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":546
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":160
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":423
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":160
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Xor"
+          , "id":574
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":172
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Zext"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":172
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":572
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":160
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":573
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":170
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":468
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":160
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":520
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":160
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"And"
+          , "id":441
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":159
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":442
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":160
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"+"
+          , "id":575
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":172
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":576
+          , "end":"3.00"
+          , "parent":"_ZTS13StoreValInMuxIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":172
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":402
+          , "to":423
+        }
+        , {
+          "from":546
+          , "to":572
+        }
+        , {
+          "from":572
+          , "to":573
+        }
+        , {
+          "from":494
+          , "to":520
+        }
+        , {
+          "from":423
+          , "to":441
+        }
+        , {
+          "from":441
+          , "to":442
+        }
+        , {
+          "from":402
+          , "to":575
+        }
+        , {
+          "from":574
+          , "to":575
+        }
+        , {
+          "from":575
+          , "to":576
+        }
+        , {
+          "from":402
+          , "to":576
+          , "reverse":1
+        }
+      ]
+    }
+    , {
+      "name":"'st_alloc_addr_valid'"
+      , "id":1155
+      , "src":"579"
+      , "dst":"969"
+      , "type":"fMAX/II"
+      , "brief":"Data dependency"
+      , "loop":">.B1"
+      , "details":
+      [
+        {
+          "type":"table"
+          , "Variable on critical loop carried feedback path: ":"'st_alloc_addr_valid'"
+          , "Declared at: ":
+          [
+            {
+              "type":"text"
+              , "text":"%L"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"237"
+                }
+              ]
+            }
+          ]
+          , "Dependency: ":"Data dependency"
+          , "Estimated fmax reduced to: ":"240.0"
+          , "Loop feedback path that raised II and/or lowered fMAX: ":
+          [
+            {
+              "type":"text"
+              , "text":"<<(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"64"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"289"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"LD(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"300"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Select(%L)"
+              , "links":
+              [
+                {
+                  "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                  , "line":"270"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"Compare(%L)"
+              , "links":
+              [
+                {
+                  "filename":"Unknown location"
+                  , "line":"0"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      , "nodes":
+      [
+        {
+          "name":"'st_alloc_addr_valid'"
+          , "id":579
+          , "start":"1.00"
+          , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":237
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":934
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":289
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Select"
+          , "id":585
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":270
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"<<"
+          , "id":590
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":64
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"LD"
+          , "id":588
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":300
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+        , {
+          "name":"Compare"
+          , "id":594
+          , "type":"inst"
+        }
+        , {
+          "name":"Feedback"
+          , "id":969
+          , "end":"2.00"
+          , "parent":"_ZTS8LSQ_BRAMIN4sycl3_V13ext5intel4pipeIZ16histogram_kernelRNS1_5queueERKSt6vectorIiSaIiEERS9_E27pipe_end_lsq_signal_0_classbLi1EEEE.B1"
+          , "debug":
+          [
+            [
+              {
+                "filename":"/home/u119070/tmp/block_7_oracle_22487_elastic_pass_workdir/block_7_oracle.ast.cpp"
+                , "line":237
+              }
+            ]
+          ]
+          , "type":"inst"
+        }
+      ]
+      , "links":
+      [
+        {
+          "from":590
+          , "to":594
+        }
+        , {
+          "from":934
+          , "to":969
+        }
+        , {
+          "from":579
+          , "to":969
+          , "reverse":1
+        }
+      ]
+    }
+  ]
+}

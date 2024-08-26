@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" id='html-tag'>
+<!-- Prevent IE from issuing "blocked content" warning which prevents report from loading -->
+<!-- saved from url=(0016)http://localhost -->
+
+<head>
+    <title id="titleText"></title>
+    <!-- Fix compatibility with certain IE 11.x versions -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge;" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" type="text/css" href="./resources/core/fpga_report_core.css">
+
+    <link rel="icon" type="image/vnd.microsoft.icon" href="./resources/assets/favicon.ico" />
+
+    <!--Without the next line, jQuery won't load properly. See https://github.com/electron/electron/issues/254#issuecomment-183483641 -->
+    <!-- Insert this line above script imports  -->
+    <script>if (typeof module === 'object') { window.module = module; module = undefined; };</script>
+
+    <!-- REPORT SOURCE CODE -->
+    <script type="text/javascript" src="./resources/core/fpga_report_core.js"></script>
+
+    <!-- JSON INCLUDES -->
+    <script type="text/javascript" src="./resources/product_data.js"></script>
+    <script type="text/javascript" src="./resources/report_data.js"></script>
+    <script type="text/javascript" src="./resources/simulation_stats_data.js"></script>
+    <script type="text/javascript" src="./resources/viewer_data.js"></script>
+    <script type="text/javascript" src="./resources/quartus_data.js"></script>
+
+    <!-- Insert this line after script imports -->
+    <script>if (window.module) module = window.module;</script>
+
+    <script>portable_mode = true;</script>
+
+</head>
+
+<body id='body-tag'>
+    <div id='root-div'></div>
+</body>
+<script>
+    renderRootComponent();
+</script>
+
+</html>

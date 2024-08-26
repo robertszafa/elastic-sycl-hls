@@ -10,6 +10,10 @@ const std::string POISON_BB_NAME = "poisonBB";
 
 enum PE_PREDICATE_CODES { EXECUTE, RESET, EXIT, POISON };
 
+/// To count number of poison calls/blocks in benchamrks.
+[[maybe_unused]] int numPoisonBBs = 0;
+[[maybe_unused]] int numPoisonCalls = 0;
+
 /// Merge poison blocks that have the same list of posion pipe calls, and the
 /// same (one) successor basic block.
 void mergePoisonBlocks(Function &F) {
@@ -50,12 +54,18 @@ void mergePoisonBlocks(Function &F) {
     }
   };
 
+  SetVector<std::pair<BasicBlock *, BasicBlock *>> done;
   // Merge poison blocks that have equivalent pipe calls and the same successor.
   for (auto &[poisonBB1, pipeCalls1] : poisonBB2PipeCalls) {
     for (auto &[poisonBB2, pipeCalls2] : poisonBB2PipeCalls) {
       if (poisonBB1 != poisonBB2 && areEquivalent(pipeCalls1, pipeCalls2)) {
         // Repeated merge(A, B) and merge(B, A) are not a problem.
         mergeBlocks(poisonBB1, poisonBB2);
+        if (!done.contains({poisonBB1, poisonBB2}) && !done.contains({poisonBB2, poisonBB1})) {
+          numPoisonBBs--;
+          numPoisonCalls -= pipeCalls1.size();
+        }
+        done.insert({poisonBB1, poisonBB2});
       }
     }
   }
@@ -69,6 +79,8 @@ BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB) {
   
   const CFGEdge requestedEdge{predBB, succBB};
   if (!createdBlocks.contains(requestedEdge)) {
+    numPoisonBBs++;
+
     auto F = predBB->getParent();
     IRBuilder<> Builder(F->getContext());
     auto newBB = BasicBlock::Create(F->getContext(), POISON_BB_NAME, F, succBB);
@@ -486,6 +498,7 @@ void doPoisonStWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
   } else {
     rule.pipeCall->moveBefore(rule.succBasicBlock->getFirstNonPHI());
   }
+  numPoisonCalls++;
 
   auto stValStructStores = getPipeOpStructStores(rule.pipeCall);
   StoreInst *validStore = stValStructStores[2];
@@ -1050,6 +1063,12 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
 
     // After all rules executed, delete code decoupled out of this kernel. 
     deleteCode(F, isAGU, toDeleteI, toKeepI, toDeleteBB, toKeepBB);
+
+    /// To count number of poison calls/blocks in benchamrks.
+    // if (!isAGU) {
+    //   errs() << "====== numPoisonBBs " << numPoisonBBs << "\n\n";
+    //   errs() << "\n====== numPoisonCalls " << numPoisonCalls << "\n";
+    // }
 
     return PreservedAnalyses::none();
   }

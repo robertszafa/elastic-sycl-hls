@@ -22,7 +22,7 @@ constexpr int kN = 1000;
 
 // Setting TEST will ensure test data is transfered from FPGA DRAM to to BRAM
 // and back. This adds latency, so leave unset for the benchmarks.
-#define TEST 0
+#define TEST 1
 
 double histogram_kernel(queue &q, const std::vector<int> &h_idx,
                         std::vector<int> &h_hist) {
@@ -35,19 +35,19 @@ double histogram_kernel(queue &q, const std::vector<int> &h_idx,
     int hist[kN];
 
 #if TEST
-    for (int i = 0; i < kN; ++i)
+    for (int i = 0; i < N; ++i)
       hist[i] = hist_dram[i];
 #endif
 
     for (int i = 0; i < N; ++i) {
       auto idx_scalar = idx[i];
       auto x = hist[idx_scalar];
-      if (x >= 0)
+      if (x > 0)
         hist[idx_scalar] = x + 1;
     }
 
 #if TEST
-    for (int i = 0; i < kN; ++i)
+    for (int i = 0; i < N; ++i)
       hist_dram[i] = hist[i];
 #endif
   });
@@ -69,36 +69,40 @@ void histogram_cpu(const int *idx, int *hist, const int N) {
   for (int i = 0; i < N; ++i) {
     auto idx_scalar = idx[i];
     auto x = hist[idx_scalar];
-    if (x >= 0)
+    if (x > 0)
       hist[idx_scalar] = x + 1;
   }
 }
 
 void init_data(std::vector<int> &feature, std::vector<int> &hist,
-               const int percentage) {
+               const int percentage_raw, const int percentage_misspec) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 99);
   auto dice = std::bind(distribution, generator);
 
-  int counter = 0;
   for (int i = 0; i < feature.size(); i++) {
-    feature[i] = (dice() < percentage) ? 1 : i;
-
-    hist[i] = rand() % 20;
+    feature[i] = (dice() < percentage_raw) ? 7 : i;
+    hist[i] = (dice() < percentage_misspec) ? 0 : 1;
   }
 }
 
 int main(int argc, char *argv[]) {
   int ARRAY_SIZE = 1000;
-  int PERCENTAGE = 0;
+  int PERCENTAGE_RAW = 0;
+  int PERCENTAGE_MISSPECULATION = 0;
   try {
     if (argc > 1) {
       ARRAY_SIZE = int(atoi(argv[1]));
     }
     if (argc > 2) {
-      PERCENTAGE = int(atoi(argv[2]));
-      if (PERCENTAGE < 0 || PERCENTAGE > 100)
-        throw std::invalid_argument("Invalid percentage.");
+      PERCENTAGE_RAW = int(atoi(argv[2]));
+      if (PERCENTAGE_RAW < 0 || PERCENTAGE_RAW > 100)
+        throw std::invalid_argument("Invalid raw percentage.");
+    }
+    if (argc > 3) {
+      PERCENTAGE_MISSPECULATION = int(atoi(argv[3]));
+      if (PERCENTAGE_MISSPECULATION < 0 || PERCENTAGE_MISSPECULATION > 100)
+        throw std::invalid_argument("Invalid branch percentage.");
     }
   } catch (exception const &e) {
     std::cout << "Incorrect argv.\nUsage:\n"
@@ -128,20 +132,25 @@ int main(int argc, char *argv[]) {
     std::vector<int> hist(ARRAY_SIZE);
     std::vector<int> hist_cpu(ARRAY_SIZE);
 
-    init_data(feature, hist, PERCENTAGE);
+    init_data(feature, hist, PERCENTAGE_RAW, PERCENTAGE_MISSPECULATION);
     std::copy(hist.begin(), hist.end(), hist_cpu.begin());
+    histogram_cpu(feature.data(), hist_cpu.data(), ARRAY_SIZE);
 
     auto kernel_time = histogram_kernel(q, feature, hist);
-
-    histogram_cpu(feature.data(), hist_cpu.data(), hist_cpu.size());
 
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
 #if TEST
     if (std::equal(hist.begin(), hist.end(), hist_cpu.begin()))
       std::cout << "Passed\n";
-    else
+    else {
       std::cout << "Failed\n";
+      for (int i = 0; i < ARRAY_SIZE; ++i) {
+        if (hist[i] != hist_cpu[i]) {
+          std::cout << i << ": " << hist[i] << " != " << hist_cpu[i] << "\n";
+        }
+      }
+    }
 #endif
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
@@ -150,3 +159,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+

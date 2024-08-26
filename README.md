@@ -1,17 +1,32 @@
-## Overview:
-This repository contains llvm passes which selectively introduce dynamic scheduling into SYCL HLS code. You can read [our paper](https://arxiv.org/pdf/2308.15120.pdf) for more details. 
+## Benchmarks:
 
-If you want to cite this work:
-```
-@inproceedings{szafarczyk2023fpl,
-  title={Compiler Discovered Dynamic Scheduling of Irregular Code in High-Level Synthesis}, 
-  author={Szafarczyk, Robert and Nabi, Syed Waqar and Vanderbauwhede, Wim},
-  booktitle={2023 33rd International Conference on Field-Programmable Logic and Applications (FPL)}, 
-  year={2023},
-}
-```
+**Build benchmark codes:**
+```bash
+# simulation builds used to obtain cycle counts
+python3 experiments/build_bench.py sim
+python3 experiments/build_bench_num_poison_blocks.py sim
 
----
+# hardware builds with full place & route used to obtain area usage
+python3 experiments/build_bench.py hw
+python3 experiments/build_bench_num_poison_blocks.py hw
+``` 
+
+**Collect cycle counts:**
+```bash
+python3 experiments/run_bench.py sim # Performance of benchmarks
+python3 experiments/run_bench_misspec_cost.py sim
+python3 experiments/run_bench_num_poison_blocks.py sim
+``` 
+
+**Plot figures and generate latex table:**
+```bash
+python3 experiments/plot_performance.py
+python3 experiments/plot_misspeculation_cost.py
+python3 experiments/plot_performance_num_poison_blocks.py
+python3 experiments/gen_latex_table.py
+``` 
+
+
 
 ## Build:
 
@@ -21,7 +36,7 @@ If you want to cite this work:
 - CMake >=3.16
 - git
 - Intel SYCL compiler. The version used in this project is 2023.1.0. To install it on Ubuntu: `sudo apt install intel-basekit-2023.1.0`
-- RTL simulator on path (I used the Questa FPGA Starter Edition which is free but requires a free license). 
+- RTL simulator on path. I used the Questa FPGA Starter Edition which is free but requires a free license. Install Quartus 19.2 together with Arria 10 device support, the pac_a10 board support packege, and OneAPI support (https://www.intel.com/content/www/us/en/software-kit/661712/intel-quartus-prime-pro-edition-design-software-version-19-2-for-linux.html).
 - (Optional) To run in hardware, I used the Intel DevCloud for free to access the Altera Arria 10AX115S FPGA.
 
 **Installation:**
@@ -54,11 +69,4 @@ The optional '-d' flag ensures that compiler generated files are not deleted.
 ```bash
 export ELASTIC_SYCL_HLS_DIR=path/to/elastic_sycl_hls 
 elastic_pass.sh emu|sim|hw src_file [-d]
-```
-
-To run benchmarks targetted by the passes.
-```bash
-export ELASTIC_SYCL_HLS_DIR=path/to/elastic_sycl_hls 
-cd experiments
-./test_all_in_sim.py
 ```

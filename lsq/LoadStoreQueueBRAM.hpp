@@ -1,6 +1,4 @@
 /*
-Robert Szafarczyk, Glasgow, 2022
-
 Memory disambiguation kernel for C/C++/OpenCL/SYCL based HLS.
 Store queue with early execution of loads when all preceding stores have
 calculated their addresses.
@@ -17,6 +15,8 @@ calculated their addresses.
 #include "pipe_utils.hpp"
 #include "unrolled_loop.hpp"
 #include "tuple.hpp"
+
+#include "device_print.hpp"
 
 using namespace sycl;
 using namespace fpga_tools;
@@ -281,6 +281,9 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
       bool ld_req_read_succ[NUM_LDS];
 
       [[maybe_unused]] uint cycle = 0; // used for debug
+      /// To count misspeculation percentage in benchmarks
+      [[maybe_unused]] uint count_all_stores = 0; 
+      [[maybe_unused]] uint count_misspec_stores = 0; 
 
       [[intel::ivdep(DATA)]]
       [[intel::initiation_interval(1)]] 
@@ -348,11 +351,18 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           else
             st_val_valid = st_val_arrived;
 
+          if (st_val_arrived) {
+            count_all_stores++;
+            if (!st_val_valid) {
+              count_misspec_stores++;
+            }
+          }
+
           if (st_val_valid) {
             // Force the scheduler to exec the store one cycle after the load.
             if (mk_dependency(ld_memory_val)) 
               DATA[st_alloc_addr[0]] = st_val;
-          }
+          } 
         }
         /* End Rule for storing to memory. */
 
@@ -486,6 +496,13 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         st_val_mux_end_signal::write(0);
       if constexpr (USE_LD_MUX) 
         ld_req_mux_end_signal::write(0);
+      
+      /** To count misspeculation percentage in benchmarks: */
+      // count_all_stores -= 1000; # subtract num memory transfer stores. 
+      // PRINTF("\n==========\n%d / %d = %f\n==========\n", 
+      //        count_misspec_stores, count_all_stores, 
+      //        float(count_misspec_stores)/float(count_all_stores));
+      
     });
   });
 

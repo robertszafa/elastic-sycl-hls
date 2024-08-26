@@ -93,9 +93,9 @@ void page_rank_cpu(const std::vector<int> &row_ptr,
     }
 
     int rowel = 0;
-    int curcol = 0;
 
     // Sparse PageRank algorithm using an adjacency matrix in CSR format.
+    int curcol = 0;
     for (int i = 0; i < numNodes; i++) {
       rowel = row_ptr[i + 1] - row_ptr[i];
       for (int j = 0; j < rowel; j++) {
@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
   int maxIters = 10;
   FILE *fp;
   try {
-    if (argc < 2) {
+    if (argc < 3) {
       throw std::invalid_argument("Need filename and max iters.");
     }
 

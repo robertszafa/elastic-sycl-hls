@@ -41,40 +41,34 @@ using CFGEdge = std::pair<BasicBlock *, BasicBlock *>;
 auto isaLoad = [](auto i) { return isa<LoadInst>(i); };
 auto isaStore = [](auto i) { return isa<StoreInst>(i); };
 
+[[maybe_unused]] bool
+isSpirKernelWithSubstring(Function &F, const std::string &SearchString) {
+  std::string fName = demangle(F.getNameOrAsOperand());
+  return (fName.find(SearchString) < fName.size()) &&
+         (F.getCallingConv() == CallingConv::SPIR_KERNEL);
+}
+
+[[maybe_unused]] bool isSpirFuncWithSubstring(Function &F,
+                                              const std::string &SearchString) {
+  std::string fName = demangle(F.getNameOrAsOperand());
+  return (fName.find(SearchString) < fName.size()) &&
+         (F.getCallingConv() == CallingConv::SPIR_FUNC);
+}
+
 [[maybe_unused]] CallInst *getPipeCall(Instruction *I) {
   const std::string PIPE_CALL = "ext::intel::pipe";
   const std::string EXP_PIPE_CALL = "ext::intel::experimental::pipe";
 
   if (CallInst *callInst = dyn_cast<CallInst>(I)) {
     if (Function *f = callInst->getCalledFunction()) {
-      auto fName = demangle(std::string(f->getName()));
-      if (f->getCallingConv() == CallingConv::SPIR_FUNC &&
-          (fName.find(PIPE_CALL) != std::string::npos ||
-           fName.find(EXP_PIPE_CALL) != std::string::npos)) {
+      if (isSpirFuncWithSubstring(*f, PIPE_CALL) ||
+          isSpirFuncWithSubstring(*f, EXP_PIPE_CALL)) {
         return callInst;
       }
     }
   }
 
   return nullptr;
-}
-
-/// Given a range of instructions, for each I return its position in its basic
-/// block relative to all other instructions in the range.
-[[maybe_unused]] SmallVector<int>
-getSeqInBB(const SmallVector<Instruction *> &Range) {
-  SmallMapVector<BasicBlock *, int, 4> seen;
-  SmallVector<int> seqInBB;
-  for (auto &I : Range) {
-    if (seen.contains(I->getParent()))
-      seen[I->getParent()]++;
-    else
-      seen[I->getParent()] = 0;
-
-    seqInBB.push_back(seen[I->getParent()]);
-  }
-
-  return seqInBB;
 }
 
 [[maybe_unused]] std::string getLLVMTypeString(const Instruction *I) {
@@ -278,9 +272,10 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
 
   // If no pipe_array_idx or repeat_id, then use defaults.
   auto pipeIdxOpt = pipeInfo.getInteger("pipeArrayIdx");
-  int pipeIdx = pipeIdxOpt ? pipeIdxOpt.value() : -1;
-
-  return getPipeCall(F, pipeName, {pipeIdx});
+  if (pipeIdxOpt)
+    return getPipeCall(F, pipeName, {int(pipeIdxOpt.value())});
+  else
+    return getPipeCall(F, pipeName, {});
 }
 
 [[maybe_unused]] CallInst *getPipeWithPattern(BasicBlock &BB,
@@ -332,18 +327,52 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
                                        ->getParent()
                                        ->getParent()
                                        ->getEntryBlock();
-  if (dyn_cast<Instruction>(pointerOperand)->getParent() == entryBlockF) {
+  if (dyn_cast<Instruction>(pointerOperand)->getParent() == entryBlockF &&
+      !isa<GetElementPtrInst>(pointerOperand)) {
     // stop;
   } else if (auto cast = dyn_cast<BitCastInst>(pointerOperand)) {
     return getPointerBase(dyn_cast<Instruction>(cast->getOperand(0)));
   } else if (auto load = dyn_cast<LoadInst>(pointerOperand)) {
     return getPointerBase(dyn_cast<Instruction>(load->getOperand(0)));
   } else if (auto gep = dyn_cast<GetElementPtrInst>(pointerOperand)) {
-    if (gep->getPointerOperand()) // hasAllConstantIndices())
-      return getPointerBase(dyn_cast<Instruction>(gep->getPointerOperand()));
+    if (auto gepPtr = gep->getPointerOperand()) {
+      auto ptrSSaName = demangle(gepPtr->getNameOrAsOperand());
+      const std::string KERNEL_ARGS = "SYCLKernel";
+      bool isPtrToKernelArgs = ptrSSaName.find(KERNEL_ARGS) < ptrSSaName.size();
+      
+      // Stop if the ptrOp points to a struct of SYCL kernel arguments.
+      if (!isPtrToKernelArgs)
+        return getPointerBase(dyn_cast<Instruction>(gepPtr));
+    }
   }
 
   return dyn_cast<Instruction>(pointerOperand);
+}
+
+[[maybe_unused]] AllocaInst *getAllocaOfPointerBase(Value *pointerBase) {
+  SmallVector<Value *> Worklist {pointerBase};
+  SetVector<Value *> done;
+
+  while (!Worklist.empty()) {
+    auto CurrVal = Worklist.pop_back_val();
+
+    if (auto AllocaI = dyn_cast<AllocaInst>(CurrVal))
+      return AllocaI;
+
+    if (auto CurrI = dyn_cast<Instruction>(CurrVal)) {
+      for (auto &Op : CurrI->operands()) {
+        if (auto OpVal = dyn_cast<Value>(Op)) {
+          if (!done.contains(OpVal)) {
+            Worklist.push_back(OpVal);
+            done.insert(OpVal);
+          }
+        }
+      }
+
+    }
+  }
+
+  return nullptr;
 }
 
 /// Return true if the loop has a "llvm.loop.unroll.enable" metada attached.
@@ -520,6 +549,46 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   return isReachable;
 }
 
+/// Return true, if there is a possibility that {src} could be executed on any
+/// of the def-use path leading to {dst}.
+[[maybe_unused]] bool isInDefUsePath(Instruction *src, Instruction *dst) {
+  SmallVector<Instruction *> workList, doneList;
+  workList.push_back(dst);
+
+  // Work up the def-use chain of {dst} until hitting {src} or arriving the the
+  // F.entry. Special treatment of phi nodes: add terminating instructions of
+  // the incoming basic blocks to the worklist (if {src} is in the def-use chain
+  // of the terminator, then there is a possibility that it will be executed on
+  // the path to {dst}.
+  while (!workList.empty()) {
+    auto currDst = workList.pop_back_val();
+    doneList.push_back(currDst);
+
+    // Case 1: There is a direct data dependency, so this def-use chain exists: 
+    // F.entry ~> .. ~> {src} .. ~> {dst}
+    for (auto &Use : currDst->operands()) {
+      if (auto UseI = dyn_cast<Instruction>(Use.get())) {
+        if (UseI == src)
+          return true;
+
+        if (!llvm::is_contained(doneList, UseI))
+          workList.push_back(UseI);
+      }
+    }
+
+    // Case 2: Some value in {dst} def-use chain is a phi node and the
+    // terminator of the incoming basic block has {src} in this def-use chain.
+    if (auto dstPhi = dyn_cast<PHINode>(currDst)) {
+      for (auto incomingBB : dstPhi->blocks()) {
+        if (!llvm::is_contained(doneList, incomingBB->getTerminator()))
+          workList.push_back(incomingBB->getTerminator());
+      }
+    }
+  }
+
+  return false;
+}
+
 [[maybe_unused]] BasicBlock *getFirstBodyBlock(Loop *L) {
   auto brI = dyn_cast<BranchInst>(L->getHeader()->getTerminator());
   for (auto BB : brI->successors()) {
@@ -542,6 +611,24 @@ getAllStoresInBlockUpTo(Instruction *UpToI) {
   }
 
   return AllStores;
+}
+
+/// Given a range of instructions, for each I return its position in its basic
+/// block relative to all other instructions in the range.
+[[maybe_unused]] SmallVector<int>
+getSeqInBB(const SmallVector<Instruction *> &Range) {
+  SmallMapVector<BasicBlock *, int, 4> seen;
+  SmallVector<int> seqInBB;
+  for (auto &I : Range) {
+    if (seen.contains(I->getParent()))
+      seen[I->getParent()]++;
+    else
+      seen[I->getParent()] = 0;
+
+    seqInBB.push_back(seen[I->getParent()]);
+  }
+
+  return seqInBB;
 }
 
 } // namespace

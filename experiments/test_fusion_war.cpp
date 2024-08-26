@@ -21,31 +21,33 @@ using namespace sycl;
 // Forward declare kernel name.
 class MainKernel;
 
-double test_kernel_war(queue &q, const int NUM_ITERS, const int NI, const int NJ, const int NK,
-                       std::vector<int> &h_D) {
+double test_kernel_raw(queue &q, std::vector<int> &h_D, std::vector<int> &h_D2,
+                       std::vector<int> &h_idx, std::vector<int> &h_idx2,
+                       const int NUM_ITERS) {
 
+  const int N = h_D.size();
+
+  int *idx = fpga_tools::toDevice(h_idx, q);
+  int *idx2 = fpga_tools::toDevice(h_idx2, q);
   int *D = fpga_tools::toDevice(h_D, q);
-
-  std::vector zeroVec(h_D.size(), 0);
-  int* tmp = fpga_tools::toDevice(zeroVec, q);
+  int *D2 = fpga_tools::toDevice(h_D2, q);
 
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
-    for (int iters = 0; iters < NUM_ITERS; iters++) {
-
-      for (int i = 0; i < NI; i++) {
-        D[i] = tmp[i];
+    for (uint iters = 0; iters < NUM_ITERS; iters++) {
+      for (uint i = 0; i < N; i++) {
+        D2[i] = D[idx[i]];
       }
 
-      for (int i = 0; i < NI; i++) {
-        tmp[i] = iters;
+      for (uint i = 0; i < N; i++) {
+        D[idx2[i]] = iters*N + i;
       }
-
     }
   });
 
   event.wait();
   
   q.copy(D, h_D.data(), h_D.size()).wait();
+  q.copy(D2, h_D2.data(), h_D2.size()).wait();
 
   auto start = event.get_profiling_info<info::event_profiling::command_start>();
   auto end = event.get_profiling_info<info::event_profiling::command_end>();
@@ -54,16 +56,17 @@ double test_kernel_war(queue &q, const int NUM_ITERS, const int NI, const int NJ
   return time_in_ms;
 }
 
-void test_kernel_cpu(const int NUM_ITERS, const int NI, const int NJ, const int NK,
-                     std::vector<int> &D) {
-  std::vector tmp(D.size(), 0);
-  for (int iters = 0; iters < NUM_ITERS; iters++) {
-    for (int i = 0; i < NI; i++) {
-      D[i] = tmp[i];
+void test_kernel_cpu(std::vector<int> &D, std::vector<int> &D2,
+                     std::vector<int> &idx, std::vector<int> &idx2,
+                     const int NUM_ITERS) {
+  const int N = D.size();
+  for (uint iters = 0; iters < NUM_ITERS; iters++) {
+    for (uint i = 0; i < N; i++) {
+      D2[i] = D[idx[i]];
     }
 
-    for (int i = 0; i < NI; i++) {
-      tmp[i] = iters;
+    for (uint i = 0; i < N; i++) {
+      D[idx2[i]] = iters*N + i;
     }
   }
 }
@@ -74,7 +77,7 @@ int main(int argc, char *argv[]) {
   try {
     if (argc > 1)
       N = int(atoi(argv[1]));
-    if (argc > 1)
+    if (argc > 2)
       NUM_ITERS = int(atoi(argv[2]));
   } catch (exception const &e) {
     std::cout << "Incorrect argv.\nUsage:\n"
@@ -99,24 +102,31 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    const int NI = N;
-    const int NJ = N;
-    const int NK = N;
-    const int S = N;
+    std::vector<int> D(N, 4); 
+    std::vector<int> D2(N, 4); 
+    std::vector<int> D_cpu(N, 4); 
+    std::vector<int> D2_cpu(N, 4); 
+    std::vector<int> idx(N, 0); 
+    std::vector<int> idx2(N, 4); 
 
-    std::vector<int> D(S, 4); 
-    std::vector<int> D_cpu(S, 4); 
+    for (size_t i = 0; i < N; ++i) {
+      idx[i] = rand() % N;
+    }
+    std::sort(idx.begin(), idx.end());
+    std::copy(idx.begin(), idx.end(), idx2.begin());
 
-    auto kernel_time = test_kernel_war(q, NUM_ITERS, NI, NJ, NK, D);
+    auto kernel_time = test_kernel_raw(q, D, D2, idx, idx2, NUM_ITERS);
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    test_kernel_cpu(NUM_ITERS, NI, NJ, NK, D_cpu);
+    test_kernel_cpu(D_cpu, D2_cpu, idx, idx2, NUM_ITERS);
 
-    if (std::equal(D.begin(), D.end(), D_cpu.begin()))
+    if (std::equal(D.begin(), D.end(), D_cpu.begin()) &&
+        std::equal(D2.begin(), D2.end(), D2_cpu.begin())) {
       std::cout << "Passed\n";
-    else
+    } else {
       std::cout << "Failed\n";
-    
+    }
+
   } catch (exception const &e) {
     std::cout << "An exception was caught.\n";
     std::terminate();

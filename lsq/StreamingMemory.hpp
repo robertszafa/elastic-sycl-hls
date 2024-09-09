@@ -64,7 +64,9 @@ using BurstCoalescedLSU =
                     ext::intel::statically_coalesce<false>,
                     ext::intel::prefetch<false>>;
 
-constexpr addr_t INIT_ACK_ADDR = (1<<29);
+// constexpr addr_t INIT_ACK_ADDR = (1<<29);
+constexpr addr_t INIT_ACK_ADDR = 0u;
+constexpr addr_t INIT_ACK_SCHED = 1u;
 constexpr addr_t STORE_ADDR_SENTINEL = (1<<29) - 1;
 constexpr addr_t LOAD_ADDR_SENTINEL = (1<<29) - 2;
 constexpr addr_t FINAL_LD_ADDR_ACK = STORE_ADDR_SENTINEL + 1;
@@ -181,7 +183,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
     constexpr int StPortId = 100*(MEM_ID+1) + iSt;
     events[iSt] = q.single_task<StorePortKernel<StPortId>>([=]() KERNEL_PRAGMAS {
       ack_t<LOOP_DEPTH> NextAck {INIT_ACK_ADDR};
-      InitBundle(NextAck.sched, 0u);
+      InitBundle(NextAck.sched, INIT_ACK_SCHED);
       InitBundle(NextAck.isMaxIter, true);
 
       [[intel::ivdep]]
@@ -201,9 +203,15 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         #pragma clang diagnostic pop
 
         // PRINTF("MEM%d st%d stores address %u\n", MEM_ID, int(iSt), Req.addr);
-        if (Val.valid)
+        if (Val.valid) {
           BurstCoalescedLSU::store(StorePtr, Val.val);
-        NextAck = Req;
+          NextAck = Req;
+        } else {
+          UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
+            NextAck.sched[iD] = Req.sched[iD];
+            NextAck.isMaxIter[iD] = Req.isMaxIter[iD];
+          });
+        }
       }
 
       // Force any outstanding burst before ACKing addr sentinel.
@@ -212,6 +220,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       InitBundle(FinalAck.sched, SCHED_SENTINEL);
       InitBundle(FinalAck.isMaxIter, true);
       StoreAckPipes::template PipeAt<iSt>::write(FinalAck);
+      PRINTF("STORE PORT %d done\n", int(iSt));
     });
   });
 
@@ -259,7 +268,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       InitBundle(maxAck.sched, SCHED_SENTINEL);
       InitBundle(maxAck.isMaxIter, true);
       LoadAckPipes::template PipeAt<iLd>::write(maxAck);
-      // PRINTF("MEM%d ld%d reused %d/%d\n", MEM_ID, int(iLd), NumReused, NumTotal);
+      PRINTF("MEM%d ld%d reused %d/%d\n", MEM_ID, int(iLd), NumReused, NumTotal);
     });
   });
 
@@ -313,7 +322,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       InitBundle(StoreBurstBuffVal[iSt], T{});
 
       StoreAckAddr[iSt] = INIT_ACK_ADDR;
-      InitBundle(StoreAckSched[iSt], 0u);
+      InitBundle(StoreAckSched[iSt], INIT_ACK_SCHED);
       InitBundle(StoreAckIsMaxIter[iSt], true);
 
       StoreDone[iSt] = false;
@@ -353,8 +362,8 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         InitBundle(LoadIsMaxIter[iLd][iD], false);
       });
 
-      LoadAckAddr[iLd] = INIT_ACK_ADDR;
-      InitBundle(LoadAckSched[iLd], 0u);
+      StoreAckAddr[iLd] = INIT_ACK_ADDR;
+      InitBundle(LoadAckSched[iLd], INIT_ACK_SCHED);
       InitBundle(LoadAckIsMaxIter[iLd], true);
 
       NextLoadAddr[iLd] = 0u;
@@ -373,7 +382,12 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
     // The dependency info is supplied by the compiler. 
     ///////////////////////////////////////////////////////////////////////////
     static constexpr auto DI = DepInfo<MEM_ID>{};
-    
+    // k - common loop depth
+    // n - operation a loop depth
+    // m - operation b loop depth
+    // RAW check - b is a store, a is a load
+    // WAR check - b is a load, a is a store
+
     constexpr auto walkUpStoreToFirstWrap = [&](const auto iSt,
                                                 const auto start) {
       for (int i = start; i >= 0; --i) {
@@ -384,159 +398,127 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
 
       return -1;
     };
-    constexpr auto walkUpLoadToFirstWrap = [&](const auto iLd,
-                                              const auto start) {
-      for (int i = start; i >= 0; --i) {
-        if (DI.LOAD_IS_MAX_ITER_NEEDED[iLd][i]) {
-          return i;
-        }
-      }
+    // constexpr auto walkUpLoadToFirstWrap = [&](const auto iLd,
+    //                                           const auto start) {
+    //   for (int i = start; i >= 0; --i) {
+    //     if (DI.LOAD_IS_MAX_ITER_NEEDED[iLd][i]) {
+    //       return i;
+    //     }
+    //   }
 
-      return -1;
-    };
+    //   return -1;
+    // };
 
     auto checkNoRAW = [&](const auto iLd, const auto iSt) {
-      constexpr int CmnLoopDepth = DI.LOAD_STORE_COMMON_LOOP_DEPTH[iLd][iSt];
-      constexpr int StLoopDepth = DI.STORE_LOOP_DEPTH[iSt];
+      constexpr int k = DI.LOAD_STORE_COMMON_LOOP_DEPTH[iLd][iSt];
+      constexpr int m = DI.STORE_LOOP_DEPTH[iSt];
+      constexpr bool a_prec_b = DI.LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[iLd][iSt];
 
-      bool StoreSchedGreater = (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == BACK);
-      if constexpr (CmnLoopDepth >= 0) {
-        if constexpr (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == BACK) {
-          StoreSchedGreater = (NextStoreSched[iSt][CmnLoopDepth] >=
-                               NextLoadSched[iLd][CmnLoopDepth]);
-        } else {
-          StoreSchedGreater = (NextStoreSched[iSt][CmnLoopDepth] >
-                               NextLoadSched[iLd][CmnLoopDepth]);
-        }
+      bool ProgramOrderSafe = a_prec_b;
+      if constexpr (k >= 0) {
+        ProgramOrderSafe =
+            a_prec_b ? (NextLoadSched[iLd][k] <= StoreAckSched[iSt][k])
+                     : (NextLoadSched[iLd][k] < StoreAckSched[iSt][k]);
       }
 
-      bool LoadHasPosDepDistance = false;
-      bool StAddrNoDecrement = true;
-      if constexpr (DI.LOAD_STORE_IN_SAME_LOOP[iLd][iSt]) {
-        bool CanCheckPosDepDist = true;
-        constexpr int StWrapDepth =
-            walkUpStoreToFirstWrap(iSt, StLoopDepth - 1);
-        if constexpr (StWrapDepth >= 0) {
-          CanCheckPosDepDist = (NextStoreSched[iSt][StWrapDepth] >=
-                                NextLoadSched[iLd][StWrapDepth]);
-
-          if constexpr (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == BACK) {
-            StAddrNoDecrement = ((NextStoreSched[iSt][StWrapDepth] + 1) >=
-                                 NextLoadSched[iLd][StWrapDepth]);
-          } else {
-            StAddrNoDecrement = (NextStoreSched[iSt][StWrapDepth] >=
-                                 NextLoadSched[iLd][StWrapDepth]);
-          }
-        }
-
-        LoadHasPosDepDistance = CanCheckPosDepDist && NextLoadPosDepDist[iLd][iSt];
-      } else {
-        UnrolledLoop<StLoopDepth, std::max(CmnLoopDepth, 0)>([&](auto iD) {
-          if constexpr (DI.STORE_IS_MAX_ITER_NEEDED[iSt][iD]) {
-            StAddrNoDecrement &= NextStoreIsMaxIter[iSt][iD];
-          }
+      bool NoAddressReset = true;
+      if constexpr (m-1 > k+1) {
+        UnrolledLoop<k+1, m-1>([&](auto iD) {
+          if constexpr (DI.STORE_IS_MAX_ITER_NEEDED[iSt][iD])
+            NoAddressReset &= StoreAckIsMaxIter[iSt][iD];
         });
       }
 
-      bool StoreWillNotTouchLoadAddr =
-          (StAddrNoDecrement && NextStoreAddr[iSt] > NextLoadAddr[iLd]);
+      bool NoBRequestsUntilA =
+          a_prec_b ? (NextLoadSched[iLd][k] == StoreAckSched[iSt][k] + 1)
+                   : (NextLoadSched[iLd][k] == StoreAckSched[iSt][k]);
+      if constexpr (m > k+1) {
+        UnrolledLoop<k + 1, m>([&](auto iD) {
+          NoBRequestsUntilA &= StoreAckIsMaxIter[iSt][iD];
+        });
+      }
 
-      return StoreSchedGreater || LoadHasPosDepDistance ||
-             StoreWillNotTouchLoadAddr;
+      bool LoadHasPosDepDistance = false;
+      if constexpr (DI.LOAD_STORE_IN_SAME_LOOP[iLd][iSt]) {
+        bool CanCheckPosDepDist = true;
+        constexpr int mWrapDepth = walkUpStoreToFirstWrap(iSt, m - 1);
+        if constexpr (mWrapDepth >= 0 && mWrapDepth < k) {
+          // CanCheckPosDepDist = (NextStoreSched[iSt][mWrapDepth] >=
+          CanCheckPosDepDist = (StoreAckSched[iSt][mWrapDepth] >=
+                                NextLoadSched[iLd][mWrapDepth]);
+        }
+
+        LoadHasPosDepDistance = CanCheckPosDepDist && NextLoadPosDepDist[iLd][iSt];
+      }
+
+      return ProgramOrderSafe ||
+             (NextLoadAddr[iLd] < StoreAckAddr[iSt] && NoAddressReset) ||
+             NoBRequestsUntilA || LoadHasPosDepDistance;
     };
 
     auto checkNoWAR = [&](const auto iLd, const auto iSt) {
-      constexpr int CmnLoopDepth = DI.LOAD_STORE_COMMON_LOOP_DEPTH[iLd][iSt];
-      constexpr int LoadLoopDepth = DI.LOAD_LOOP_DEPTH[iLd];
+      constexpr int k = DI.LOAD_STORE_COMMON_LOOP_DEPTH[iLd][iSt];
+      constexpr int m = DI.LOAD_LOOP_DEPTH[iLd];
+      constexpr bool a_prec_b = !DI.LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[iLd][iSt];
 
-      bool AckLoadSchedGreater = (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == FORWARD);
-      bool NextLoadSchedGreater = (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == FORWARD);
-      bool LoadSchedEqaul = true;
-      if constexpr (CmnLoopDepth >= 0) {
-        constexpr int LoadWrapFromCmn = walkUpLoadToFirstWrap(iLd, CmnLoopDepth);
-        constexpr int EqCheckLoopDepth =
-            (LoadWrapFromCmn >= 0) ? LoadWrapFromCmn : CmnLoopDepth;
-
-        if constexpr (EqCheckLoopDepth >= 0) {
-          LoadSchedEqaul = (LoadAckSched[iLd][EqCheckLoopDepth] ==
-                            NextStoreSched[iSt][EqCheckLoopDepth]);
-
-          if constexpr (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
-            LoadSchedEqaul |= ((LoadAckSched[iLd][EqCheckLoopDepth] + 1) ==
-                               NextStoreSched[iSt][EqCheckLoopDepth]);
-          }
-        }
-
-        if constexpr (DI.LOAD_STORE_DEP_DIR[iLd][iSt] == FORWARD) {
-          AckLoadSchedGreater = (LoadAckSched[iLd][CmnLoopDepth] >=
-                                 NextStoreSched[iSt][CmnLoopDepth]);
-          NextLoadSchedGreater = (NextLoadSched[iLd][CmnLoopDepth] >=
-                                  NextStoreSched[iSt][CmnLoopDepth]);
-        } else {
-          AckLoadSchedGreater = (LoadAckSched[iLd][CmnLoopDepth] >
-                                 NextStoreSched[iSt][CmnLoopDepth]);
-          NextLoadSchedGreater = (NextLoadSched[iLd][CmnLoopDepth] >
-                                  NextStoreSched[iSt][CmnLoopDepth]);
-        }
+      bool ProgramOrderSafe = a_prec_b;
+      if constexpr (k >= 0) {
+        ProgramOrderSafe =
+            a_prec_b ? (NextStoreSched[iSt][k] <= LoadAckSched[iLd][k])
+                     : (NextStoreSched[iSt][k] < LoadAckSched[iLd][k]);
       }
 
-      bool LdAddrNoDecr = true;
-      UnrolledLoop<LoadLoopDepth, std::max(CmnLoopDepth, 0)>([&](auto iD) {
-        if constexpr (DI.LOAD_IS_MAX_ITER_NEEDED[iLd][iD]) {
-          LdAddrNoDecr &= LoadAckIsMaxIter[iLd][iD];
-        }
+      bool NoAddressReset = true;
+      if constexpr (m-1 > k+1) {
+        UnrolledLoop<k+1, m-1>([&](auto iD) {
+          if constexpr (DI.LOAD_IS_MAX_ITER_NEEDED[iLd][iD])
+            NoAddressReset &= LoadAckIsMaxIter[iLd][iD];
+        });
+      }
+
+      bool NoBRequestsUntilA =
+          a_prec_b ? (NextStoreSched[iSt][k] == LoadAckSched[iLd][k] + 1)
+                   : (NextStoreSched[iSt][k] == LoadAckSched[iLd][k]);
+      UnrolledLoop<k + 1, m>([&](auto iD) {
+        NoBRequestsUntilA &= LoadAckIsMaxIter[iLd][iD];
       });
 
-      bool LoadSchedIsGreater = AckLoadSchedGreater ||
-                          (NextLoadSchedGreater && LoadNoOutstandingAcks[iLd]);
-      bool LoadWillNotTouchStoreAddr = (LoadSchedEqaul && LdAddrNoDecr &&
-                                        LoadAckAddr[iLd] > NextStoreAddr[iSt]);
-
-      return LoadSchedIsGreater || LoadWillNotTouchStoreAddr;
+      return ProgramOrderSafe ||
+             (NextStoreAddr[iSt] < LoadAckAddr[iLd] && NoAddressReset) ||
+             NoBRequestsUntilA;
     };
 
     auto checkNoWAW = [&](const auto iSt, const auto iStOther) {
-      constexpr int CmnLoopDepth = DI.STORE_STORE_COMMON_LOOP_DEPTH[iSt][iStOther];
-      constexpr int OtherLoopDepth = DI.STORE_LOOP_DEPTH[iStOther];
-      constexpr DEP_DIR DepDir = (iSt < iStOther) ? BACK : FORWARD;
+      constexpr int k = DI.STORE_STORE_COMMON_LOOP_DEPTH[iSt][iStOther];
+      constexpr int m = DI.STORE_LOOP_DEPTH[iSt];
+      // Store ids are assigned in topological program order.
+      constexpr bool a_prec_b = iSt < iStOther;
 
-      bool OtherSchedGreater = (iStOther > iSt);
-      bool OtherSchedEqual = true;
-      if constexpr (CmnLoopDepth >= 0) {
-        constexpr int OtherWrapFromCmn = walkUpStoreToFirstWrap(iSt, CmnLoopDepth);
-        constexpr int EqCheckLoopDepth =
-            (OtherWrapFromCmn >= 0) ? OtherWrapFromCmn : CmnLoopDepth;
-
-        if constexpr (EqCheckLoopDepth >= 0) {
-          OtherSchedEqual = (StoreAckSched[iStOther][EqCheckLoopDepth] ==
-                             NextStoreSched[iSt][EqCheckLoopDepth]);
-          if constexpr (DepDir == BACK) {
-            OtherSchedEqual |= ((StoreAckSched[iStOther][EqCheckLoopDepth] + 1) == 
-                                NextStoreSched[iSt][EqCheckLoopDepth]);
-          }
-        }
-
-        if constexpr (DepDir == BACK) {
-          OtherSchedGreater = (NextStoreSched[iStOther][CmnLoopDepth] >=
-                               NextStoreSched[iSt][CmnLoopDepth]);
-        } else {
-          OtherSchedGreater = (NextStoreSched[iStOther][CmnLoopDepth] >
-                               NextStoreSched[iSt][CmnLoopDepth]);
-        }
+      bool ProgramOrderSafe = a_prec_b;
+      if constexpr (k >= 0) {
+        ProgramOrderSafe =
+            a_prec_b ? (NextStoreSched[iSt][k] <= StoreAckSched[iStOther][k])
+                     : (NextStoreSched[iSt][k] < StoreAckSched[iStOther][k]);
       }
 
-      bool OtherAddrNoDecr = true;
-      UnrolledLoop<OtherLoopDepth, std::max(CmnLoopDepth, 0)>([&](auto iD) {
-        if constexpr (DI.STORE_IS_MAX_ITER_NEEDED[iStOther][iD]) {
-          OtherAddrNoDecr &= StoreAckIsMaxIter[iStOther][iD];
-        }
+      bool NoAddressReset = true;
+      if constexpr (m-1 > k+1) {
+        UnrolledLoop<k+1, m-1>([&](auto iD) {
+          if constexpr (DI.STORE_IS_MAX_ITER_NEEDED[iStOther][iD])
+            NoAddressReset &= StoreAckIsMaxIter[iStOther][iD];
+        });
+      }
+
+      bool NoBRequestsUntilA =
+          a_prec_b ? (NextStoreSched[iSt][k] == StoreAckSched[iStOther][k] + 1)
+                   : (NextStoreSched[iSt][k] == StoreAckSched[iStOther][k]);
+      UnrolledLoop<k + 1, m>([&](auto iD) {
+        NoBRequestsUntilA &= StoreAckIsMaxIter[iStOther][iD];
       });
 
-      bool OtherWillNotTouchAddr =
-          (OtherAddrNoDecr && OtherSchedEqual &&
-           StoreAckAddr[iStOther] > NextStoreAddr[iSt]);
-
-      return OtherSchedGreater || OtherWillNotTouchAddr;
+      return ProgramOrderSafe ||
+             (NextStoreAddr[iSt] < StoreAckAddr[iStOther] && NoAddressReset) ||
+             NoBRequestsUntilA;
     };
     ///////////////////////////////////////////////////////////////////////////
     // End disambiguation logic.
@@ -631,8 +613,11 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
           bool ThisReuse[NUM_STORES];
           T ThisReuseVal[NUM_STORES];
           bool NoRAW = true;
+          bool ThisSafe[NUM_STORES];
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
-            NoRAW &= checkNoRAW(iLd, iSt);
+            ThisSafe[iSt] = checkNoRAW(iLd, iSt);
+            // NoRAW &= checkNoRAW(iLd, iSt);
+            NoRAW &= ThisSafe[iSt];
 
             ThisReuse[iSt] = false;
             ThisReuseVal[iSt] = T{};
@@ -646,19 +631,31 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
             }
           });
 
-          // If no hazards against any store, then move load to "safe" stage.
-          if (NoRAW) {
-            bool Reuse = false;
-            T ReuseVal = T{};
-            UnrolledLoop<NUM_STORES>([&](auto iSt) {
-              // There can be onyl one hit bacause stores invalidate store
-              // commit queue entries of other stores.
-              if (ThisReuse[iSt]) {
-                Reuse = true;
-                ReuseVal = ThisReuseVal[iSt];
-              }
-            });
+          // if (NoRAW) {
+          // if (iLd == 0) {
+          //   PRINTF("Safe? %d LD%d: %d (%d, %d, %d)  ackST0: %d (%d/%d, %d/%d, %d/%d)  ackST1: %d (%d/%d, %d/%d, %d/%d) [%d, %d]\n", 
+          //          NoRAW, int(iLd), NextLoadAddr[iLd], NextLoadSched[iLd][0], NextLoadSched[iLd][1], NextLoadSched[iLd][2],
+          //          StoreAckAddr[0], StoreAckSched[0][0], StoreAckIsMaxIter[0][0], StoreAckSched[0][1], StoreAckIsMaxIter[0][1], StoreAckSched[0][2], StoreAckIsMaxIter[0][2],
+          //          StoreAckAddr[1], StoreAckSched[1][0], StoreAckIsMaxIter[1][0], StoreAckSched[1][1], StoreAckIsMaxIter[1][1], StoreAckSched[1][2], StoreAckIsMaxIter[1][2],
+          //          ThisSafe[0], ThisSafe[1]
+          //          );
+          // }
+          // }
 
+          bool Reuse = false;
+          T ReuseVal = T{};
+          UnrolledLoop<NUM_STORES>([&](auto iSt) {
+            // There can be onyl one hit bacause stores invalidate store
+            // commit queue entries of other stores.
+            if (ThisReuse[iSt]) {
+              Reuse = true;
+              ReuseVal = ThisReuseVal[iSt];
+            }
+          });
+
+          // If no hazards against any store, then move load to "safe" stage.
+          // if (NoRAW || Reuse) {
+          if (NoRAW) {
             bool succ = false;
             ack_t<LOOP_DEPTH> MuxAck{NextLoadAddr[iLd]};
             UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
@@ -767,17 +764,17 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
             }
 
             // Check if this store overrides another store in its burst buffer.
-            // UnrolledLoop<NUM_STORES>([&](auto iStOther) {
-            //   if constexpr (iStOther != iSt) {
-            //     #pragma unroll
-            //     for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
-            //       if (NextStoreAddr[iSt] == StoreButrstBuffAddr[iStOther][i]) {
-            //         // Invalid address, i.e. a load will never requiest this.
-            //         StoreButrstBuffAddr[iStOther][i] = STORE_ADDR_SENTINEL;
-            //       }
-            //     }
-            //   }
-            // });
+            UnrolledLoop<NUM_STORES>([&](auto iStOther) {
+              if constexpr (iStOther != iSt) {
+                #pragma unroll
+                for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
+                  if (NextStoreAddr[iSt] == StoreButrstBuffAddr[iStOther][i]) {
+                    // Invalid address, i.e. a load will never requiest this.
+                    StoreButrstBuffAddr[iStOther][i] = STORE_ADDR_SENTINEL;
+                  }
+                }
+              }
+            });
 
             StoreValid[iSt][0] = false;
             NextStoreValuePipeReadValid[iSt] = false;

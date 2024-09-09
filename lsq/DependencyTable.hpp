@@ -1,10 +1,6 @@
 #ifndef __DEPENDENCY_TABLE_HPP__
 #define __DEPENDENCY_TABLE_HPP__
 
-enum DEP_DIR {
-  BACK,    // First load, then store in a loop.
-  FORWARD, // First store, then load in a loop.
-};
 
 template <int MEM_ID> struct DepInfo;
 
@@ -29,8 +25,8 @@ template <> struct DepInfo<0> {
   };
   static constexpr int LOAD_STORE_COMMON_LOOP_DEPTH[NUM_LOADS][NUM_STORES] = {
       {1, 0}, {0, 2}};
-  static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = {
-      {BACK, BACK}, {FORWARD, BACK}};
+  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {
+      {true, true}, {false, true}};
 
   static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {1, 2};
   static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
@@ -51,7 +47,7 @@ template <> struct DepInfo<1> {
       {0}};
   static constexpr int STORE_STORE_COMMON_LOOP_DEPTH[NUM_STORES][NUM_STORES] = {
       {1}};
-  static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = {{BACK}};
+  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {{true}};
   static constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = {2};
   static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {1};
 
@@ -76,8 +72,8 @@ template <> struct DepInfo<2> {
       {0, 1, 0},
       {0, 0, 1},
   };
-  static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = {
-      {FORWARD, FORWARD, BACK}};
+  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {
+      {false, false, true}};
   static constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = {1};
   static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {2, 1, 1};
 
@@ -100,8 +96,8 @@ template <> struct DepInfo<3> {
       {1}, {-1}};
   static constexpr int STORE_STORE_COMMON_LOOP_DEPTH[NUM_STORES][NUM_STORES] = {
       {1}};
-  static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = {
-      {BACK}, {FORWARD}};
+  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {
+      {true}, {false}};
   static constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = {1, 2};
   static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {1};
 
@@ -127,8 +123,8 @@ template <> struct DepInfo<4> {
       {0, 2}, {0, 0}};
   static constexpr int STORE_STORE_COMMON_LOOP_DEPTH[NUM_STORES][NUM_STORES] = {
       {1, 0}, {0, 2}};
-  static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = {
-      {FORWARD, BACK}, {FORWARD, FORWARD}};
+  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {
+      {false, true}, {false, false}};
 
   static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {true, true, false}, {true, false, false}};
@@ -153,7 +149,7 @@ template <> struct DepInfo<5> {
   static constexpr int STORE_STORE_COMMON_LOOP_DEPTH[NUM_STORES][NUM_STORES] = {
       {1}};
 
-  static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = {{BACK}};
+  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {{true}};
 
   static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {true, false},
@@ -181,9 +177,9 @@ template <> struct DepInfo<6> {
       {1, 0},
       {0, 1},
   };
-  static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = {
-      {BACK, BACK},    {BACK, BACK},    {BACK, BACK},   {BACK, BACK},
-      {FORWARD, BACK}, {FORWARD, BACK}, {FORWARD, BACK}};
+  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {
+      {true, true},    {true, true},    {true, true},   {true, true},
+      {false, true}, {false, true}, {false, true}};
   static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {false, false, false}, {false, true, false}, {true, true, false},
       {true, false, false},
@@ -213,8 +209,8 @@ template <> struct DepInfo<8> {
       {1, -1}, {-1, 0}};
   static constexpr int STORE_STORE_COMMON_LOOP_DEPTH[NUM_STORES][NUM_STORES] = {
       {1, -1}, {-1, 0}};
-  static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = {
-      {BACK, BACK}, {FORWARD, BACK}};
+  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {
+      {true, true}, {false, true}};
 
   static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {true, false}, {false}};
@@ -222,6 +218,30 @@ template <> struct DepInfo<8> {
       {true, false}, {false}};
   static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
       {true, false}, {false, true}};
+};
+
+// test_fusion_war2
+template <> struct DepInfo<9> {
+  static constexpr int NUM_LOADS = 1;
+  static constexpr int NUM_STORES = 1;
+  static constexpr int MAX_LOOP_DEPTH = 2;
+
+  static constexpr int LOAD_STORE_COMMON_LOOP_DEPTH[NUM_LOADS][NUM_STORES] = {
+      {0}};
+  static constexpr int STORE_STORE_COMMON_LOOP_DEPTH[NUM_STORES][NUM_STORES] = {
+      {1}};
+  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {{false}};
+  static constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = {1};
+  static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {1};
+
+  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
+      {true, false}};
+  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
+      {true, false}};
+  static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
+      {false}};
+  static constexpr bool LOAD_STORE_IN_SAME_CU[NUM_LOADS][NUM_STORES] = {
+      {false}};
 };
 
 #endif

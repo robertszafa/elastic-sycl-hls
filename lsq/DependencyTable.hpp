@@ -23,6 +23,10 @@ template <> struct DepInfo<0> {
       {true, false},
       {false, true},
   };
+  static constexpr bool LOAD_STORE_IN_SAME_CU[NUM_LOADS][NUM_STORES] = {
+      {true, false},
+      {false, true},
+  };
   static constexpr int LOAD_STORE_COMMON_LOOP_DEPTH[NUM_LOADS][NUM_STORES] = {
       {1, 0}, {0, 2}};
   static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = {
@@ -132,6 +136,8 @@ template <> struct DepInfo<4> {
       {true, false, false}, {true, true, false}};
   static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
       {false, true}, {false, false}};
+  static constexpr bool LOAD_STORE_IN_SAME_CU[NUM_LOADS][NUM_STORES] = {
+      {false, true}, {false, false}};
 };
 
 // page rank p
@@ -156,6 +162,8 @@ template <> struct DepInfo<5> {
       {true, false},
   };
   static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
+      {false}};
+  static constexpr bool LOAD_STORE_IN_SAME_CU[NUM_LOADS][NUM_STORES] = {
       {false}};
 };
 

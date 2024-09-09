@@ -69,6 +69,8 @@ constexpr sched_t SCHED_SENTINEL = (1<<30);
 template <int MemId> class StreamingMemoryKernel;
 template <int PortId> class StorePortKernel;
 template <int PortId> class LoadPortKernel;
+template <int LoadId> class LoadLastIterKernel;
+template <int StoreId> class StoreLastIterKernel;
 
 // Applaying [[optnone]] to StreamingMemory doesn't apply the attribute to 
 // nested lambdas, so apply the attribute to a range of source code.
@@ -91,6 +93,79 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
   constexpr uint ST_ALLOC_Q_SIZE = 2;
   constexpr uint LD_Q_SIZE = 2;
 
+  // Kernels to tag last iterations
+  // LOADS:
+  using LoadReqInternalPipes = 
+    PipeArray<class _LoadReqInternalPipes, ld_req_t<NUM_STORES, LOOP_DEPTH>, 2, NUM_LOADS>;
+  UnrolledLoop<NUM_LOADS>([&](auto iLd) {
+    constexpr int LoadId = 300 * (MEM_ID + 1) + iLd;
+    q.single_task<LoadLastIterKernel<LoadId>>([=]() KERNEL_PRAGMAS {
+      static constexpr auto DI = DepInfo<MEM_ID>{};
+      
+      ld_req_t<NUM_STORES, LOOP_DEPTH> LastReq {0};
+      InitBundle(LastReq.sched, 1u);
+
+      [[intel::ivdep]]
+      [[intel::initiation_interval(1)]]
+      while (true) {
+        const ld_req_t<NUM_STORES, LOOP_DEPTH> ThisReq =
+            LoadReqPipes::template PipeAt<iLd>::read();
+
+        if (ThisReq.sched[DI.LOAD_LOOP_DEPTH[iLd]] > 1) {
+          UnrolledLoop<1, LOOP_DEPTH>([&](int iD) {
+            LastReq.isMaxIter[iD] = ThisReq.sched[iD - 1] > LastReq.sched[iD - 1];
+          });
+          LoadReqInternalPipes::template PipeAt<iLd>::write(LastReq);
+        }
+
+        LastReq = ThisReq;
+
+        if (ThisReq.addr == LOAD_ADDR_SENTINEL)
+          break;
+      }
+
+      UnrolledLoop<LOOP_DEPTH>([&](auto iD) { LastReq.isMaxIter[iD] = true; });
+      LoadReqInternalPipes::template PipeAt<iLd>::write(LastReq);
+    });
+  });
+
+  // STORES:
+  using StoreReqInternalPipes = 
+    PipeArray<class _StoreReqInternalPipes, st_req_t<LOOP_DEPTH>, 2, NUM_STORES, 2>;
+  UnrolledLoop<NUM_STORES>([&](auto iSt) {
+    constexpr int StoreId = 300 * (MEM_ID + 1) + iSt;
+    q.single_task<StoreLastIterKernel<StoreId>>([=]() KERNEL_PRAGMAS {
+      static constexpr auto DI = DepInfo<MEM_ID>{};
+
+      st_req_t<LOOP_DEPTH> LastReq {0};
+      InitBundle(LastReq.sched, 1u);
+
+      [[intel::ivdep]]
+      [[intel::initiation_interval(1)]]
+      while (true) {
+        const st_req_t<LOOP_DEPTH> ThisReq =
+            StoreReqPipes::template PipeAt<iSt>::read();
+
+        if (ThisReq.sched[DI.STORE_LOOP_DEPTH[iSt]] > 1) {
+          UnrolledLoop<1, LOOP_DEPTH>([&](auto iD) {
+            LastReq.isMaxIter[iD] = ThisReq.sched[iD - 1] > LastReq.sched[iD - 1];
+          });
+          StoreReqInternalPipes::template PipeAt<iSt, 0>::write(LastReq);
+          StoreReqInternalPipes::template PipeAt<iSt, 1>::write(LastReq);
+        }
+
+        LastReq = ThisReq;
+
+        if (ThisReq.addr == STORE_ADDR_SENTINEL)
+          break;
+      }
+
+      UnrolledLoop<LOOP_DEPTH>([&](auto iD) { LastReq.isMaxIter[iD] = true; });
+      StoreReqInternalPipes::template PipeAt<iSt, 0>::write(LastReq);
+      StoreReqInternalPipes::template PipeAt<iSt, 1>::write(LastReq);
+    });
+  });
+
   // Store ports.
   // Because we use a dynamic burstig LSU, it is important that the store port
   // receives store addresses as soon as possible (hence separate addr and val 
@@ -109,7 +184,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       while (true) {
         StoreAckPipes::template PipeAt<iSt>::write(NextAck);
 
-        const auto Req = StoreReqPipes::template PipeAt<iSt, 0>::read();
+        const auto Req = StoreReqInternalPipes::template PipeAt<iSt, 0>::read();
         if (Req.addr == STORE_ADDR_SENTINEL) break;
 
         auto Val = StorePortValPipes::template PipeAt<iSt>::read();
@@ -528,7 +603,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         /** Rule for reading new load allocation: {addr, tag} pairs. */
         if (!LoadValid[iLd][LD_Q_SIZE - 1]) {
           bool succ = false;
-          const auto LoadReq = LoadReqPipes::template PipeAt<iLd>::read(succ);
+          const auto LoadReq = LoadReqInternalPipes::template PipeAt<iLd>::read(succ);
           if (succ) {
             LoadValid[iLd][LD_Q_SIZE - 1] = true;
             LoadAddr[iLd][LD_Q_SIZE - 1] = LoadReq.addr;
@@ -635,7 +710,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
 
         /** Rule for reading store req. */
         if (!StoreValid[iSt][ST_ALLOC_Q_SIZE - 1]) {
-          auto StoreReq = StoreReqPipes::template PipeAt<iSt, 1>::read(
+          auto StoreReq = StoreReqInternalPipes::template PipeAt<iSt, 1>::read(
               StoreValid[iSt][ST_ALLOC_Q_SIZE - 1]);
           StoreAddr[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.addr;
           UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
@@ -661,7 +736,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         });
         bool NoWAR = true;
         UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-          if constexpr (!DI.LOAD_STORE_IN_SAME_THREAD[iLd][iSt]) {
+          if constexpr (!DI.LOAD_STORE_IN_SAME_CU[iLd][iSt]) {
             NoWAR &= checkNoWAR(iLd, iSt);
           }
         });

@@ -50,6 +50,11 @@ struct st_port_req_t {
   ack_t<LOOP_DEPTH> ack;
 };
 
+template <typename T>
+struct value_t {
+  T val;
+  bool valid;
+};
 
 #define KERNEL_PRAGMAS [[intel::kernel_args_restrict]] [[intel::max_global_work_dim(0)]]
 
@@ -170,7 +175,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
   // Because we use a dynamic burstig LSU, it is important that the store port
   // receives store addresses as soon as possible (hence separate addr and val 
   // pipes). The LSU can issue a burst sooner if it can see the next addr.
-  using StorePortValPipes = PipeArray<class _StorePortValPipes, T, 1, NUM_STORES>;
+  using StorePortValPipes = PipeArray<class _StorePortValPipes, value_t<T>, 1, NUM_STORES>;
   using StoreAckPipes = PipeArray<class _StoreAckPipe, ack_t<LOOP_DEPTH>, 2, NUM_STORES>;
   UnrolledLoop<NUM_STORES>([&](auto iSt) {
     constexpr int StPortId = 100*(MEM_ID+1) + iSt;
@@ -196,7 +201,8 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         #pragma clang diagnostic pop
 
         // PRINTF("MEM%d st%d stores address %u\n", MEM_ID, int(iSt), Req.addr);
-        BurstCoalescedLSU::store(StorePtr, Val);
+        if (Val.valid)
+          BurstCoalescedLSU::store(StorePtr, Val.val);
         NextAck = Req;
       }
 
@@ -275,6 +281,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
     bool NextStoreIsMaxIter[NUM_STORES][LOOP_DEPTH];
     T NextStoreValue[NUM_STORES];
     bool NextStoreValueValid[NUM_STORES];
+    bool NextStoreValuePipeReadValid[NUM_STORES];
     // This buffer ahadows the burst buffer in the store port.
     addr_t StoreButrstBuffAddr[NUM_STORES][ST_COMMIT_Q_SIZE];
     T StoreBurstBuffVal[NUM_STORES][ST_COMMIT_Q_SIZE];
@@ -299,7 +306,8 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       InitBundle(NextStoreSched[iSt], 0u);
       InitBundle(NextStoreIsMaxIter[iSt], false);
       NextStoreValue[iSt] = T{};
-      NextStoreValueValid[iSt] = false;
+      NextStoreValueValid[iSt] = T{};
+      NextStoreValuePipeReadValid[iSt] = false;
 
       InitBundle(StoreButrstBuffAddr[iSt], STORE_ADDR_SENTINEL);
       InitBundle(StoreBurstBuffVal[iSt], T{});
@@ -721,9 +729,11 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         /** End Rule */
 
         /** Rule for reading store value. */
-        if (!NextStoreValueValid[iSt]) {
-          NextStoreValue[iSt] = StoreValPipes::template PipeAt<iSt>::read(
-            NextStoreValueValid[iSt]);
+        if (!NextStoreValuePipeReadValid[iSt]) {
+          value_t<T> valRd = StoreValPipes::template PipeAt<iSt>::read(
+              NextStoreValuePipeReadValid[iSt]);
+          NextStoreValue[iSt] = valRd.val;
+          NextStoreValueValid[iSt] = valRd.valid;
         }
         /** End Rule */
 
@@ -740,33 +750,37 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
             NoWAR &= checkNoWAR(iLd, iSt);
           }
         });
-        const bool IsSafe = (NoWAW && NoWAR);
+        const bool IsSafe = (NoWAW && NoWAR) || !NextStoreValueValid[iSt];
         /** End Rule */
 
         /** Rule for moving st alloc to st commit queue. */
-        if (StoreValid[iSt][0] && NextStoreValueValid[iSt] && IsSafe) {
+        if (StoreValid[iSt][0] && NextStoreValuePipeReadValid[iSt] && IsSafe) {
           bool succ = false;
-          StorePortValPipes::template PipeAt<iSt>::write(NextStoreValue[iSt], succ);
+          StorePortValPipes::template PipeAt<iSt>::write(
+              {NextStoreValue[iSt], NextStoreValueValid[iSt]}, succ);
 
           if (succ) {
-            ShiftBundle(StoreBurstBuffVal[iSt], NextStoreValue[iSt]);
-            ShiftBundle(StoreButrstBuffAddr[iSt], NextStoreAddr[iSt]);
+            // Don't move invalid store to reuse buffer.
+            if (NextStoreValueValid[iSt]) {
+              ShiftBundle(StoreBurstBuffVal[iSt], NextStoreValue[iSt]);
+              ShiftBundle(StoreButrstBuffAddr[iSt], NextStoreAddr[iSt]);
+            }
 
             // Check if this store overrides another store in its burst buffer.
-            UnrolledLoop<NUM_STORES>([&](auto iStOther) {
-              if constexpr (iStOther != iSt) {
-                #pragma unroll
-                for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
-                  if (NextStoreAddr[iSt] == StoreButrstBuffAddr[iStOther][i]) {
-                    // Invalid address, i.e. a load will never requiest this.
-                    StoreButrstBuffAddr[iStOther][i] = STORE_ADDR_SENTINEL;
-                  }
-                }
-              }
-            });
+            // UnrolledLoop<NUM_STORES>([&](auto iStOther) {
+            //   if constexpr (iStOther != iSt) {
+            //     #pragma unroll
+            //     for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
+            //       if (NextStoreAddr[iSt] == StoreButrstBuffAddr[iStOther][i]) {
+            //         // Invalid address, i.e. a load will never requiest this.
+            //         StoreButrstBuffAddr[iStOther][i] = STORE_ADDR_SENTINEL;
+            //       }
+            //     }
+            //   }
+            // });
 
             StoreValid[iSt][0] = false;
-            NextStoreValueValid[iSt] = false;
+            NextStoreValuePipeReadValid[iSt] = false;
           }
         }
         /** End Rule */

@@ -299,6 +299,8 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
     addr_t StoreAckAddr[NUM_STORES];
     sched_t StoreAckSched[NUM_STORES][LOOP_DEPTH];
     bool StoreAckIsMaxIter[NUM_STORES][LOOP_DEPTH];
+    bool StoreNoOutstandingAcks[NUM_STORES];
+    sched_t LastSentStoreSched[NUM_STORES];
     // Set to true when all stores have been served (sentinel request value).
     bool StoreDone[NUM_STORES];
 
@@ -324,6 +326,9 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       StoreAckAddr[iSt] = INIT_ACK_ADDR;
       InitBundle(StoreAckSched[iSt], INIT_ACK_SCHED);
       InitBundle(StoreAckIsMaxIter[iSt], true);
+
+      StoreNoOutstandingAcks[iSt] = true;
+      LastSentStoreSched[iSt] = INIT_ACK_SCHED;
 
       StoreDone[iSt] = false;
     });
@@ -415,10 +420,15 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       constexpr bool a_prec_b = DI.LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[iLd][iSt];
 
       bool ProgramOrderSafe = a_prec_b;
+      bool ProgramOrderSafeAgainstNext = a_prec_b;
       if constexpr (k >= 0) {
         ProgramOrderSafe =
             a_prec_b ? (NextLoadSched[iLd][k] <= StoreAckSched[iSt][k])
                      : (NextLoadSched[iLd][k] < StoreAckSched[iSt][k]);
+
+        ProgramOrderSafeAgainstNext =
+            a_prec_b ? (NextLoadSched[iLd][k] <= NextStoreSched[iSt][k])
+                     : (NextLoadSched[iLd][k] < NextStoreSched[iSt][k]);
       }
 
       bool NoAddressReset = true;
@@ -430,20 +440,13 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       }
 
       bool NoBRequestsUntilA =
-          a_prec_b ? (NextLoadSched[iLd][k] == StoreAckSched[iSt][k] + 1)
-                   : (NextLoadSched[iLd][k] == StoreAckSched[iSt][k]);
-      if constexpr (m > k+1) {
-        UnrolledLoop<k + 1, m>([&](auto iD) {
-          NoBRequestsUntilA &= StoreAckIsMaxIter[iSt][iD];
-        });
-      }
+          (StoreNoOutstandingAcks[iSt] && ProgramOrderSafeAgainstNext);
 
       bool LoadHasPosDepDistance = false;
       if constexpr (DI.LOAD_STORE_IN_SAME_LOOP[iLd][iSt]) {
         bool CanCheckPosDepDist = true;
         constexpr int mWrapDepth = walkUpStoreToFirstWrap(iSt, m - 1);
         if constexpr (mWrapDepth >= 0 && mWrapDepth < k) {
-          // CanCheckPosDepDist = (NextStoreSched[iSt][mWrapDepth] >=
           CanCheckPosDepDist = (StoreAckSched[iSt][mWrapDepth] >=
                                 NextLoadSched[iLd][mWrapDepth]);
         }
@@ -462,10 +465,14 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       constexpr bool a_prec_b = !DI.LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[iLd][iSt];
 
       bool ProgramOrderSafe = a_prec_b;
+      bool ProgramOrderSafeAgainstNext = a_prec_b;
       if constexpr (k >= 0) {
         ProgramOrderSafe =
             a_prec_b ? (NextStoreSched[iSt][k] <= LoadAckSched[iLd][k])
                      : (NextStoreSched[iSt][k] < LoadAckSched[iLd][k]);
+        ProgramOrderSafeAgainstNext =
+            a_prec_b ? (NextStoreSched[iSt][k] <= NextLoadSched[iLd][k])
+                     : (NextStoreSched[iSt][k] < NextLoadSched[iLd][k]);
       }
 
       bool NoAddressReset = true;
@@ -477,11 +484,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       }
 
       bool NoBRequestsUntilA =
-          a_prec_b ? (NextStoreSched[iSt][k] == LoadAckSched[iLd][k] + 1)
-                   : (NextStoreSched[iSt][k] == LoadAckSched[iLd][k]);
-      UnrolledLoop<k + 1, m>([&](auto iD) {
-        NoBRequestsUntilA &= LoadAckIsMaxIter[iLd][iD];
-      });
+          (LoadNoOutstandingAcks[iLd] && ProgramOrderSafeAgainstNext);
 
       return ProgramOrderSafe ||
              (NextStoreAddr[iSt] < LoadAckAddr[iLd] && NoAddressReset) ||
@@ -495,10 +498,14 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       constexpr bool a_prec_b = iSt < iStOther;
 
       bool ProgramOrderSafe = a_prec_b;
+      bool ProgramOrderSafeAgainstNext = a_prec_b;
       if constexpr (k >= 0) {
         ProgramOrderSafe =
             a_prec_b ? (NextStoreSched[iSt][k] <= StoreAckSched[iStOther][k])
                      : (NextStoreSched[iSt][k] < StoreAckSched[iStOther][k]);
+        ProgramOrderSafeAgainstNext =
+            a_prec_b ? (NextStoreSched[iSt][k] <= NextStoreSched[iStOther][k])
+                     : (NextStoreSched[iSt][k] < NextStoreSched[iStOther][k]);
       }
 
       bool NoAddressReset = true;
@@ -510,11 +517,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       }
 
       bool NoBRequestsUntilA =
-          a_prec_b ? (NextStoreSched[iSt][k] == StoreAckSched[iStOther][k] + 1)
-                   : (NextStoreSched[iSt][k] == StoreAckSched[iStOther][k]);
-      UnrolledLoop<k + 1, m>([&](auto iD) {
-        NoBRequestsUntilA &= StoreAckIsMaxIter[iStOther][iD];
-      });
+          (StoreNoOutstandingAcks[iStOther] && ProgramOrderSafeAgainstNext);
 
       return ProgramOrderSafe ||
              (NextStoreAddr[iSt] < StoreAckAddr[iStOther] && NoAddressReset) ||
@@ -682,6 +685,9 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         // This store is done if we receive an ACK with a sentinel value.
         StoreDone[iSt] = (StoreAckSched[iSt][0] == SCHED_SENTINEL);
 
+        StoreNoOutstandingAcks[iSt] =
+          (StoreAckSched[iSt][DI.STORE_LOOP_DEPTH[iSt]] == LastSentStoreSched[iSt]);
+
         /** Rule for reading store ACKs (always enabled). */
         bool succ = false;
         auto stAck = StoreAckPipes::template PipeAt<iSt>::read(succ);
@@ -778,6 +784,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
 
             StoreValid[iSt][0] = false;
             NextStoreValuePipeReadValid[iSt] = false;
+            LastSentStoreSched[iSt] = NextStoreSched[iSt][DI.STORE_LOOP_DEPTH[iSt]];
           }
         }
         /** End Rule */

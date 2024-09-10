@@ -11,7 +11,7 @@ template <> struct DepInfo<0> {
   static constexpr int MAX_LOOP_DEPTH = 3;
 
   static constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = {1, 2};
-  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
+  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {false, false, false},
       {false, true, false},
   };
@@ -29,7 +29,7 @@ template <> struct DepInfo<0> {
       {true, true}, {false, true}};
 
   static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {1, 2};
-  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
+  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
       {false, false, false},
       {false, true, false},
   };
@@ -51,9 +51,9 @@ template <> struct DepInfo<1> {
   static constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = {2};
   static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {1};
 
-  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
+  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {false, true, false}};
-  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
+  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
       {true, false}};
   static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
       {false}};
@@ -77,9 +77,9 @@ template <> struct DepInfo<2> {
   static constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = {1};
   static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {2, 1, 1};
 
-  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
+  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {true, false, false}};
-  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
+  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
       {true, true, false}, {true, false, false}, {true, false, false}};
   static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
       {false, false, true},
@@ -101,9 +101,9 @@ template <> struct DepInfo<3> {
   static constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = {1, 2};
   static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {1};
 
-  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
+  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {false, false, false}, {false, true, false}};
-  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
+  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
       {false, false, false}};
   static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
       {true},
@@ -126,9 +126,9 @@ template <> struct DepInfo<4> {
   static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {
       {false, true}, {false, false}};
 
-  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
+  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {true, true, false}, {true, false, false}};
-  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
+  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
       {true, false, false}, {true, true, false}};
   static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
       {false, true}, {false, false}};
@@ -151,10 +151,10 @@ template <> struct DepInfo<5> {
 
   static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {{true}};
 
-  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
+  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {true, false},
   };
-  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
+  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
       {true, false},
   };
   static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
@@ -180,13 +180,13 @@ template <> struct DepInfo<6> {
   static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {
       {true, true},    {true, true},    {true, true},   {true, true},
       {false, true}, {false, true}, {false, true}};
-  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
+  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {false, false, false}, {false, true, false}, {true, true, false},
       {true, false, false},
 
       {false, false, false}, {false, true, false}, {true, true, false},
   };
-  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
+  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
       {false, false, false},
       {false, false, false},
   };
@@ -212,9 +212,9 @@ template <> struct DepInfo<8> {
   static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = {
       {true, true}, {false, true}};
 
-  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
+  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {true, false}, {false}};
-  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
+  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
       {true, false}, {false}};
   static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
       {true, false}, {false, true}};
@@ -234,9 +234,9 @@ template <> struct DepInfo<9> {
   static constexpr int LOAD_LOOP_DEPTH[NUM_LOADS] = {1};
   static constexpr int STORE_LOOP_DEPTH[NUM_STORES] = {1};
 
-  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
+  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = {
       {true, false}};
-  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
+  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = {
       {true, false}};
   static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = {
       {false}};

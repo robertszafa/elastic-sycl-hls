@@ -11,7 +11,6 @@ using DecoupledLoopType = DynamicLoopFusionAnalysis::DecoupledLoopType;
 using MemoryRequest = DynamicLoopFusionAnalysis::MemoryRequest;
 using DecoupledLoopInfo = DynamicLoopFusionAnalysis::DecoupledLoopInfo;
 using MemoryDependencyInfo = DynamicLoopFusionAnalysis::MemoryDependencyInfo;
-using DepDir = DynamicLoopFusionAnalysis::DepDir;
 
 std::string DynamicLoopFusionAnalysis::MemoryRequest::getPipeName(
     DecoupledLoopType loopType) {
@@ -57,37 +56,66 @@ void DynamicLoopFusionAnalysis::MemoryRequest::collectPipeCalls(
   }
 }
 
-void DynamicLoopFusionAnalysis::MemoryRequest::collectStoresToRequestStruct(
+void DynamicLoopFusionAnalysis::MemoryRequest::collectAGURequestStores(
     Function &F, DecoupledLoopType loopType) {
   // We only have stores to memory request stores in the AGU kernels.
   if (loopType != DecoupledLoopType::agu)
     return;
 
   // Go backwards in the stores, starting at the pipe call.
-  auto reqStores = getAllStoresInBlockUpTo(pipeCalls[0]);
-  auto currSt = reqStores.begin();
+  auto storesIntoPipe = getAllStoresInBlockUpTo(this->pipeCalls[0]);
+  auto currSt = storesIntoPipe.begin();
 
   for (int iD = 0; iD < maxLoopDepthInMemoryId; ++iD) {
-    isMaxIterReqStore.push_back(*currSt);
+    this->isMaxIterReqStore.push_back(*currSt);
     currSt++;
-    schedReqStore.push_back(*currSt);
+    this->schedReqStore.push_back(*currSt);
     currSt++;
   }
 
   if (isaLoad(memOp)) {
     for (int iSt = 0; iSt < numStoresInMemoryId; ++iSt) {
-      isPosDepDistReqStore.push_back(*currSt);
+      this->isPosDepDistReqStore.push_back(*currSt);
       currSt++;
     }
   }
 
-  addrReqStore = *currSt;
+  this->addrReqStore = *currSt;
   currSt++;
 
   // Since we were collecting from the back, need to reverse.
-  std::reverse(schedReqStore.begin(), schedReqStore.end());
-  std::reverse(isMaxIterReqStore.begin(), isMaxIterReqStore.end());
-  std::reverse(isPosDepDistReqStore.begin(), isPosDepDistReqStore.end());
+  std::reverse(this->schedReqStore.begin(), this->schedReqStore.end());
+  std::reverse(this->isMaxIterReqStore.begin(), this->isMaxIterReqStore.end());
+  std::reverse(this->isPosDepDistReqStore.begin(),
+               this->isPosDepDistReqStore.end());
+}
+
+void DynamicLoopFusionAnalysis::MemoryRequest::collectStoreValPipeStores(
+    Function &F, DecoupledLoopType loopType) {
+  if (loopType != DecoupledLoopType::compute || !isPipeWrite(this->pipeCalls[0]))
+    return;
+
+  SmallVector<StoreInst *> storesIntoPipe;
+  for (auto user : this->pipeCalls[0]->getArgOperand(0)->users()) {
+    if (auto gep = dyn_cast<GetElementPtrInst>(user)) {
+      for (auto userGEP : gep->users()) {
+        if (auto stInstr = dyn_cast<StoreInst>(userGEP)) {
+          storesIntoPipe.push_back(stInstr);
+          break;
+        }
+      }
+    } else if (auto stInstr = dyn_cast<StoreInst>(user)) {
+      storesIntoPipe.push_back(stInstr);
+      break;
+    }
+  }
+  
+  // Not a {value, valid} struct.
+  if (storesIntoPipe.size() != 2)
+    return;
+
+  this->storeValueStore = storesIntoPipe[1];
+  this->storeValidStore = storesIntoPipe[0];
 }
 
 Instruction *getBasePtrOfInstr(Instruction *I) {
@@ -389,41 +417,29 @@ int getCommonLoopDepth(Loop *L1, Loop *L2) {
   return Res;
 }
 
-/// Return the direction of the A --depends-on--> B dependency. Return
-/// ENUM_DIR::BACK if A comes first in program order, else return FORWARD.
-DepDir getDependencyDir(Instruction *A, Instruction *B, LoopInfo &LI) {
-  auto LA = LI.getLoopFor(A->getParent());
-  auto LB = LI.getLoopFor(B->getParent());
+// Return true if A comes before B in the topological program order.
+bool aPrecedsB(Instruction *A, Instruction *B,
+               const SmallVector<BasicBlock *> &TopologicalOrder) {
+  if (A == B)
+    return false;
 
-  if (LA == LB) {
-    if (A->getParent() == B->getParent()) {
-      return getIndexIntoParent(A) < getIndexIntoParent(B) ? DepDir::BACK
-                                                           : DepDir::FORWARD;
-    }
-
-    for (auto BB : LA->blocks()) {
-      if (BB == A->getParent()) {
-        return DepDir::BACK;
-      } else if (BB == B->getParent()) {
-        return DepDir::FORWARD;
-      }
+  for (auto BB : TopologicalOrder) {
+    for (auto &I : *BB) {
+      if (&I == A)
+        return true;
+      else if (&I == B)
+        return false;
     }
   }
 
-  for (auto L : LI.getLoopsInPreorder()) {
-    if (L == LA) {
-      return DepDir::BACK;
-    } else if (L == LB) {
-      return DepDir::FORWARD;
-    }
-  }
-
-  return DepDir::FORWARD;
+  return false;
 }
 
-void DynamicLoopFusionAnalysis::collectProtectedMemoryInfo(LoopInfo &LI) {
+void DynamicLoopFusionAnalysis::collectProtectedMemoryInfo(Function &F,
+                                                           LoopInfo &LI) {
   auto LoadsForMem = getCluesteredLoadRequests(ComputeLoops);
   auto StoresForMem = getCluesteredStoreRequests(ComputeLoops);
+  auto TopologicalOrder = getTopologicalOrder(F);
 
   // init
   for (auto kv : StoresForMem) {
@@ -445,20 +461,21 @@ void DynamicLoopFusionAnalysis::collectProtectedMemoryInfo(LoopInfo &LI) {
       SmallVector<bool> StoreInSameLoop;
       SmallVector<bool> StoreInSameThread;
       SmallVector<int> StoreCommonLoopDepth;
-      SmallVector<DepDir> StoreDepDir;
+      SmallVector<bool> LoadPrecStore;
       for (auto &StReq : StoresForMem[MemId]) {
         auto StLoop = LI.getLoopFor(StReq->memOp->getParent());
         StoreInSameLoop.push_back(LdLoop == StLoop);
         StoreInSameThread.push_back(LdReq->loopId == StReq->loopId);
         StoreCommonLoopDepth.push_back(getCommonLoopDepth(LdLoop, StLoop));
-        StoreDepDir.push_back(getDependencyDir(LdReq->memOp, StReq->memOp, LI));
+        LoadPrecStore.push_back(
+            aPrecedsB(LdReq->memOp, StReq->memOp, TopologicalOrder));
       }
       ProtectedMemoryInfo[MemId].loadStoreInSameLoop.push_back(StoreInSameLoop);
       ProtectedMemoryInfo[MemId].loadStoreInSameThread.push_back(
           StoreInSameThread);
       ProtectedMemoryInfo[MemId].loadStoreCommonLoopDepth.push_back(
           StoreCommonLoopDepth);
-      ProtectedMemoryInfo[MemId].loadStoreDepDir.push_back(StoreDepDir);
+      ProtectedMemoryInfo[MemId].loadPrecedsStore.push_back(LoadPrecStore);
     }
   }
 
@@ -472,23 +489,23 @@ void DynamicLoopFusionAnalysis::collectProtectedMemoryInfo(LoopInfo &LI) {
 
       SmallVector<bool> StoreInSameLoop;
       SmallVector<int> StoreCommonLoopDepth;
-      SmallVector<DepDir> StoreDepDir;
+      SmallVector<bool> StorePrecedsOtherStore;
       for (auto &OtherStReq : StoresForMem[MemId]) {
         auto OtherStLoop = LI.getLoopFor(OtherStReq->memOp->getParent());
         StoreInSameLoop.push_back(StReqLoop == OtherStLoop);
         StoreCommonLoopDepth.push_back(
             getCommonLoopDepth(StReqLoop, OtherStLoop));
-        StoreDepDir.push_back(
-            getDependencyDir(StReq->memOp, OtherStReq->memOp, LI));
+        StorePrecedsOtherStore.push_back(
+            aPrecedsB(StReq->memOp, OtherStReq->memOp, TopologicalOrder));
       }
       ProtectedMemoryInfo[MemId].storeStoreInSameLoop.push_back(
           StoreInSameLoop);
       ProtectedMemoryInfo[MemId].storeStoreCommonLoopDepth.push_back(
           StoreCommonLoopDepth);
-      ProtectedMemoryInfo[MemId].storeStoreDepDir.push_back(StoreDepDir);
+      ProtectedMemoryInfo[MemId].storePrecedsOtherStore.push_back(
+          StorePrecedsOtherStore);
     }
   }
-
 }
 
 void DynamicLoopFusionAnalysis::collectAguLoops() {
@@ -543,38 +560,46 @@ void addRequestToComputeLoop(MemoryRequest &Req,
 void DynamicLoopFusionAnalysis::collectSimpleMemoryLoops(LoopInfo &LI) {
   int id = 0;
   for (auto L : LI.getLoopsInPreorder()) {
+    SetVector<Instruction *> LoadedBasePtrInLoop;
+
     for (auto I : getUniqueLoopInstructions(L)) {
-      // Don't decouple loads.
-      if (isaLoad(I))
+      auto BasePtr = getBasePtrOfInstr(I);
+
+      bool isGlobalPtr =
+          BasePtr && (BasePtr->getParent() ==
+                      &BasePtr->getParent()->getParent()->getEntryBlock());
+
+      // Only decouple stores that don't have a data hazard in L.
+      if (isGlobalPtr || isaLoad(I) || LoadedBasePtrInLoop.contains(BasePtr)) {
+        LoadedBasePtrInLoop.insert(BasePtr);
         continue;
+      }
 
-      if (auto BasePtr = getBasePtrOfInstr(I)) {
-        bool isGlobalPtr = BasePtr->getParent() ==
-                           &BasePtr->getParent()->getParent()->getEntryBlock();
-        if (!BasePtrsToProtect.contains(BasePtr) && isGlobalPtr) {
-          std::string kernelName = fName + "_mem_" + std::to_string(id);
-          DecoupledLoopInfo DecoupleInfo = {.id = id,
-                                            .type = DecoupledLoopType::memory,
-                                            .loops = getLoopNest(L),
-                                            .kernelName = kernelName};
 
-          MemoryRequest Req = {.loopId = id,
-                               .reqId = 0,
-                               .type = MemoryRequestType::simpleMem,
-                               .memOp = I,
-                               .basePtr = BasePtr,
-                               .loopDepth = int(L->getLoopDepth() - 1),
-                               .loopNest = getLoopNest(L)};
-          if (isaLoad(I))
-            DecoupleInfo.loads.push_back(Req);
-          else
-            DecoupleInfo.stores.push_back(Req);
+      if (!BasePtrsToProtect.contains(BasePtr) && isGlobalPtr && 
+          !LoadedBasePtrInLoop.contains(BasePtr)) {
+        std::string kernelName = fName + "_mem_" + std::to_string(id);
+        DecoupledLoopInfo DecoupleInfo = {.id = id,
+                                          .type = DecoupledLoopType::memory,
+                                          .loops = getLoopNest(L),
+                                          .kernelName = kernelName};
 
-          addRequestToComputeLoop(Req, ComputeLoops);
+        MemoryRequest Req = {.loopId = id,
+                              .reqId = 0,
+                              .type = MemoryRequestType::simpleMem,
+                              .memOp = I,
+                              .basePtr = BasePtr,
+                              .loopDepth = int(L->getLoopDepth() - 1),
+                              .loopNest = getLoopNest(L)};
+        if (isaLoad(I))
+          DecoupleInfo.loads.push_back(Req);
+        else
+          DecoupleInfo.stores.push_back(Req);
 
-          SimpleMemoryLoops.push_back(DecoupleInfo);
-          id++;
-        }
+        addRequestToComputeLoop(Req, ComputeLoops);
+
+        SimpleMemoryLoops.push_back(DecoupleInfo);
+        id++;
       }
     }
   }

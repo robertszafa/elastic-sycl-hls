@@ -11,7 +11,6 @@ using MemoryRequest = DynamicLoopFusionAnalysis::MemoryRequest;
 using DecoupledLoopType = DynamicLoopFusionAnalysis::DecoupledLoopType;
 using DecoupledLoopInfo = DynamicLoopFusionAnalysis::DecoupledLoopInfo;
 using MemoryDependencyInfo = DynamicLoopFusionAnalysis::MemoryDependencyInfo;
-using DepDir = DynamicLoopFusionAnalysis::DepDir;
 
 DecoupledLoopType getLoopType(Function &F) {
   std::string fName = demangle(std::string(F.getNameOrAsOperand()));
@@ -45,7 +44,8 @@ getMemoryRequests(Function &F,
     for (auto &Req :
          llvm::concat<MemoryRequest>(decoupleInfo.loads, decoupleInfo.stores)) {
       Req.collectPipeCalls(F, loopType);
-      Req.collectStoresToRequestStruct(F, loopType);
+      Req.collectAGURequestStores(F, loopType);
+      Req.collectStoreValPipeStores(F, loopType);
       MemoryRequests.push_back(Req);
     }
   }
@@ -135,7 +135,7 @@ void addIsMaxIterInstructions(Function &F, MemoryRequest &Req,
       // outs() << "Backedge taken count non-analyzable for loop with header "
       errs() << "Backedge taken count non-analyzable for loop with header "
              << Req.loopNest[iD]->getHeader()->getNameOrAsOperand()
-             << "\nIsMaxIter hint is ommited for this loop\n";
+             << "\nIsLastIter hint is ommited for this loop\n";
       continue;
     }
 
@@ -205,9 +205,21 @@ void swapMemOpForReqPipe(MemoryRequest &Req) {
 void swapMemOpForValPipe(MemoryRequest &Req) {
   Req.pipeCalls[0]->moveAfter(Req.memOp);
 
-  if (isaStore(Req.memOp)) {
+  if (isaStore(Req.memOp) && Req.storeValueStore) { 
+    // pipe::write({value, valid}) store
+    Req.storeValidStore->moveBefore(Req.pipeCalls[0]);
+    // Store into the pipes value field.
+    Req.memOp->setOperand(1, Req.storeValueStore->getOperand(1));
+    // Set valid bit.
+    auto validBitType = Req.storeValidStore->getOperand(0)->getType();
+    Req.storeValidStore->setOperand(0, ConstantInt::get(validBitType, 1));
+  } 
+  else if (isaStore(Req.memOp)) {
+    // pipe::write(value) store
     Req.memOp->setOperand(1, Req.pipeCalls[0]->getOperand(0));
-  } else {
+  }
+  else {
+    // value = pipe::read()
     Req.memOp->replaceAllUsesWith(Req.pipeCalls[0]);
   }
 }
@@ -300,7 +312,7 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
 
     auto &LI = AM.getResult<LoopAnalysis>(F);
     auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
-    auto *DLFA = new DynamicLoopFusionAnalysis(LI, SE, originalKernelName);
+    auto *DLFA = new DynamicLoopFusionAnalysis(F, LI, SE, originalKernelName);
 
     auto DecoupledLoops = getLoopsToDecouple(F, *DLFA);
     auto MemoryRequests = getMemoryRequests(F, DecoupledLoops);
@@ -326,12 +338,6 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
     }
 
     deleteCode(LoopsToDelete, InstrToDelete);
-
-    // if (loopType == DecoupledLoopType::agu) {
-    //   errs() << "***********\n" << fName << "***********\n";
-    //   F.print(errs());
-    //   errs() << "\n\n";
-    // }
 
     return PreservedAnalyses::none();
   }

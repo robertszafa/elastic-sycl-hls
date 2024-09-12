@@ -13,6 +13,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/PostDominators.h"
 #include "llvm/Analysis/ScalarEvolution.h"
+#include "llvm/ADT/SCCIterator.h"
 
 // This includes Instruction, Function, Value and other common IR. 
 #include "llvm/IR/IRBuilder.h"
@@ -629,6 +630,22 @@ getSeqInBB(const SmallVector<Instruction *> &Range) {
   }
 
   return seqInBB;
+}
+
+/// Return vector of function basic blocks in reverse post (topological) order.
+[[maybe_unused]] SmallVector<BasicBlock *> getTopologicalOrder(Function &F) {
+  SmallVector<BasicBlock *> Result;
+
+  for (scc_iterator<Function *> SCCI = scc_begin(&F); !SCCI.isAtEnd(); ++SCCI) {
+    const std::vector<BasicBlock *> &NextSCC = *SCCI;
+    for (BasicBlock *BB : NextSCC) {
+      Result.push_back(BB);
+    }
+  }
+
+  // Remeber to reverse.
+  std::reverse(Result.begin(), Result.end());
+  return Result;
 }
 
 } // namespace

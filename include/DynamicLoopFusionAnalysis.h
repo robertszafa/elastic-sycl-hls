@@ -1,7 +1,6 @@
 #ifndef DYNAMIC_LOOP_FUSION_ANALYSIS_H
 #define DYNAMIC_LOOP_FUSION_ANALYSIS_H
 
-#include "CommonLLVM.h"
 #include "llvm/Analysis/DDG.h"
 
 using namespace llvm;
@@ -40,17 +39,23 @@ public:
     int maxLoopDepthInMemoryId;
 
     SmallVector<CallInst *> pipeCalls;
+    /// AGU request struct fields:
     StoreInst *addrReqStore;
     SmallVector<StoreInst *> schedReqStore;
     SmallVector<StoreInst *> isMaxIterReqStore;
     SmallVector<StoreInst *> isPosDepDistReqStore;
+    /// CU store value struct fields:
+    StoreInst *storeValueStore;
+    StoreInst *storeValidStore;
 
     /// Generate a string pipe name associated with this memory request.
     std::string getPipeName(DecoupledLoopType loopType = compute);
     /// Collect pipeCall instrs in F associated with this pipeName.
     void collectPipeCalls(Function &F, DecoupledLoopType loopType);
     /// Collect any stores to the fields in the request.
-    void collectStoresToRequestStruct(Function &F, DecoupledLoopType loopType);
+    void collectAGURequestStores(Function &F, DecoupledLoopType loopType);
+    /// Collect stores into tagged_store_value_t<T> pipe.
+    void collectStoreValPipeStores(Function &F, DecoupledLoopType loopType);
   };
 
   struct DecoupledLoopInfo {
@@ -71,10 +76,6 @@ public:
     Loop *outer() const { return loops.front(); }
   };
 
-  enum DepDir {
-    BACK,    // First load, then store in program order.
-    FORWARD, // First store, then load in program order.
-  };
   struct MemoryDependencyInfo {
     int id;
 
@@ -89,16 +90,17 @@ public:
     SmallVector<SmallVector<bool>> loadStoreInSameLoop;
     SmallVector<SmallVector<bool>> loadStoreInSameThread;
     SmallVector<SmallVector<int>> loadStoreCommonLoopDepth;
-    SmallVector<SmallVector<DepDir>> loadStoreDepDir;
+    SmallVector<SmallVector<bool>> loadPrecedsStore;
 
     SmallVector<int> storeLoopDepth;
     SmallVector<SmallVector<bool>> storeIsMaxIterNeeded;
     SmallVector<SmallVector<bool>> storeStoreInSameLoop;
     SmallVector<SmallVector<int>> storeStoreCommonLoopDepth;
-    SmallVector<SmallVector<DepDir>> storeStoreDepDir;
+    SmallVector<SmallVector<bool>> storePrecedsOtherStore;
   };
 
-  explicit DynamicLoopFusionAnalysis(LoopInfo &LI, ScalarEvolution &SE,
+  explicit DynamicLoopFusionAnalysis(Function &F, LoopInfo &LI,
+                                     ScalarEvolution &SE,
                                      const std::string &fName) {
     this->fName = fName;
 
@@ -106,7 +108,7 @@ public:
     collectBasePointersToProtect(LI);
     collectProtectedMemoryRequests(LI);
     checkIsMaxIterNeeded(LI, SE);
-    collectProtectedMemoryInfo(LI);
+    collectProtectedMemoryInfo(F, LI);
     collectAguLoops();
     collectSimpleMemoryLoops(LI);
   }
@@ -146,7 +148,7 @@ private:
   void collectBasePointersToProtect(LoopInfo &LI);
   void collectProtectedMemoryRequests(LoopInfo &LI);
   void checkIsMaxIterNeeded(LoopInfo &LI, ScalarEvolution &SE);
-  void collectProtectedMemoryInfo(LoopInfo &LI);
+  void collectProtectedMemoryInfo(Function &F, LoopInfo &LI);
   void collectAguLoops();
   void collectSimpleMemoryLoops(LoopInfo &LI);
   // void collectLoopIO(LoopInfo &LI, ControlDependenceGraph &CDG);

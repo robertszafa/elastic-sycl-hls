@@ -454,10 +454,6 @@ deserializeAnalysis(Function &F, LoopInfo &LI, const json::Object &report,
     lsqArray.push_back(jsonToLSQInfo(F, *lsqInfoJson.getAsObject()));
 }
 
-enum DEP_DIR {
-  BACK, // First load, then store in program order.
-  FORWARD, // First store, then load in program order.
-};
 struct MemoryDependencyInfo {
   int id;
 
@@ -469,13 +465,13 @@ struct MemoryDependencyInfo {
   SmallVector<SmallVector<bool>> loadIsMaxIterNeeded;
   SmallVector<SmallVector<bool>> loadStoreInSameLoop;
   SmallVector<SmallVector<int>> loadStoreCommonLoopDepth;
-  SmallVector<SmallVector<DEP_DIR>> loadStoreDepDir;
+  SmallVector<SmallVector<bool>> loadPrecedsStore;
 
   SmallVector<int> storeLoopDepth;
   SmallVector<SmallVector<bool>> storeIsMaxIterNeeded;
   SmallVector<SmallVector<bool>> storeStoreInSameLoop;
   SmallVector<SmallVector<int>> storeStoreCommonLoopDepth;
-  SmallVector<SmallVector<DEP_DIR>> storeStoreDepDir;
+  SmallVector<SmallVector<bool>> storePrecedsOtherStore;
 
   void print(raw_ostream &O) {
     auto print1D = [&O] (auto vec1d) {
@@ -503,7 +499,7 @@ struct MemoryDependencyInfo {
     print1D(loadLoopDepth);
     O << ";\n";
 
-    O << "  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = ";
+    O << "  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = ";
     print2D(loadIsMaxIterNeeded);
     O << ";\n";
 
@@ -515,8 +511,8 @@ struct MemoryDependencyInfo {
     print2D(loadStoreCommonLoopDepth);
     O << ";\n";
 
-    O << "  static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = ";
-    print2D(loadStoreDepDir);
+    O << "  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = ";
+    print2D(loadPrecedsStore);
     O << ";\n\n";
  
     // Stores
@@ -524,7 +520,7 @@ struct MemoryDependencyInfo {
     print1D(storeLoopDepth);
     O << ";\n";
 
-    O << "  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = ";
+    O << "  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = ";
     print2D(storeIsMaxIterNeeded);
     O << ";\n";
 
@@ -536,8 +532,8 @@ struct MemoryDependencyInfo {
     print2D(storeStoreCommonLoopDepth);
     O << ";\n";
 
-    O << "  static constexpr int STORE_STORE_DEP_DIR[NUM_STORES][NUM_STORES] = ";
-    print2D(storeStoreDepDir);
+    O << "  static constexpr int STORE_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_STORES][NUM_STORES] = ";
+    print2D(storePrecedsOtherStore);
     O << ";\n\n";
 
     O << "}; // end DepInfo \n";

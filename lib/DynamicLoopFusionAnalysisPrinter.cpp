@@ -11,16 +11,6 @@ using MemoryRequestType = DynamicLoopFusionAnalysis::MemoryRequestType;
 using MemoryRequest = DynamicLoopFusionAnalysis::MemoryRequest;
 using DecoupledLoopInfo = DynamicLoopFusionAnalysis::DecoupledLoopInfo;
 using MemoryDependencyInfo = DynamicLoopFusionAnalysis::MemoryDependencyInfo;
-using DepDir = DynamicLoopFusionAnalysis::DepDir;
-
-llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const DepDir &depDir) {
-  if (depDir == DepDir::BACK) {
-    os << "BACK";
-  } else {
-    os << "FORWARD";
-  }
-  return os;
-}
 
 std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
   std::string res;
@@ -51,7 +41,7 @@ std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
   print1D(DepI.loadLoopDepth);
   O << ";\n";
 
-  O << "  static constexpr bool LOAD_IS_MAX_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = ";
+  O << "  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = ";
   print2D(DepI.loadIsMaxIterNeeded);
   O << ";\n";
 
@@ -67,8 +57,8 @@ std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
   print2D(DepI.loadStoreCommonLoopDepth);
   O << ";\n";
 
-  O << "  static constexpr DEP_DIR LOAD_STORE_DEP_DIR[NUM_LOADS][NUM_STORES] = ";
-  print2D(DepI.loadStoreDepDir);
+  O << "  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = ";
+  print2D(DepI.loadPrecedsStore);
   O << ";\n\n";
 
   // Stores
@@ -76,7 +66,7 @@ std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
   print1D(DepI.storeLoopDepth);
   O << ";\n";
 
-  O << "  static constexpr bool STORE_IS_MAX_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = ";
+  O << "  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = ";
   print2D(DepI.storeIsMaxIterNeeded);
   O << ";\n";
 
@@ -88,8 +78,8 @@ std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
   print2D(DepI.storeStoreCommonLoopDepth);
   O << ";\n";
 
-  O << "  static constexpr int STORE_STORE_DEP_DIR[NUM_STORES][NUM_STORES] = ";
-  print2D(DepI.storeStoreDepDir);
+  O << "  static constexpr int STORE_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_STORES][NUM_STORES] = ";
+  print2D(DepI.storePrecedsOtherStore);
   O << ";\n\n";
 
   O << "}; // end DepInfo \n";
@@ -124,7 +114,7 @@ std::string getPipeDefenitionsString(DynamicLoopFusionAnalysis &DLFA) {
                        "using StoreReqPipes_{0} = PipeArray<class "
                        "StoreReqPipes_{0}_, st_req_t<{2}>, {3}, {1}, 2>;\n"
                        "using StoreValPipes_{0} = PipeArray<class "
-                       "StoreValPipes_{0}_, {5}, {3}, {1}>;\n",
+                       "StoreValPipes_{0}_, tagged_val_t<{5}>, {3}, {1}>;\n",
                        MemDepInfo.id, MemDepInfo.numStores,
                        MemDepInfo.maxLoopDepth, PIPE_DEPTH, MemDepInfo.numLoads,
                        MemDepInfo.cType);
@@ -160,7 +150,7 @@ getPipeCallsInAgu(DecoupledLoopInfo &DecoupleInfo,
     }
     for (int iD = 0; iD < MemDep.maxLoopDepth; ++iD) {
       O << llvm::formatv("ld_req_{0}_{1}.sched[{2}] = 0u;\n"
-                         "ld_req_{0}_{1}.isMaxIter[{2}] = false;\n",
+                         "ld_req_{0}_{1}.isLastIter[{2}] = false;\n",
                          MemDep.id, LdReq.reqId, iD);
     }
     O << llvm::formatv("{0}::PipeAt<{2}>::write(ld_req_{1}_{2});\n", PipeName,
@@ -175,7 +165,7 @@ getPipeCallsInAgu(DecoupledLoopInfo &DecoupleInfo,
                        MemDep.maxLoopDepth, MemDep.id, StReq.reqId);
     for (int iD = 0; iD < MemDep.maxLoopDepth; ++iD) {
       O << llvm::formatv("st_req_{0}_{1}.sched[{2}] = 0u;\n"
-                         "st_req_{0}_{1}.isMaxIter[{2}] = false;\n",
+                         "st_req_{0}_{1}.isLastIter[{2}] = false;\n",
                          MemDep.id, StReq.reqId, iD);
     }
     O << llvm::formatv("{0}::PipeAt<{2}, 0>::write(st_req_{1}_{2});\n"
@@ -260,7 +250,7 @@ struct DynamicLoopFusionAnalysisPrinter
 
       auto &LI = AM.getResult<LoopAnalysis>(F);
       auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
-      auto *DLFA = new DynamicLoopFusionAnalysis(LI, SE, fName);
+      auto *DLFA = new DynamicLoopFusionAnalysis(F, LI, SE, fName);
   
       json::Object report;
       report["mainKernelName"] = fName;

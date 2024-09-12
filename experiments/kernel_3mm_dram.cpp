@@ -39,7 +39,6 @@ double kernel_3mm(queue &q, const int alpha, const int beta, const int NI,
   auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (unsigned i = 0; i < NI; i++) {
       for (unsigned j = 0; j < NJ; j++) {
-        E[i * NI + j] = 0;
         for (unsigned k = 0; k < NK; ++k)
           E[i * NJ + j] += A[i * NI + k] * B[k * NK + j];
       }
@@ -47,7 +46,6 @@ double kernel_3mm(queue &q, const int alpha, const int beta, const int NI,
 
     for (unsigned j = 0; j < NJ; j++) {
       for (unsigned l = 0; l < NL; l++) {
-        F[j * NJ + l] = 0;
         for (unsigned m = 0; m < NM; ++m)
           F[j * NJ + l] += C[j * NJ + m] * D[m * NM + l];
       }
@@ -55,7 +53,6 @@ double kernel_3mm(queue &q, const int alpha, const int beta, const int NI,
 
     for (unsigned i = 0; i < NI; i++) {
       for (unsigned l = 0; l < NL; l++) {
-        G[i * NI + l] = 0;
         for (unsigned j = 0; j < NJ; ++j)
           G[i * NI + l] += E[i * NI + j] * F[j * NJ + l];
       }
@@ -81,7 +78,6 @@ void kernel_3mm_cpu(const int alpha, const int beta, const int NI, const int NJ,
                     std::vector<int> &G) {
   for (unsigned i = 0; i < NI; i++) {
     for (unsigned j = 0; j < NJ; j++) {
-      E[i * NI + j] = 0;
       for (unsigned k = 0; k < NK; ++k)
         E[i * NJ + j] += A[i * NI + k] * B[k * NK + j];
     }
@@ -89,7 +85,6 @@ void kernel_3mm_cpu(const int alpha, const int beta, const int NI, const int NJ,
 
   for (unsigned j = 0; j < NJ; j++) {
     for (unsigned l = 0; l < NL; l++) {
-      F[j * NJ + l] = 0;
       for (unsigned m = 0; m < NM; ++m)
         F[j * NJ + l] += C[j * NJ + m] * D[m * NM + l];
     }
@@ -97,7 +92,6 @@ void kernel_3mm_cpu(const int alpha, const int beta, const int NI, const int NJ,
 
   for (unsigned i = 0; i < NI; i++) {
     for (unsigned l = 0; l < NL; l++) {
-      G[i * NI + l] = 0;
       for (unsigned j = 0; j < NJ; ++j)
         G[i * NI + l] += E[i * NI + j] * F[j * NJ + l];
     }
@@ -133,9 +127,9 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    const int NI = N;
-    const int NJ = N;
-    const int NK = N;
+    // const int NI = N;
+    // const int NJ = N;
+    // const int NK = N;
     const int S = N*N;
 
     std::vector<int> A(S, 1), A_cpu(S, 1);

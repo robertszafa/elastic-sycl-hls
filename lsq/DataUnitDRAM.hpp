@@ -1,5 +1,5 @@
-#ifndef __STREAMING_MEMORY_HPP__
-#define __STREAMING_MEMORY_HPP__
+#ifndef __DATA_UNIT_DRAM_HPP__
+#define __DATA_UNIT_DRAM_HPP__
 
 #include <sycl/ext/intel/fpga_extensions.hpp>
 #include <sycl/ext/intel/ac_types/ac_int.hpp>
@@ -50,7 +50,7 @@ struct st_port_req_t {
 };
 
 template <typename T>
-struct value_t {
+struct tagged_val_t {
   T val;
   bool valid;
 };
@@ -72,20 +72,20 @@ constexpr addr_t FINAL_LD_ADDR_ACK = STORE_ADDR_SENTINEL + 1;
 constexpr sched_t SCHED_SENTINEL = (1<<30);
 
 /// Unique kernel name generators.
-template <int MemId> class StreamingMemoryKernel;
+template <int MemId> class DataUnitDRAMKernel;
 template <int PortId> class StorePortKernel;
 template <int PortId> class LoadPortKernel;
 template <int LoadId> class LoadLastIterKernel;
 template <int StoreId> class StoreLastIterKernel;
 
-// Applaying [[optnone]] to StreamingMemory doesn't apply the attribute to 
+// Applaying [[optnone]] to DataUnitDRAM doesn't apply the attribute to 
 // nested lambdas, so apply the attribute to a range of source code.
 #pragma clang attribute push (__attribute__((optnone)), apply_to=function)
 
 template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
-          typename StoreReqPipes, typename StoreValPipes, typename T>
-[[clang::optnone]] std::vector<event> StreamingMemory(queue &q, T *data) {
-  // using T = decltype(LoadValPipes::template PipeAt<0>::read());
+          typename StoreReqPipes, typename StoreValPipes>
+[[clang::optnone]] std::vector<event> DataUnitDRAM(queue &q) {
+  using T = decltype(LoadValPipes::template PipeAt<0>::read());
   constexpr uint NUM_LOADS = DepInfo<MEM_ID>{}.NUM_LOADS;
   constexpr uint NUM_STORES = DepInfo<MEM_ID>{}.NUM_STORES;
   constexpr uint LOOP_DEPTH = DepInfo<MEM_ID>{}.MAX_LOOP_DEPTH; 
@@ -103,7 +103,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
   // Because we use a dynamic burstig LSU, it is important that the store port
   // receives store addresses as soon as possible (hence separate addr and val 
   // pipes). The LSU can issue a burst sooner if it can see the next addr.
-  using StorePortValPipes = PipeArray<class _StorePortValPipes, value_t<T>, 1, NUM_STORES>;
+  using StorePortValPipes = PipeArray<class _StorePortValPipes, tagged_val_t<T>, 1, NUM_STORES>;
   using StoreAckPipes = PipeArray<class _StoreAckPipe, ack_t<LOOP_DEPTH>, 2, NUM_STORES>;
   UnrolledLoop<NUM_STORES>([&](auto iSt) {
     constexpr int StPortId = 100*(MEM_ID+1) + iSt;
@@ -125,8 +125,8 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         // We construct a pointer from only 32 bits (incorrect for >4GB DRAMs).
         #pragma clang diagnostic push
         #pragma clang diagnostic ignored "-Wint-to-pointer-cast"
-        // auto StorePtr = ext::intel::device_ptr<T>((T*) Req.addr);
-        auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
+        auto StorePtr = ext::intel::device_ptr<T>((T*) Req.addr);
+        // auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
         #pragma clang diagnostic pop
 
         // PRINTF("MEM%d st%d stores address %u\n", MEM_ID, int(iSt), Req.addr);
@@ -147,7 +147,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       InitBundle(FinalAck.sched, SCHED_SENTINEL);
       InitBundle(FinalAck.isLastIter, true);
       StoreAckPipes::template PipeAt<iSt>::write(FinalAck);
-      PRINTF("STORE PORT %d done\n", int(iSt));
+      // PRINTF("STORE PORT %d done\n", int(iSt));
     });
   });
 
@@ -180,8 +180,8 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
           // Silence clang warning about int to pointer conversion.
           #pragma clang diagnostic push
           #pragma clang diagnostic ignored "-Wint-to-pointer-cast"
-          // auto LoadPtr = ext::intel::device_ptr<T>((T*) Req.ack.addr);
-          auto LoadPtr = ext::intel::device_ptr<T>(data + Req.ack.addr);
+          auto LoadPtr = ext::intel::device_ptr<T>((T*) Req.ack.addr);
+          // auto LoadPtr = ext::intel::device_ptr<T>(data + Req.ack.addr);
           #pragma clang diagnostic pop
           Val = BurstCoalescedLSU::load(LoadPtr);
         }
@@ -196,12 +196,12 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       InitBundle(maxAck.sched, SCHED_SENTINEL);
       InitBundle(maxAck.isLastIter, true);
       LoadAckPipes::template PipeAt<iLd>::write(maxAck);
-      PRINTF("MEM%d ld%d reused %d/%d\n", MEM_ID, int(iLd), NumReused, NumTotal);
+      PRINTF("MEM_%d LOAD PORT %d reused %d/%d\n", MEM_ID, int(iLd), NumReused, NumTotal);
     });
   });
 
 
-  events[1] = q.single_task<StreamingMemoryKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
+  events[1] = q.single_task<DataUnitDRAMKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
     // TDOD: Add hints about the maximum address at any given loop depth?
     // addr_t StoreAllocMaxAddrAtLoop[NUM_STORES][LOOP_DEPTH][ST_ALLOC_Q_SIZE];
     // addr_t LoadMaxAddrAtLoop[NUM_LOADS][LOOP_DEPTH][LD_Q_SIZE];
@@ -217,16 +217,16 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
     sched_t NextStoreSched[NUM_STORES][LOOP_DEPTH];
     bool NextStoreIsLastIter[NUM_STORES][LOOP_DEPTH];
     T NextStoreValue[NUM_STORES];
-    bool NextStoreValueValid[NUM_STORES];
-    bool NextStoreValuePipeReadValid[NUM_STORES];
+    bool NextStoreValueIsValid[NUM_STORES];
+    bool StoreValuePipeReadValid[NUM_STORES];
     // This buffer ahadows the burst buffer in the store port.
     addr_t StoreButrstBuffAddr[NUM_STORES][ST_COMMIT_Q_SIZE];
     T StoreBurstBuffVal[NUM_STORES][ST_COMMIT_Q_SIZE];
     // The latest store sent to the HLS memory controller. Note that this is not 
     // the actual ACK received from the memory system (no access to thaty in HLS).
-    addr_t StoreAckAddr[NUM_STORES];
-    sched_t StoreAckSched[NUM_STORES][LOOP_DEPTH];
-    bool StoreAckIsLastIter[NUM_STORES][LOOP_DEPTH];
+    addr_t AckStoreAddr[NUM_STORES];
+    sched_t AckStoreSched[NUM_STORES][LOOP_DEPTH];
+    bool AckStoreIsLastIter[NUM_STORES][LOOP_DEPTH];
     bool StoreNoOutstandingAcks[NUM_STORES];
     sched_t LastSentStoreSched[NUM_STORES];
     // Set to true when all stores have been served (sentinel request value).
@@ -245,15 +245,15 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       InitBundle(NextStoreSched[iSt], 0u);
       InitBundle(NextStoreIsLastIter[iSt], false);
       NextStoreValue[iSt] = T{};
-      NextStoreValueValid[iSt] = T{};
-      NextStoreValuePipeReadValid[iSt] = false;
+      NextStoreValueIsValid[iSt] = T{};
+      StoreValuePipeReadValid[iSt] = false;
 
       InitBundle(StoreButrstBuffAddr[iSt], STORE_ADDR_SENTINEL);
       InitBundle(StoreBurstBuffVal[iSt], T{});
 
-      StoreAckAddr[iSt] = INIT_ACK_ADDR;
-      InitBundle(StoreAckSched[iSt], INIT_ACK_SCHED);
-      InitBundle(StoreAckIsLastIter[iSt], true);
+      AckStoreAddr[iSt] = INIT_ACK_ADDR;
+      InitBundle(AckStoreSched[iSt], INIT_ACK_SCHED);
+      InitBundle(AckStoreIsLastIter[iSt], true);
 
       StoreNoOutstandingAcks[iSt] = true;
       LastSentStoreSched[iSt] = INIT_ACK_SCHED;
@@ -274,9 +274,9 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
     bool NextLoadPosDepDist[NUM_LOADS][NUM_STORES];
     bool NextLoadIsLastIter[NUM_LOADS][LOOP_DEPTH];
     // The lates requeust for which we have returned a load value. 
-    addr_t LoadAckAddr[NUM_LOADS];
-    sched_t LoadAckSched[NUM_LOADS][LOOP_DEPTH];
-    bool LoadAckIsLastIter[NUM_LOADS][LOOP_DEPTH];
+    addr_t AckLoadAddr[NUM_LOADS];
+    sched_t AckLoadSched[NUM_LOADS][LOOP_DEPTH];
+    bool AckLoadIsLastIter[NUM_LOADS][LOOP_DEPTH];
     // We keep track if all load requests sent to the load port have been ACKed.
     bool LoadNoOutstandingAcks[NUM_LOADS];
     sched_t LastSentLoadSched[NUM_LOADS];
@@ -295,9 +295,9 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         InitBundle(LoadIsLastIter[iLd][iD], false);
       });
 
-      StoreAckAddr[iLd] = INIT_ACK_ADDR;
-      InitBundle(LoadAckSched[iLd], INIT_ACK_SCHED);
-      InitBundle(LoadAckIsLastIter[iLd], true);
+      AckLoadAddr[iLd] = INIT_ACK_ADDR;
+      InitBundle(AckLoadSched[iLd], INIT_ACK_SCHED);
+      InitBundle(AckLoadIsLastIter[iLd], true);
 
       NextLoadAddr[iLd] = 0u;
       InitBundle(NextLoadSched[iLd], 0u);
@@ -375,47 +375,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
              ((NextLoadAddr[iLd] < NextStoreAddr[iSt]) && NoAddressReset) ||
              LoadHasPosDepDistance;
     };
-
-    auto checkNoWAR = [&](const auto iLd, const auto iSt) {
-      constexpr int k = DI.LOAD_STORE_COMMON_LOOP_DEPTH[iLd][iSt];
-      constexpr int l = walkUpLoadToFirstReset(iLd, k);
-      constexpr int m = DI.LOAD_LOOP_DEPTH[iLd];
-      constexpr bool a_prec_b = !DI.LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[iLd][iSt];
-
-      // (Program Order Safety Check)
-      bool ProgramOrderSafe = a_prec_b;
-      bool ProgramOrderSafeAgainstNext = a_prec_b;
-      if constexpr (k >= 0) {
-        ProgramOrderSafe =
-            a_prec_b ? (NextStoreSched[iSt][k] <= LoadAckSched[iLd][k])
-                     : (NextStoreSched[iSt][k] < LoadAckSched[iLd][k]);
-        ProgramOrderSafeAgainstNext =
-            a_prec_b ? (NextStoreSched[iSt][k] <= NextLoadSched[iLd][k])
-                     : (NextStoreSched[iSt][k] < NextLoadSched[iLd][k]);
-      }
-
-      // (No Address Reset Check)
-      bool NoAddressReset = true;
-      if constexpr (l >= 0) {
-        NoAddressReset = a_prec_b ? (NextStoreSched[iSt][l] == (LoadAckSched[iLd][l] + 1))
-                                  : (NextStoreSched[iSt][l] == LoadAckSched[iLd][l]);
-      }
-      if constexpr (m > k+1) {
-        UnrolledLoop<k+1, m>([&](auto iD) {
-          if constexpr (DI.LOAD_IS_LAST_ITER_NEEDED[iLd][iD])
-            NoAddressReset &= LoadAckIsLastIter[iLd][iD];
-        });
-      }
-
-      // (Deadlock avoidance for repeated addresses)
-      bool NoBRequestsUntilA = (LoadNoOutstandingAcks[iLd] && ProgramOrderSafeAgainstNext);
-
-      // (Hazard Safety Check)
-      return ProgramOrderSafe ||
-             (NextStoreAddr[iSt] < LoadAckAddr[iLd] && NoAddressReset) ||
-             NoBRequestsUntilA;
-    };
-
+    /*------------------------------------------------------------------------*/
     auto checkNoWAW = [&](const auto iSt, const auto iStOther) {
       constexpr int k = DI.STORE_STORE_COMMON_LOOP_DEPTH[iSt][iStOther];
       constexpr int l = walkUpStoreToFirstReset(iStOther, k);
@@ -428,8 +388,8 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       bool ProgramOrderSafeAgainstNext = a_prec_b;
       if constexpr (k >= 0) {
         ProgramOrderSafe =
-            a_prec_b ? (NextStoreSched[iSt][k] <= StoreAckSched[iStOther][k])
-                     : (NextStoreSched[iSt][k] < StoreAckSched[iStOther][k]);
+            a_prec_b ? (NextStoreSched[iSt][k] <= AckStoreSched[iStOther][k])
+                     : (NextStoreSched[iSt][k] < AckStoreSched[iStOther][k]);
         ProgramOrderSafeAgainstNext =
             a_prec_b ? (NextStoreSched[iSt][k] <= NextStoreSched[iStOther][k])
                      : (NextStoreSched[iSt][k] < NextStoreSched[iStOther][k]);
@@ -439,13 +399,13 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       bool NoAddressReset = true;
       if constexpr (l >= 0) {
         NoAddressReset =
-          a_prec_b ? (NextStoreSched[iSt][l] == (StoreAckSched[iStOther][l]+1))
-                   : (NextStoreSched[iSt][l] == StoreAckSched[iStOther][l]);
+          a_prec_b ? (NextStoreSched[iSt][l] == (AckStoreSched[iStOther][l]+1))
+                   : (NextStoreSched[iSt][l] == AckStoreSched[iStOther][l]);
       }
       if constexpr (m > k+1) {
         UnrolledLoop<k+1, m>([&](auto iD) {
           if constexpr (DI.STORE_IS_LAST_ITER_NEEDED[iStOther][iD])
-            NoAddressReset &= StoreAckIsLastIter[iStOther][iD];
+            NoAddressReset &= AckStoreIsLastIter[iStOther][iD];
         });
       }
 
@@ -454,7 +414,47 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
 
       // (Hazard Safety Check)
       return ProgramOrderSafe ||
-             (NextStoreAddr[iSt] < StoreAckAddr[iStOther] && NoAddressReset) ||
+             (NextStoreAddr[iSt] < AckStoreAddr[iStOther] && NoAddressReset) ||
+             NoBRequestsUntilA;
+    };
+    /*------------------------------------------------------------------------*/
+    auto checkNoWAR = [&](const auto iLd, const auto iSt) {
+      constexpr int k = DI.LOAD_STORE_COMMON_LOOP_DEPTH[iLd][iSt];
+      constexpr int l = walkUpLoadToFirstReset(iLd, k);
+      constexpr int m = DI.LOAD_LOOP_DEPTH[iLd];
+      constexpr bool a_prec_b = !DI.LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[iLd][iSt];
+
+      // (Program Order Safety Check)
+      bool ProgramOrderSafe = a_prec_b;
+      bool ProgramOrderSafeAgainstNext = a_prec_b;
+      if constexpr (k >= 0) {
+        ProgramOrderSafe =
+            a_prec_b ? (NextStoreSched[iSt][k] <= AckLoadSched[iLd][k])
+                     : (NextStoreSched[iSt][k] < AckLoadSched[iLd][k]);
+        ProgramOrderSafeAgainstNext =
+            a_prec_b ? (NextStoreSched[iSt][k] <= NextLoadSched[iLd][k])
+                     : (NextStoreSched[iSt][k] < NextLoadSched[iLd][k]);
+      }
+
+      // (No Address Reset Check)
+      bool NoAddressReset = true;
+      if constexpr (l >= 0) {
+        NoAddressReset = a_prec_b ? (NextStoreSched[iSt][l] == (AckLoadSched[iLd][l] + 1))
+                                  : (NextStoreSched[iSt][l] == AckLoadSched[iLd][l]);
+      }
+      if constexpr (m > k+1) {
+        UnrolledLoop<k+1, m>([&](auto iD) {
+          if constexpr (DI.LOAD_IS_LAST_ITER_NEEDED[iLd][iD])
+            NoAddressReset &= AckLoadIsLastIter[iLd][iD];
+        });
+      }
+
+      // (Deadlock avoidance for repeated addresses)
+      bool NoBRequestsUntilA = (LoadNoOutstandingAcks[iLd] && ProgramOrderSafeAgainstNext);
+
+      // (Hazard Safety Check)
+      return ProgramOrderSafe ||
+             (NextStoreAddr[iSt] < AckLoadAddr[iLd] && NoAddressReset) ||
              NoBRequestsUntilA;
     };
     ///////////////////////////////////////////////////////////////////////////
@@ -486,19 +486,19 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       /////////////////////////////////////////////////////////////////////////
       UnrolledLoop<NUM_LOADS>([&](auto iLd) {
         // This load is done if we receive an ACK with a sentinel value.
-        LoadDone[iLd] = (LoadAckSched[iLd][0] == SCHED_SENTINEL);
+        LoadDone[iLd] = (AckLoadSched[iLd][0] == SCHED_SENTINEL);
 
         LoadNoOutstandingAcks[iLd] = (LastSentLoadSched[iLd] ==
-                                      LoadAckSched[iLd][DI.LOAD_LOOP_DEPTH[iLd]]);
+                                      AckLoadSched[iLd][DI.LOAD_LOOP_DEPTH[iLd]]);
 
         /** Rule for reading load ACKs (always enabled). */
         bool succ = false;
         auto ldAck = LoadAckPipes::template PipeAt<iLd>::read(succ);
         if (succ) {
-          LoadAckAddr[iLd] = ldAck.addr;
+          AckLoadAddr[iLd] = ldAck.addr;
           UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-            LoadAckSched[iLd][iD] = ldAck.sched[iD];
-            LoadAckIsLastIter[iLd][iD] = ldAck.isLastIter[iD];
+            AckLoadSched[iLd][iD] = ldAck.sched[iD];
+            AckLoadIsLastIter[iLd][iD] = ldAck.isLastIter[iD];
           });
         }
         /** End Rule */
@@ -597,12 +597,13 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
               LastSentLoadSched[iLd] = NextLoadSched[iLd][DI.LOAD_LOOP_DEPTH[iLd]];
               LoadValid[iLd][0] = false;
 
-              // if (MEM_ID == 4 && iLd == 1 && NextLoadSched[iLd][0] > 1) {
-              //   PRINTF("%d LOAD%d %d, (%d, %d, %d)\nackST0: %d (%d/%d, %d/%d, %d/%d)  ackST1: %d (%d/%d, %d/%d, %d/%d) [%d, %d] reuseId=%d with val=%.3f\n\n", 
+              // if (MEM_ID == 100 && iLd == 1) {
+              //   PRINTF("%d LOAD%d %d, (%d, %d, %d) ackST0: %d (%d/%d, %d/%d, %d/%d) reuseId=%d with val=%.3f\n\n", 
               //         cycle, int(iLd), NextLoadAddr[iLd], NextLoadSched[iLd][0], NextLoadSched[iLd][1], NextLoadSched[iLd][2],
-              //         StoreAckAddr[0], StoreAckSched[0][0], StoreAckIsLastIter[0][0], StoreAckSched[0][1], StoreAckIsLastIter[0][1], StoreAckSched[0][2], StoreAckIsLastIter[0][2],
-              //         StoreAckAddr[1], StoreAckSched[1][0], StoreAckIsLastIter[1][0], StoreAckSched[1][1], StoreAckIsLastIter[1][1], StoreAckSched[1][2], StoreAckIsLastIter[1][2],
-              //         ThisSafe[0], ThisSafe[1], reuse_id, ReuseVal, ReuseVal
+              //         AckStoreAddr[0], AckStoreSched[0][0], AckStoreIsLastIter[0][0], AckStoreSched[0][1], AckStoreIsLastIter[0][1], AckStoreSched[0][2], AckStoreIsLastIter[0][2],
+              //         // AckStoreAddr[1], AckStoreSched[1][0], AckStoreIsLastIter[1][0], AckStoreSched[1][1], AckStoreIsLastIter[1][1], AckStoreSched[1][2], AckStoreIsLastIter[1][2],
+              //         // ThisSafe[0], ThisSafe[1], 
+              //         reuse_id, ReuseVal
               //         );
               // }
 
@@ -618,19 +619,19 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       /////////////////////////////////////////////////////////////////////////
       UnrolledLoop<NUM_STORES>([&](auto iSt) {
         // This store is done if we receive an ACK with a sentinel value.
-        StoreDone[iSt] = (StoreAckSched[iSt][0] == SCHED_SENTINEL);
+        StoreDone[iSt] = (AckStoreSched[iSt][0] == SCHED_SENTINEL);
 
         StoreNoOutstandingAcks[iSt] =
-          (StoreAckSched[iSt][DI.STORE_LOOP_DEPTH[iSt]] == LastSentStoreSched[iSt]);
+          (AckStoreSched[iSt][DI.STORE_LOOP_DEPTH[iSt]] == LastSentStoreSched[iSt]);
 
         /** Rule for reading store ACKs (always enabled). */
         bool succ = false;
         auto stAck = StoreAckPipes::template PipeAt<iSt>::read(succ);
         if (succ) {
-          StoreAckAddr[iSt] = stAck.addr;
+          AckStoreAddr[iSt] = stAck.addr;
           UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-            StoreAckSched[iSt][iD] = stAck.sched[iD];
-            StoreAckIsLastIter[iSt][iD] = stAck.isLastIter[iD];
+            AckStoreSched[iSt][iD] = stAck.sched[iD];
+            AckStoreIsLastIter[iSt][iD] = stAck.isLastIter[iD];
           });
         }
         /** End Rule */
@@ -667,11 +668,11 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         /** End Rule */
 
         /** Rule for reading store value. */
-        if (!NextStoreValuePipeReadValid[iSt]) {
-          value_t<T> valRd = StoreValPipes::template PipeAt<iSt>::read(
-              NextStoreValuePipeReadValid[iSt]);
+        if (!StoreValuePipeReadValid[iSt]) {
+          tagged_val_t<T> valRd = StoreValPipes::template PipeAt<iSt>::read(
+              StoreValuePipeReadValid[iSt]);
           NextStoreValue[iSt] = valRd.val;
-          NextStoreValueValid[iSt] = valRd.valid;
+          NextStoreValueIsValid[iSt] = valRd.valid;
         }
         /** End Rule */
 
@@ -688,27 +689,27 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
             NoWAR &= checkNoWAR(iLd, iSt);
           }
         });
-        const bool IsSafe = (NoWAW && NoWAR) || !NextStoreValueValid[iSt];
+        const bool IsSafe = (NoWAW && NoWAR) || !NextStoreValueIsValid[iSt];
         /** End Rule */
 
         /** Rule for moving st alloc to st commit queue. */
-        if (StoreValid[iSt][0] && NextStoreValuePipeReadValid[iSt] && IsSafe) {
+        if (StoreValid[iSt][0] && StoreValuePipeReadValid[iSt] && IsSafe) {
           bool succ = false;
           StorePortValPipes::template PipeAt<iSt>::write(
-              {NextStoreValue[iSt], NextStoreValueValid[iSt]}, succ);
+              {NextStoreValue[iSt], NextStoreValueIsValid[iSt]}, succ);
 
           if (succ) {
             // if (MEM_ID == 4 && iSt == 1 && NextStoreSched[iSt][0] > 1) {
             //  PRINTF("@%d STORE%d %d, %.3f (%d/%d, %d/%d, %d/%d)\nackST0: %d (%d/%d, %d/%d, %d/%d)  ackST1: %d (%d/%d, %d/%d, %d/%d)\n\n", 
             //           cycle, int(iSt), NextStoreAddr[iSt], NextStoreValue[iSt], 
             //           NextStoreSched[iSt][0], NextStoreIsLastIter[iSt][0], NextStoreSched[iSt][1], NextStoreIsLastIter[iSt][1], NextStoreSched[iSt][2], NextStoreIsLastIter[iSt][2],
-            //           StoreAckAddr[0], StoreAckSched[0][0], StoreAckIsLastIter[0][0], StoreAckSched[0][1], StoreAckIsLastIter[0][1], StoreAckSched[0][2], StoreAckIsLastIter[0][2],
-            //           StoreAckAddr[1], StoreAckSched[1][0], StoreAckIsLastIter[1][0], StoreAckSched[1][1], StoreAckIsLastIter[1][1], StoreAckSched[1][2], StoreAckIsLastIter[1][2]
+            //           AckStoreAddr[0], AckStoreSched[0][0], AckStoreIsLastIter[0][0], AckStoreSched[0][1], AckStoreIsLastIter[0][1], AckStoreSched[0][2], AckStoreIsLastIter[0][2],
+            //           AckStoreAddr[1], AckStoreSched[1][0], AckStoreIsLastIter[1][0], AckStoreSched[1][1], AckStoreIsLastIter[1][1], AckStoreSched[1][2], AckStoreIsLastIter[1][2]
             //           ); 
             // }
 
             // Don't move invalid store to reuse buffer.
-            if (NextStoreValueValid[iSt]) {
+            if (NextStoreValueIsValid[iSt]) {
               ShiftBundle(StoreBurstBuffVal[iSt], NextStoreValue[iSt]);
               ShiftBundle(StoreButrstBuffAddr[iSt], NextStoreAddr[iSt]);
             }
@@ -727,7 +728,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
             });
 
             StoreValid[iSt][0] = false;
-            NextStoreValuePipeReadValid[iSt] = false;
+            StoreValuePipeReadValid[iSt] = false;
             LastSentStoreSched[iSt] = NextStoreSched[iSt][DI.STORE_LOOP_DEPTH[iSt]];
           }
         }
@@ -737,7 +738,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
 
     } // end while
 
-    // PRINTF("** DONE StreamingMemory %d\n", MEM_ID);
+    // PRINTF("** DONE DataUnitDRAM %d\n", MEM_ID);
 
   });
 

@@ -2,7 +2,6 @@
 #include "DataHazardAnalysis.h"
 #include "TableOperationLatency.h"
 #include "llvm/ADT/BreadthFirstIterator.h"
-#include "llvm/ADT/PostOrderIterator.h"
 
 
 using namespace llvm;
@@ -261,12 +260,9 @@ void DataHazardAnalysis::hoistSpeculativeRequests(Function &F,
                                                   ControlDependenceGraph &CDG,
                                                   LoopInfo &LI) {
   // Init request map, i.e. at the start each instruction is in its original BB.
-  // Perform hoisting in topological order within loops (reverse post order of
-  // a DAG is the same as its topological order).
-  for (Loop *TopLevelLoop : LI)
-    for (Loop *L : depth_first(TopLevelLoop))
-      for (auto BB : ReversePostOrderTraversal(L->getHeader()))
-        requestMap[BB] = InstructionSet();
+  // Perform hoisting in topological program order.
+  for (auto BB : getTopologicalOrder(F))
+    requestMap[BB] = InstructionSet();
 
   for (size_t i = 0; i < hazardInstrs.size(); ++i) {
     if (speculationDecisions[i]) {

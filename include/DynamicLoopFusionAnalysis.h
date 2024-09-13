@@ -32,7 +32,7 @@ public:
     int loopDepth;
     // Index 0 has outermost loop, index size-1 has innermost loop.
     SmallVector<Loop *> loopNest;
-    SmallVector<bool> isMaxIterNeeded;
+    SmallVector<bool> isLastIterNeeded;
 
     int numLoadsInMemoryId;
     int numStoresInMemoryId;
@@ -42,7 +42,7 @@ public:
     /// AGU request struct fields:
     StoreInst *addrReqStore;
     SmallVector<StoreInst *> schedReqStore;
-    SmallVector<StoreInst *> isMaxIterReqStore;
+    SmallVector<StoreInst *> isLastIterReqStore;
     SmallVector<StoreInst *> isPosDepDistReqStore;
     /// CU store value struct fields:
     StoreInst *storeValueStore;
@@ -86,14 +86,14 @@ public:
     std::string cType = "";
 
     SmallVector<int> loadLoopDepth;
-    SmallVector<SmallVector<bool>> loadIsMaxIterNeeded;
+    SmallVector<SmallVector<bool>> loadisLastIterNeeded;
     SmallVector<SmallVector<bool>> loadStoreInSameLoop;
     SmallVector<SmallVector<bool>> loadStoreInSameThread;
     SmallVector<SmallVector<int>> loadStoreCommonLoopDepth;
     SmallVector<SmallVector<bool>> loadPrecedsStore;
 
     SmallVector<int> storeLoopDepth;
-    SmallVector<SmallVector<bool>> storeIsMaxIterNeeded;
+    SmallVector<SmallVector<bool>> storeisLastIterNeeded;
     SmallVector<SmallVector<bool>> storeStoreInSameLoop;
     SmallVector<SmallVector<int>> storeStoreCommonLoopDepth;
     SmallVector<SmallVector<bool>> storePrecedsOtherStore;
@@ -107,7 +107,7 @@ public:
     collectComputeLoops(LI);
     collectBasePointersToProtect(LI);
     collectProtectedMemoryRequests(LI);
-    checkIsMaxIterNeeded(LI, SE);
+    checkisLastIterNeeded(LI, SE);
     collectProtectedMemoryInfo(F, LI);
     collectAguLoops();
     collectSimpleMemoryLoops(LI);
@@ -147,7 +147,7 @@ private:
   void collectComputeLoops(LoopInfo &LI);
   void collectBasePointersToProtect(LoopInfo &LI);
   void collectProtectedMemoryRequests(LoopInfo &LI);
-  void checkIsMaxIterNeeded(LoopInfo &LI, ScalarEvolution &SE);
+  void checkisLastIterNeeded(LoopInfo &LI, ScalarEvolution &SE);
   void collectProtectedMemoryInfo(Function &F, LoopInfo &LI);
   void collectAguLoops();
   void collectSimpleMemoryLoops(LoopInfo &LI);

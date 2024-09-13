@@ -79,7 +79,7 @@ void addSentinelPipeWrite(Function &F, MemoryRequest &Req) {
     newSt->setOperand(0, ConstantInt::get(st->getOperand(0)->getType(), 1));
   }
 
-  for (auto &st : Req.isMaxIterReqStore) {
+  for (auto &st : Req.isLastIterReqStore) {
     auto newSt = st->clone();
     newSt->insertBefore(returnI);
     newSt->setOperand(0, ConstantInt::get(st->getOperand(0)->getType(), 1));
@@ -124,10 +124,10 @@ Value *getLoopHeaderExecutedNum(Loop *L) {
   return iterPhi;
 }
 
-void addIsMaxIterInstructions(Function &F, MemoryRequest &Req,
+void addisLastIterInstructions(Function &F, MemoryRequest &Req,
                               ScalarEvolution &SE) {
   for (int iD = 0; iD <= Req.loopDepth; ++iD) {
-    if (!Req.isMaxIterNeeded[iD])
+    if (!Req.isLastIterNeeded[iD])
       continue;
 
     auto backedgeTakenScev = SE.getBackedgeTakenCount(Req.loopNest[iD]);
@@ -148,13 +148,13 @@ void addIsMaxIterInstructions(Function &F, MemoryRequest &Req,
     // Compare the two. If equal, then this is the last iteration of the loop.
     auto cmpRes = Builder.CreateCmp(CmpInst::Predicate::ICMP_EQ,
                                     numBackedgesInL, numTimesHeaderExec);
-    auto isMaxIterType = Req.isMaxIterReqStore[iD]->getOperand(0)->getType();
+    auto isLastIterType = Req.isLastIterReqStore[iD]->getOperand(0)->getType();
     auto cmpResCasted = Builder.CreateCast(Instruction::CastOps::ZExt,
-                                           cmpRes, isMaxIterType);
+                                           cmpRes, isLastIterType);
 
-    auto newIsMaxIterSt = Req.isMaxIterReqStore[iD]->clone();
-    newIsMaxIterSt->insertAfter(dyn_cast<Instruction>(cmpResCasted));
-    newIsMaxIterSt->setOperand(0, cmpResCasted);
+    auto newisLastIterSt = Req.isLastIterReqStore[iD]->clone();
+    newisLastIterSt->insertAfter(dyn_cast<Instruction>(cmpResCasted));
+    newisLastIterSt->setOperand(0, cmpResCasted);
   }
 }
 
@@ -325,7 +325,7 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
       if (loopType == DecoupledLoopType::agu) {
         addAddrInstructions(F, Req);
         addScheduleInstructions(F, Req);
-        addIsMaxIterInstructions(F, Req, SE);
+        addisLastIterInstructions(F, Req, SE);
         if (isaLoad(Req.memOp))
           addIsPosDepDistInstructions(F, Req, MemoryRequests);
         addSentinelPipeWrite(F, Req);

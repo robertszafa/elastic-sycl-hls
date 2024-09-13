@@ -462,13 +462,13 @@ struct MemoryDependencyInfo {
   int maxLoopDepth;
 
   SmallVector<int> loadLoopDepth;
-  SmallVector<SmallVector<bool>> loadIsMaxIterNeeded;
+  SmallVector<SmallVector<bool>> loadisLastIterNeeded;
   SmallVector<SmallVector<bool>> loadStoreInSameLoop;
   SmallVector<SmallVector<int>> loadStoreCommonLoopDepth;
   SmallVector<SmallVector<bool>> loadPrecedsStore;
 
   SmallVector<int> storeLoopDepth;
-  SmallVector<SmallVector<bool>> storeIsMaxIterNeeded;
+  SmallVector<SmallVector<bool>> storeisLastIterNeeded;
   SmallVector<SmallVector<bool>> storeStoreInSameLoop;
   SmallVector<SmallVector<int>> storeStoreCommonLoopDepth;
   SmallVector<SmallVector<bool>> storePrecedsOtherStore;
@@ -500,7 +500,7 @@ struct MemoryDependencyInfo {
     O << ";\n";
 
     O << "  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = ";
-    print2D(loadIsMaxIterNeeded);
+    print2D(loadisLastIterNeeded);
     O << ";\n";
 
     O << "  static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = ";
@@ -521,7 +521,7 @@ struct MemoryDependencyInfo {
     O << ";\n";
 
     O << "  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = ";
-    print2D(storeIsMaxIterNeeded);
+    print2D(storeisLastIterNeeded);
     O << ";\n";
 
     O << "  static constexpr bool STORE_STORE_IN_SAME_LOOP[NUM_STORES][NUM_STORES] = ";

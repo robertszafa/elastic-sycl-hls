@@ -67,7 +67,7 @@ void DynamicLoopFusionAnalysis::MemoryRequest::collectAGURequestStores(
   auto currSt = storesIntoPipe.begin();
 
   for (int iD = 0; iD < maxLoopDepthInMemoryId; ++iD) {
-    this->isMaxIterReqStore.push_back(*currSt);
+    this->isLastIterReqStore.push_back(*currSt);
     currSt++;
     this->schedReqStore.push_back(*currSt);
     currSt++;
@@ -85,7 +85,7 @@ void DynamicLoopFusionAnalysis::MemoryRequest::collectAGURequestStores(
 
   // Since we were collecting from the back, need to reverse.
   std::reverse(this->schedReqStore.begin(), this->schedReqStore.end());
-  std::reverse(this->isMaxIterReqStore.begin(), this->isMaxIterReqStore.end());
+  std::reverse(this->isLastIterReqStore.begin(), this->isLastIterReqStore.end());
   std::reverse(this->isPosDepDistReqStore.begin(),
                this->isPosDepDistReqStore.end());
 }
@@ -285,11 +285,7 @@ void DynamicLoopFusionAnalysis::collectProtectedMemoryRequests(LoopInfo &LI) {
   }
 }
 
-const SCEV *getLastUnaryScev(const SCEV *scev) {
-  return scev->operands().empty() ? scev
-                                  : getLastUnaryScev(scev->operands().back());
-}
-
+/// Given a SCEV value, collect all sub-expressions that are a SCEVAddRecExpr.
 void getAllAddRecurrences(const SCEV *scev,
                           SmallVector<const SCEVAddRecExpr *> &collection) {
   if (scev->getSCEVType() == SCEVTypes::scAddRecExpr) {
@@ -301,71 +297,94 @@ void getAllAddRecurrences(const SCEV *scev,
   }
 }
 
-MapVector<const Loop *, const SCEVAddRecExpr *>
-getLoopToAddrRecMap(const SCEV *AddrScev, const SmallVector<Loop *> loops) {
+/// Given an address value, map each loop in the loop nest to its step value in
+/// the SCEV representing the address value.
+MapVector<const Loop *, const SCEV *>
+getLoopsStepSCEV(Value *AddressVal, ScalarEvolution &SE,
+                 const SmallVector<Loop *> &loopNest) {
+  // Ensure all SCEVs are always i64. 
+  auto i64Type = Type::getInt64Ty(SE.getContext());
+
+  auto AddrScev = SE.removePointerBase(SE.getSCEV(AddressVal));
+  // Collect address recurrences.
   SmallVector<const SCEVAddRecExpr *> AllRecurrences;
   getAllAddRecurrences(AddrScev, AllRecurrences);
 
-  MapVector<const Loop *, const SCEVAddRecExpr *> Result;
+  // Map each address recurrence to a loop in the loop nest, get its step SCEV.
+  MapVector<const Loop *, const SCEV *> Result;
   for (auto AddRec : AllRecurrences) {
-    Result[AddRec->getLoop()] = AddRec;
+    auto LoopRec = AddRec->getStepRecurrence(SE);
+    Result[AddRec->getLoop()] = SE.getNoopOrAnyExtend(LoopRec, i64Type);
   }
 
   return Result;
 }
 
-bool isMaxIterNeededForLoop(
-    ScalarEvolution &SE, Loop *L,
-    MapVector<const Loop *, const SCEVAddRecExpr *> &LoopNestRecurrences) {
-  if (L->isInnermost()) {
-    // TODO: Check for "__attribute__((annotate("monotonic")))"?
-    return false;
-  }
-  if (!LoopNestRecurrences.contains(L)) {
-    return true;
-  }
+/// Return the number of iterations in loop {L}. If the number is not
+/// analyzable, return a maximum int value.
+const SCEV *getNumLoopItersOrMax(Loop *L, ScalarEvolution &SE) {
+  auto i64Type = Type::getInt64Ty(SE.getContext());
 
-  // The max step value in the address expression when advancing in L.
-  auto LoopStepScev = getLastUnaryScev(LoopNestRecurrences[L]);
-  APInt LoopStepMaxVal = SE.getUnsignedRangeMax(LoopStepScev);
-  for (auto [SubLoop, SubLoopScev] : LoopNestRecurrences) {
-    if (SubLoop->getLoopDepth() <= L->getLoopDepth()) {
-      continue;
-    }
-
-    // The max step value in the address expression when advancing in subLoop.
-    const auto SubLoopStepScev = getLastUnaryScev(SubLoopScev);
-    APInt SubLoopStepMaxVal = SE.getUnsignedRangeMax(SubLoopStepScev);
-
-    // If the step in a subloop is larger than the step of {L}, then L the
-    // address is not monotonic as a function of advancing in L.
-    if (LoopStepMaxVal.ult(SubLoopStepMaxVal)) {
-      return true;
-    }
+  auto numLoopItersSCEV = SE.getBackedgeTakenCount(L);
+  if (numLoopItersSCEV->getSCEVType() == scCouldNotCompute) {
+    numLoopItersSCEV = SE.getSCEV(ConstantInt::get(i64Type, ~0ULL));
   }
 
-  return false;
+  return SE.getNoopOrAnyExtend(numLoopItersSCEV, i64Type);
 }
 
-void DynamicLoopFusionAnalysis::checkIsMaxIterNeeded(LoopInfo &LI,
-                                                     ScalarEvolution &SE) {
+/// Return loopStepValue * loopNumIters.
+/// If we cannot analyze loopNumIters, it will be set to MAX_INT.
+APInt getLoopStepSum(Loop *L, const SCEV *LoopStepSCEV, ScalarEvolution &SE) {
+  // If the loop doesn't have a SCEV, then step is 0, and so is the step sum.
+  if (!LoopStepSCEV) {
+    return APInt::getZero(64);
+  }
+
+  auto numLoopItersSCEV = getNumLoopItersOrMax(L, SE);
+  APInt maxNumLoopIters = SE.getUnsignedRangeMax(numLoopItersSCEV);
+  auto sumInnerStepSCEV = SE.getMulExpr(numLoopItersSCEV, LoopStepSCEV);
+
+  return SE.getUnsignedRangeMax(sumInnerStepSCEV);
+}
+
+/// For each outer loop of each memory request, check if it is non-monotonic
+/// w.r.t. to the evolution of the address value.
+void DynamicLoopFusionAnalysis::checkisLastIterNeeded(LoopInfo &LI,
+                                                      ScalarEvolution &SE) {
   for (auto &DecoupleInfo : ComputeLoops) {
     auto &&AllMemoryRequests =
         llvm::concat<MemoryRequest>(DecoupleInfo.loads, DecoupleInfo.stores);
 
     for (auto &Req : AllMemoryRequests) {
-      if (auto AddrVal = getPointerOperand(Req.memOp)) {
-        auto AddrScev = SE.removePointerBase(SE.getSCEV(AddrVal));
-        auto Loop2AddRec = getLoopToAddrRecMap(AddrScev, Req.loopNest);
+      // Init.
+      for (int iD = 0; iD < Req.maxLoopDepthInMemoryId; ++iD) {
+        Req.isLastIterNeeded.push_back(iD < Req.loopDepth);
+      }
 
-        for (int iD = 0; iD < Req.maxLoopDepthInMemoryId; ++iD) {
-          if (iD <= Req.loopDepth) {
-            Req.isMaxIterNeeded.push_back(
-                isMaxIterNeededForLoop(SE, Req.loopNest[iD], Loop2AddRec));
-          } else {
-            Req.isMaxIterNeeded.push_back(false);
+      // Now, we set isLastIterCheckNeeded to false if the corresponding loop
+      // will never cause a wrap around in the address expression.
+      if (auto PtrOp = getPointerOperand(Req.memOp)) {
+        MapVector<const Loop *, const SCEV *> LoopStepSCEVs =
+            getLoopsStepSCEV(PtrOp, SE, Req.loopNest);
+
+        // Calculate the maximum possible offset to the address attributablke to
+        // the execution of the entire inner loop.
+        Loop *InnermostLoop = LI.getLoopFor(Req.memOp->getParent());
+        APInt InnermostLoopStepSum =
+            getLoopStepSum(InnermostLoop, LoopStepSCEVs[InnermostLoop], SE);
+
+        /// Now, each outer loop with a address_SCEV.step value that is lower
+        /// than InnermostLoopStepSum is non-monotonic.
+        for (int iD = 0; iD < Req.loopDepth; ++iD) {
+          // If the outer loop doesn't have a step, then it's non-monotonic.
+          if (LoopStepSCEVs.contains(Req.loopNest[iD])) {
+            APInt OuterLoopStep =
+                SE.getUnsignedRangeMax(LoopStepSCEVs[Req.loopNest[iD]]);
+            Req.isLastIterNeeded[iD] = OuterLoopStep.ult(InnermostLoopStepSum);
           }
-        }
+
+          }
       }
     }
   }
@@ -455,8 +474,8 @@ void DynamicLoopFusionAnalysis::collectProtectedMemoryInfo(Function &F,
       auto LdLoop = LI.getLoopFor(LdReq->memOp->getParent());
       ProtectedMemoryInfo[MemId].maxLoopDepth = LdReq->maxLoopDepthInMemoryId;
       ProtectedMemoryInfo[MemId].loadLoopDepth.push_back(LdReq->loopDepth);
-      ProtectedMemoryInfo[MemId].loadIsMaxIterNeeded.push_back(
-          LdReq->isMaxIterNeeded);
+      ProtectedMemoryInfo[MemId].loadisLastIterNeeded.push_back(
+          LdReq->isLastIterNeeded);
 
       SmallVector<bool> StoreInSameLoop;
       SmallVector<bool> StoreInSameThread;
@@ -484,8 +503,8 @@ void DynamicLoopFusionAnalysis::collectProtectedMemoryInfo(Function &F,
       auto StReqLoop = LI.getLoopFor(StReq->memOp->getParent());
       ProtectedMemoryInfo[MemId].maxLoopDepth = StReq->maxLoopDepthInMemoryId;
       ProtectedMemoryInfo[MemId].storeLoopDepth.push_back(StReq->loopDepth);
-      ProtectedMemoryInfo[MemId].storeIsMaxIterNeeded.push_back(
-          StReq->isMaxIterNeeded);
+      ProtectedMemoryInfo[MemId].storeisLastIterNeeded.push_back(
+          StReq->isLastIterNeeded);
 
       SmallVector<bool> StoreInSameLoop;
       SmallVector<int> StoreCommonLoopDepth;

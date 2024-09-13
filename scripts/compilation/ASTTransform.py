@@ -15,7 +15,7 @@ import math
 GIT_DIR = os.environ["ELASTIC_SYCL_HLS_DIR"]
 LSQ_DRAM_FILE = f'{GIT_DIR}/lsq/LoadStoreQueueDRAM.hpp'
 LSQ_BRAM_FILE = f'{GIT_DIR}/lsq/LoadStoreQueueBRAM.hpp'
-STREAMING_MEMORY_FILE = f'{GIT_DIR}/lsq/DataUnitDRAM.hpp'
+DATA_UNIT_IP_FILE = f'{GIT_DIR}/lsq/DataUnitDRAM.hpp'
 DEPENDENCY_TABLE_FILE = f'{GIT_DIR}/lsq/DependencyTable.hpp'
 
 
@@ -316,7 +316,7 @@ def do_dynamic_fusion_transform_ast(src_lines, report):
     ip_waits = []
     mem_dep_structs = []
     for mem in report["memoryToProtect"]:
-        print(f"Info: Added our protected streaming memory IP (id={mem['id']})")
+        print(f"Info: Added our protected Data Unit IP (id={mem['id']})")
         ip_calls.append(f'auto memEvents_{mem["id"]} = DataUnitDRAM<{mem["id"]}, LoadReqPipes_{mem["id"]}, LoadValPipes_{mem["id"]}, StoreReqPipes_{mem["id"]}, StoreValPipes_{mem["id"]}>({Q_NAME});')
         ip_waits.append(f'for (auto &e : memEvents_{mem["id"]}) e.wait();')
         mem_dep_structs.append(mem["structDef"])
@@ -333,7 +333,7 @@ def do_dynamic_fusion_transform_ast(src_lines, report):
         new_kernels_forward_decl
         + get_src(DEPENDENCY_TABLE_FILE)
         + mem_dep_structs
-        + get_src(STREAMING_MEMORY_FILE)
+        + get_src(DATA_UNIT_IP_FILE)
         + src_after_event_waits
     )
 

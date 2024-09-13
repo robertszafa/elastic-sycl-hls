@@ -42,7 +42,7 @@ std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
   O << ";\n";
 
   O << "  static constexpr bool LOAD_IS_LAST_ITER_NEEDED[NUM_LOADS][MAX_LOOP_DEPTH] = ";
-  print2D(DepI.loadIsMaxIterNeeded);
+  print2D(DepI.loadisLastIterNeeded);
   O << ";\n";
 
   O << "  static constexpr bool LOAD_STORE_IN_SAME_LOOP[NUM_LOADS][NUM_STORES] = ";
@@ -67,7 +67,7 @@ std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
   O << ";\n";
 
   O << "  static constexpr bool STORE_IS_LAST_ITER_NEEDED[NUM_STORES][MAX_LOOP_DEPTH] = ";
-  print2D(DepI.storeIsMaxIterNeeded);
+  print2D(DepI.storeisLastIterNeeded);
   O << ";\n";
 
   O << "  static constexpr bool STORE_STORE_IN_SAME_LOOP[NUM_STORES][NUM_STORES] = ";

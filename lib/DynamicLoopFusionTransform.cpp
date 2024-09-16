@@ -108,53 +108,93 @@ void addScheduleInstructions(Function &F, MemoryRequest &Req) {
   }
 }
 
-Value *getLoopHeaderExecutedNum(Loop *L) {
-  IRBuilder<> Builder(L->getHeader()->getFirstNonPHI());
+PHINode *getInductionVariable(Loop *L) {
+  auto LoopBranch = L->getHeader()->getTerminator();
+  auto LoopPredicateVal = LoopBranch->getOperand(0);
+  if (auto PredicateI = dyn_cast<Instruction>(LoopPredicateVal)) {
+    for (auto &Op : PredicateI->operands()) {
+      if (auto PhiI = dyn_cast<PHINode>(Op)) {
+        if (PhiI->getParent() == L->getHeader()) {
+          return PhiI;
+        }
+      }
+    }
+  }
 
-  auto iterPhi = Builder.CreatePHI(Builder.getInt32Ty(), 2, "num_header_exec");
-  auto iterPlusOne =
-      dyn_cast<Instruction>(Builder.CreateAdd(iterPhi, Builder.getInt32(1)));
-  iterPlusOne->moveBefore(L->getLoopLatch()->getFirstNonPHI());
-
-  // We start at one because on the first evaluation (i.e. coming from
-  // preheader), the loop header will have been executed once
-  iterPhi->addIncoming(Builder.getInt32(1), L->getLoopPreheader());
-  iterPhi->addIncoming(iterPlusOne, L->getLoopLatch());
-
-  return iterPhi;
+  return nullptr;
 }
 
-void addisLastIterInstructions(Function &F, MemoryRequest &Req,
-                              ScalarEvolution &SE) {
+/// Create a bit value that will be set to true on the last loop iteration.  
+/// If the check is not possible to synthesize, return nullptr.
+Value *createIsLastIterCheck(Loop *L, Type *ResultType) {
+  // Create an advanced loop predicate value by executing the
+  // inductionPhi->inductionLatch chain once in the loop preheader.
+  auto LoopPreheader = L->getLoopPreheader();
+  auto LoopBranch = L->getHeader()->getTerminator();
+  auto LoopPredicateVal = LoopBranch->getOperand(0);
+
+  if (auto InductionPhi = getInductionVariable(L)) {
+    auto InductionLatchVal =
+        InductionPhi->getIncomingValueForBlock(L->getLoopLatch());
+    auto InductionInit =
+        InductionPhi->getIncomingValueForBlock(LoopPreheader);
+
+    if (auto InductionLatch = dyn_cast<Instruction>(InductionLatchVal)) {
+      if (auto LoopPredicate = dyn_cast<Instruction>(LoopPredicateVal)) {
+        auto AdvancedInductionInit = InductionLatch->clone();
+        AdvancedInductionInit->insertBefore(LoopPreheader->getTerminator());
+        AdvancedInductionInit->replaceUsesOfWith(InductionPhi, InductionInit);
+
+        auto AdvancedInductionPhi = InductionPhi->clone();
+        AdvancedInductionPhi->insertAfter(InductionPhi);
+        AdvancedInductionPhi->replaceUsesOfWith(InductionInit, 
+                                                AdvancedInductionInit);
+
+        auto AdvancedInductionLatch = InductionLatch->clone();
+        AdvancedInductionLatch->insertAfter(InductionLatch);
+        AdvancedInductionInit->replaceUsesOfWith(InductionPhi, 
+                                                 AdvancedInductionPhi);
+        
+
+        auto AdvancedLoopPredicate = LoopPredicate->clone();
+        AdvancedLoopPredicate->insertAfter(LoopPredicate);
+        AdvancedLoopPredicate->replaceUsesOfWith(InductionPhi, 
+                                                 AdvancedInductionPhi);
+
+        // Now that we have a predicate that is true iff next iter executes.
+        // To get isLastIter, we need to negate it. 
+        IRBuilder<> Builder(LoopBranch);
+        auto IsLastIterCheck =
+            Builder.CreateNot(AdvancedLoopPredicate, "IsLastIter");
+        // Return result with the correct type.
+        return Builder.CreateCast(Instruction::CastOps::ZExt, IsLastIterCheck,
+                                  ResultType, "IsLastIter");
+      }
+    }
+  }
+
+  return nullptr;
+}
+
+/// For each non-monotonic outer loop of a given memory request, generate a
+/// last-iteration predicate bit and store it into the AGU request.
+void addIsLastIterInstructions(Function &F, MemoryRequest &Req) {
   for (int iD = 0; iD <= Req.loopDepth; ++iD) {
     if (!Req.isLastIterNeeded[iD])
       continue;
+    
+    auto L = Req.loopNest[iD];
+    auto IsLastIterType = Req.isLastIterReqStore[iD]->getOperand(0)->getType();
 
-    auto backedgeTakenScev = SE.getBackedgeTakenCount(Req.loopNest[iD]);
-    if (backedgeTakenScev->getSCEVType() == SCEVTypes::scCouldNotCompute) {
-      // outs() << "Backedge taken count non-analyzable for loop with header "
-      errs() << "Backedge taken count non-analyzable for loop with header "
-             << Req.loopNest[iD]->getHeader()->getNameOrAsOperand()
-             << "\nIsLastIter hint is ommited for this loop\n";
-      continue;
+    if (auto IsLastIterCheck = createIsLastIterCheck(L, IsLastIterType)) {
+      auto IsLastIterStore = Req.isLastIterReqStore[iD]->clone();
+      IsLastIterStore->insertAfter(getFirstBodyBlock(L)->getFirstNonPHI());
+      IsLastIterStore->setOperand(0, IsLastIterCheck);
+    } else {
+      errs() << "INFO: isLastIterCheck cannot be synthesized for loop depth "
+             << iD << " (header block " << L->getHeader()->getNameOrAsOperand()
+             << ")\nIsLastIter hint is ommited for this loop\n";
     }
-
-    auto insertBeforeI = getFirstBodyBlock(Req.loopNest[iD])->getFirstNonPHI();
-    IRBuilder<> Builder(insertBeforeI);
-    // Value evaluating to the number of times the backedge will be taken.
-    auto numBackedgesInL = buildSCEVExpr(F, backedgeTakenScev, insertBeforeI);
-    // Value evaluating to the number of times the backedge was taken so far.
-    auto numTimesHeaderExec = getLoopHeaderExecutedNum(Req.loopNest[iD]);
-    // Compare the two. If equal, then this is the last iteration of the loop.
-    auto cmpRes = Builder.CreateCmp(CmpInst::Predicate::ICMP_EQ,
-                                    numBackedgesInL, numTimesHeaderExec);
-    auto isLastIterType = Req.isLastIterReqStore[iD]->getOperand(0)->getType();
-    auto cmpResCasted = Builder.CreateCast(Instruction::CastOps::ZExt,
-                                           cmpRes, isLastIterType);
-
-    auto newisLastIterSt = Req.isLastIterReqStore[iD]->clone();
-    newisLastIterSt->insertAfter(dyn_cast<Instruction>(cmpResCasted));
-    newisLastIterSt->setOperand(0, cmpResCasted);
   }
 }
 
@@ -325,7 +365,7 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
       if (loopType == DecoupledLoopType::agu) {
         addAddrInstructions(F, Req);
         addScheduleInstructions(F, Req);
-        addisLastIterInstructions(F, Req, SE);
+        addIsLastIterInstructions(F, Req);
         if (isaLoad(Req.memOp))
           addIsPosDepDistInstructions(F, Req, MemoryRequests);
         addSentinelPipeWrite(F, Req);

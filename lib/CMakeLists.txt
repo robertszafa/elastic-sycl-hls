@@ -4,6 +4,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # ======================================================
 set(OPT_PASSES_PLUGINS
     HoistConstantGepTransform
+    PipeDeduplicationPass
     ElasticAnalysisPrinter
     ElasticTransform
     DDGDotPrinter
@@ -13,6 +14,10 @@ set(OPT_PASSES_PLUGINS
 
 set(HoistConstantGepTransform_SOURCES 
   HoistConstantGepTransform.cpp
+)
+
+set(PipeDeduplicationPass_SOURCES
+  PipeDeduplicationPass.cpp
 )
 
 set(ElasticAnalysisPrinter_SOURCES

@@ -1,6 +1,4 @@
 /*
-Robert Szafarczyk, Glasgow, 2022
-
 Load Store Queue kernel for SYCL HLS. The LSQ is for off-chip memory.
 */
 
@@ -53,17 +51,22 @@ class LSQ_DRAM;
 template <typename LSQ_ID>
 class StoreReqMux;
 
+// Applaying [[optnone]] to StreamingMemory doesn't apply the attribute to 
+// nested lambdas, so apply the attribute to a range of source code.
+#pragma clang attribute push (__attribute__((optnone)), apply_to=function)
+
 template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           typename st_req_pipes, typename st_val_pipes,
           typename end_signal_pipe, bool USE_SPECULATION, uint NUM_LDS,
-          uint NUM_STS, uint LD_Q_SIZE = 4, uint ST_Q_SIZE = 8>
+          uint NUM_ST_REQ, uint NUM_ST_VAL, uint LD_Q_SIZE = 4,
+          uint ST_Q_SIZE = 8>
 [[clang::optnone]] event LoadStoreQueueDRAM(queue &q) {
   assert(LD_Q_SIZE >= 2 && "Load queue size must be at least 2.");
   assert(ST_Q_SIZE >= 2 && "Store queue size must be at least 2.");
 
   // Pipes to connect LSQ to ld/st ports and to ld value mux.
-  using pred_st_port_pipe = pipe<class pred_st_port_pipe_class, bool, NUM_STS>;
-  using st_port_val_pipe = pipe<class st_port_val_pipe_class, addr_dram_val_pair_t<value_t>, NUM_STS>;
+  using pred_st_port_pipe = pipe<class pred_st_port_pipe_class, bool, NUM_ST_REQ>;
+  using st_port_val_pipe = pipe<class st_port_val_pipe_class, addr_dram_val_pair_t<value_t>, NUM_ST_REQ>;
 
   // Each load gets its own load port and load mux, thus the use of PipeArrays.
   using pred_ld_port_pipes = PipeArray<class pred_ld_port_pipe_class, bool, LSU_LOAD_LATENCY, NUM_LDS>;
@@ -118,15 +121,15 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
   }); // End load port and load mux kernels
 
   // Multiple store requests are muxed when coming into the LSQ.
-  using st_req_pipe = pipe<class st_req_pipe_mux_, req_lsq_dram_t, NUM_STS>;
+  using st_req_pipe = pipe<class st_req_pipe_mux_, req_lsq_dram_t, NUM_ST_REQ>;
   using st_req_mux_end_signal = pipe<class st_req_mux_end_signal_, bool>;
-  if constexpr (NUM_STS > 1) {
+  if constexpr (NUM_ST_REQ > 1) {
     q.single_task<StoreReqMux<end_signal_pipe>>([=]() KERNEL_PRAGMAS {
       // The expected next tag, always increasing by one.
       uint next_tag = 1;
 
-      NTuple<req_lsq_dram_t, NUM_STS> st_req_tuple;
-      NTuple<bool, NUM_STS> read_succ_tuple;
+      NTuple<req_lsq_dram_t, NUM_ST_REQ> st_req_tuple;
+      NTuple<bool, NUM_ST_REQ> read_succ_tuple;
 
       bool end_signal = false;
       [[intel::initiation_interval(1)]] 
@@ -137,7 +140,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         // Choose one, based on tag.
         bool is_req_valid = false;
         req_lsq_dram_t req_to_write;
-        UnrolledLoop<NUM_STS>([&](auto k) {
+        UnrolledLoop<NUM_ST_REQ>([&](auto k) {
           auto& read_succ = read_succ_tuple. template get<k>();
           auto& st_req = st_req_tuple. template get<k>();
           // Only one will match.
@@ -187,8 +190,8 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
       bool end_signal = false;
 
       // Used if NUM_STS > 1. st_vals are muxed based on tag.
-      tagged_val_lsq_dram_t<value_t> st_val_read[NUM_STS];
-      bool st_val_read_succ[NUM_STS];
+      tagged_val_lsq_dram_t<value_t> st_val_read[NUM_ST_VAL];
+      bool st_val_read_succ[NUM_ST_VAL];
       uint next_st_val_tag = 1;
 
       [[intel::ivdep]] 
@@ -207,7 +210,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
         value_t st_val;
         auto next_st_commit_addr = INVALID_ADDRESS;
         if (st_alloc_addr_valid[0]) {
-          if constexpr (NUM_STS == 1) {
+          if constexpr (NUM_ST_REQ == 1) {
             auto _rd = st_val_pipes::template PipeAt<0>::read(st_val_arrived);
             st_val = _rd.value;
             // Optional support for speculative address allocations. 
@@ -220,7 +223,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
             }
           } else {
             // Store value mux.
-            UnrolledLoop<NUM_STS>([&](auto k) {
+            UnrolledLoop<NUM_ST_VAL>([&](auto k) {
               if (st_val_read_succ[k]) {
                 if (st_val_read[k].tag == next_st_val_tag) {
                   st_val_read_succ[k] = false;
@@ -266,7 +269,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
           auto next_st_alloc_addr = INVALID_ADDRESS;
           req_lsq_dram_t st_req;
 
-          if constexpr (NUM_STS == 1)
+          if constexpr (NUM_ST_REQ == 1)
             st_req = st_req_pipes:: template PipeAt<0>::read(st_req_valid);
           else 
             st_req = st_req_pipe::read(st_req_valid);
@@ -382,7 +385,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
       });
       pred_st_port_pipe::write(0);
 
-      if constexpr (NUM_STS > 1) 
+      if constexpr (NUM_ST_REQ > 1) 
         st_req_mux_end_signal::write(0);
 
     });
@@ -392,5 +395,7 @@ template <typename value_t, typename ld_req_pipes, typename ld_val_pipes,
   // Return the event for the last kernel to finish.
   return storePortEvent;
 }
+
+#pragma clang attribute pop
 
 #endif

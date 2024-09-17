@@ -1,28 +1,89 @@
 #include "CommonLLVM.h"
 #include "AnalysisReportSchema.h"
 
-#include <regex>
-
 using namespace llvm;
 
 namespace llvm {
 
 const std::string REPORT_ENV_NAME = "ELASTIC_PASS_REPORT";
+const std::string POISON_BB_NAME = "poisonBB";
 
 enum PE_PREDICATE_CODES { EXECUTE, RESET, EXIT, POISON };
 
+/// To count number of poison calls/blocks in benchamrks.
+[[maybe_unused]] int numPoisonBBs = 0;
+[[maybe_unused]] int numPoisonCalls = 0;
+
+/// Merge poison blocks that have the same list of posion pipe calls, and the
+/// same (one) successor basic block.
+void mergePoisonBlocks(Function &F) {
+  using VecOfPipes = SmallVector<CallInst *>;
+  MapVector<BasicBlock *, VecOfPipes> poisonBB2PipeCalls;
+
+  for (auto &BB : F) {
+    // Hacky approach to getting poison blocks but okay for now.
+    auto bbName = BB.getNameOrAsOperand();
+    bool isPoisonBB = bbName.find(POISON_BB_NAME) < bbName.size();
+
+    if (isPoisonBB) {
+      poisonBB2PipeCalls[&BB] = VecOfPipes();
+
+      for (auto &I : BB) {
+        if (auto PipeCallI = getPipeCall(&I)) {
+          poisonBB2PipeCalls[&BB].push_back(PipeCallI);
+        }
+      }
+    }
+  }
+
+  auto areEquivalent = [](VecOfPipes Vec1, VecOfPipes Vec2) {
+    if (Vec1.size() != Vec2.size() || Vec1.size() == 0)
+      return false;
+    
+    for (size_t i = 0; i < Vec1.size(); ++i) {
+      if (Vec1[i]->getCalledFunction() != Vec2[i]->getCalledFunction())
+        return false;
+    }
+    return true;
+  };
+
+  auto mergeBlocks = [](BasicBlock *BB1, BasicBlock *BB2) {
+    for (auto &BB : *BB1->getParent()) {
+      BB.getTerminator()->replaceSuccessorWith(BB2, BB1);
+      BB2->replacePhiUsesWith(BB2, BB1);
+    }
+  };
+
+  SetVector<std::pair<BasicBlock *, BasicBlock *>> done;
+  // Merge poison blocks that have equivalent pipe calls and the same successor.
+  for (auto &[poisonBB1, pipeCalls1] : poisonBB2PipeCalls) {
+    for (auto &[poisonBB2, pipeCalls2] : poisonBB2PipeCalls) {
+      if (poisonBB1 != poisonBB2 && areEquivalent(pipeCalls1, pipeCalls2)) {
+        // Repeated merge(A, B) and merge(B, A) are not a problem.
+        mergeBlocks(poisonBB1, poisonBB2);
+        if (!done.contains({poisonBB1, poisonBB2}) && !done.contains({poisonBB2, poisonBB1})) {
+          numPoisonBBs--;
+          numPoisonCalls -= pipeCalls1.size();
+        }
+        done.insert({poisonBB1, poisonBB2});
+      }
+    }
+  }
+}
+
 /// Create and return a new basic blocks on the predBB --> succBB CFG edge.
 /// Cache the created block and return it if called again with the same edge.
-BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB,
-                              const std::string name = "") {
+BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB) {
   // Map of CFG edges to poison basic blocks that already have been created.
   static MapVector<CFGEdge, BasicBlock *> createdBlocks;
   
   const CFGEdge requestedEdge{predBB, succBB};
   if (!createdBlocks.contains(requestedEdge)) {
+    numPoisonBBs++;
+
     auto F = predBB->getParent();
     IRBuilder<> Builder(F->getContext());
-    auto newBB = BasicBlock::Create(F->getContext(), name, F, succBB);
+    auto newBB = BasicBlock::Create(F->getContext(), POISON_BB_NAME, F, succBB);
     createdBlocks[requestedEdge] = newBB;
 
     // Insert BB on pred-->succ edge
@@ -38,28 +99,20 @@ BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB,
 }
 
 /// Move non-terminating instructions in {BB} to the end of {hoistLocation}.
+/// Repeated hoistBlock(bb1, bb2) calls are not a problem.
 void hoistBlock(BasicBlock *BB, BasicBlock *hoistLocation) {
-  static SetVector<CFGEdge> alreadyHoisted;
+  SmallVector<Instruction *> toMove;
+  for (auto &I : *BB)
+    if (!I.isTerminator())
+      toMove.push_back(&I);
 
-  const CFGEdge requestedEdge{BB, hoistLocation};
-  if (!alreadyHoisted.contains(requestedEdge)) {
-    SmallVector<Instruction *> toMove;
-    for (auto &I : *BB) {
-      if (!I.isTerminator()) {
-        toMove.push_back(&I);
-      }
-    }
-
-    for (auto I : toMove)
-      I->moveBefore(hoistLocation->getTerminator());
-
-    alreadyHoisted.insert(requestedEdge);
-  }
+  for (auto I : toMove)
+    I->moveBefore(hoistLocation->getTerminator());
 }
 
 /// Create a zero-init uint32 tag using alloca at {F.entry}. Return its address.
 Value *createTag(Function &F, SetVector<Instruction *> &toKeep) {
-  IRBuilder<> Builder(F.getEntryBlock().getTerminator());
+  IRBuilder<> Builder(F.getEntryBlock().getFirstNonPHI());
   // LLVM doesn't make a distinction between signed and unsigned. And the only
   // op done on tags is 2's complement addition, so the bit pattern is the same.
   auto tagType = Type::getInt32Ty(F.getContext());
@@ -194,15 +247,36 @@ void deleteCode(Function &F, const bool isAGU,
                 SetVector<Instruction *> &toKeepI,
                 SetVector<BasicBlock *> &toDeleteBB,
                 SetVector<BasicBlock *> &toKeepBB) {
+  auto isPrintf = [](Instruction *I) {
+    if (auto CallI = dyn_cast<CallInst>(I))
+      return isSpirFuncWithSubstring(*CallI->getCalledFunction(), "printf");
+    return false;
+  };
+
+  // Pipe argumenets are alloca instructions that are not removed by mem2reg
+  // If a store writes to memory from such an alloca, then we need to keep it.
+  auto isStoreToScalarAlloc = [](Instruction *stI) {
+    if (auto stPtrOp = getLoadStorePointerOperand(stI)) {
+      auto siPointerBase = getPointerBase(stPtrOp);
+      if (auto AllocaI = getAllocaOfPointerBase(siPointerBase)) {
+        return !AllocaI->getAllocatedType()->isArrayTy();
+      }
+    }
+    return false;
+  };
+
   // In the AGU, we delete side-effect instructions not contributing to address
   // generation. The rest is deleted using an LLVM DCE pass.
   if (isAGU) {
     for (auto &BB : F) {
       if (&F.getEntryBlock() != &BB) {
         for (auto &I : BB) {
-          if (isaStore(&I)) {
+          bool isDebug = I.isDebugOrPseudoInst();
+          bool isPrintInAGU = isAGU && isPrintf(&I);
+          bool isNonPipeStore = isa<StoreInst>(&I) && !isStoreToScalarAlloc(&I);
+
+          if (isDebug || isPrintInAGU || isNonPipeStore)
             toDeleteI.insert(&I);
-          }
         }
       }
     }
@@ -227,6 +301,20 @@ void deleteCode(Function &F, const bool isAGU,
     if (!toKeepBB.contains(BB))
       BB->removeFromParent();
   }
+}
+
+/// Cast {Address} value {ToType} if required and return the instruction.
+Value *castToMemReqAddress(Value *Address, Type *ToType,
+                           Instruction *InsertCastBeforeThis) {
+  if (Address->getType() != ToType && Address->getType()->isPointerTy()) {
+    return BitCastInst::CreateBitOrPointerCast(Address, ToType, "",
+                                               InsertCastBeforeThis);
+  } else if (Address->getType() != ToType) {
+    return BitCastInst::CreateIntegerCast(Address, ToType, true, "",
+                                          InsertCastBeforeThis);
+  }
+
+  return Address;
 }
 
 /************************ Rewrite rules start ************************/
@@ -260,8 +348,7 @@ void doLdReqWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
     if (auto sextI = dyn_cast<SExtInst>(loadAddr)) 
       loadAddr = sextI->getOperand(0);
   }
-  auto addressCasted = BitCastInst::CreateBitOrPointerCast(
-      loadAddr, addrType, "", dyn_cast<Instruction>(addressStore));
+  auto addressCasted = castToMemReqAddress(loadAddr, addrType, addressStore);
   addressStore->setOperand(0, addressCasted);
 
   // Write store tag.
@@ -290,6 +377,9 @@ void doLdReqWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
   // If this address allocation is speculated, then move instructions to specBB. 
   if (rule.specBasicBlock)
     hoistBlock(rule.basicBlock, rule.specBasicBlock);
+
+  if (lsqInfo.isAddressGenDecoupled)
+    deleteInstruction(rule.instruction);
 }
 
 void doStReqWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
@@ -315,8 +405,7 @@ void doStReqWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
     if (auto sextI = dyn_cast<SExtInst>(stAddr)) 
       stAddr = sextI->getOperand(0);
   }
-  auto addressCasted = BitCastInst::CreateBitOrPointerCast(
-      stAddr, addrType, "", dyn_cast<Instruction>(addressStore));
+  auto addressCasted = castToMemReqAddress(stAddr, addrType, addressStore);
   addressStore->setOperand(0, addressCasted);
 
   // Write tag. Since it's a store, increment the tag first.
@@ -333,12 +422,20 @@ void doStReqWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
   // If this address allocation is speculated, then move instructions to specBB. 
   if (rule.specBasicBlock)
     hoistBlock(rule.basicBlock, rule.specBasicBlock);
+
+  if (lsqInfo.isAddressGenDecoupled)
+    deleteInstruction(rule.instruction);
 }
 
 void doLdValRead(const RewriteRule &rule) {
   rule.pipeCall->moveAfter(rule.instruction);
   Value *loadVal = dyn_cast<Value>(rule.instruction);
   loadVal->replaceAllUsesWith(rule.pipeCall);
+
+  // Move load out of if-condition if specBB is set.
+  if (rule.specBasicBlock) {
+    rule.pipeCall->moveBefore(rule.specBasicBlock->getTerminator());
+  }
 }
 
 void doStValWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
@@ -355,41 +452,64 @@ void doStValWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
 
   // Instead of storing value to memory, store into the valStore struct member.
   rule.pipeCall->moveAfter(rule.instruction);
+  validStore->moveBefore(rule.pipeCall);
   rule.instruction->setOperand(1, valStoreIntoPipe->getOperand(1));
   toKeep.insert(rule.instruction);
 
   // If multiple store values are written in one BB, then add a tag for muxing.
-  if (lsqInfo.numStorePipes > 1) {
+  if (lsqInfo.numStoreValPipes > 1) {
     StoreInst *tagStore = stValStructStores[1];
     auto tagType = tagStore->getOperand(0)->getType();
     tagStore->moveBefore(rule.pipeCall);
     IRBuilder<> IR(tagStore);
     LoadInst *tagVal = IR.CreateLoad(tagType, lsqInfo.stTagAddr);
-    auto tagPlusOne = IR.CreateAdd(tagVal, ConstantInt::get(tagType, 1));
-    tagStore->setOperand(0, tagPlusOne);
 
+    // If not decoupled, then the increment is already done by the st request.
+    if (lsqInfo.isAddressGenDecoupled) {
+      auto tagPlusOne = IR.CreateAdd(tagVal, ConstantInt::get(tagType, 1));
+      toKeep.insert(IR.CreateStore(tagPlusOne, lsqInfo.stTagAddr));
+      tagStore->setOperand(0, tagPlusOne);
+    } else {
+      tagStore->setOperand(0, tagVal);
+    }
+    
     toKeep.insert(tagStore);
-    toKeep.insert(IR.CreateStore(tagPlusOne, lsqInfo.stTagAddr));
   }
 }
 
 void doPoisonLdRead(const RewriteRule &rule) {
-  // Move the pipe call to the poison block, and just don't use its value.
-  BasicBlock *poisonBB =
-      createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock, "poisonBB");
-  rule.pipeCall->moveBefore(poisonBB->getTerminator());
+  // We just move the load to the speculation location. Alternatively it could 
+  // moved to the poison location.
+  // auto *poisonBB = createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock);
+  rule.pipeCall->moveBefore(rule.specBasicBlock->getTerminator());
 }
 
 void doPoisonStWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
-                    SetVector<Instruction *> &toKeep) {
-  // Move the pipe call to the poison block.
-  BasicBlock *poisonBB =
-      createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock, "poisonBB");
-  rule.pipeCall->moveBefore(poisonBB->getTerminator());
+                     const LoopInfo &LI, SetVector<Instruction *> &toKeep) {
+
+  // Check if the edge requires creating a new block (is the edge.dst reachable
+  // from trueBB?)
+  auto trueBB = rule.basicBlock;
+  auto L = LI.getLoopFor(trueBB);
+  if (isReachableWithinLoop(trueBB, rule.succBasicBlock, L)) {
+    // Triangle branch.
+    auto *newBB = createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock);
+    rule.pipeCall->moveBefore(newBB->getTerminator());
+  } else {
+    rule.pipeCall->moveBefore(rule.succBasicBlock->getFirstNonPHI());
+  }
+  numPoisonCalls++;
+
+  auto stValStructStores = getPipeOpStructStores(rule.pipeCall);
+  StoreInst *validStore = stValStructStores[2];
+  auto validBitType = validStore->getOperand(0)->getType();
+  validStore->setOperand(0, ConstantInt::get(validBitType, 0));
+  validStore->moveBefore(rule.pipeCall);
+  toKeep.insert(validStore);
 
   // If store value tag is used, then we need to increment and use it.
-  if (lsqInfo.numStorePipes > 1) {
-    StoreInst *tagStore = getPipeOpStructStores(rule.pipeCall)[1];
+  if (lsqInfo.numStoreValPipes > 1) {
+    StoreInst *tagStore = stValStructStores[1];
     auto tagType = tagStore->getOperand(0)->getType();
     tagStore->moveBefore(rule.pipeCall);
     IRBuilder<> IR(tagStore);
@@ -730,10 +850,9 @@ void doStValTagToBBWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
                          SetVector<Instruction *> &toKeep) {
   // The write might happen in a poison block.
   auto isInPoisonBB = rule.predBasicBlock && rule.succBasicBlock;
-  auto insertInBlock = isInPoisonBB
-                           ? createBlockOnEdge(rule.predBasicBlock,
-                                               rule.succBasicBlock, "poisonBB")
-                           : rule.basicBlock;
+  auto insertInBlock =
+      isInPoisonBB ? createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock)
+                   : rule.basicBlock;
   rule.pipeCall->moveBefore(insertInBlock->getFirstNonPHI());
 
   // Load lsq st tag and store into pipe 
@@ -756,8 +875,7 @@ void doStValTagToBBWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
 /// Create a new basic block with a poison pipe to the LSQ.
 void doPoisonPredBbWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
                          SetVector<Instruction *> &toKeep) {
-  auto poisonBB =
-      createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock, "poisonBB");
+  auto poisonBB = createBlockOnEdge(rule.predBasicBlock, rule.succBasicBlock);
 
   rule.pipeCall->moveBefore(poisonBB->getTerminator());
 
@@ -778,7 +896,7 @@ void doPoisonInBbPeStWrite(const RewriteRule &rule, const LSQInfo &lsqInfo,
   rule.pipeCall->moveBefore(peInfo.pePoisonBlock->getTerminator());
 
   // Use tag for the poison st_val write if needed.
-  if (lsqInfo.numStorePipes > 1) {
+  if (lsqInfo.numStoreValPipes > 1) {
     IRBuilder<> Builder(rule.pipeCall);
     auto stValPipeStructStores = getPipeOpStructStores(rule.pipeCall);
     StoreInst *tagStore = stValPipeStructStores[1];
@@ -896,7 +1014,7 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
       else if (rule.ruleType == POISON_LD_READ)
         doPoisonLdRead(rule);
       else if (rule.ruleType == POISON_ST_WRITE)
-        doPoisonStWrite(rule, lsqArray[rule.lsqIdx], toKeepI);
+        doPoisonStWrite(rule, lsqArray[rule.lsqIdx], LI, toKeepI);
       else if (rule.ruleType == END_LSQ_SIGNAL_WRITE)
         doEndLsqSignalWrite(rule);
       /******************** PE related: */ 
@@ -941,8 +1059,16 @@ struct ElasticTransform : PassInfoMixin<ElasticTransform> {
         doStValTagLoopOutWrite(rule, lsqArray[rule.lsqIdx], peArray[rule.peIdx], toKeepI);
     }
 
+    mergePoisonBlocks(F);
+
     // After all rules executed, delete code decoupled out of this kernel. 
     deleteCode(F, isAGU, toDeleteI, toKeepI, toDeleteBB, toKeepBB);
+
+    /// To count number of poison calls/blocks in benchamrks.
+    // if (!isAGU) {
+    //   errs() << "====== numPoisonBBs " << numPoisonBBs << "\n\n";
+    //   errs() << "\n====== numPoisonCalls " << numPoisonCalls << "\n";
+    // }
 
     return PreservedAnalyses::none();
   }

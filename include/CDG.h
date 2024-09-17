@@ -28,7 +28,7 @@ using CDGNodeBase = DGNode<CDGNode, CDGEdge>;
 using CDGEdgeBase = DGEdge<CDGNode, CDGEdge>;
 using CDGBase = DirectedGraph<CDGNode, CDGEdge>;
 
-/// Control Dependence Graph Node corresponding.
+/// Control Dependence Graph. Currently without switch instruction support.
 /// The graph can represent the following types of nodes:
 /// 1. Basic block of instructions.
 /// 2. Root node is a special node that represents the entry to a function.
@@ -211,6 +211,9 @@ public:
   /// Return a pointer to the basic block which is the source of the control
   /// dependence of {BB}. Return nullptr if not control dependent.
   BasicBlock *getControlDependencySource(BasicBlock *BB);
+  
+  /// Return basic blocks which are the source of a control dependency for {BB}. 
+  SmallVector<BasicBlock *> getControlDependencySources(BasicBlock *BB);
 
   /// Return a pointer to the basic block which is the source of the control
   /// dependence of {I} basic block. Return nullptr if not control dependent.

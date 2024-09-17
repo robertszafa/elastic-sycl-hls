@@ -13,9 +13,9 @@ There are also functions to serialize and deserialize the structs to/from JSON.
 
 namespace llvm {
 
-const std::string AGU_ID = "_AGU_";
-const std::string LOOP_PE_ID = "_LOOP_PE_";
-const std::string BLOCK_PE_ID = "_BLOCK_PE_";
+const std::string AGU_ID = "_AGU";
+const std::string LOOP_PE_ID = "_LOOP_PE";
+const std::string BLOCK_PE_ID = "_BLOCK_PE";
 
 /// All types of transformations performed by our compiler pass to introduce
 /// selective dynamic scheduling. The enum also defines the easiest order in
@@ -119,7 +119,8 @@ struct LSQInfo {
   bool reuseLdPipesAcrossBB = false;
   bool reuseStPipesAcrossBB = false;
   int numLoadPipes = -1;
-  int numStorePipes = -1;
+  int numStoreReqPipes = -1;
+  int numStoreValPipes = -1;
   int allocationQueueSize = -1;
   bool isOnChipMem = false;
   /// Only used if this is a constant sized BRAM array.
@@ -240,7 +241,8 @@ struct RewriteRule {
   res.reuseLdPipesAcrossBB = *obj.getBoolean("reuseLdPipesAcrossBB");
   res.reuseStPipesAcrossBB = *obj.getBoolean("reuseStPipesAcrossBB");
   res.numLoadPipes = *obj.getInteger("numLoadPipes");
-  res.numStorePipes = *obj.getInteger("numStorePipes");
+  res.numStoreReqPipes = *obj.getInteger("numStoreReqPipes");
+  res.numStoreValPipes = *obj.getInteger("numStoreValPipes");
   res.isOnChipMem = *obj.getBoolean("isOnChipMem");
 
   return res;
@@ -257,7 +259,8 @@ struct RewriteRule {
   res["reuseLdPipesAcrossBB"] = lsqInfo.reuseLdPipesAcrossBB;
   res["reuseStPipesAcrossBB"] = lsqInfo.reuseStPipesAcrossBB;
   res["numLoadPipes"] = lsqInfo.numLoadPipes;
-  res["numStorePipes"] = lsqInfo.numStorePipes;
+  res["numStoreReqPipes"] = lsqInfo.numStoreReqPipes;
+  res["numStoreValPipes"] = lsqInfo.numStoreValPipes;
   res["allocationQueueSize"] = lsqInfo.allocationQueueSize;
   res["isOnChipMem"] = lsqInfo.isOnChipMem;
   res["arraySize"] = lsqInfo.arraySize;
@@ -266,6 +269,7 @@ struct RewriteRule {
 }
 
 [[maybe_unused]] RewriteRule jsonToRewriteRule(Function &F, LoopInfo &LI,
+                                               const json::Object &report,
                                                json::Object obj) {
   RewriteRule res;
 
@@ -276,7 +280,14 @@ struct RewriteRule {
          "Tried to deserialize a rewriteRule for another function.");
 
   auto instrBB = getBlock(F, *obj.getInteger("instructionBasicBlockIdx"));
-  res.instruction = getInstruction(*instrBB, *obj.getInteger("instructionIdx"));
+  // If the instruction is in the entry block, then its index will have shifted
+  // by the number of instructions added during the AST phase.
+  int offset =
+      instrBB->isEntryBlock()
+          ? instrBB->size() - *report.getInteger("numInstrInEntryBlock")
+          : 0;
+  res.instruction =
+      getInstruction(*instrBB, *obj.getInteger("instructionIdx") + offset);
   res.basicBlock = getBlock(F, *obj.getInteger("basicBlockIdx"));
   res.pipeCall = getPipeCall(F, obj);
 
@@ -416,6 +427,7 @@ serializeAnalysis(Function &F, SmallVector<LSQInfo> &lsqArray,
   json::Object report;
   report["mainKernelName"] = demangle(std::string(F.getName()));
   report["kernelStartLine"] = F.getSubprogram()->getLine();
+  report["numInstrInEntryBlock"] = int(F.getEntryBlock().size());
 
   auto peArrayJson = json::Array();
   for (auto &peInfo : peArray)
@@ -445,7 +457,7 @@ deserializeAnalysis(Function &F, LoopInfo &LI, const json::Object &report,
   for (auto ruleJsonVal : *report.getArray("rewriteRules")) {
     auto ruleJson = *ruleJsonVal.getAsObject();
     if (ruleJson.getString("kernelName") == thisKernelName) 
-      rewriteRules.push_back(jsonToRewriteRule(F, LI, ruleJson));
+      rewriteRules.push_back(jsonToRewriteRule(F, LI, report, ruleJson));
   }
 
   for (auto peInfoJson : *report.getArray("peArray")) 

@@ -17,6 +17,11 @@ class ControlDependentDataDependencyAnalysis {
 public:
   explicit ControlDependentDataDependencyAnalysis(
       LoopInfo &LI, DataDependenceGraph &DDG, ControlDependenceGraph &CDG) {
+    bool peDecouplingOff = std::getenv("NO_PE_DECOUPLING") && 
+                           strcmp(std::getenv("NO_PE_DECOUPLING"), "1") == 0;
+    if (peDecouplingOff)
+      return;
+          
     // Go over all SCCs in the DDG.
     for (auto NodeDDG : DDG) {
       if (auto LoopSCC = dyn_cast<PiBlockDDGNode>(NodeDDG)) {

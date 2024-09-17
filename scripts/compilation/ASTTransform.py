@@ -10,7 +10,6 @@ import sys
 import os
 import json
 import re
-import math
 
 GIT_DIR = os.environ["ELASTIC_SYCL_HLS_DIR"]
 LSQ_DRAM_FILE = f'{GIT_DIR}/lsq/LoadStoreQueueDRAM.hpp'
@@ -109,14 +108,18 @@ def gen_lsq_kernel_calls(report, q_name):
         print(f"Info: Generating LSQ_{i_lsq}")
         print(f"  store queue size: {lsq_info['allocationQueueSize']}")
         print(f"  address gen. decoupled: {lsq_info['isAddressGenDecoupled']}")
-        print(f"  speculation: {lsq_info['isAnySpeculation']}")
+        print(f"  speculation needed: {lsq_info['isAnySpeculation']}")
+        print(f"  num ld pipes: {lsq_info['numLoadPipes']}")
+        print(f"  num st req pipes: {lsq_info['numStoreReqPipes']}")
+        num_poison_pipes = lsq_info['numStoreValPipes'] - lsq_info['numStoreReqPipes']
+        print(f"  num st val pipes: {lsq_info['numStoreValPipes']} ({num_poison_pipes} additional poison pipes)")
 
         if lsq_info['isOnChipMem']:
             lsq_kernel_calls.append(f'''
             auto lsqEvent_{i_lsq} = 
                 LoadStoreQueueBRAM<{llvm2ctype(lsq_info['arrayType'])}, pipes_ld_req_{i_lsq}, pipes_ld_val_{i_lsq}, 
                                     pipes_st_req_{i_lsq}, pipes_st_val_{i_lsq}, pipe_end_lsq_signal_{i_lsq}, {int(lsq_info['isAnySpeculation'])},
-                                    {lsq_info['arraySize']}, {lsq_info['numLoadPipes']}, {lsq_info['numStorePipes']}, 
+                                    {lsq_info['arraySize']}, {lsq_info['numLoadPipes']}, {lsq_info['numStoreReqPipes']}, {lsq_info['numStoreValPipes']},
                                     {LD_Q_SIZE}, {lsq_info['allocationQueueSize']}>({q_name});
             ''')
         else:
@@ -124,7 +127,7 @@ def gen_lsq_kernel_calls(report, q_name):
             auto lsqEvent_{i_lsq} = 
                 LoadStoreQueueDRAM<{llvm2ctype(lsq_info['arrayType'])}, pipes_ld_req_{i_lsq}, pipes_ld_val_{i_lsq}, 
                                     pipes_st_req_{i_lsq}, pipes_st_val_{i_lsq}, pipe_end_lsq_signal_{i_lsq}, {int(lsq_info['isAnySpeculation'])},
-                                    {lsq_info['numLoadPipes']}, {lsq_info['numStorePipes']}, {LD_Q_SIZE}, {lsq_info['allocationQueueSize']}>({q_name});
+                                    {lsq_info['numLoadPipes']}, {lsq_info['numStoreReqPipes']}, {lsq_info['numStoreValPipes']}, {LD_Q_SIZE}, {lsq_info['allocationQueueSize']}>({q_name});
             ''')
         lsq_events_waits.append(f'lsqEvent_{i_lsq}.wait();')
     
@@ -146,9 +149,8 @@ def gen_all_pipe_declarations(report):
         st_val_type = f'tagged_val_lsq_bram_t<{val_type}>' if lsq_info['isOnChipMem'] else f'tagged_val_lsq_dram_t<{val_type}>'
 
         # ST pipes only need to be adjusted for BRAM LSQs, because DRAM has multiple ld ports.
-        st_pipe_mul = max(1, math.ceil(lsq_info['numStorePipes']/lsq_info['numLoadPipes'])) if lsq_info['isOnChipMem'] else 1
-        ld_pipe_depth = min(32, 4 * lsq_info['numLoadPipes'])
-        st_pipe_depth = min(32, 4 * lsq_info['numStorePipes'] * st_pipe_mul)
+        ld_pipe_depth = 16
+        st_pipe_depth = 16
 
         res.append(f"using pipes_ld_req_{i_lsq} = \
             PipeArray<class pipes_ld_req_{i_lsq}_class, {ld_req_type}, \
@@ -158,10 +160,10 @@ def gen_all_pipe_declarations(report):
                    {ld_pipe_depth}, {lsq_info['numLoadPipes']}>;")
         res.append(f"using pipes_st_req_{i_lsq} = \
             PipeArray<class pipes_st_req_{i_lsq}_class, {st_req_type}, \
-                   {st_pipe_depth}, {lsq_info['numStorePipes']}>;")
+                   {st_pipe_depth}, {lsq_info['numStoreReqPipes']}>;")
         res.append(f"using pipes_st_val_{i_lsq} = \
             PipeArray<class pipes_st_val_{i_lsq}_class, {st_val_type}, \
-                   {st_pipe_depth}, {lsq_info['numStorePipes']}>;")
+                   {st_pipe_depth}, {lsq_info['numStoreValPipes']}>;")
 
         res.append(f"using pipe_end_lsq_signal_{i_lsq} = \
             pipe<class pipe_end_lsq_signal_{i_lsq}_class, bool, 1>;")
@@ -232,22 +234,27 @@ def do_elastic_transform_ast(src_lines, report):
     kernel_start_line += len(pe_kernels)
     kernel_end_line += len(pe_kernels)
 
+    # For each agu kernel name, collect its pipe ops. Multiple lsq_info might share an AGU.
+    agus_to_pipe_ops = {}
+    for lsq_info in report['lsqArray']:
+        agu_name = lsq_info['aguKernelName']
+        if lsq_info['isAddressGenDecoupled'] and not agu_name in agus_to_pipe_ops:
+            agus_to_pipe_ops[agu_name] = gen_pipe_ops(report, agu_name)
+
     # Create address generation kernel if decoupled flag is set.
     # Add lsq pipe ops to it. If flag not set, add them to orginal kernel.
     agu_kernels = []
     agu_kernel_forward_decl = []
     agu_kernel_waits = []
-    for i_lsq, lsq_info in enumerate(report['lsqArray']):
-        # If the address is not decoupled, then the agu pipe calls are in the main kernel.
-        if lsq_info['isAddressGenDecoupled']:
-            agu_name = f"{report['mainKernelName']}_AGU_{i_lsq}"
-            agu_kernel_forward_decl.append(f"class {agu_name.split(' ')[-1]};")
-            # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
-            agu_kernel, agu_event = gen_kernel_copy(Q_NAME, kernel_body, agu_name.split(' ')[-1])
-            agu_kernel_waits.append(f'{agu_event}.wait();\n')
-            agu_pipe_ops = gen_pipe_ops(report, agu_name)
-            agu_kernel_str = "\n".join(insert_after_line(agu_kernel, 1, agu_pipe_ops))
-            agu_kernels.append(agu_kernel_str)
+    for agu_name, agu_pipes in agus_to_pipe_ops.items():
+        agu_kernel_forward_decl.append(f"class {agu_name.split(' ')[-1]};")
+        # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
+        agu_kernel, agu_event = gen_kernel_copy(Q_NAME, kernel_body, agu_name.split(' ')[-1])
+        agu_kernel_waits.append(f'{agu_event}.wait();\n')
+        # agu_pipe_ops = gen_pipe_ops(report, agu_name)
+        agu_kernel_str = "\n".join(insert_after_line(agu_kernel, 1, agu_pipes))
+        agu_kernels.append(agu_kernel_str)
+
     # Combine the created AGU kernel with the original kernel (no-op if AGU is empty).
     src_after_agu = insert_before_line(src_after_pe, kernel_start_line, agu_kernels)
     kernel_start_line += len(agu_kernels)

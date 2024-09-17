@@ -37,6 +37,8 @@ using namespace llvm;
 namespace {
 
 using CFGEdge = std::pair<BasicBlock *, BasicBlock *>;
+using BlockPath = SmallVector<BasicBlock *>;
+using EdgePath = SmallVector<CFGEdge>;
 
 /// Lambdas for easier use in range based algorithms.
 auto isaLoad = [](auto i) { return isa<LoadInst>(i); };
@@ -646,6 +648,62 @@ getSeqInBB(const SmallVector<Instruction *> &Range) {
   // Remeber to reverse.
   std::reverse(Result.begin(), Result.end());
   return Result;
+}
+
+/// Given a block {BB}, return all possible paths from {BB} to the loop latch
+/// (or function exit if BB not in loop).
+[[maybe_unused]] SmallVector<BlockPath> getAllBlockPathsInLoop(BasicBlock *BB,
+                                                               LoopInfo &LI) {
+  Loop *L = LI.getLoopFor(BB);
+  BasicBlock *StopAt = L ? L->getLoopLatch() : getReturnBlock(*BB->getParent());
+
+  SmallVector<BlockPath> AllPaths;
+  std::queue<BlockPath> Queue;
+  Queue.push({BB});
+
+  // BFS traversal.
+  while (!Queue.empty()) {
+    BlockPath CurrPath = Queue.front();
+    Queue.pop();
+
+    BasicBlock *PathFrontier = CurrPath.back();
+
+    if (PathFrontier == StopAt) {
+      AllPaths.push_back(CurrPath);
+      continue; 
+    }
+
+    for (auto SuccBB : successors(PathFrontier)) {
+      if (!LI.isLoopHeader(SuccBB)) {
+        BlockPath Continuation {CurrPath};
+        Continuation.push_back(SuccBB);
+        Queue.push(Continuation);
+      }
+    }
+  }
+
+  return AllPaths;
+}
+
+/// Given a vector of blocks where neighbours are successors in the CFG, return
+/// a vector of CFG edges.
+[[maybe_unused]] SmallVector<EdgePath>
+blockToEdgePath(SmallVector<BlockPath> &AllBlockPaths) {
+  SmallVector<EdgePath> AllEdgePaths;
+
+  for (auto &CurrBlockPath : AllBlockPaths) {
+    EdgePath CurrEdgePath;
+    BasicBlock *CurrBB = nullptr;
+    for (auto &BB : CurrBlockPath) {
+      if (CurrBB)
+        CurrEdgePath.push_back({CurrBB, BB});
+      CurrBB = BB;
+    }
+
+    AllEdgePaths.push_back(CurrEdgePath);
+  }
+
+  return AllEdgePaths;
 }
 
 } // namespace

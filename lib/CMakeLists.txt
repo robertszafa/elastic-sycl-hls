@@ -39,6 +39,7 @@ set(DynamicLoopFusionAnalysisPrinter_SOURCES
 set(DynamicLoopFusionTransform_SOURCES
   DynamicLoopFusionTransform.cpp
   DynamicLoopFusionAnalysis.cpp
+  CDG.cpp
 )
 
 # CONFIGURE THE PLUGIN LIBRARIES

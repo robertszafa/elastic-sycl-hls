@@ -24,7 +24,7 @@ constexpr float d = 0.85;
 double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
                         const std::vector<int> &h_col_idx,
                         std::vector<float> &h_val, std::vector<float> &h_p,
-                        const int numNodes, const int maxIters) {
+                        const uint numNodes, const uint maxIters) {
   float *p_new = fpga_tools::toDevice(h_p, q);
   float *p = fpga_tools::toDevice(h_p, q);
   const int *row_ptr = fpga_tools::toDevice(h_row_ptr, q);

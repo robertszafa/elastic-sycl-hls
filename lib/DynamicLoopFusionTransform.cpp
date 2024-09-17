@@ -1,11 +1,13 @@
 #include "CommonLLVM.h"
 #include "DynamicLoopFusionAnalysis.h"
+#include "CDG.h"
 
 using namespace llvm;
 
 namespace llvm {
 
 const std::string REPORT_ENV_NAME = "ELASTIC_PASS_REPORT";
+const std::string POISON_BB_NAME = "poisonBB";
 
 using MemoryRequest = DynamicLoopFusionAnalysis::MemoryRequest;
 using DecoupledLoopType = DynamicLoopFusionAnalysis::DecoupledLoopType;
@@ -276,6 +278,302 @@ void swapMemOpForPipeReadWrite(MemoryRequest &Req) {
   }
 }
 
+void topologicalOrderSort(Function &F, SmallVector<MemoryRequest, 4> &ToSort) {
+  MapVector<BasicBlock*, int> TopologicalOrder;
+  for (auto [iOrd, BB] : llvm::enumerate(getTopologicalOrder(F)))
+    TopologicalOrder[BB] = iOrd;
+
+  llvm::sort(ToSort, [&TopologicalOrder](auto A, auto B) {
+    return TopologicalOrder[A.memOp->getParent()] <
+           TopologicalOrder[B.memOp->getParent()];
+  });
+}
+
+/// Return memory requests that are guarded by an if condition.
+SmallVector<MemoryRequest, 4>
+getRequestsToSpeculate(ControlDependenceGraph &CDG, LoopInfo &LI,
+                       SmallVector<MemoryRequest, 4> &Requests) {
+  SmallVector<MemoryRequest, 4> RequestsToSpeculate;
+  for (auto &Req : Requests) {
+    auto ReqBB = Req.memOp->getParent();
+    if (auto CtrlDepBB = CDG.getControlDependencySource(ReqBB)) {
+      if (CtrlDepBB != LI.getLoopFor(ReqBB)->getHeader()) {
+        RequestsToSpeculate.push_back(Req);
+      }
+    }
+  }
+
+  return  RequestsToSpeculate;
+}
+
+/// Move Req (and any isntructions in its address def-use chain) to {ToBB}.
+void hoistRequest(MemoryRequest &Req, BasicBlock *ToBB) {
+  auto ReqBB = Req.memOp->getParent();
+  if (ReqBB == ToBB)
+    return;
+
+  SmallVector<Instruction *> toMove;
+  for (auto &I : *ReqBB) {
+    if (isInDefUsePath(&I, Req.memOp) || &I == Req.memOp) {
+      toMove.push_back(&I);
+    } 
+  }
+
+  for (auto I : toMove)
+    I->moveBefore(ToBB->getTerminator());
+}
+
+/// Hoist memory requests out of if-conditions.
+void speculateRequests(Function &F, ControlDependenceGraph &CDG, LoopInfo &LI,
+                       SmallVector<MemoryRequest, 4> &Requests) {
+  auto RequestsToSpeculate = getRequestsToSpeculate(CDG, LI, Requests);
+  topologicalOrderSort(F, RequestsToSpeculate);
+  
+  // Iteratively hoist requests out of chains of if-conditions.
+  bool Done = false;
+  while (!Done) {
+    Done = true;
+
+    for (auto Req : RequestsToSpeculate) {
+      auto ReqBB = Req.memOp->getParent();
+
+      if (auto ToBB = CDG.getControlDependencySource(ReqBB)) {
+        if (ToBB != LI.getLoopFor(ReqBB)->getHeader()) {
+          hoistRequest(Req, ToBB);
+          Done = false;
+        }
+      }
+    }
+  }
+}
+
+/// Returns the fromBB->toBB mapping corresponding to the hositing in the
+/// "speculateRequests" function.
+MapVector<BasicBlock *, BasicBlock *>
+getSpeculationFromToMap(ControlDependenceGraph &CDG, LoopInfo &LI,
+                        SmallVector<BasicBlock *> &FromBlocks) {
+  MapVector<BasicBlock *, BasicBlock *> Result;
+  for (auto &BB : FromBlocks)
+    Result[BB] = BB;
+
+  bool Done = false;
+  while (!Done) {
+    Done = true;
+
+    for (auto [FromBB, CurrToBB] : Result) {
+      if (auto ToBB = CDG.getControlDependencySource(CurrToBB)) {
+        if (ToBB != LI.getLoopFor(FromBB)->getHeader() && ToBB != CurrToBB) {
+          Result[FromBB] = ToBB;
+          Done = false;
+        }
+      }
+    }
+  }
+
+  return Result;
+}
+
+/// Create and return a new basic blocks on the predBB --> succBB CFG edge.
+/// Cache the created block and return it if called again with the same edge.
+BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB) {
+  // Map of CFG edges to poison basic blocks that already have been created.
+  static MapVector<CFGEdge, BasicBlock *> createdBlocks;
+  
+  const CFGEdge requestedEdge{predBB, succBB};
+  if (!createdBlocks.contains(requestedEdge)) {
+    auto F = predBB->getParent();
+    IRBuilder<> Builder(F->getContext());
+    auto newBB = BasicBlock::Create(F->getContext(), POISON_BB_NAME, F, succBB);
+    createdBlocks[requestedEdge] = newBB;
+
+    // Insert BB on pred-->succ edge
+    // Before changing edges, make all phis from predBB now come from PoisonBB
+    predBB->replaceSuccessorsPhiUsesWith(predBB, newBB);
+    Builder.SetInsertPoint(newBB);
+    Builder.CreateBr(succBB);
+    auto branchInPredBB = dyn_cast<BranchInst>(predBB->getTerminator());
+    branchInPredBB->replaceSuccessorWith(succBB, newBB);
+  } 
+  
+  return createdBlocks[requestedEdge];
+}
+
+/// Given the FromBB->ToBB mapping of hoisting performed in the AGU, return
+/// a mapping of poison blocks to a list of speculated memory requests that
+/// should be invalidated in those blocks. Note that the blocks may involve
+/// newly created blocks (see createBlockOnEdge() function).
+///
+/// The algorithm traverses every loop CFG path to guarante that the order of
+/// store values (poisoned or not) matches the order of store requests made in
+/// the AGU.
+MapVector<BasicBlock *, SmallVector<MemoryRequest, 4>>
+getPoisonBlocks(Function &F, LoopInfo &LI,
+                   MapVector<BasicBlock *, BasicBlock *> &HoistedFromToMap,
+                   SmallVector<MemoryRequest, 4> &SpeculatedRequests) {
+  MapVector<CFGEdge, SmallVector<MemoryRequest, 4>> PoisonLocations;
+
+  for (auto &Req : SpeculatedRequests) {
+    // Loads are hoisted to the same location where they have been speculated. 
+    if (isaLoad(Req.memOp))
+      continue;
+
+    auto L = LI.getLoopFor(Req.memOp->getParent());
+    auto SpecBB = HoistedFromToMap[Req.memOp->getParent()];
+    auto AllBlockPaths = getAllBlockPathsInLoop(SpecBB, LI);
+    auto AllEdgePaths = blockToEdgePath(AllBlockPaths);
+
+    for (size_t iPath = 0; iPath < AllEdgePaths.size(); ++iPath) {
+      auto EdgePath = AllEdgePaths[iPath];
+      auto BlockPath = AllBlockPaths[iPath];
+
+      // Map of {trueBlock: requests originally in trueBlock}
+      MapVector<BasicBlock *, SmallVector<MemoryRequest, 4>> trueBlocks;
+      for (auto &r : SpeculatedRequests) {
+        auto trueBB = r.memOp->getParent();
+        if (!trueBlocks.contains(trueBB))
+          trueBlocks[trueBB] = SmallVector<MemoryRequest, 4>();
+
+        trueBlocks[trueBB].push_back(r);
+      }
+
+      for (auto &[EdgeSrc, EdgeDst] : EdgePath) {
+        CFGEdge Edge = {EdgeSrc, EdgeDst};
+        for (auto &[trueBB, requests] : trueBlocks) {
+          if (requests.empty())
+            continue;
+
+          if (EdgeDst == trueBB) {
+            trueBlocks[trueBB].clear();
+            break; // to next edge
+          }
+
+          if (!isReachableWithinLoop(EdgeDst, trueBB, L)) {
+            if (!PoisonLocations.contains(Edge))
+              PoisonLocations[Edge] = SmallVector<MemoryRequest, 4>();
+
+            llvm::append_range(PoisonLocations[Edge], requests);
+            trueBlocks[trueBB].clear();
+          }
+        }
+      }
+    }
+  }
+
+  // Map edges to blocks, and remove repetitions.
+  MapVector<BasicBlock *, SmallVector<MemoryRequest, 4>> PoisonBlocks;
+  for (auto [Edge, Requests] : PoisonLocations) {
+    auto PoisonBB = createBlockOnEdge(Edge.first, Edge.second);
+    PoisonBlocks[PoisonBB] = SmallVector<MemoryRequest, 4>();
+    
+    SetVector<Instruction*> Done;
+    for (auto Req : Requests) {
+      if (!Done.contains(Req.memOp)) {
+        PoisonBlocks[PoisonBB].push_back(Req);
+        Done.insert(Req.memOp);
+      }
+    }
+  }
+
+  return PoisonBlocks;
+}
+
+/// Place a store value pipe at the end of {PoisonBB} with a 0 valid bit.
+void insertInvalidStoreValPipe(MemoryRequest &Req, BasicBlock *PoisonBB) {
+  auto PoisonCall = Req.pipeCalls[0]->clone();
+  auto ValidStore = Req.storeValidStore->clone();
+  PoisonCall->insertBefore(PoisonBB->getTerminator());
+  ValidStore->insertBefore(PoisonCall);
+  auto validBitType = ValidStore->getOperand(0)->getType();
+  ValidStore->setOperand(0, ConstantInt::get(validBitType, 0));
+}
+
+/// Check which requests were speculated in the AGU and insert poison store
+/// value calls on CFG paths where the speculation turns out false.
+void poisonMisspeculations(Function &F, ControlDependenceGraph &CDG,
+                           LoopInfo &LI,
+                           SmallVector<MemoryRequest, 4> &Requests) {
+  // Get speculated requests in the topological program order.
+  SmallVector<MemoryRequest, 4> SpeculatedRequests =
+      getRequestsToSpeculate(CDG, LI, Requests);
+  topologicalOrderSort(F, SpeculatedRequests);
+
+  // Get a mapping of where the speculated requests where hoisted to in the AGU.
+  SmallVector<BasicBlock*> FromBlocks;
+  for (auto Req : SpeculatedRequests)
+    FromBlocks.push_back(Req.memOp->getParent());
+  auto HoistedFromToMap = getSpeculationFromToMap(CDG, LI, FromBlocks);
+
+  // Given the above info, get poison blocks where to insert poison calls.
+  MapVector<BasicBlock *, SmallVector<MemoryRequest, 4>> PoisonLocations =
+      getPoisonBlocks(F, LI, HoistedFromToMap, SpeculatedRequests);
+
+  for (auto [PoisonBB, RequestsToPoison] : PoisonLocations) {
+    for (auto Req : RequestsToPoison) {
+      auto ReqBB = Req.memOp->getParent();
+      auto SpecBB = HoistedFromToMap[ReqBB];
+      
+      if (isaStore(Req.memOp)) {
+        insertInvalidStoreValPipe(Req, PoisonBB);
+      } else {
+        Req.pipeCalls[0]->moveBefore(SpecBB->getTerminator());
+      }
+    }
+  }
+}
+
+/// Merge poison blocks that have the same list of poison pipe calls, and the
+/// same (one) successor basic block.
+void mergePoisonBlocks(Function &F) {
+  using VecOfPipes = SmallVector<CallInst *>;
+  MapVector<BasicBlock *, VecOfPipes> poisonBB2PipeCalls;
+
+  for (auto &BB : F) {
+    // Hacky approach to getting poison blocks but okay for now.
+    auto bbName = BB.getNameOrAsOperand();
+    bool isPoisonBB = bbName.find(POISON_BB_NAME) < bbName.size();
+
+    if (isPoisonBB) {
+      poisonBB2PipeCalls[&BB] = VecOfPipes();
+
+      for (auto &I : BB) {
+        if (auto PipeCallI = getPipeCall(&I)) {
+          poisonBB2PipeCalls[&BB].push_back(PipeCallI);
+        }
+      }
+    }
+  }
+
+  auto areEquivalent = [](VecOfPipes Vec1, VecOfPipes Vec2) {
+    if (Vec1.size() != Vec2.size() || Vec1.size() == 0)
+      return false;
+    
+    for (size_t i = 0; i < Vec1.size(); ++i) {
+      if (Vec1[i]->getCalledFunction() != Vec2[i]->getCalledFunction())
+        return false;
+    }
+    return true;
+  };
+
+  auto mergeBlocks = [](BasicBlock *BB1, BasicBlock *BB2) {
+    for (auto &BB : *BB1->getParent()) {
+      BB.getTerminator()->replaceSuccessorWith(BB2, BB1);
+      BB2->replacePhiUsesWith(BB2, BB1);
+    }
+  };
+
+  SetVector<std::pair<BasicBlock *, BasicBlock *>> done;
+  // Merge poison blocks that have equivalent pipe calls and the same successor.
+  for (auto &[poisonBB1, pipeCalls1] : poisonBB2PipeCalls) {
+    for (auto &[poisonBB2, pipeCalls2] : poisonBB2PipeCalls) {
+      if (poisonBB1 != poisonBB2 && areEquivalent(pipeCalls1, pipeCalls2)) {
+        // Repeated merge(A, B) and merge(B, A) are not a problem.
+        mergeBlocks(poisonBB1, poisonBB2);
+        done.insert({poisonBB1, poisonBB2});
+      }
+    }
+  }
+}
+
 SmallVector<Instruction *>
 getSideEffectsToDelete(Function &F,
                        SmallVector<DecoupledLoopInfo, 4> &DecoupledLoops) {
@@ -352,6 +650,9 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
 
     auto &LI = AM.getResult<LoopAnalysis>(F);
     auto &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
+    auto &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
+    std::shared_ptr<ControlDependenceGraph> CDG(
+        new ControlDependenceGraph(F, PDT));
     auto *DLFA = new DynamicLoopFusionAnalysis(F, LI, SE, originalKernelName);
 
     auto DecoupledLoops = getLoopsToDecouple(F, *DLFA);
@@ -361,6 +662,11 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
     auto InstrToDelete = getSideEffectsToDelete(F, DecoupledLoops); 
 
     const auto loopType = getLoopType(F);
+    
+    // In AGUs, requests are hoisted out of if-conditions.
+    if (loopType == DecoupledLoopType::agu)
+      speculateRequests(F, *CDG, LI, MemoryRequests);
+
     for (auto &Req : MemoryRequests) {
       if (loopType == DecoupledLoopType::agu) {
         addAddrInstructions(F, Req);
@@ -377,6 +683,12 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
       }
     }
 
+    // In CUs, invalidate misspeculated requests.
+    if (loopType == DecoupledLoopType::compute) {
+      poisonMisspeculations(F, *CDG, LI, MemoryRequests);
+      mergePoisonBlocks(F);
+    }
+
     deleteCode(LoopsToDelete, InstrToDelete);
 
     return PreservedAnalyses::none();
@@ -388,6 +700,7 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
   void getAnalysisUsage(AnalysisUsage &AU) const {
     AU.addRequiredID(LoopAnalysis::ID());
     AU.addRequiredID(ScalarEvolutionAnalysis::ID());
+    AU.addRequiredID(PostDominatorTreeAnalysis::ID());
   }
 };
 

@@ -26,6 +26,7 @@ double test_kernel_raw(queue &q, std::vector<int> &h_D, std::vector<int> &h_D2,
                        const int NUM_ITERS) {
 
   const int N = h_D.size();
+  const int M = h_D2.size();
 
   int *idx = fpga_tools::toDevice(h_idx, q);
   int *idx2 = fpga_tools::toDevice(h_idx2, q);
@@ -38,7 +39,7 @@ double test_kernel_raw(queue &q, std::vector<int> &h_D, std::vector<int> &h_D2,
         D[idx[i]] = (iters * N) + i;
       }
 
-      for (uint i = 0; i < N; i++) 
+      for (uint i = 0; i < M; i++) 
         D2[i] = D[i]; // Need at least one read to use our StreamingMemory IP. 
 
       for (uint i = 0; i < N; i++) {
@@ -63,13 +64,14 @@ void test_kernel_cpu(std::vector<int> &D, std::vector<int> &D2,
                      std::vector<int> &idx, std::vector<int> &idx2,
                      const int NUM_ITERS) {
   const int N = D.size();
+  const int M = D2.size();
 
   for (uint iters = 0; iters < NUM_ITERS; iters++) {
     for (uint i = 0; i < N; i++) {
       D[idx[i]] = (iters * N) + i;
     }
 
-    for (uint i = 0; i < N; i++) 
+    for (uint i = 0; i < M; i++) 
       D2[i] = D[i]; // Need at least one read to use our StreamingMemory IP. 
 
     for (uint i = 0; i < N; i++) {

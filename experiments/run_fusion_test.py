@@ -6,28 +6,64 @@ import sys
 GIT_DIR = os.environ["ELASTIC_SYCL_HLS_DIR"]
 BENCHMARKS_AND_ARGS = {
     "test_fusion_waw": [
-        ["150", "3"],
-        ["100", "1"],
+        ["150", "3"],       # sim
+        # ["10000", "10"],  # hw
     ],
     "test_fusion_war": [
-        ["150", "3"],
-        ["100", "1"],
+        ["150", "3"],       # sim
+        # ["10000", "10"],  # hw
     ],
     "test_fusion_raw": [
-        ["150", "3"],
-        ["100", "1"],
+        ["150", "3"],       # sim
+        # ["10000", "10"],  # hw
     ],
-    "page_rank_dram": [
-        [f"{GIT_DIR}/experiments/test2-web-NotreDame.txt", "3"],
-        # [f"{GIT_DIR}/experiments/test-web-NotreDame.txt", "3"],
-    ],
-    "bnn_dram": [["10"]],
 
-    "gemm_dram": [["10"]],
-    "gemver_dram": [["10"]],
-    "kernel_2mm_dram": [["10"]],
-    "kernel_3mm_dram": [["10"]],
-    "doitgen_triple_dram": [["10"]],
+    "page_rank_dram": [
+        [f"{GIT_DIR}/experiments/test2-web-NotreDame.txt", "3"],    # sim
+        # [f"{GIT_DIR}/experiments/web-NotreDame.txt", "10"],         # hw
+    ],
+    "bnn_dram": [
+        ["10"],     # sim
+        # ["1000"],   # hw
+
+    ],
+
+    "fft_conv_dram": [
+        ["32"],     # sim
+        # ["1024"],   # hw
+    ],
+    "gsum_sort_dram": [
+        ["32"],     # sim
+        # ["1024"],   # hw
+    ],
+
+    "gemver_dram": [
+        ["10"],     # sim
+        # ["1000"]    # hw
+    ],
+    "correlation_dram": [
+        ["10", "10"],           # sim
+        # ["1000", "1000"]        # hw
+    ],
+ 
+    # To regular to get a benefit, existing approaches are better than dynamic fusion:
+    # "gemm_dram": [
+    #     ["10"],     # sim
+    #     # ["1000"]    # hw
+    # ],
+    # "kernel_2mm_dram": [
+    #     ["10"],     # sim
+    #     # ["1000"]    # hw
+    # ],
+    # "kernel_3mm_dram": [
+    #     ["10"],     # sim
+    #     # ["1000"]    # hw
+    # ],
+    # "doitgen_triple_dram": [
+    #     ["10"],     # sim
+    #     # ["1000"]    # hw
+    # ],
+
     # "lud_dram": [["10"]],
 }
 
@@ -40,23 +76,23 @@ if __name__ == '__main__':
     run_prefix = f'{GIT_DIR}/scripts/run_sim.sh' if TARGET == 'sim' else ''
 
     for kernel, test_vectors in BENCHMARKS_AND_ARGS.items():
-        print(f'\n--------------------- {kernel} ---------------------')
+        os.system(f'echo "--------------------- {kernel} ---------------------"')
 
         BIN_STATIC = f'{GIT_DIR}/experiments/bin/{kernel}.fpga_{TARGET}'
         BIN_LSQ = f'{GIT_DIR}/experiments/bin/{kernel}_lsq.elastic.fpga_{TARGET}'
         BIN_FUSION = f'{GIT_DIR}/experiments/bin/{kernel}.elastic.fpga_{TARGET}'
 
-        # print("\nStatic:")
-        # for test_vector in test_vectors:
-        #     args_str = " ".join(test_vector)
-        #     os.system(f'{run_prefix} {BIN_STATIC} {args_str}')
+        os.system('echo "Static"')
+        for test_vector in test_vectors:
+            args_str = " ".join(test_vector)
+            os.system(f'{run_prefix} {BIN_STATIC} {args_str}')
         
-        # print("\nLSQ:")
-        # for test_vector in test_vectors:
-        #     args_str = " ".join(test_vector)
-        #     os.system(f'{run_prefix} {BIN_LSQ} {args_str}')
+        os.system('echo "LSQ"')
+        for test_vector in test_vectors:
+            args_str = " ".join(test_vector)
+            os.system(f'{run_prefix} {BIN_LSQ} {args_str}')
 
-        print("\nFUSION:")
+        os.system('echo "Fusion"')
         for test_vector in test_vectors:
             args_str = " ".join(test_vector)
             os.system(f'{run_prefix} {BIN_FUSION} {args_str}')

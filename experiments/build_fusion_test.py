@@ -10,16 +10,20 @@ BENCHMARKS = [
     "test_fusion_war",
     "test_fusion_waw",
 
-    # Irregular
     "page_rank_dram",
     "bnn_dram",
 
-    # Regular
-    "gemm_dram",
+    "fft_conv_dram",
+    "gsum_sort_dram",
+
     "gemver_dram",
-    "kernel_2mm_dram",
-    "kernel_3mm_dram",
-    "doitgen_triple_dram",
+    "correlation_dram",
+
+    # To regular to get a benefit, existing approaches are better than dynamic fusion:
+    # "gemm_dram",
+    # "kernel_2mm_dram",
+    # "kernel_3mm_dram",
+    # "doitgen_triple_dram",
     # "lud_dram",
 ]
 
@@ -30,14 +34,14 @@ if __name__ == '__main__':
         exit("sys.argv[1] must be emu/sim/hw")
 
     for kernel in BENCHMARKS:
-        print(f'\n--------------------- {kernel} ---------------------')
+        os.system(f'echo "--------------------- {kernel} ---------------------"')
         
-        print("\nStatic:")
+        os.system('echo "Static"')
         os.system(f'cd {GIT_DIR}/experiments && make fpga_{TARGET} FILE={kernel}.cpp')
 
-        print("\nLSQ:")
+        os.system('echo "LSQ"')
         os.system(f'cp {GIT_DIR}/experiments/{kernel}.cpp {GIT_DIR}/experiments/{kernel}_lsq.cpp')
-        os.system(f'{GIT_DIR}/elastic_pass.sh {TARGET} {GIT_DIR}/experiments/{kernel}_lsq.cpp')
+        os.system(f'NO_PE_DECOUPLING=1 {GIT_DIR}/elastic_pass.sh {TARGET} {GIT_DIR}/experiments/{kernel}_lsq.cpp')
 
-        print("\nFusion:")
+        os.system('echo "Fusion"')
         os.system(f'{GIT_DIR}/elastic_pass.sh {TARGET} {GIT_DIR}/experiments/{kernel}.cpp -f')

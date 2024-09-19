@@ -36,7 +36,9 @@ double gemver_kernel(queue &q, std::vector<float> &h_a, std::vector<float> &h_x,
   auto *v1 = fpga_tools::toDevice(h_v1, q);
   auto *v2 = fpga_tools::toDevice(h_v2, q);
 
-  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+  std::vector<sycl::event> events;
+
+  auto main_event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (unsigned i = 0; i < N; i++)
       for (unsigned j = 0; j < N; j++)
         a[i*N + j] = a[i*N + j] + u1[i] * v1[j] + u2[i] * v2[j];
@@ -60,7 +62,10 @@ double gemver_kernel(queue &q, std::vector<float> &h_a, std::vector<float> &h_x,
     }
   });
 
-  event.wait();
+  
+  events.push_back(main_event);
+  sycl::event::wait(events);
+
   q.copy(a, h_a.data(), h_a.size()).wait();
   q.copy(x, h_x.data(), h_x.size()).wait();
   q.copy(w, h_w.data(), h_w.size()).wait();
@@ -75,11 +80,15 @@ double gemver_kernel(queue &q, std::vector<float> &h_a, std::vector<float> &h_x,
   sycl::free(v1, q);
   sycl::free(v2, q);
 
-  auto start = event.get_profiling_info<info::event_profiling::command_start>();
-  auto end = event.get_profiling_info<info::event_profiling::command_end>();
-  double time_in_ms = static_cast<double>(end - start) / 1000000;
+  double max_event_time = 0;
+  for (auto &e : events) {
+    auto start = e.get_profiling_info<info::event_profiling::command_start>();
+    auto end = e.get_profiling_info<info::event_profiling::command_end>();
+    double this_event_time = static_cast<double>(end - start) / 1000000;
+    max_event_time = std::max(max_event_time, this_event_time);
+  }
 
-  return time_in_ms;
+  return max_event_time;
 }
 
 void gemver_cpu(std::vector<float> &a, std::vector<float> &x,

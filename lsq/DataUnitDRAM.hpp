@@ -89,15 +89,15 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
   constexpr uint NUM_LOADS = DepInfo<MEM_ID>{}.NUM_LOADS;
   constexpr uint NUM_STORES = DepInfo<MEM_ID>{}.NUM_STORES;
   constexpr uint LOOP_DEPTH = DepInfo<MEM_ID>{}.MAX_LOOP_DEPTH; 
-  std::vector<event> events(NUM_STORES + 1);
+  std::vector<event> events;
 
   // Sizes of internal buffers.
   constexpr uint DRAM_BURST_BYTES = 64; /// 512-bit DRAM interface
   constexpr uint T_BYTES = sizeof(T);
   constexpr uint BURST_SIZE = ((DRAM_BURST_BYTES + T_BYTES - 1) / T_BYTES) ;
-  constexpr uint ST_COMMIT_Q_SIZE = BURST_SIZE * 2;
-  constexpr uint ST_ALLOC_Q_SIZE = 2;
-  constexpr uint LD_Q_SIZE = 2;
+  constexpr uint ST_PENDING_BUFF_SIZE = BURST_SIZE * 2;
+  constexpr uint ST_REQ_Q_SIZE = 2;
+  constexpr uint LD_REQ_Q_SIZE = 2;
 
   // Store ports.
   // Because we use a dynamic burstig LSU, it is important that the store port
@@ -107,7 +107,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
   using StoreAckPipes = PipeArray<class _StoreAckPipe, ack_t<LOOP_DEPTH>, 2, NUM_STORES>;
   UnrolledLoop<NUM_STORES>([&](auto iSt) {
     constexpr int StPortId = 100*(MEM_ID+1) + iSt;
-    events[iSt] = q.single_task<StorePortKernel<StPortId>>([=]() KERNEL_PRAGMAS {
+    auto st_event = q.single_task<StorePortKernel<StPortId>>([=]() KERNEL_PRAGMAS {
       ack_t<LOOP_DEPTH> NextAck {INIT_ACK_ADDR};
       InitBundle(NextAck.sched, INIT_ACK_SCHED);
       InitBundle(NextAck.isLastIter, true);
@@ -126,6 +126,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         #pragma clang diagnostic push
         #pragma clang diagnostic ignored "-Wint-to-pointer-cast"
         auto StorePtr = ext::intel::device_ptr<T>((T*) Req.addr);
+        // Use only offset of base+offset address for larger DRAM capacities.
         // auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
         #pragma clang diagnostic pop
 
@@ -149,6 +150,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       StoreAckPipes::template PipeAt<iSt>::write(FinalAck);
       // PRINTF("STORE PORT %d done\n", int(iSt));
     });
+    events.push_back(st_event);
   });
 
   // Load ports.
@@ -196,22 +198,27 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       InitBundle(maxAck.sched, SCHED_SENTINEL);
       InitBundle(maxAck.isLastIter, true);
       LoadAckPipes::template PipeAt<iLd>::write(maxAck);
-      PRINTF("MEM_%d LOAD PORT %d reused %d/%d\n", MEM_ID, int(iLd), NumReused, NumTotal);
+
+      #ifdef PRINT_DU_LOAD_REUSE
+      float percent = ((float)NumReused / (float)NumTotal) * 100.0f;
+      PRINTF("MEM_%d LOAD_%d reused %d/%d = %.f\n", MEM_ID, int(iLd), 
+             NumReused, NumTotal, percent);
+      #endif
     });
   });
 
 
-  events[1] = q.single_task<DataUnitDRAMKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
+  auto du_event = q.single_task<DataUnitDRAMKernel<MEM_ID>>([=]() KERNEL_PRAGMAS {
     // TDOD: Add hints about the maximum address at any given loop depth?
     // addr_t StoreAllocMaxAddrAtLoop[NUM_STORES][LOOP_DEPTH][ST_ALLOC_Q_SIZE];
     // addr_t LoadMaxAddrAtLoop[NUM_LOADS][LOOP_DEPTH][LD_Q_SIZE];
 
     /* Store logic registers */
     // Internal queue of store requests (purely for improved fmax).
-    bool StoreValid[NUM_STORES][ST_ALLOC_Q_SIZE];
-    addr_t StoreAddr[NUM_STORES][ST_ALLOC_Q_SIZE];
-    sched_t StoreSched[NUM_STORES][LOOP_DEPTH][ST_ALLOC_Q_SIZE];
-    bool StoreIsLastIter[NUM_STORES][LOOP_DEPTH][ST_ALLOC_Q_SIZE];
+    bool StoreValid[NUM_STORES][ST_REQ_Q_SIZE];
+    addr_t StoreAddr[NUM_STORES][ST_REQ_Q_SIZE];
+    sched_t StoreSched[NUM_STORES][LOOP_DEPTH][ST_REQ_Q_SIZE];
+    bool StoreIsLastIter[NUM_STORES][LOOP_DEPTH][ST_REQ_Q_SIZE];
     // Shortcut for the head of the internal store queue.
     addr_t NextStoreAddr[NUM_STORES];
     sched_t NextStoreSched[NUM_STORES][LOOP_DEPTH];
@@ -219,9 +226,9 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
     T NextStoreValue[NUM_STORES];
     bool NextStoreValueIsValid[NUM_STORES];
     bool StoreValuePipeReadValid[NUM_STORES];
-    // This buffer ahadows the burst buffer in the store port.
-    addr_t StoreButrstBuffAddr[NUM_STORES][ST_COMMIT_Q_SIZE];
-    T StoreBurstBuffVal[NUM_STORES][ST_COMMIT_Q_SIZE];
+    // This buffer ahadows the pending buffer in the store port.
+    addr_t StorePendingBuffAddr[NUM_STORES][ST_PENDING_BUFF_SIZE];
+    T StorePendingBuffVal[NUM_STORES][ST_PENDING_BUFF_SIZE];
     // The latest store sent to the HLS memory controller. Note that this is not 
     // the actual ACK received from the memory system (no access to thaty in HLS).
     addr_t AckStoreAddr[NUM_STORES];
@@ -248,8 +255,8 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       NextStoreValueIsValid[iSt] = T{};
       StoreValuePipeReadValid[iSt] = false;
 
-      InitBundle(StoreButrstBuffAddr[iSt], STORE_ADDR_SENTINEL);
-      InitBundle(StoreBurstBuffVal[iSt], T{});
+      InitBundle(StorePendingBuffAddr[iSt], STORE_ADDR_SENTINEL);
+      InitBundle(StorePendingBuffVal[iSt], T{});
 
       AckStoreAddr[iSt] = INIT_ACK_ADDR;
       InitBundle(AckStoreSched[iSt], INIT_ACK_SCHED);
@@ -263,11 +270,11 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
 
     /* Load logic registers */
     // Internal queue of load requests (purely for improved fmax).
-    bool LoadValid[NUM_LOADS][LD_Q_SIZE];
-    addr_t LoadAddr[NUM_LOADS][LD_Q_SIZE];
-    sched_t LoadSched[NUM_LOADS][LOOP_DEPTH][LD_Q_SIZE];
-    bool LoadPosDepDist[NUM_LOADS][NUM_STORES][LD_Q_SIZE];
-    bool LoadIsLastIter[NUM_LOADS][LOOP_DEPTH][LD_Q_SIZE];
+    bool LoadValid[NUM_LOADS][LD_REQ_Q_SIZE];
+    addr_t LoadAddr[NUM_LOADS][LD_REQ_Q_SIZE];
+    sched_t LoadSched[NUM_LOADS][LOOP_DEPTH][LD_REQ_Q_SIZE];
+    bool LoadPosDepDist[NUM_LOADS][NUM_STORES][LD_REQ_Q_SIZE];
+    bool LoadIsLastIter[NUM_LOADS][LOOP_DEPTH][LD_REQ_Q_SIZE];
     // Alias to load queue head.
     addr_t NextLoadAddr[NUM_LOADS];
     sched_t NextLoadSched[NUM_LOADS][LOOP_DEPTH];
@@ -312,7 +319,8 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
 
     ///////////////////////////////////////////////////////////////////////////
     // Disambiguation logic. RAW, WAR, WAW hazard checks implemented as lamdas.
-    // The dependency info is supplied by the compiler. 
+    // The dependency info is supplied by the compiler. DependencyTable.hpp has 
+    // a few examples.
     ///////////////////////////////////////////////////////////////////////////
     static constexpr auto DI = DepInfo<MEM_ID>{};
     // k - common loop depth
@@ -528,18 +536,18 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         /** End Rule */
 
         /** Rule for reading new load allocation: {addr, tag} pairs. */
-        if (!LoadValid[iLd][LD_Q_SIZE - 1]) {
+        if (!LoadValid[iLd][LD_REQ_Q_SIZE - 1]) {
           bool succ = false;
           const auto LoadReq = LoadReqPipes::template PipeAt<iLd>::read(succ);
           if (succ) {
-            LoadValid[iLd][LD_Q_SIZE - 1] = true;
-            LoadAddr[iLd][LD_Q_SIZE - 1] = LoadReq.addr;
+            LoadValid[iLd][LD_REQ_Q_SIZE - 1] = true;
+            LoadAddr[iLd][LD_REQ_Q_SIZE - 1] = LoadReq.addr;
             UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-              LoadSched[iLd][iD][LD_Q_SIZE - 1] = LoadReq.sched[iD];
-              LoadIsLastIter[iLd][iD][LD_Q_SIZE - 1] = LoadReq.isLastIter[iD];
+              LoadSched[iLd][iD][LD_REQ_Q_SIZE - 1] = LoadReq.sched[iD];
+              LoadIsLastIter[iLd][iD][LD_REQ_Q_SIZE - 1] = LoadReq.isLastIter[iD];
             });
             UnrolledLoop<NUM_STORES>([&](auto iSt) {
-              LoadPosDepDist[iLd][iSt][LD_Q_SIZE - 1] = LoadReq.posDepDist[iSt];
+              LoadPosDepDist[iLd][iSt][LD_REQ_Q_SIZE - 1] = LoadReq.posDepDist[iSt];
             });
           }
         }
@@ -559,11 +567,11 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
             ThisReuse[iSt] = false;
             ThisReuseVal[iSt] = T{};
             #pragma unroll
-            for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
+            for (int i = 0; i < ST_PENDING_BUFF_SIZE; ++i) {
               // On multiple matches this will choose the one with highest tag.
-              if (NextLoadAddr[iLd] == StoreButrstBuffAddr[iSt][i]) {
+              if (NextLoadAddr[iLd] == StorePendingBuffAddr[iSt][i]) {
                 ThisReuse[iSt] = true;
-                ThisReuseVal[iSt] = StoreBurstBuffVal[iSt][i];
+                ThisReuseVal[iSt] = StorePendingBuffVal[iSt][i];
               }
             }
           });
@@ -596,17 +604,6 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
             if (succ) {
               LastSentLoadSched[iLd] = NextLoadSched[iLd][DI.LOAD_LOOP_DEPTH[iLd]];
               LoadValid[iLd][0] = false;
-
-              // if (MEM_ID == 100 && iLd == 1) {
-              //   PRINTF("%d LOAD%d %d, (%d, %d, %d) ackST0: %d (%d/%d, %d/%d, %d/%d) reuseId=%d with val=%.3f\n\n", 
-              //         cycle, int(iLd), NextLoadAddr[iLd], NextLoadSched[iLd][0], NextLoadSched[iLd][1], NextLoadSched[iLd][2],
-              //         AckStoreAddr[0], AckStoreSched[0][0], AckStoreIsLastIter[0][0], AckStoreSched[0][1], AckStoreIsLastIter[0][1], AckStoreSched[0][2], AckStoreIsLastIter[0][2],
-              //         // AckStoreAddr[1], AckStoreSched[1][0], AckStoreIsLastIter[1][0], AckStoreSched[1][1], AckStoreIsLastIter[1][1], AckStoreSched[1][2], AckStoreIsLastIter[1][2],
-              //         // ThisSafe[0], ThisSafe[1], 
-              //         reuse_id, ReuseVal
-              //         );
-              // }
-
             }
           }
         }
@@ -656,13 +653,13 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         /** End Rule */
 
         /** Rule for reading store req. */
-        if (!StoreValid[iSt][ST_ALLOC_Q_SIZE - 1]) {
+        if (!StoreValid[iSt][ST_REQ_Q_SIZE - 1]) {
           auto StoreReq = StoreReqPipes::template PipeAt<iSt, 1>::read(
-              StoreValid[iSt][ST_ALLOC_Q_SIZE - 1]);
-          StoreAddr[iSt][ST_ALLOC_Q_SIZE - 1] = StoreReq.addr;
+              StoreValid[iSt][ST_REQ_Q_SIZE - 1]);
+          StoreAddr[iSt][ST_REQ_Q_SIZE - 1] = StoreReq.addr;
           UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-            StoreSched[iSt][iD][ST_ALLOC_Q_SIZE - 1] = StoreReq.sched[iD];
-            StoreIsLastIter[iSt][iD][ST_ALLOC_Q_SIZE - 1] = StoreReq.isLastIter[iD];
+            StoreSched[iSt][iD][ST_REQ_Q_SIZE - 1] = StoreReq.sched[iD];
+            StoreIsLastIter[iSt][iD][ST_REQ_Q_SIZE - 1] = StoreReq.isLastIter[iD];
           });
         }
         /** End Rule */
@@ -699,29 +696,19 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
               {NextStoreValue[iSt], NextStoreValueIsValid[iSt]}, succ);
 
           if (succ) {
-            // if (MEM_ID == 4 && iSt == 1 && NextStoreSched[iSt][0] > 1) {
-            //  PRINTF("@%d STORE%d %d, %.3f (%d/%d, %d/%d, %d/%d)\nackST0: %d (%d/%d, %d/%d, %d/%d)  ackST1: %d (%d/%d, %d/%d, %d/%d)\n\n", 
-            //           cycle, int(iSt), NextStoreAddr[iSt], NextStoreValue[iSt], 
-            //           NextStoreSched[iSt][0], NextStoreIsLastIter[iSt][0], NextStoreSched[iSt][1], NextStoreIsLastIter[iSt][1], NextStoreSched[iSt][2], NextStoreIsLastIter[iSt][2],
-            //           AckStoreAddr[0], AckStoreSched[0][0], AckStoreIsLastIter[0][0], AckStoreSched[0][1], AckStoreIsLastIter[0][1], AckStoreSched[0][2], AckStoreIsLastIter[0][2],
-            //           AckStoreAddr[1], AckStoreSched[1][0], AckStoreIsLastIter[1][0], AckStoreSched[1][1], AckStoreIsLastIter[1][1], AckStoreSched[1][2], AckStoreIsLastIter[1][2]
-            //           ); 
-            // }
-
-            // Don't move invalid store to reuse buffer.
             if (NextStoreValueIsValid[iSt]) {
-              ShiftBundle(StoreBurstBuffVal[iSt], NextStoreValue[iSt]);
-              ShiftBundle(StoreButrstBuffAddr[iSt], NextStoreAddr[iSt]);
+              ShiftBundle(StorePendingBuffVal[iSt], NextStoreValue[iSt]);
+              ShiftBundle(StorePendingBuffAddr[iSt], NextStoreAddr[iSt]);
             }
 
-            // Check if this store overrides another store in its burst buffer.
+            // Check if this store overrides another store in its pending buffer.
             UnrolledLoop<NUM_STORES>([&](auto iStOther) {
               if constexpr (iStOther != iSt) {
                 #pragma unroll
-                for (int i = 0; i < ST_COMMIT_Q_SIZE; ++i) {
-                  if (NextStoreAddr[iSt] == StoreButrstBuffAddr[iStOther][i]) {
+                for (int i = 0; i < ST_PENDING_BUFF_SIZE; ++i) {
+                  if (NextStoreAddr[iSt] == StorePendingBuffAddr[iStOther][i]) {
                     // Invalid address, i.e. a load will never requiest this.
-                    StoreButrstBuffAddr[iStOther][i] = STORE_ADDR_SENTINEL;
+                    StorePendingBuffAddr[iStOther][i] = STORE_ADDR_SENTINEL;
                   }
                 }
               }
@@ -738,9 +725,8 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
 
     } // end while
 
-    // PRINTF("** DONE DataUnitDRAM %d\n", MEM_ID);
-
   });
+  events.push_back(du_event);
 
   return events;
 }

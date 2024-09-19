@@ -34,7 +34,9 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const uint NI,
   std::vector zeroVec(h_D.size(), 0);
   int* tmp = fpga_tools::toDevice(zeroVec, q);
 
-  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+  std::vector<sycl::event> events;
+
+  auto main_event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (uint i = 0; i < NI; i++) {
       for (uint j = 0; j < NJ; j++) {
         int x = tmp[i * NI + j];
@@ -56,7 +58,9 @@ double kernel_2mm(queue &q, const int alpha, const int beta, const uint NI,
     }
   });
 
-  event.wait();
+  
+  events.push_back(main_event);
+  sycl::event::wait(events);
   
   q.copy(D, h_D.data(), h_D.size()).wait();
 

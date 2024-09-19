@@ -31,7 +31,9 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
   const int *col_idx = fpga_tools::toDevice(h_col_idx, q);
   const float *val = fpga_tools::toDevice(h_val, q);
 
-  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+  std::vector<sycl::event> events;
+
+  auto main_event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (uint iter = 0; iter < maxIters; ++iter) {
 
       // Initialize p_new as a vector of n 0.0 cells
@@ -63,7 +65,9 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
     }
   });
 
-  event.wait();
+  
+  events.push_back(main_event);
+  sycl::event::wait(events);
   q.copy(p, h_p.data(), h_p.size()).wait();
 
   sycl::free((void*) row_ptr, q);
@@ -72,11 +76,15 @@ double page_rank_kernel(queue &q, const std::vector<int> &h_row_ptr,
   sycl::free(p, q);
   sycl::free(p_new, q);
 
-  auto start = event.get_profiling_info<info::event_profiling::command_start>();
-  auto end = event.get_profiling_info<info::event_profiling::command_end>();
-  double time_in_ms = static_cast<double>(end - start) / 1000000;
+  double max_event_time = 0;
+  for (auto &e : events) {
+    auto start = e.get_profiling_info<info::event_profiling::command_start>();
+    auto end = e.get_profiling_info<info::event_profiling::command_end>();
+    double this_event_time = static_cast<double>(end - start) / 1000000;
+    max_event_time = std::max(max_event_time, this_event_time);
+  }
 
-  return time_in_ms;
+  return max_event_time;
 }
 
 void page_rank_cpu(const std::vector<int> &row_ptr,

@@ -36,7 +36,9 @@ double kernel_3mm(queue &q, const int alpha, const int beta, const int NI,
   int *F = fpga_tools::toDevice(h_F, q);
   int *G = fpga_tools::toDevice(h_G, q);
 
-  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+  std::vector<sycl::event> events;
+
+  auto main_event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (unsigned i = 0; i < NI; i++) {
       for (unsigned j = 0; j < NJ; j++) {
         for (unsigned k = 0; k < NK; ++k)
@@ -59,15 +61,21 @@ double kernel_3mm(queue &q, const int alpha, const int beta, const int NI,
     }
   });
 
-  event.wait();
+  
+  events.push_back(main_event);
+  sycl::event::wait(events);
   
   q.copy(G, h_G.data(), h_G.size()).wait();
 
-  auto start = event.get_profiling_info<info::event_profiling::command_start>();
-  auto end = event.get_profiling_info<info::event_profiling::command_end>();
-  double time_in_ms = static_cast<double>(end - start) / 1000000;
+  double max_event_time = 0;
+  for (auto &e : events) {
+    auto start = e.get_profiling_info<info::event_profiling::command_start>();
+    auto end = e.get_profiling_info<info::event_profiling::command_end>();
+    double this_event_time = static_cast<double>(end - start) / 1000000;
+    max_event_time = std::max(max_event_time, this_event_time);
+  }
 
-  return time_in_ms;
+  return max_event_time;
 }
 
 void kernel_3mm_cpu(const int alpha, const int beta, const int NI, const int NJ,

@@ -33,7 +33,9 @@ double test_kernel_raw(queue &q, std::vector<int> &h_D, std::vector<int> &h_D2,
   int *D = fpga_tools::toDevice(h_D, q);
   int *D2 = fpga_tools::toDevice(h_D2, q);
 
-  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+  std::vector<sycl::event> events;
+
+  auto main_event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (uint iters = 0; iters < NUM_ITERS; iters++) {
       for (uint i = 0; i < N; i++) {
         D[idx[i]] = (iters * N) + i;
@@ -48,16 +50,22 @@ double test_kernel_raw(queue &q, std::vector<int> &h_D, std::vector<int> &h_D2,
     }
   });
 
-  event.wait();
+  
+  events.push_back(main_event);
+  sycl::event::wait(events);
   
   q.copy(D, h_D.data(), h_D.size()).wait();
   q.copy(D2, h_D2.data(), h_D2.size()).wait();
 
-  auto start = event.get_profiling_info<info::event_profiling::command_start>();
-  auto end = event.get_profiling_info<info::event_profiling::command_end>();
-  double time_in_ms = static_cast<double>(end - start) / 1000000;
+  double max_event_time = 0;
+  for (auto &e : events) {
+    auto start = e.get_profiling_info<info::event_profiling::command_start>();
+    auto end = e.get_profiling_info<info::event_profiling::command_end>();
+    double this_event_time = static_cast<double>(end - start) / 1000000;
+    max_event_time = std::max(max_event_time, this_event_time);
+  }
 
-  return time_in_ms;
+  return max_event_time;
 }
 
 void test_kernel_cpu(std::vector<int> &D, std::vector<int> &D2,

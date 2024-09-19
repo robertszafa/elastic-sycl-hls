@@ -28,7 +28,9 @@ double bnn_kernel(queue &q, const std::vector<int> &h_addr_in,
   int* in = fpga_tools::toDevice(h_in, q);
   int* mean = fpga_tools::toDevice(h_mean, q);
 
-  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+  std::vector<sycl::event> events;
+
+  auto main_event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     int alpha = 2;
 
     for (int i = 0; i < N; i++) {
@@ -52,7 +54,9 @@ double bnn_kernel(queue &q, const std::vector<int> &h_addr_in,
 
   });
 
-  event.wait();
+  
+  events.push_back(main_event);
+  sycl::event::wait(events);
   q.copy(data, h_data.data(), h_data.size()).wait();
 
   sycl::free(addr_in, q);
@@ -62,11 +66,15 @@ double bnn_kernel(queue &q, const std::vector<int> &h_addr_in,
   sycl::free(in, q);
   sycl::free(mean, q);
 
-  auto start = event.get_profiling_info<info::event_profiling::command_start>();
-  auto end = event.get_profiling_info<info::event_profiling::command_end>();
-  double time_in_ms = static_cast<double>(end - start) / 1000000;
+  double max_event_time = 0;
+  for (auto &e : events) {
+    auto start = e.get_profiling_info<info::event_profiling::command_start>();
+    auto end = e.get_profiling_info<info::event_profiling::command_end>();
+    double this_event_time = static_cast<double>(end - start) / 1000000;
+    max_event_time = std::max(max_event_time, this_event_time);
+  }
 
-  return time_in_ms;
+  return max_event_time;
 }
 
 void bnn_cpu(const std::vector<int> &addr_in, const std::vector<int> &addr_out,
@@ -83,12 +91,11 @@ void bnn_cpu(const std::vector<int> &addr_in, const std::vector<int> &addr_out,
     }
 
     if (i == (N - 1)) {
-      int temp, m, k, y, z;
-
       for (int k = 0; k < N; k++) {
         int y = i * N + k;
         int m = mean[y];
         int temp = data[addr_out[y]];
+        int z;
         if (temp > 0)
           z = temp - m;
         else

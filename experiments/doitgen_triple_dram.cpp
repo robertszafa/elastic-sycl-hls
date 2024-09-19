@@ -25,7 +25,9 @@ double doitgen_triple_kernel(queue &q, std::vector<float> &h_A,
 
   const int N = h_A.size();
 
-  auto event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
+  std::vector<sycl::event> events;
+
+  auto main_event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (int i = 0; i < N; i++) {
       float s = 0;
       for (int j = i; j < N; j++) {
@@ -44,7 +46,9 @@ double doitgen_triple_kernel(queue &q, std::vector<float> &h_A,
     }
   });
 
-  event.wait();
+    
+  events.push_back(main_event);
+  sycl::event::wait(events);
   q.copy(sum, h_sum.data(), h_sum.size()).wait();
 
   sycl::free((void *)A, q);

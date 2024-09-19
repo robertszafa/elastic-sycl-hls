@@ -15,6 +15,7 @@ BENCHMARKS = [
 
     "fft_conv_dram",
     "gsum_sort_dram",
+    "scale_fw_dram",
 
     "gemver_dram",
     "correlation_dram",
@@ -36,12 +37,12 @@ if __name__ == '__main__':
     for kernel in BENCHMARKS:
         os.system(f'echo "--------------------- {kernel} ---------------------"')
         
-        os.system('echo "Static"')
+        os.system('printf "\n============== Static =============\n"')
         os.system(f'cd {GIT_DIR}/experiments && make fpga_{TARGET} FILE={kernel}.cpp')
 
-        os.system('echo "LSQ"')
+        os.system('printf "\n============== LSQ =============\n"')
         os.system(f'cp {GIT_DIR}/experiments/{kernel}.cpp {GIT_DIR}/experiments/{kernel}_lsq.cpp')
         os.system(f'NO_PE_DECOUPLING=1 {GIT_DIR}/elastic_pass.sh {TARGET} {GIT_DIR}/experiments/{kernel}_lsq.cpp')
 
-        os.system('echo "Fusion"')
+        os.system('printf "\n============== Fusion =============\n"')
         os.system(f'{GIT_DIR}/elastic_pass.sh {TARGET} {GIT_DIR}/experiments/{kernel}.cpp -f')

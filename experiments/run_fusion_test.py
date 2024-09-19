@@ -36,6 +36,10 @@ BENCHMARKS_AND_ARGS = {
         ["32"],     # sim
         # ["1024"],   # hw
     ],
+    "scale_fw_dram": [
+        ["10"],     # sim
+        # ["128"],   # hw
+    ],
 
     "gemver_dram": [
         ["10"],     # sim
@@ -82,17 +86,17 @@ if __name__ == '__main__':
         BIN_LSQ = f'{GIT_DIR}/experiments/bin/{kernel}_lsq.elastic.fpga_{TARGET}'
         BIN_FUSION = f'{GIT_DIR}/experiments/bin/{kernel}.elastic.fpga_{TARGET}'
 
-        os.system('echo "Static"')
+        os.system('printf "\n============== STATIC =============\n"')
         for test_vector in test_vectors:
             args_str = " ".join(test_vector)
             os.system(f'{run_prefix} {BIN_STATIC} {args_str}')
         
-        os.system('echo "LSQ"')
+        os.system('printf "\n============== LSQ =============\n"')
         for test_vector in test_vectors:
             args_str = " ".join(test_vector)
             os.system(f'{run_prefix} {BIN_LSQ} {args_str}')
 
-        os.system('echo "Fusion"')
+        os.system('printf "\n============== FUSION =============\n"')
         for test_vector in test_vectors:
             args_str = " ".join(test_vector)
             os.system(f'{run_prefix} {BIN_FUSION} {args_str}')

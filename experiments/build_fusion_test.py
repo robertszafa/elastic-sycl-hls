@@ -5,10 +5,8 @@ import sys
 
 GIT_DIR = os.environ["ELASTIC_SYCL_HLS_DIR"]
 BENCHMARKS = [
-    # Synthetic
-    "test_fusion_raw",
-    "test_fusion_war",
-    "test_fusion_waw",
+    "gemver_dram",
+    "correlation_dram",
 
     "page_rank_dram",
     "bnn_dram",
@@ -17,8 +15,9 @@ BENCHMARKS = [
     "gsum_sort_dram",
     "scale_fw_dram",
 
-    "gemver_dram",
-    "correlation_dram",
+    "raw_loop",
+    "war_loop",
+    "waw_loop",
 
     # To regular to get a benefit, existing approaches are better than dynamic fusion:
     # "gemm_dram",
@@ -26,6 +25,11 @@ BENCHMARKS = [
     # "kernel_3mm_dram",
     # "doitgen_triple_dram",
     # "lud_dram",
+
+    # simple RAW/WAW/WAR loops but enclosed in more outer loops.
+    # "test_fusion_raw",
+    # "test_fusion_war",
+    # "test_fusion_waw",
 ]
 
 

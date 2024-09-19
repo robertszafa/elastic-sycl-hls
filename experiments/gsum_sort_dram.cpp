@@ -23,7 +23,7 @@ double gsum_sort_kernel(queue &q, std::vector<int> &h_A, std::vector<int> &h_x,
   int *x = fpga_tools::toDevice(h_x, q);
   int *y = fpga_tools::toDevice(h_y, q);
 
-  std::vector<sycl::event> events;
+  std::vector<std::pair<sycl::event, bool>> events; // {event, measureTimeBool} pairs
 
   auto main_event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
 
@@ -67,19 +67,21 @@ double gsum_sort_kernel(queue &q, std::vector<int> &h_A, std::vector<int> &h_x,
   });
 
   
-  events.push_back(main_event);
-  sycl::event::wait(events);
+  events.push_back({main_event, true});
+  for (auto &kv : events) kv.first.wait();
   
   q.copy(A, h_A.data(), h_A.size()).wait();
 
   sycl::free(A, q);
 
   double max_event_time = 0;
-  for (auto &e : events) {
-    auto start = e.get_profiling_info<info::event_profiling::command_start>();
-    auto end = e.get_profiling_info<info::event_profiling::command_end>();
-    double this_event_time = static_cast<double>(end - start) / 1000000;
-    max_event_time = std::max(max_event_time, this_event_time);
+  for (auto &[e, toMeasure] : events) {
+    if (toMeasure) {
+      auto start = e.get_profiling_info<info::event_profiling::command_start>();
+      auto end = e.get_profiling_info<info::event_profiling::command_end>();
+      double this_event_time = static_cast<double>(end - start) / 1000000;
+      max_event_time = std::max(max_event_time, this_event_time);
+    }
   }
 
   return max_event_time;

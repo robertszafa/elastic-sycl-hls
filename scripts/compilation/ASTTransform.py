@@ -26,12 +26,14 @@ def get_src(fname):
         print(e)
         exit("ERROR reading " + fname)
 
-def gen_kernel_copy(q_name, kernel_body, kernel_copy_name, events_vec):
+def gen_kernel_copy(q_name, kernel_body, kernel_copy_name, events_vec, measureTime=False):
     kernel_body_str = "\n".join(kernel_body)
+    measure_time_bool_str = "true" if measureTime else "false"
+    event_measurebool_pair = "{" + f"event_{kernel_copy_name}, {measure_time_bool_str}" + "}"
     return f'''auto event_{kernel_copy_name} = {q_name}.single_task<{kernel_copy_name}>([=]() [[intel::kernel_args_restrict]] {{
                 {kernel_body_str}
             }});
-            {events_vec}.push_back(event_{kernel_copy_name});\n'''.splitlines()
+            {events_vec}.push_back({event_measurebool_pair});\n'''.splitlines()
 
 def insert_before_line(src_lines, line_num, new_lines):
     # Remember lines start at 1; python lists start at 0
@@ -57,7 +59,9 @@ def get_queue_name(line):
 
 def get_event_vector_name(lines):
     for line in lines:
-        vector_types = ["std::vector<sycl::event>", "std::vector<event>"]
+        vector_types = ["std::vector<sycl::event>", "std::vector<event>",
+                        "std::vector<std::pair<sycl::event, bool>>", 
+                        "std::vector<std::pair<event, bool>>"]
         for vec_t in vector_types:
             if vec_t in line:
                 rest_of_line = line.split(vec_t)[1]
@@ -143,7 +147,7 @@ def gen_lsq_kernel_calls(report, q_name, events_vec):
                                     pipes_st_req_{i_lsq}, pipes_st_val_{i_lsq}, pipe_end_lsq_signal_{i_lsq}, {int(lsq_info['isAnySpeculation'])},
                                     {lsq_info['arraySize']}, {lsq_info['numLoadPipes']}, {lsq_info['numStoreReqPipes']}, {lsq_info['numStoreValPipes']},
                                     {LD_Q_SIZE}, {lsq_info['allocationQueueSize']}>({q_name});
-            {events_vec}.push_back(lsqEvent_{i_lsq});
+            {events_vec}.push_back({{lsqEvent_{i_lsq}, false}});
             ''')
         else:
             lsq_kernel_calls.append(f'''
@@ -151,7 +155,7 @@ def gen_lsq_kernel_calls(report, q_name, events_vec):
                 LoadStoreQueueDRAM<{llvm2ctype(lsq_info['arrayType'])}, pipes_ld_req_{i_lsq}, pipes_ld_val_{i_lsq}, 
                                     pipes_st_req_{i_lsq}, pipes_st_val_{i_lsq}, pipe_end_lsq_signal_{i_lsq}, {int(lsq_info['isAnySpeculation'])},
                                     {lsq_info['numLoadPipes']}, {lsq_info['numStoreReqPipes']}, {lsq_info['numStoreValPipes']}, {LD_Q_SIZE}, {lsq_info['allocationQueueSize']}>({q_name});
-            {events_vec}.push_back(lsqEvent_{i_lsq});
+            {events_vec}.push_back({{lsqEvent_{i_lsq}, false}});
             ''')
     
     return lsq_kernel_calls
@@ -247,7 +251,7 @@ def do_elastic_transform_ast(src_lines, report):
 
         pe_kernel_forward_decl.append(f"class {pe_name.split(' ')[-1]};")
         # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
-        pe_kernel = gen_kernel_copy(Q_NAME, kernel_body, pe_name.split(' ')[-1], EVENT_VEC_NAME)
+        pe_kernel = gen_kernel_copy(Q_NAME, kernel_body, pe_name.split(' ')[-1], EVENT_VEC_NAME, measureTime=True)
         pe_pipe_ops = gen_pipe_ops(report, pe_name)
         pe_kernel_str = "\n".join(insert_after_line(pe_kernel, 1, pe_pipe_ops))
         pe_kernels.append(pe_kernel_str)
@@ -270,7 +274,7 @@ def do_elastic_transform_ast(src_lines, report):
     for agu_name, agu_pipes in agus_to_pipe_ops.items():
         agu_kernel_forward_decl.append(f"class {agu_name.split(' ')[-1]};")
         # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
-        agu_kernel = gen_kernel_copy(Q_NAME, kernel_body, agu_name.split(' ')[-1], EVENT_VEC_NAME)
+        agu_kernel = gen_kernel_copy(Q_NAME, kernel_body, agu_name.split(' ')[-1], EVENT_VEC_NAME, measureTime=False)
         agu_kernel_str = "\n".join(insert_after_line(agu_kernel, 1, agu_pipes))
         agu_kernels.append(agu_kernel_str)
 
@@ -324,7 +328,8 @@ def do_dynamic_fusion_transform_ast(src_lines, report):
 
         new_kernels_forward_decl.append(f"class {name.split(' ')[-1]};")
         # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
-        pe_kernel = gen_kernel_copy(Q_NAME, kernel_body, name.split(' ')[-1], EVENT_VEC_NAME)
+        is_cu = kernel_info["type"] == "compute"
+        pe_kernel = gen_kernel_copy(Q_NAME, kernel_body, name.split(' ')[-1], EVENT_VEC_NAME, measureTime=is_cu)
         pe_pipe_calls = kernel_info["pipeCalls"].splitlines()
         pe_kernel_str = "\n".join(insert_after_line(pe_kernel, 1, pe_pipe_calls))
         new_kernels.append(pe_kernel_str)
@@ -333,7 +338,8 @@ def do_dynamic_fusion_transform_ast(src_lines, report):
     kernel_start_line += len(new_kernels)
     kernel_end_line += len(new_kernels)
 
-    # Insert call to LSQ kernels right before the original kernel call.
+    # Insert call to DU kernels right before the original kernel call.
+    # Do not measure DU event times.
     ip_calls = []
     mem_dep_structs = []
     for mem in report["memoryToProtect"]:
@@ -341,7 +347,7 @@ def do_dynamic_fusion_transform_ast(src_lines, report):
         print(f"Info: Added our protected Data Unit IP (id={mem['id']}), {num_loads} loads, {num_stores} stores")
         ip_calls.append(f'''
             auto memEvents_{mem["id"]} = DataUnitDRAM<{mem["id"]}, LoadReqPipes_{mem["id"]}, LoadValPipes_{mem["id"]}, StoreReqPipes_{mem["id"]}, StoreValPipes_{mem["id"]}>({Q_NAME});
-            for (auto &e : memEvents_{mem["id"]}) {EVENT_VEC_NAME}.push_back(e);
+            for (auto &e : memEvents_{mem["id"]}) {EVENT_VEC_NAME}.push_back({{e, false}});
         ''')
         mem_dep_structs.append(mem["structDef"])
 

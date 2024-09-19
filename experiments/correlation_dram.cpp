@@ -29,7 +29,7 @@ double correlation_kernel(queue &q, const int M, const int N,
   auto *mean = fpga_tools::toDevice(meanHost, q);
   auto *stddev = fpga_tools::toDevice(stddevHost, q);
 
-  std::vector<sycl::event> events;
+  std::vector<std::pair<sycl::event, bool>> events; // {event, measureTimeBool} pairs
 
   auto main_event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     const float eps = 0.1f;
@@ -82,8 +82,8 @@ double correlation_kernel(queue &q, const int M, const int N,
   });
 
   
-  events.push_back(main_event);
-  sycl::event::wait(events);
+  events.push_back({main_event, true});
+  for (auto &kv : events) kv.first.wait();
 
   q.copy(corr, corrHost.data(), corrHost.size()).wait();
   q.copy(data, dataHost.data(), dataHost.size()).wait();
@@ -91,11 +91,13 @@ double correlation_kernel(queue &q, const int M, const int N,
   q.copy(stddev, stddevHost.data(), stddevHost.size()).wait();
 
   double max_event_time = 0;
-  for (auto &e : events) {
-    auto start = e.get_profiling_info<info::event_profiling::command_start>();
-    auto end = e.get_profiling_info<info::event_profiling::command_end>();
-    double this_event_time = static_cast<double>(end - start) / 1000000;
-    max_event_time = std::max(max_event_time, this_event_time);
+  for (auto &[e, toMeasure] : events) {
+    if (toMeasure) {
+      auto start = e.get_profiling_info<info::event_profiling::command_start>();
+      auto end = e.get_profiling_info<info::event_profiling::command_end>();
+      double this_event_time = static_cast<double>(end - start) / 1000000;
+      max_event_time = std::max(max_event_time, this_event_time);
+    }
   }
 
   return max_event_time;

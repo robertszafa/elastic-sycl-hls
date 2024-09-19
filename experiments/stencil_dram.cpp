@@ -26,7 +26,7 @@ double stencil_kernel(queue &q, std::vector<float> &h_A,
   auto *A = fpga_tools::toDevice(h_A, q);
   auto *B = fpga_tools::toDevice(h_B, q);
 
-  std::vector<sycl::event> events;
+  std::vector<std::pair<sycl::event, bool>> events; // {event, measureTimeBool} pairs
 
   auto main_event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     for (uint t = 0; t < timeSteps; t++) {
@@ -43,19 +43,25 @@ double stencil_kernel(queue &q, std::vector<float> &h_A,
   });
 
   
-  events.push_back(main_event);
-  sycl::event::wait(events);
+  events.push_back({main_event, true});
+  for (auto &kv : events) kv.first.wait();
   q.copy(A, h_A.data(), h_A.size()).wait();
   q.copy(B, h_B.data(), h_B.size()).wait();
 
   sycl::free(A, q);
   sycl::free(B, q);
 
-  auto start = event.get_profiling_info<info::event_profiling::command_start>();
-  auto end = event.get_profiling_info<info::event_profiling::command_end>();
-  double time_in_ms = static_cast<double>(end - start) / 1000000;
+  double max_event_time = 0;
+  for (auto &[e, toMeasure] : events) {
+    if (toMeasure) {
+      auto start = e.get_profiling_info<info::event_profiling::command_start>();
+      auto end = e.get_profiling_info<info::event_profiling::command_end>();
+      double this_event_time = static_cast<double>(end - start) / 1000000;
+      max_event_time = std::max(max_event_time, this_event_time);
+    }
+  }
 
-  return time_in_ms;
+  return max_event_time;
 }
 
 void stencil_cpu(std::vector<float> &A, std::vector<float> &B,

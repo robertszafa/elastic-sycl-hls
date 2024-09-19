@@ -89,7 +89,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
   constexpr uint NUM_LOADS = DepInfo<MEM_ID>{}.NUM_LOADS;
   constexpr uint NUM_STORES = DepInfo<MEM_ID>{}.NUM_STORES;
   constexpr uint LOOP_DEPTH = DepInfo<MEM_ID>{}.MAX_LOOP_DEPTH; 
-  std::vector<event> events;
+  std::vector<event> events(NUM_STORES);
 
   // Sizes of internal buffers.
   constexpr uint DRAM_BURST_BYTES = 64; /// 512-bit DRAM interface
@@ -107,7 +107,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
   using StoreAckPipes = PipeArray<class _StoreAckPipe, ack_t<LOOP_DEPTH>, 2, NUM_STORES>;
   UnrolledLoop<NUM_STORES>([&](auto iSt) {
     constexpr int StPortId = 100*(MEM_ID+1) + iSt;
-    auto st_event = q.single_task<StorePortKernel<StPortId>>([=]() KERNEL_PRAGMAS {
+    events[iSt] = q.single_task<StorePortKernel<StPortId>>([=]() KERNEL_PRAGMAS {
       ack_t<LOOP_DEPTH> NextAck {INIT_ACK_ADDR};
       InitBundle(NextAck.sched, INIT_ACK_SCHED);
       InitBundle(NextAck.isLastIter, true);
@@ -150,7 +150,6 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
       StoreAckPipes::template PipeAt<iSt>::write(FinalAck);
       // PRINTF("STORE PORT %d done\n", int(iSt));
     });
-    events.push_back(st_event);
   });
 
   // Load ports.
@@ -726,7 +725,6 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
     } // end while
 
   });
-  events.push_back(du_event);
 
   return events;
 }

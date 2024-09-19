@@ -36,7 +36,7 @@ double fft_conv_kernel(queue &q, const std::vector<float> &h_h,
   auto *y1 = fpga_tools::toDevice(h_y1, q);
   auto *y2 = fpga_tools::toDevice(h_y2, q);
 
-  std::vector<sycl::event> events;
+  std::vector<std::pair<sycl::event, bool>> events; // {event, measureTimeBool} pairs
 
   auto main_event = q.single_task<MainKernel>([=]() [[intel::kernel_args_restrict]] {
     const float pi = -3.14159265358979323846;
@@ -99,8 +99,8 @@ double fft_conv_kernel(queue &q, const std::vector<float> &h_h,
   });
 
   
-  events.push_back(main_event);
-  sycl::event::wait(events);
+  events.push_back({main_event, true});
+  for (auto &kv : events) kv.first.wait();
   q.copy(y1, h_y1.data(), h_y1.size()).wait();
   q.copy(y2, h_y2.data(), h_y2.size()).wait();
 
@@ -111,11 +111,13 @@ double fft_conv_kernel(queue &q, const std::vector<float> &h_h,
   sycl::free(y2, q);
 
   double max_event_time = 0;
-  for (auto &e : events) {
-    auto start = e.get_profiling_info<info::event_profiling::command_start>();
-    auto end = e.get_profiling_info<info::event_profiling::command_end>();
-    double this_event_time = static_cast<double>(end - start) / 1000000;
-    max_event_time = max(max_event_time, this_event_time);
+  for (auto &[e, toMeasure] : events) {
+    if (toMeasure) {
+      auto start = e.get_profiling_info<info::event_profiling::command_start>();
+      auto end = e.get_profiling_info<info::event_profiling::command_end>();
+      double this_event_time = static_cast<double>(end - start) / 1000000;
+      max_event_time = max(max_event_time, this_event_time);
+    }
   }
 
   return max_event_time;

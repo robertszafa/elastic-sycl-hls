@@ -128,54 +128,43 @@ PHINode *getInductionVariable(Loop *L) {
 
 /// Create a bit value that will be set to true on the last loop iteration.  
 /// If the check is not possible to synthesize, return nullptr.
-Value *createIsLastIterCheck(Loop *L, Type *ResultType) {
-  // Create an advanced loop predicate value by executing the
-  // inductionPhi->inductionLatch chain once in the loop preheader.
-  auto LoopPreheader = L->getLoopPreheader();
-  auto LoopBranch = L->getHeader()->getTerminator();
-  auto LoopPredicateVal = LoopBranch->getOperand(0);
+Value *createIsLastIterCheck(Function *F, Loop *L, Type *ResultType) {
+  static MapVector<Function *, MapVector<Loop*, Value*>> Cache;
+  if (Cache.contains(F) && Cache[F].contains(L))
+    return Cache[F][L];
 
+  // Execute the induction function one iteration in advance and check if loop
+  // branch leading to loop body becomes false.
+  Value *Result = nullptr;
   if (auto InductionPhi = getInductionVariable(L)) {
-    auto InductionLatchVal =
-        InductionPhi->getIncomingValueForBlock(L->getLoopLatch());
-    auto InductionInit =
-        InductionPhi->getIncomingValueForBlock(LoopPreheader);
-
-    if (auto InductionLatch = dyn_cast<Instruction>(InductionLatchVal)) {
+    auto LoopLatch = L->getLoopLatch();
+    auto InductionLatchVal = InductionPhi->getIncomingValueForBlock(LoopLatch);
+    if (auto InductionLatchInstr = dyn_cast<Instruction>(InductionLatchVal)) {
+      auto LoopPredicateVal = L->getHeader()->getTerminator()->getOperand(0);
       if (auto LoopPredicate = dyn_cast<Instruction>(LoopPredicateVal)) {
-        auto AdvancedInductionInit = InductionLatch->clone();
-        AdvancedInductionInit->insertBefore(LoopPreheader->getTerminator());
-        AdvancedInductionInit->replaceUsesOfWith(InductionPhi, InductionInit);
+        // Execute induction function again at start of loop body.
+        auto NextInduction = InductionLatchInstr->clone();
+        NextInduction->insertAfter(getFirstBodyBlock(L)->getFirstNonPHI());
 
-        auto AdvancedInductionPhi = InductionPhi->clone();
-        AdvancedInductionPhi->insertAfter(InductionPhi);
-        AdvancedInductionPhi->replaceUsesOfWith(InductionInit, 
-                                                AdvancedInductionInit);
+        // Clone loop branch predicate instruction to start of loop, and change
+        // the old induction to our anced induction.
+        auto NextLoopPredicate = LoopPredicate->clone();
+        NextLoopPredicate->insertAfter(NextInduction);
+        NextLoopPredicate->replaceUsesOfWith(InductionPhi, NextInduction);
 
-        auto AdvancedInductionLatch = InductionLatch->clone();
-        AdvancedInductionLatch->insertAfter(InductionLatch);
-        AdvancedInductionInit->replaceUsesOfWith(InductionPhi, 
-                                                 AdvancedInductionPhi);
-        
-
-        auto AdvancedLoopPredicate = LoopPredicate->clone();
-        AdvancedLoopPredicate->insertAfter(LoopPredicate);
-        AdvancedLoopPredicate->replaceUsesOfWith(InductionPhi, 
-                                                 AdvancedInductionPhi);
-
-        // Now that we have a predicate that is true iff next iter executes.
-        // To get isLastIter, we need to negate it. 
-        IRBuilder<> Builder(LoopBranch);
-        auto IsLastIterCheck =
-            Builder.CreateNot(AdvancedLoopPredicate, "IsLastIter");
-        // Return result with the correct type.
-        return Builder.CreateCast(Instruction::CastOps::ZExt, IsLastIterCheck,
-                                  ResultType, "IsLastIter");
+        // isLastIter = !nextLoopPredicate
+        IRBuilder<> Builder(NextLoopPredicate->getNextNode());
+        auto IsLastIter = Builder.CreateNot(NextLoopPredicate, "IsLastIter");
+        // Use correct type.
+        Result = Builder.CreateCast(Instruction::CastOps::ZExt, IsLastIter,
+                                    ResultType, "IsLastIter");
       }
     }
   }
 
-  return nullptr;
+  // Will be nullptr if check not possible.
+  Cache[F][L] = Result;
+  return Result;
 }
 
 /// For each non-monotonic outer loop of a given memory request, generate a
@@ -188,9 +177,9 @@ void addIsLastIterInstructions(Function &F, MemoryRequest &Req) {
     auto L = Req.loopNest[iD];
     auto IsLastIterType = Req.isLastIterReqStore[iD]->getOperand(0)->getType();
 
-    if (auto IsLastIterCheck = createIsLastIterCheck(L, IsLastIterType)) {
+    if (auto IsLastIterCheck = createIsLastIterCheck(&F, L, IsLastIterType)) {
       auto IsLastIterStore = Req.isLastIterReqStore[iD]->clone();
-      IsLastIterStore->insertAfter(getFirstBodyBlock(L)->getFirstNonPHI());
+      IsLastIterStore->insertAfter(dyn_cast<Instruction>(IsLastIterCheck));
       IsLastIterStore->setOperand(0, IsLastIterCheck);
     } else {
       errs() << "INFO: isLastIterCheck cannot be synthesized for loop depth "
@@ -596,7 +585,9 @@ getSideEffectsToDelete(Function &F,
       continue;
 
     for (auto &I : BB) {
-      if (isaStore(&I) && !ToKeep.contains(&I)) {
+      bool isToKeep = ToKeep.contains(&I) || getPipeCall(&I);
+      bool isSideEffect = isaStore(&I) || isa<CallInst>(&I);
+      if (isSideEffect && !isToKeep) {
         ToDelete.push_back(&I);
       }
     }

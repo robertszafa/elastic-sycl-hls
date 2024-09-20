@@ -26,9 +26,9 @@ def get_src(fname):
         print(e)
         exit("ERROR reading " + fname)
 
-def gen_kernel_copy(q_name, kernel_body, kernel_copy_name, events_vec, measureTime=False):
+def gen_kernel_copy(q_name, kernel_body, kernel_copy_name, events_vec, measure_time=False):
     kernel_body_str = "\n".join(kernel_body)
-    measure_time_bool_str = "true" if measureTime else "false"
+    measure_time_bool_str = "true" if measure_time else "false"
     event_measurebool_pair = "{" + f"event_{kernel_copy_name}, {measure_time_bool_str}" + "}"
     return f'''auto event_{kernel_copy_name} = {q_name}.single_task<{kernel_copy_name}>([=]() [[intel::kernel_args_restrict]] {{
                 {kernel_body_str}
@@ -251,7 +251,7 @@ def do_elastic_transform_ast(src_lines, report):
 
         pe_kernel_forward_decl.append(f"class {pe_name.split(' ')[-1]};")
         # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
-        pe_kernel = gen_kernel_copy(Q_NAME, kernel_body, pe_name.split(' ')[-1], EVENT_VEC_NAME, measureTime=True)
+        pe_kernel = gen_kernel_copy(Q_NAME, kernel_body, pe_name.split(' ')[-1], EVENT_VEC_NAME, measure_time=True)
         pe_pipe_ops = gen_pipe_ops(report, pe_name)
         pe_kernel_str = "\n".join(insert_after_line(pe_kernel, 1, pe_pipe_ops))
         pe_kernels.append(pe_kernel_str)
@@ -274,7 +274,7 @@ def do_elastic_transform_ast(src_lines, report):
     for agu_name, agu_pipes in agus_to_pipe_ops.items():
         agu_kernel_forward_decl.append(f"class {agu_name.split(' ')[-1]};")
         # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
-        agu_kernel = gen_kernel_copy(Q_NAME, kernel_body, agu_name.split(' ')[-1], EVENT_VEC_NAME, measureTime=False)
+        agu_kernel = gen_kernel_copy(Q_NAME, kernel_body, agu_name.split(' ')[-1], EVENT_VEC_NAME, measure_time=False)
         agu_kernel_str = "\n".join(insert_after_line(agu_kernel, 1, agu_pipes))
         agu_kernels.append(agu_kernel_str)
 
@@ -329,7 +329,7 @@ def do_dynamic_fusion_transform_ast(src_lines, report):
         new_kernels_forward_decl.append(f"class {name.split(' ')[-1]};")
         # Use split to extract 'MainKernel' from 'typeinfo name for MainKernel'.
         is_cu = kernel_info["type"] == "compute"
-        pe_kernel = gen_kernel_copy(Q_NAME, kernel_body, name.split(' ')[-1], EVENT_VEC_NAME, measureTime=is_cu)
+        pe_kernel = gen_kernel_copy(Q_NAME, kernel_body, name.split(' ')[-1], EVENT_VEC_NAME, measure_time=is_cu)
         pe_pipe_calls = kernel_info["pipeCalls"].splitlines()
         pe_kernel_str = "\n".join(insert_after_line(pe_kernel, 1, pe_pipe_calls))
         new_kernels.append(pe_kernel_str)

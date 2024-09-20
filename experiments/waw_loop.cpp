@@ -25,8 +25,8 @@ double test_kernel_waw(queue &q, std::vector<int> &h_D, std::vector<int> &h_D2,
                        std::vector<int> &h_idx, std::vector<int> &h_idx2,
                        const int NUM_ITERS) {
 
-  const int N = h_D.size();
-  const int M = h_D.size();
+  const int N = h_idx.size();
+  const int M = h_idx2.size();
 
   int *idx = fpga_tools::toDevice(h_idx, q);
   int *idx2 = fpga_tools::toDevice(h_idx2, q);
@@ -70,8 +70,8 @@ double test_kernel_waw(queue &q, std::vector<int> &h_D, std::vector<int> &h_D2,
 void test_kernel_cpu(std::vector<int> &D, std::vector<int> &D2,
                      std::vector<int> &idx, std::vector<int> &idx2,
                      const int NUM_ITERS) {
-  const int N = D.size();
-  const int M = D2.size();
+  const int N = idx.size();
+  const int M = idx2.size();
 
   for (uint i = 0; i < N; i++) {
     D[idx[i]] = N + i;
@@ -85,12 +85,15 @@ void test_kernel_cpu(std::vector<int> &D, std::vector<int> &D2,
 
 int main(int argc, char *argv[]) {
   int N = 10;
-  int NUM_ITERS = 1;
+  int STEP_1 = 1;
+  int STEP_2 = 1;
   try {
     if (argc > 1)
       N = int(atoi(argv[1]));
     if (argc > 2)
-      NUM_ITERS = int(atoi(argv[2]));
+      STEP_1 = int(atoi(argv[2]));
+    if (argc > 3)
+      STEP_2 = int(atoi(argv[3]));
   } catch (exception const &e) {
     std::cout << "Incorrect argv.\nUsage:\n"
               << "  ./executable [ARRAY_SIZE] [PERCENTAGE (% of iterations "
@@ -118,19 +121,23 @@ int main(int argc, char *argv[]) {
     std::vector<int> D2(N, 4); 
     std::vector<int> D_cpu(N, 4); 
     std::vector<int> D2_cpu(N, 4); 
-    std::vector<int> idx(N, 0); 
-    std::vector<int> idx2(N, 4); 
 
-    for (size_t i = 0; i < N; ++i) {
-      idx[i] = rand() % N;
+    std::vector<int> idx; 
+    for (size_t i = 0; i < N; i+=STEP_1) {
+      idx.push_back(i);
     }
+    std::vector<int> idx2; 
+    for (size_t i = 0; i < N; i+=STEP_2) {
+      idx2.push_back(i);
+    }
+
     std::sort(idx.begin(), idx.end());
     std::copy(idx.begin(), idx.end(), idx2.begin());
 
-    auto kernel_time = test_kernel_waw(q, D, D2, idx, idx2, NUM_ITERS);
+    auto kernel_time = test_kernel_waw(q, D, D2, idx, idx2, STEP_1);
     std::cout << "\nKernel time (ms): " << kernel_time << "\n";
 
-    test_kernel_cpu(D_cpu, D2_cpu, idx, idx2, NUM_ITERS);
+    test_kernel_cpu(D_cpu, D2_cpu, idx, idx2, STEP_1);
 
     if (std::equal(D.begin(), D.end(), D_cpu.begin()) &&
         std::equal(D2.begin(), D2.end(), D2_cpu.begin())) {

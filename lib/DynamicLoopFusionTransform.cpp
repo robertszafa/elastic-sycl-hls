@@ -126,6 +126,46 @@ PHINode *getInductionVariable(Loop *L) {
   return nullptr;
 }
 
+/// Return the instructions producing the next loop induction value.
+SmallVector<Instruction *> getInductionChain(PHINode *InductionPhi, Loop *L) {
+  SmallVector<Instruction *> Result;
+  BasicBlock *LatchBB = L->getLoopLatch();
+  auto InductionLatchVal = InductionPhi->getIncomingValueForBlock(LatchBB);
+  auto InductionLatchInstr = dyn_cast<Instruction>(InductionLatchVal);
+  if (!InductionLatchInstr)
+    return Result;
+
+  for (auto &BB : getUniqueLoopBlocks(L)) {
+    for (auto &I : *BB) {
+      if (isInDefUsePath(&I, InductionLatchInstr) && InductionPhi != &I) {
+        Result.push_back(&I);
+      }
+    }
+  }
+
+  return Result;
+}
+
+/// Copy the instruction chain producing the next loop induction value.
+/// Return the instruction producing the final induction value.
+Instruction *copyInductionChain(SmallVector<Instruction *> &InductionChain,
+                                Instruction *InsertBefore) {
+  SmallVector<Instruction *> NewInductionChain(InductionChain.size());
+  auto NextInduction = InductionChain[0];
+  for (auto [currInductionI, InductionI] : llvm::enumerate(InductionChain)) {
+    NextInduction = InductionI->clone();
+    NextInduction->insertBefore(InsertBefore);
+    
+    NewInductionChain[currInductionI] = NextInduction;
+    for (size_t iPrev = 0; iPrev < currInductionI; ++iPrev) {
+      NextInduction->replaceUsesOfWith(InductionChain[iPrev],
+                                       NewInductionChain[iPrev]);
+    }
+  }
+
+  return NextInduction;
+}
+
 /// Create a bit value that will be set to true on the last loop iteration.  
 /// If the check is not possible to synthesize, return nullptr.
 Value *createIsLastIterCheck(Function *F, Loop *L, Type *ResultType) {
@@ -137,28 +177,28 @@ Value *createIsLastIterCheck(Function *F, Loop *L, Type *ResultType) {
   // branch leading to loop body becomes false.
   Value *Result = nullptr;
   if (auto InductionPhi = getInductionVariable(L)) {
-    auto LoopLatch = L->getLoopLatch();
-    auto InductionLatchVal = InductionPhi->getIncomingValueForBlock(LoopLatch);
-    if (auto InductionLatchInstr = dyn_cast<Instruction>(InductionLatchVal)) {
-      auto LoopPredicateVal = L->getHeader()->getTerminator()->getOperand(0);
-      if (auto LoopPredicate = dyn_cast<Instruction>(LoopPredicateVal)) {
-        // Execute induction function again at start of loop body.
-        auto NextInduction = InductionLatchInstr->clone();
-        NextInduction->insertAfter(getFirstBodyBlock(L)->getFirstNonPHI());
+    auto LoopPredicate =
+        dyn_cast<Instruction>(L->getHeader()->getTerminator()->getOperand(0));
+    auto InductionChain = getInductionChain(InductionPhi, L);
 
-        // Clone loop branch predicate instruction to start of loop, and change
-        // the old induction to our anced induction.
-        auto NextLoopPredicate = LoopPredicate->clone();
-        NextLoopPredicate->insertAfter(NextInduction);
-        NextLoopPredicate->replaceUsesOfWith(InductionPhi, NextInduction);
+    if (LoopPredicate && !InductionChain.empty()) {
+      auto InsertBeforI = L->getHeader()->getTerminator();
 
-        // isLastIter = !nextLoopPredicate
-        IRBuilder<> Builder(NextLoopPredicate->getNextNode());
-        auto IsLastIter = Builder.CreateNot(NextLoopPredicate, "IsLastIter");
-        // Use correct type.
-        Result = Builder.CreateCast(Instruction::CastOps::ZExt, IsLastIter,
-                                    ResultType, "IsLastIter");
-      }
+      // Execute induction chain again at start of loop body.
+      auto NextInduction = copyInductionChain(InductionChain, InsertBeforI);
+
+      // Clone loop branch predicate instruction to start of loop body, and 
+      // change the old induction to our NextInduction.
+      auto NextLoopPredicate = LoopPredicate->clone();
+      NextLoopPredicate->insertBefore(InsertBeforI);
+      NextLoopPredicate->replaceUsesOfWith(InductionPhi, NextInduction);
+
+      // Now synthesize: isLastIter = !nextLoopPredicate
+      IRBuilder<> Builder(InsertBeforI); 
+      auto IsLastIter = Builder.CreateNot(NextLoopPredicate, "IsLastIter");
+      // Ensure correct type.
+      Result = Builder.CreateCast(Instruction::CastOps::ZExt, IsLastIter,
+                                  ResultType, "IsLastIter");
     }
   }
 
@@ -278,20 +318,33 @@ void topologicalOrderSort(Function &F, SmallVector<MemoryRequest, 4> &ToSort) {
   });
 }
 
-/// Return memory requests that are guarded by an if condition.
-SmallVector<MemoryRequest, 4>
-getRequestsToSpeculate(ControlDependenceGraph &CDG, LoopInfo &LI,
-                       SmallVector<MemoryRequest, 4> &Requests) {
-  SmallVector<MemoryRequest, 4> RequestsToSpeculate;
-  for (auto &Req : Requests) {
-    auto ReqBB = Req.memOp->getParent();
-    if (auto CtrlDepBB = CDG.getControlDependencySource(ReqBB)) {
-      if (CtrlDepBB != LI.getLoopFor(ReqBB)->getHeader()) {
-        RequestsToSpeculate.push_back(Req);
+/// Return the if-condition src of BB, if it exisits.
+BasicBlock *getIfSrcBlockInLoop(ControlDependenceGraph &CDG, LoopInfo &LI,
+                                BasicBlock *BB) {
+  auto L = LI.getLoopFor(BB);
+  if (L && L->getExitBlock() != BB) {
+    if (auto CtrlDepBB = CDG.getControlDependencySource(BB)) {
+      // Checking if the ctrl dep src is not the loop condition.
+      // A loop condition can be spread over multiple blocks.
+      if (!LI.isLoopHeader(CtrlDepBB) &&
+          !isReachableWithinLoop(CtrlDepBB, L->getExitBlock(), L)) {
+        return CtrlDepBB;
       }
     }
   }
 
+  return nullptr;
+}
+
+/// Return memory requests that have been speculated in the AGU.
+SmallVector<MemoryRequest, 4>
+getSpeculatedRequests(ControlDependenceGraph &CDG, LoopInfo &LI,
+                      SmallVector<MemoryRequest, 4> &Requests) {
+  SmallVector<MemoryRequest, 4> RequestsToSpeculate;
+  for (auto &Req : Requests) {
+    if (getIfSrcBlockInLoop(CDG, LI, Req.memOp->getParent()))
+      RequestsToSpeculate.push_back(Req);
+  }
   return  RequestsToSpeculate;
 }
 
@@ -312,54 +365,58 @@ void hoistRequest(MemoryRequest &Req, BasicBlock *ToBB) {
     I->moveBefore(ToBB->getTerminator());
 }
 
-/// Hoist memory requests out of if-conditions.
-void speculateRequests(Function &F, ControlDependenceGraph &CDG, LoopInfo &LI,
-                       SmallVector<MemoryRequest, 4> &Requests) {
-  auto RequestsToSpeculate = getRequestsToSpeculate(CDG, LI, Requests);
-  topologicalOrderSort(F, RequestsToSpeculate);
-  
-  // Iteratively hoist requests out of chains of if-conditions.
-  bool Done = false;
-  while (!Done) {
-    Done = true;
+/// Map each if-condition body BB to its if condition src block. 
+MapVector<BasicBlock *, BasicBlock *>
+getIfBodyToConditionMap(Function &F, ControlDependenceGraph &CDG,
+                        LoopInfo &LI) {
+  MapVector<BasicBlock *, BasicBlock *> Res;
+  for (auto &BB : F) {
+    if (!LI.isLoopHeader(&BB)) {
+      if (auto IfSrcBB = getIfSrcBlockInLoop(CDG, LI, &BB)) {
+        Res[&BB] = IfSrcBB;
+      }
+    }
+  }
 
-    for (auto Req : RequestsToSpeculate) {
-      auto ReqBB = Req.memOp->getParent();
+  return Res;
+}
 
-      if (auto ToBB = CDG.getControlDependencySource(ReqBB)) {
-        if (ToBB != LI.getLoopFor(ReqBB)->getHeader()) {
-          hoistRequest(Req, ToBB);
-          Done = false;
-        }
+/// Given a IfBodyToConditionSrcBlockMap, map each key to its top level
+/// if-condition src block.
+void walkToTopLevelIfSrcBB(
+    MapVector<BasicBlock *, BasicBlock *> &IfBodyToConditionMap) {
+  bool done = false;
+  while (!done) {
+    done = true;
+    for (auto [IfBodyBB, IfSrcBB] : IfBodyToConditionMap) {
+      if (IfBodyToConditionMap.contains(IfSrcBB)) {
+        IfBodyToConditionMap[IfBodyBB] = IfBodyToConditionMap[IfSrcBB];
+        done = false;
       }
     }
   }
 }
 
-/// Returns the fromBB->toBB mapping corresponding to the hositing in the
-/// "speculateRequests" function.
-MapVector<BasicBlock *, BasicBlock *>
-getSpeculationFromToMap(ControlDependenceGraph &CDG, LoopInfo &LI,
-                        SmallVector<BasicBlock *> &FromBlocks) {
-  MapVector<BasicBlock *, BasicBlock *> Result;
-  for (auto &BB : FromBlocks)
-    Result[BB] = BB;
+/// Hoist memory requests out of if-conditions.
+void speculateRequests(Function &F, ControlDependenceGraph &CDG, LoopInfo &LI,
+                       const SmallVector<MemoryRequest, 4> &Requests) {
+  auto SortedRequests = Requests;
+  topologicalOrderSort(F, SortedRequests);
 
+  auto HoistFromToMap = getIfBodyToConditionMap(F, CDG, LI);
+  
+  // Iteratively hoist requests out of chains of if-conditions.
   bool Done = false;
   while (!Done) {
     Done = true;
-
-    for (auto [FromBB, CurrToBB] : Result) {
-      if (auto ToBB = CDG.getControlDependencySource(CurrToBB)) {
-        if (ToBB != LI.getLoopFor(FromBB)->getHeader() && ToBB != CurrToBB) {
-          Result[FromBB] = ToBB;
-          Done = false;
-        }
+    for (auto Req : SortedRequests) {
+      auto ReqBB = Req.memOp->getParent();
+      if (HoistFromToMap.contains(ReqBB)) {
+        hoistRequest(Req, HoistFromToMap[ReqBB]);
+        Done = false;
       }
     }
   }
-
-  return Result;
 }
 
 /// Create and return a new basic blocks on the predBB --> succBB CFG edge.
@@ -397,8 +454,8 @@ BasicBlock *createBlockOnEdge(BasicBlock *predBB, BasicBlock *succBB) {
 /// the AGU.
 MapVector<BasicBlock *, SmallVector<MemoryRequest, 4>>
 getPoisonBlocks(Function &F, LoopInfo &LI,
-                   MapVector<BasicBlock *, BasicBlock *> &HoistedFromToMap,
-                   SmallVector<MemoryRequest, 4> &SpeculatedRequests) {
+                MapVector<BasicBlock *, BasicBlock *> &HoistedFromToMap,
+                SmallVector<MemoryRequest, 4> &SpeculatedRequests) {
   MapVector<CFGEdge, SmallVector<MemoryRequest, 4>> PoisonLocations;
 
   for (auto &Req : SpeculatedRequests) {
@@ -483,14 +540,12 @@ void poisonMisspeculations(Function &F, ControlDependenceGraph &CDG,
                            SmallVector<MemoryRequest, 4> &Requests) {
   // Get speculated requests in the topological program order.
   SmallVector<MemoryRequest, 4> SpeculatedRequests =
-      getRequestsToSpeculate(CDG, LI, Requests);
+      getSpeculatedRequests(CDG, LI, Requests);
   topologicalOrderSort(F, SpeculatedRequests);
 
-  // Get a mapping of where the speculated requests where hoisted to in the AGU.
-  SmallVector<BasicBlock*> FromBlocks;
-  for (auto Req : SpeculatedRequests)
-    FromBlocks.push_back(Req.memOp->getParent());
-  auto HoistedFromToMap = getSpeculationFromToMap(CDG, LI, FromBlocks);
+  // Get a mapping of where the speculated requests were hoisted to in the AGU.
+  auto HoistedFromToMap = getIfBodyToConditionMap(F, CDG, LI);
+  walkToTopLevelIfSrcBB(HoistedFromToMap);
 
   // Given the above info, get poison blocks where to insert poison calls.
   MapVector<BasicBlock *, SmallVector<MemoryRequest, 4>> PoisonLocations =

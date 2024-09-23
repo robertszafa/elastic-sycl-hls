@@ -523,7 +523,7 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
 [[maybe_unused]] bool isReachableWithinLoop(const BasicBlock *From,
                                             const BasicBlock *To,
                                             const Loop *L) {
-  assert(L->contains(From) && L->contains(To) &&
+  assert(L->contains(From) && (L->contains(To) || L->getExitBlock() == To) &&
          "isReachableWithinLoop(From, To, L): From/To blocks not in L body.");
 
   const BasicBlock *Stop = L->getLoopLatch();
@@ -592,11 +592,14 @@ template <typename T> [[maybe_unused]] int getIndexIntoParent(T *Child) {
   return false;
 }
 
+/// Return the first BB in Loop that does not lead to the loop exit.
 [[maybe_unused]] BasicBlock *getFirstBodyBlock(Loop *L) {
-  auto brI = dyn_cast<BranchInst>(L->getHeader()->getTerminator());
-  for (auto BB : brI->successors()) {
-    if (BB != L->getExitBlock())
+  auto BranchI = dyn_cast<BranchInst>(L->getHeader()->getTerminator());
+  auto ExitBB = L->getExitBlock();
+  for (auto BB : BranchI->successors()) {
+    if (BB != L->getExitBlock() && !isReachableWithinLoop(BB, ExitBB, L)) {
       return BB;
+    }
   }
 
   // The header is also the body.

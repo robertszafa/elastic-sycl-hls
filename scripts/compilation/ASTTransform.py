@@ -147,7 +147,7 @@ def gen_lsq_kernel_calls(report, q_name, events_vec):
                                     pipes_st_req_{i_lsq}, pipes_st_val_{i_lsq}, pipe_end_lsq_signal_{i_lsq}, {int(lsq_info['isAnySpeculation'])},
                                     {lsq_info['arraySize']}, {lsq_info['numLoadPipes']}, {lsq_info['numStoreReqPipes']}, {lsq_info['numStoreValPipes']},
                                     {LD_Q_SIZE}, {lsq_info['allocationQueueSize']}>({q_name});
-            {events_vec}.push_back({{lsqEvent_{i_lsq}, false}});
+            {events_vec}.push_back({{lsqEvent_{i_lsq}, true}});
             ''')
         else:
             lsq_kernel_calls.append(f'''
@@ -155,7 +155,7 @@ def gen_lsq_kernel_calls(report, q_name, events_vec):
                 LoadStoreQueueDRAM<{llvm2ctype(lsq_info['arrayType'])}, pipes_ld_req_{i_lsq}, pipes_ld_val_{i_lsq}, 
                                     pipes_st_req_{i_lsq}, pipes_st_val_{i_lsq}, pipe_end_lsq_signal_{i_lsq}, {int(lsq_info['isAnySpeculation'])},
                                     {lsq_info['numLoadPipes']}, {lsq_info['numStoreReqPipes']}, {lsq_info['numStoreValPipes']}, {LD_Q_SIZE}, {lsq_info['allocationQueueSize']}>({q_name});
-            {events_vec}.push_back({{lsqEvent_{i_lsq}, false}});
+            {events_vec}.push_back({{lsqEvent_{i_lsq}, true}});
             ''')
     
     return lsq_kernel_calls

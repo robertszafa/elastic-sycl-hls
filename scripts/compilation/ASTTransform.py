@@ -14,8 +14,10 @@ import re
 GIT_DIR = os.environ["ELASTIC_SYCL_HLS_DIR"]
 LSQ_DRAM_FILE = f'{GIT_DIR}/lsq/LoadStoreQueueDRAM.hpp'
 LSQ_BRAM_FILE = f'{GIT_DIR}/lsq/LoadStoreQueueBRAM.hpp'
-DATA_UNIT_IP_FILE = f'{GIT_DIR}/lsq/DataUnitDRAM.hpp'
 DEPENDENCY_TABLE_FILE = f'{GIT_DIR}/lsq/DependencyTable.hpp'
+DATA_UNIT_IP_FILE = f'{GIT_DIR}/lsq/DataUnitDRAM.hpp'
+if os.environ.get('NO_FUSION_FRWD') is not None:
+    DATA_UNIT_IP_FILE = f'{GIT_DIR}/lsq/DataUnitDRAM_noforward.hpp'
 
 
 def get_src(fname):

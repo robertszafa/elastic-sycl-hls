@@ -68,8 +68,8 @@ double test_kernel_waw(queue &q, std::vector<int> &h_D, std::vector<int> &h_D2,
 void test_kernel_cpu(std::vector<int> &D, std::vector<int> &D2,
                      std::vector<int> &idx, std::vector<int> &idx2,
                      const int NUM_ITERS) {
-  const int N = D.size();
-  const int M = D2.size();
+  const int N = idx.size();
+  const int M = idx2.size();
   for (uint i = 0; i < N; i++) {
     D[idx[i]] = i;
   }

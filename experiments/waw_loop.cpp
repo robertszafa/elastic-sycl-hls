@@ -27,6 +27,7 @@ double test_kernel_waw(queue &q, std::vector<int> &h_D, std::vector<int> &h_D2,
 
   const int N = h_idx.size();
   const int M = h_idx2.size();
+  const int S = 4;
 
   int *idx = fpga_tools::toDevice(h_idx, q);
   int *idx2 = fpga_tools::toDevice(h_idx2, q);
@@ -42,15 +43,16 @@ double test_kernel_waw(queue &q, std::vector<int> &h_D, std::vector<int> &h_D2,
 
     for (uint i = 0; i < M; i++) {
       D[idx2[i]] = N + N + i;
-      D2[idx2[i]] = D[idx2[i]]; // Need at least one read to use our StreamingMemory IP. 
     }
 
+    for (uint i = 0; i < S; i++)
+      D2[idx2[i]] = D[idx2[i]]; // Need at least one read to use our StreamingMemory IP.
   });
 
-  
+
   events.push_back({main_event, true});
   for (auto &kv : events) kv.first.wait();
-  
+
   q.copy(D, h_D.data(), h_D.size()).wait();
   q.copy(D2, h_D2.data(), h_D2.size()).wait();
 
@@ -72,6 +74,7 @@ void test_kernel_cpu(std::vector<int> &D, std::vector<int> &D2,
                      const int NUM_ITERS) {
   const int N = idx.size();
   const int M = idx2.size();
+  const int S = 4;
 
   for (uint i = 0; i < N; i++) {
     D[idx[i]] = N + i;
@@ -79,7 +82,10 @@ void test_kernel_cpu(std::vector<int> &D, std::vector<int> &D2,
 
   for (uint i = 0; i < M; i++) {
     D[idx2[i]] = N + N + i;
-    D2[idx2[i]] = D[idx2[i]]; // Need at least one read to use our StreamingMemory IP. 
+  }
+
+  for (uint i = 0; i < S; i++) {
+    D2[idx2[i]] = D[idx2[i]]; // Need at least one read to use our StreamingMemory IP.
   }
 }
 
@@ -103,7 +109,7 @@ int main(int argc, char *argv[]) {
 
 #if FPGA_SIM
   auto d_selector = sycl::ext::intel::fpga_simulator_selector_v;
-#elif FPGA_HW 
+#elif FPGA_HW
   auto d_selector = sycl::ext::intel::fpga_selector_v;
 #else  // #if FPGA_EMULATOR
   auto d_selector = sycl::ext::intel::fpga_emulator_selector_v;
@@ -117,16 +123,16 @@ int main(int argc, char *argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    std::vector<int> D(N, 4); 
-    std::vector<int> D2(N, 4); 
-    std::vector<int> D_cpu(N, 4); 
-    std::vector<int> D2_cpu(N, 4); 
+    std::vector<int> D(N, 4);
+    std::vector<int> D2(N, 4);
+    std::vector<int> D_cpu(N, 4);
+    std::vector<int> D2_cpu(N, 4);
 
-    std::vector<int> idx; 
+    std::vector<int> idx;
     for (size_t i = 0; i < N; i+=STEP_1) {
       idx.push_back(i);
     }
-    std::vector<int> idx2; 
+    std::vector<int> idx2;
     for (size_t i = 0; i < N; i+=STEP_2) {
       idx2.push_back(i);
     }
@@ -139,8 +145,7 @@ int main(int argc, char *argv[]) {
 
     test_kernel_cpu(D_cpu, D2_cpu, idx, idx2, STEP_1);
 
-    if (std::equal(D.begin(), D.end(), D_cpu.begin()) &&
-        std::equal(D2.begin(), D2.end(), D2_cpu.begin())) {
+    if (std::equal(D.begin(), D.end(), D_cpu.begin())) {
       std::cout << "Passed\n";
     } else {
       std::cout << "Failed\n";

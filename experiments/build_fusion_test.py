@@ -5,21 +5,26 @@ import sys
 
 GIT_DIR = os.environ["ELASTIC_SYCL_HLS_DIR"]
 BENCHMARKS = [
-    "gemver_dram",
-    "correlation_dram",
-
-    "page_rank_dram",
-    "bnn_dram",
-
-    "fft_conv_dram",
-    "gsum_sort_dram",
-    "scale_fw_dram",
-
     "raw_loop",
     "war_loop",
     "waw_loop",
 
+    "gemver_dram",
+    "fft2x_dram",
+
+    "bnn_dram",
+    "matrix_power_dram",
+    "page_rank_dram",
+
+    "hist2x_dram",
+
     # To regular to get a benefit, existing approaches are better than dynamic fusion:
+    # "spmv_sort_dram",
+    # "fft_conv_dram",
+    # "scale_fw_dram",
+    # "gsum_sort_dram",
+
+    # "correlation_dram", 
     # "gemm_dram",
     # "kernel_2mm_dram",
     # "kernel_3mm_dram",
@@ -31,7 +36,6 @@ BENCHMARKS = [
     # "test_fusion_war",
     # "test_fusion_waw",
 ]
-
 
 if __name__ == '__main__':
     TARGET = sys.argv[1]
@@ -47,6 +51,10 @@ if __name__ == '__main__':
         os.system('printf "\n============== LSQ =============\n"')
         os.system(f'cp {GIT_DIR}/experiments/{kernel}.cpp {GIT_DIR}/experiments/{kernel}_lsq.cpp')
         os.system(f'NO_PE_DECOUPLING=1 {GIT_DIR}/elastic_pass.sh {TARGET} {GIT_DIR}/experiments/{kernel}_lsq.cpp')
+
+        os.system('printf "\n============== FUSION_NO_FRWD =============\n"')
+        os.system(f'cp {GIT_DIR}/experiments/{kernel}.cpp {GIT_DIR}/experiments/{kernel}_nofrwd.cpp')
+        os.system(f'NO_FUSION_FRWD=1 {GIT_DIR}/elastic_pass.sh {TARGET} {GIT_DIR}/experiments/{kernel}_nofrwd.cpp')
 
         os.system('printf "\n============== Fusion =============\n"')
         os.system(f'{GIT_DIR}/elastic_pass.sh {TARGET} {GIT_DIR}/experiments/{kernel}.cpp -f')

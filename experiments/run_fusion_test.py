@@ -7,107 +7,71 @@ import statistics
 GIT_DIR = os.environ["ELASTIC_SYCL_HLS_DIR"]
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
+NUM_REPEAT = 3
+
 BENCHMARKS_AND_ARGS = {
-    "gemver_dram": [
-        ["10"],     # sim
-        ["1000"]    # hw
-    ],
-    "correlation_dram": [
-        ["10", "10"],           # sim
-        ["1000", "1000"]        # hw
-    ],
-
-    "page_rank_dram": [
-        [f"{GIT_DIR}/experiments/test2-web-NotreDame.txt", "3"],    # sim
-        [f"{GIT_DIR}/experiments/web-NotreDame.txt", "10"],         # hw
-    ],
-    "bnn_dram": [
-        ["10"],     # sim
-        ["1000"],   # hw
-
-    ],
-
-    "fft_conv_dram": [
-        ["32"],     # sim
-        ["1024"],   # hw
-    ],
-    "gsum_sort_dram": [
-        ["32"],     # sim
-        ["1024"],   # hw
-    ],
-    "scale_fw_dram": [
-        ["10"],     # sim
-        ["128"],   # hw
-    ],
-
     "raw_loop": [
-        ["150"],       # sim
-        ["1000000"],  # hw
+        "150",  # sim
+        "10000000",  # hw
     ],
     "waw_loop": [
-        ["150"],       # sim
-        ["1000000"],  # hw
+        "150",  # sim
+        "10000000",  # hw
     ],
     "war_loop": [
-        ["150"],       # sim
-        ["1000000"],  # hw
+        "150",  # sim
+        "10000000",  # hw
     ],
-
-    # To regular to get a benefit, existing approaches are better than dynamic fusion:
-    # "gemm_dram": [
-    #     ["10"],     # sim
-    #     # ["1000"]    # hw
-    # ],
-    # "kernel_2mm_dram": [
-    #     ["10"],     # sim
-    #     # ["1000"]    # hw
-    # ],
-    # "kernel_3mm_dram": [
-    #     ["10"],     # sim
-    #     # ["1000"]    # hw
-    # ],
-    # "doitgen_triple_dram": [
-    #     ["10"],     # sim
-    #     # ["1000"]    # hw
-    # ],
-
-    # "lud_dram": [["10"]],
-    
-    # simple RAW/WAW/WAR loops but enclosed in more outer loops.
-    # "test_fusion_waw": [
-    #     ["150", "3"],       # sim
-    #     ["10000", "10"],  # hw
-    # ],
-    # "test_fusion_war": [
-    #     ["150", "3"],       # sim
-    #     ["10000", "10"],  # hw
-    # ],
-    # "test_fusion_raw": [
-    #     ["150", "3"],       # sim
-    #     ["10000", "10"],  # hw
-    # ],
+    "fft2x_dram": [
+      "32",     # sim
+      "1048576",   # hw
+    ], 
+    "gemver_dram": [
+      "10",     # sim
+      "10000",   # hw
+    ],    
+    "bnn_dram": [
+        "10",  # sim
+        "10000",  # hw
+    ],
+    "matrix_power_dram": [
+        "32",  # sim
+        "4096",  # hw
+    ],
+    "page_rank_dram": [
+        f"{GIT_DIR}/experiments/test2-web-NotreDame.txt 3",  # sim
+        f"{GIT_DIR}/experiments/web-NotreDame.txt 10",  # hw
+    ],
+    "hist2x_dram": [
+        "1000",  # sim
+        "10000000",  # hw
+    ],
 }
+
 
 def get_time(BIN_NAME, args_str):
     run_prefix = f'{GIT_DIR}/scripts/run_sim.sh' if 'fpga_sim' in BIN_NAME else ''
 
     TMP_FILE = '.tmp_get_time.txt'
-    os.system(f'{run_prefix} {BIN_NAME} {args_str} > {TMP_FILE}')
 
-    with open(TMP_FILE, 'r') as f:
-        out_lines = f.readlines()
-        if 'Failed' in ''.join(out_lines):
-            os.system('echo "Failed"')
-        # else:
-        #     os.system('echo "Passed"')
+    MIN_TIME = 2**31
+    for _ in range(NUM_REPEAT):
+        os.system(f'{run_prefix} {BIN_NAME} {args_str} > {TMP_FILE}')
 
-        for line in out_lines:
-            if "Kernel time (ms):" in line:
-                res = float(line.split("Kernel time (ms):")[1])
-                os.system(f'echo "{res} ms"')
-                return res
+        with open(TMP_FILE, 'r') as f:
+            out_lines = f.readlines()
+            if 'Failed' in ''.join(out_lines):
+                os.system('echo "Failed"')
+            # else:
+            #     os.system('echo "Passed"')
+
+            for line in out_lines:
+                if "Kernel time (ms):" in line:
+                    res = float(line.split("Kernel time (ms):")[1])
+                    print(f"{res} ms")
+                    MIN_TIME = min(MIN_TIME, res)
     
-    return 0
+    return MIN_TIME
 
 
 if __name__ == '__main__':
@@ -118,44 +82,63 @@ if __name__ == '__main__':
         exit("sys.argv[1] must be emu/sim/hw")
 
     with open(CSV_FILE, 'w') as f:
-        f.write("kernel,STATIC,LSQ,FUSION\n")
+        f.write("kernel,STA,LSQ,FUS,FUS+FRWD\n")
 
-        for kernel, test_vectors in BENCHMARKS_AND_ARGS.items():
+        ALL_SPEEDUPS_LSQ = []
+        ALL_SPEEDUPS_FUS = []
+        ALL_SPEEDUPS_FUS_FRWD = []
+        for kernel, args in BENCHMARKS_AND_ARGS.items():
             os.system(f'printf "\n--------------- {kernel} ---------------\n"')
 
-            BIN_STATIC = f'{GIT_DIR}/experiments/bin/{kernel}.fpga_{TARGET}'
+            BIN_STA = f'{GIT_DIR}/experiments/bin/{kernel}.fpga_{TARGET}'
             BIN_LSQ = f'{GIT_DIR}/experiments/bin/{kernel}_lsq.elastic.fpga_{TARGET}'
-            BIN_FUSION = f'{GIT_DIR}/experiments/bin/{kernel}.elastic.fpga_{TARGET}'
+            BIN_FUS = f'{GIT_DIR}/experiments/bin/{kernel}_nofrwd.elastic.fpga_{TARGET}'
+            BIN_FUS_FRWD = f'{GIT_DIR}/experiments/bin/{kernel}.elastic.fpga_{TARGET}'
 
-
-            RESULTS_STATIC = []
+            RESULTS_STA = []
             RESULTS_LSQ = []
-            RESULTS_FUSION = []
+            RESULTS_FUS = []
+            RESULTS_FUS_FRWD = []
 
-            test_vectors_to_use = test_vectors[1:] if TARGET == 'hw' else test_vectors[:1]
-            for test_vector in test_vectors_to_use:
-                args_str = " ".join(test_vector)
-
-                os.system('printf "\n============== STATIC =============\n"')
-                RESULTS_STATIC.append(get_time(BIN_STATIC, args_str))
+            test_vectors_to_use = args[1:] if TARGET == 'hw' else args[:1]
+            for arg in test_vectors_to_use:
+                os.system('printf "\n============== STA =============\n"')
+                RESULTS_STA.append(get_time(BIN_STA, arg))
 
                 os.system('printf "\n============== LSQ =============\n"')
-                RESULTS_LSQ.append(get_time(BIN_LSQ, args_str))
+                RESULTS_LSQ.append(get_time(BIN_LSQ, arg))
 
-                os.system('printf "\n============== FUSION =============\n"')
-                RESULTS_FUSION.append(get_time(BIN_FUSION, args_str))
+                os.system('printf "\n============== FUS =============\n"')
+                RESULTS_FUS.append(get_time(BIN_FUS, arg))
+
+                os.system('printf "\n============== FUS+FRWD =============\n"')
+                RESULTS_FUS_FRWD.append(get_time(BIN_FUS_FRWD, arg))
             
-            RES_STATIC = statistics.mean(RESULTS_STATIC)
+            RES_STAT = statistics.mean(RESULTS_STA)
             RES_LSQ = statistics.mean(RESULTS_LSQ)
-            RES_FUSION = statistics.mean(RESULTS_FUSION)
+            RES_FUS = statistics.mean(RESULTS_FUS)
+            RESULTS_FUS_FRWD = statistics.mean(RESULTS_FUS_FRWD)
 
-            SPEEDUP_LSQ = round(float(RES_STATIC) / float(RES_LSQ), 2) if RES_LSQ != 0 else 1
-            SPEEDUP_FUSION = round(float(RES_STATIC) / float(RES_FUSION), 2) if RES_FUSION != 0 else 1
+            SPEEDUP_LSQ = round(float(RES_STAT) / float(RES_LSQ), 2) if RES_LSQ != 0 else 1
+            SPEEDUP_FUS = round(float(RES_STAT) / float(RES_FUS), 2) if RES_FUS != 0 else 1
+            SPEEDUP_FUS_FRWD = round(float(RES_STAT) / float(RESULTS_FUS_FRWD), 2) if RESULTS_FUS_FRWD != 0 else 1
 
-            RES_STATIC = round(RES_STATIC, 2)
+            ALL_SPEEDUPS_LSQ.append(SPEEDUP_LSQ)
+            ALL_SPEEDUPS_FUS.append(SPEEDUP_FUS)
+            ALL_SPEEDUPS_FUS_FRWD.append(SPEEDUP_FUS_FRWD)
+
+            RES_STAT = round(RES_STAT, 2)
             RES_LSQ = round(RES_LSQ, 2)
-            RES_FUSION = round(RES_FUSION, 2)
+            RES_FUS = round(RES_FUS, 2)
+            RESULTS_FUS_FRWD = round(RESULTS_FUS_FRWD, 2)
 
-            f.write(f"{kernel},{RES_STATIC} (1x),{RES_LSQ} ({SPEEDUP_LSQ}x),{RES_FUSION} ({SPEEDUP_FUSION}x)\n")
+            kernel_name = kernel.split("_dram")[0]
+            # f.write(f"{kernel_name},{RES_STAT} (1x),{RES_LSQ} ({SPEEDUP_LSQ}x),{RES_FUS} ({SPEEDUP_FUS}x),{RESULTS_FUS_FRWD} ({SPEEDUP_FUS_FRWD}x)\n")
+            f.write(f"{kernel_name},{RES_STAT},{RES_LSQ},{RES_FUS},{RESULTS_FUS_FRWD}\n")
+
+        MEAN_SPEEDUP_LSQ = statistics.harmonic_mean(ALL_SPEEDUPS_LSQ)
+        MEAN_SPEEDUP_FUS = statistics.harmonic_mean(ALL_SPEEDUPS_FUS)
+        MEAN_SPEEDUP_FUS_FRWD = statistics.harmonic_mean(ALL_SPEEDUPS_FUS_FRWD)
+        f.write(f"mean,1,{MEAN_SPEEDUP_LSQ},{MEAN_SPEEDUP_FUS},{MEAN_SPEEDUP_FUS_FRWD}\n")
 
     print(f"\nSaved to CSV file: {CSV_FILE}")

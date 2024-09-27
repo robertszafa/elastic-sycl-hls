@@ -10,7 +10,70 @@ using MemoryRequestType = DynamicLoopFusionAnalysis::MemoryRequestType;
 using DecoupledLoopType = DynamicLoopFusionAnalysis::DecoupledLoopType;
 using MemoryRequest = DynamicLoopFusionAnalysis::MemoryRequest;
 using DecoupledLoopInfo = DynamicLoopFusionAnalysis::DecoupledLoopInfo;
-using MemoryDependencyInfo = DynamicLoopFusionAnalysis::MemoryDependencyInfo;
+using DUInfo = DynamicLoopFusionAnalysis::DUInfo;
+
+void topologicalOrderSort(Function &F, SmallVector<MemoryRequest, 4> &ToSort) {
+  MapVector<BasicBlock*, int> TopologicalOrder;
+  for (auto [iOrd, BB] : llvm::enumerate(getTopologicalOrder(F)))
+    TopologicalOrder[BB] = iOrd;
+
+  llvm::sort(ToSort, [&TopologicalOrder](auto A, auto B) {
+    return TopologicalOrder[A.memOp->getParent()] <
+           TopologicalOrder[B.memOp->getParent()];
+  });
+}
+
+/// Return the DecoupledLoopInfo for kernel with {KernelName}.
+SmallVector<DecoupledLoopInfo, 4>
+DynamicLoopFusionAnalysis::getDecoupledLoops(const std::string &KernelName) {
+  SmallVector<DecoupledLoopInfo, 4> KernelLoops;
+  for (auto &DecoupleInfo : llvm::concat<DecoupledLoopInfo>(
+           this->ComputeLoops, this->AguLoops, this->SimpleMemoryLoops)) {
+    if (KernelName == DecoupleInfo.kernelName) {
+      KernelLoops.push_back(DecoupleInfo);
+    }
+  }
+  return KernelLoops;
+}
+
+/// Return all memory requests for kernel with {KernelName} in topological order
+SmallVector<MemoryRequest, 4>
+DynamicLoopFusionAnalysis::getKernelRequestsInTopologicalOrder(
+    const std::string &KernelName) {
+  auto DecoupledLoops = getDecoupledLoops(KernelName);
+  SmallVector<MemoryRequest, 4> KernelRequests;
+  for (auto &DecoupleInfo : DecoupledLoops) {
+    for (auto &Req :
+         llvm::concat<MemoryRequest>(DecoupleInfo.loads, DecoupleInfo.stores)) {
+      KernelRequests.push_back(Req);
+    }
+  }
+  if (!KernelRequests.empty()) {
+    topologicalOrderSort(*KernelRequests[0].memOp->getFunction(), 
+                         KernelRequests);
+  }
+
+  return KernelRequests;
+}
+
+/// Return all memory requests for data unit with {DUID} in topological order.
+SmallVector<MemoryRequest, 4>
+DynamicLoopFusionAnalysis::getDuRequestsInTopologicalOrder(const int DUID) {
+  SmallVector<MemoryRequest, 4> RequestsForDU;
+  for (auto &AGU : this->AguLoops) {
+    for (auto &Req : llvm::concat<MemoryRequest>(AGU.loads, AGU.stores)) {
+      if (Req.memoryId != DUID) {
+        continue;
+      }
+      RequestsForDU.push_back(Req);
+    }
+  }
+  if (!RequestsForDU.empty()) {
+    topologicalOrderSort(*RequestsForDU[0].memOp->getFunction(), RequestsForDU);
+  }
+
+  return RequestsForDU;
+}
 
 std::string DynamicLoopFusionAnalysis::MemoryRequest::getPipeName(
     DecoupledLoopType loopType) {
@@ -218,7 +281,7 @@ bool instrBelongsToAnotherDecoupledLoop(Instruction *I, Loop *ILoop,
 }
 
 /// For each base pointer to protect, collect all memory requests using it.
-void DynamicLoopFusionAnalysis::collectProtectedMemoryRequests(LoopInfo &LI) {
+void DynamicLoopFusionAnalysis::collectDURequests(LoopInfo &LI) {
   MapVector<Instruction *, int> BasePtrId, BasePtrNumStores, BasePtrNumLoads,
       BasePtrMaxLoopDepth;
   for (auto [id, BasePtr] : llvm::enumerate(BasePtrsToProtect)) {
@@ -390,32 +453,30 @@ void DynamicLoopFusionAnalysis::checkisLastIterNeeded(LoopInfo &LI,
   }
 }
 
-MapVector<int, SmallVector<MemoryRequest *>>
-getCluesteredLoadRequests(SmallVector<DecoupledLoopInfo, 4> &loopsToDecouple) {
-  MapVector<int, SmallVector<MemoryRequest *>> loadsForMem;
+/// Cluster allRequests, loadRequests, storeRequests based on the Data Unit id.
+void collectCluesteredRequests(
+    const SmallVector<DecoupledLoopInfo, 4> &loopsToDecouple,
+    MapVector<int, SmallVector<MemoryRequest, 4>> &RequestsForMem,
+    MapVector<int, SmallVector<MemoryRequest, 4>> &LoadsForMem,
+    MapVector<int, SmallVector<MemoryRequest, 4>> &StoresForMem) {
   for (auto &DecoupleInfo : loopsToDecouple) {
     for (auto &Req : DecoupleInfo.loads) {
-      if (!loadsForMem.contains(Req.memoryId)) {
-        loadsForMem[Req.memoryId] = SmallVector<MemoryRequest *>{};
+      if (!RequestsForMem.contains(Req.memoryId)) {
+        RequestsForMem[Req.memoryId] = SmallVector<MemoryRequest, 4>{};
+        LoadsForMem[Req.memoryId] = SmallVector<MemoryRequest, 4>{};
       }
-      loadsForMem[Req.memoryId].push_back(&Req);
+      LoadsForMem[Req.memoryId].push_back(Req);
+      RequestsForMem[Req.memoryId].push_back(Req);
     }
-  }
-  return loadsForMem;
-}
-
-MapVector<int, SmallVector<MemoryRequest *>>
-getCluesteredStoreRequests(SmallVector<DecoupledLoopInfo, 4> &loopsToDecouple) {
-  MapVector<int, SmallVector<MemoryRequest *>> storesForMem;
-  for (auto &DecoupleInfo : loopsToDecouple) {
     for (auto &Req : DecoupleInfo.stores) {
-      if (!storesForMem.contains(Req.memoryId)) {
-        storesForMem[Req.memoryId] = SmallVector<MemoryRequest *>{};
+      if (!RequestsForMem.contains(Req.memoryId)) {
+        RequestsForMem[Req.memoryId] = SmallVector<MemoryRequest, 4>{};
+        StoresForMem[Req.memoryId] = SmallVector<MemoryRequest, 4>{};
       }
-      storesForMem[Req.memoryId].push_back(&Req);
+      StoresForMem[Req.memoryId].push_back(Req);
+      RequestsForMem[Req.memoryId].push_back(Req);
     }
   }
-  return storesForMem;
 }
 
 /// Return the deepest loop depth where the L1 and L2 loop nests share a loop. 
@@ -436,93 +497,158 @@ int getCommonLoopDepth(Loop *L1, Loop *L2) {
   return Res;
 }
 
-// Return true if A comes before B in the topological program order.
-bool aPrecedsB(Instruction *A, Instruction *B,
-               const SmallVector<BasicBlock *> &TopologicalOrder) {
-  if (A == B)
-    return false;
+/// Return the mem instruction and request id of the dependency source for the
+/// {DepDst} request in loop {L}.
+std::pair<Instruction *, int>
+getDependencySourceInLoop(MemoryRequest &DepDst, Loop *L,
+                          SmallVector<MemoryRequest, 4> &AllRequests,
+                          bool LoadCanBeSource) {
+  // If no common loop, then take all requests.
+  auto LoopReqs = make_filter_range(AllRequests, [&](MemoryRequest &Req) {
+    return llvm::is_contained(Req.loopNest, L) || (L == nullptr);
+  });
+  auto BackedgeReqs = make_filter_range(AllRequests, [&](MemoryRequest &Req) {
+    return llvm::is_contained(Req.loopNest, L) && Req.memOp != DepDst.memOp;
+  });
 
-  for (auto BB : TopologicalOrder) {
-    for (auto &I : *BB) {
-      if (&I == A)
-        return true;
-      else if (&I == B)
-        return false;
+  // At most one dep src in a loop. Two cases:
+  //  1: .., st_n, ld  --> load only needs to compare against st_n
+  //  2: ld, ..., st_m --> load only needs to compare against st_m
+  // The below loop duplicates the memory requests in the range (except the req
+  // of interest):
+  //  [ld0, ld1*, st0] becomes [ld0, st0, ld0, ld1*, st0]
+  // and records the last store id before hitting our LoadReq.
+  Instruction *DepSrcMemOp = nullptr;
+  int DepSrcId = -1;
+  for (auto &Req : llvm::concat<MemoryRequest>(BackedgeReqs, LoopReqs)) {
+    if (Req.memOp == DepDst.memOp) {
+      break;
+    } else if (isaStore(Req.memOp) || LoadCanBeSource) {
+      DepSrcMemOp = Req.memOp;
+      DepSrcId = Req.reqId;
     }
   }
 
-  return false;
+  return {DepSrcMemOp, DepSrcId};
 }
 
-void DynamicLoopFusionAnalysis::collectProtectedMemoryInfo(Function &F,
-                                                           LoopInfo &LI) {
-  auto LoadsForMem = getCluesteredLoadRequests(ComputeLoops);
-  auto StoresForMem = getCluesteredStoreRequests(ComputeLoops);
-  auto TopologicalOrder = getTopologicalOrder(F);
+/// Collect the load/store request id of {Req} dependency sources.
+void collectDependencySources(MemoryRequest &Req,
+                              SmallVector<MemoryRequest, 4> &AllRequests,
+                              SetVector<int> &LoadDepSources,
+                              SetVector<int> &StoreDepSources) {
+  bool LoadCanBeSource = isaStore(Req.memOp);
+  // To also collect possible RAW deps from other loops, we go over ALlReqs,
+  // i.e., the common loop is null.
+  SmallVector<Loop *> noCommonLoop{nullptr};
+  for (auto L : llvm::concat<Loop *>(Req.loopNest, noCommonLoop)) {
+    auto [DepSrcI, DepSrcReqId] =
+        getDependencySourceInLoop(Req, L, AllRequests, LoadCanBeSource);
+    if (DepSrcI) {
+      if (isaStore(DepSrcI)) {
+        StoreDepSources.insert(DepSrcReqId);
+      } else {
+        LoadDepSources.insert(DepSrcReqId);
+      }
+    }
+  }
+}
 
-  // init
-  for (auto kv : StoresForMem) {
-    ProtectedMemoryInfo[kv.first] = MemoryDependencyInfo{
-        .id = kv.first,
-        .numLoads = int(LoadsForMem[kv.first].size()),
-        .numStores = int(StoresForMem[kv.first].size()),
-        .cType = getCTypeString(LoadsForMem[kv.first][0]->memOp)};
+/// Fill the DU info structs. This is the analsysis info used by our Data Unit
+/// IP template.
+void DynamicLoopFusionAnalysis::collectDUInfos(Function &F, LoopInfo &LI) {
+  /// Sorted in topological order below.
+  MapVector<int, SmallVector<MemoryRequest, 4>> RequestsForMem, LoadsForMem,
+      StoresForMem;
+  collectCluesteredRequests(ComputeLoops, RequestsForMem, LoadsForMem,
+                            StoresForMem);
+
+  /// Return true if A comes before B in the topological program order.
+  auto aPrecedsB = [&RequestsForMem](MemoryRequest &A, MemoryRequest &B,
+                                     const int DUID) -> bool {
+    for (auto &Req : RequestsForMem[DUID]) {
+      if (Req.memOp == A.memOp)
+        return true;
+      else if (Req.memOp == B.memOp)
+        return false;
+    }
+    return false;
+  };
+
+  // init and topological sort of requests
+  for (auto [DUID, _] : RequestsForMem) {
+    topologicalOrderSort(F, RequestsForMem[DUID]);
+    topologicalOrderSort(F, LoadsForMem[DUID]);
+    topologicalOrderSort(F, StoresForMem[DUID]);
+
+    DUInfos[DUID] = DUInfo{
+        .id = DUID,
+        .numLoads = int(LoadsForMem[DUID].size()),
+        .numStores = int(StoresForMem[DUID].size()),
+        .cType = getCTypeString(LoadsForMem[DUID][0].memOp)};
   }
 
-  for (auto [MemId, LdRequests] : LoadsForMem) {
+  for (auto [DUID, LdRequests] : LoadsForMem) {
     for (auto &LdReq : LdRequests) {
-      auto LdLoop = LI.getLoopFor(LdReq->memOp->getParent());
-      ProtectedMemoryInfo[MemId].maxLoopDepth = LdReq->maxLoopDepthInMemoryId;
-      ProtectedMemoryInfo[MemId].loadLoopDepth.push_back(LdReq->loopDepth);
-      ProtectedMemoryInfo[MemId].loadisLastIterNeeded.push_back(
-          LdReq->isLastIterNeeded);
+      auto LdLoop = LI.getLoopFor(LdReq.memOp->getParent());
+      DUInfos[DUID].maxLoopDepth = LdReq.maxLoopDepthInMemoryId;
+      DUInfos[DUID].loadLoopDepth.push_back(LdReq.loopDepth);
+      DUInfos[DUID].loadisLastIterNeeded.push_back(LdReq.isLastIterNeeded);
 
-      SmallVector<bool> StoreInSameLoop;
-      SmallVector<bool> StoreInSameThread;
+      SetVector<int> LoadDependenies, StoreDependenies;
+      collectDependencySources(LdReq, RequestsForMem[DUID], LoadDependenies,
+                               StoreDependenies);
+
       SmallVector<int> StoreCommonLoopDepth;
-      SmallVector<bool> LoadPrecStore;
-      for (auto &StReq : StoresForMem[MemId]) {
-        auto StLoop = LI.getLoopFor(StReq->memOp->getParent());
+      SmallVector<bool> StoreInSameLoop, StoreInSameThread, LoadPrecStore,
+          LoadCheckStore;
+      for (auto &StReq : StoresForMem[DUID]) {
+        auto StLoop = LI.getLoopFor(StReq.memOp->getParent());
         StoreInSameLoop.push_back(LdLoop == StLoop);
-        StoreInSameThread.push_back(LdReq->loopId == StReq->loopId);
+        StoreInSameThread.push_back(LdReq.loopId == StReq.loopId);
         StoreCommonLoopDepth.push_back(getCommonLoopDepth(LdLoop, StLoop));
-        LoadPrecStore.push_back(
-            aPrecedsB(LdReq->memOp, StReq->memOp, TopologicalOrder));
+        LoadPrecStore.push_back(aPrecedsB(LdReq, StReq, DUID));
+        LoadCheckStore.push_back(StoreDependenies.contains(StReq.reqId));
       }
-      ProtectedMemoryInfo[MemId].loadStoreInSameLoop.push_back(StoreInSameLoop);
-      ProtectedMemoryInfo[MemId].loadStoreInSameThread.push_back(
-          StoreInSameThread);
-      ProtectedMemoryInfo[MemId].loadStoreCommonLoopDepth.push_back(
-          StoreCommonLoopDepth);
-      ProtectedMemoryInfo[MemId].loadPrecedsStore.push_back(LoadPrecStore);
+      DUInfos[DUID].loadStoreInSameLoop.push_back(StoreInSameLoop);
+      DUInfos[DUID].loadStoreInSameThread.push_back(StoreInSameThread);
+      DUInfos[DUID].loadStoreCommonLoopDepth.push_back(StoreCommonLoopDepth);
+      DUInfos[DUID].loadPrecedsStore.push_back(LoadPrecStore);
+      DUInfos[DUID].loadCheckStore.push_back(LoadCheckStore);
     }
   }
 
-  for (auto [MemId, StRequests] : StoresForMem) {
+  for (auto [DUID, StRequests] : StoresForMem) {
     for (auto StReq : StRequests) {
-      auto StReqLoop = LI.getLoopFor(StReq->memOp->getParent());
-      ProtectedMemoryInfo[MemId].maxLoopDepth = StReq->maxLoopDepthInMemoryId;
-      ProtectedMemoryInfo[MemId].storeLoopDepth.push_back(StReq->loopDepth);
-      ProtectedMemoryInfo[MemId].storeisLastIterNeeded.push_back(
-          StReq->isLastIterNeeded);
+      auto StReqLoop = LI.getLoopFor(StReq.memOp->getParent());
+      DUInfos[DUID].maxLoopDepth = StReq.maxLoopDepthInMemoryId;
+      DUInfos[DUID].storeLoopDepth.push_back(StReq.loopDepth);
+      DUInfos[DUID].storeisLastIterNeeded.push_back(StReq.isLastIterNeeded);
 
-      SmallVector<bool> StoreInSameLoop;
+      SetVector<int> LoadDependenies, StoreDependenies;
+      collectDependencySources(StReq, RequestsForMem[DUID], LoadDependenies,
+                               StoreDependenies);
+
       SmallVector<int> StoreCommonLoopDepth;
-      SmallVector<bool> StorePrecedsOtherStore;
-      for (auto &OtherStReq : StoresForMem[MemId]) {
-        auto OtherStLoop = LI.getLoopFor(OtherStReq->memOp->getParent());
+      SmallVector<bool> StoreInSameLoop, StorePrecedsOtherStore,
+          StoreCheckStore, StoreCheckLoad;
+      for (auto &OtherStReq : StoresForMem[DUID]) {
+        auto OtherStLoop = LI.getLoopFor(OtherStReq.memOp->getParent());
         StoreInSameLoop.push_back(StReqLoop == OtherStLoop);
         StoreCommonLoopDepth.push_back(
             getCommonLoopDepth(StReqLoop, OtherStLoop));
-        StorePrecedsOtherStore.push_back(
-            aPrecedsB(StReq->memOp, OtherStReq->memOp, TopologicalOrder));
+        StorePrecedsOtherStore.push_back(aPrecedsB(StReq, OtherStReq, DUID));
+        StoreCheckStore.push_back(StoreDependenies.contains(OtherStReq.reqId));
       }
-      ProtectedMemoryInfo[MemId].storeStoreInSameLoop.push_back(
-          StoreInSameLoop);
-      ProtectedMemoryInfo[MemId].storeStoreCommonLoopDepth.push_back(
-          StoreCommonLoopDepth);
-      ProtectedMemoryInfo[MemId].storePrecedsOtherStore.push_back(
-          StorePrecedsOtherStore);
+      for (auto &LdReq : LoadsForMem[DUID]) {
+        StoreCheckLoad.push_back(LoadDependenies.contains(LdReq.reqId));
+      }
+
+      DUInfos[DUID].storeStoreInSameLoop.push_back(StoreInSameLoop);
+      DUInfos[DUID].storeStoreCommonLoopDepth.push_back(StoreCommonLoopDepth);
+      DUInfos[DUID].storePrecedsOtherStore.push_back(StorePrecedsOtherStore);
+      DUInfos[DUID].storeCheckLoad.push_back(StoreCheckLoad);
+      DUInfos[DUID].storeCheckStore.push_back(StoreCheckStore);
     }
   }
 }

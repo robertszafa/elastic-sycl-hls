@@ -10,9 +10,9 @@ using DecoupledLoopType = DynamicLoopFusionAnalysis::DecoupledLoopType;
 using MemoryRequestType = DynamicLoopFusionAnalysis::MemoryRequestType;
 using MemoryRequest = DynamicLoopFusionAnalysis::MemoryRequest;
 using DecoupledLoopInfo = DynamicLoopFusionAnalysis::DecoupledLoopInfo;
-using MemoryDependencyInfo = DynamicLoopFusionAnalysis::MemoryDependencyInfo;
+using DUInfo = DynamicLoopFusionAnalysis::DUInfo;
 
-std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
+std::string getDepInfoStructDef(DUInfo &DepI) {
   std::string res;
   llvm::raw_string_ostream O(res);
 
@@ -59,6 +59,10 @@ std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
 
   O << "  static constexpr bool LOAD_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_LOADS][NUM_STORES] = ";
   print2D(DepI.loadPrecedsStore);
+  O << ";\n";
+
+  O << "  static constexpr bool LOAD_CHECK_STORE[NUM_LOADS][NUM_STORES] = ";
+  print2D(DepI.loadCheckStore);
   O << ";\n\n";
 
   // Stores
@@ -80,6 +84,14 @@ std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
 
   O << "  static constexpr int STORE_BEFORE_STORE_IN_TOPOLOGICAL_ORDER[NUM_STORES][NUM_STORES] = ";
   print2D(DepI.storePrecedsOtherStore);
+  O << ";\n";
+
+  O << "  static constexpr bool STORE_CHECK_LOAD[NUM_STORES][NUM_LOADS] = ";
+  print2D(DepI.storeCheckLoad);
+  O << ";\n";
+
+  O << "  static constexpr bool STORE_CHECK_STORE[NUM_STORES][NUM_STORES] = ";
+  print2D(DepI.storeCheckStore);
   O << ";\n\n";
 
   O << "}; // end DepInfo \n";
@@ -89,7 +101,7 @@ std::string getDepInfoStructDef(MemoryDependencyInfo &DepI) {
 
 json::Array getMemoryDependenciesJson(DynamicLoopFusionAnalysis &DLFA) {
   auto Res = json::Array();
-  for (auto &[id, memDepInfo] : DLFA.getProtectedMemoryInfo()) {
+  for (auto &[id, memDepInfo] : DLFA.getDUInfos()) {
     json::Object infoJson;
     infoJson["id"] = int(id);
     infoJson["structDef"] = getDepInfoStructDef(memDepInfo);
@@ -105,8 +117,7 @@ std::string getPipeDefenitionsString(DynamicLoopFusionAnalysis &DLFA) {
   std::string AllDefs;
   llvm::raw_string_ostream O(AllDefs);
 
-  auto ProtectedMeories = DLFA.getProtectedMemoryInfo();
-  for (auto &[_, MemDepInfo] : ProtectedMeories) {
+  for (auto &[_, MemDepInfo] : DLFA.getDUInfos()) {
     O << llvm::formatv("using LoadReqPipes_{0} = PipeArray<class "
                        "LoadReqPipes_{0}_, ld_req_t<{1}, {2}>, {3}, {4}>;\n"
                        "using LoadValPipes_{0} = PipeArray<class "
@@ -132,9 +143,8 @@ std::string getPipeDefenitionsString(DynamicLoopFusionAnalysis &DLFA) {
   return AllDefs;
 }
 
-std::string
-getPipeCallsInAgu(DecoupledLoopInfo &DecoupleInfo,
-                  MapVector<int, MemoryDependencyInfo> &ProtectedMemInfo) {
+std::string getPipeCallsInAgu(DecoupledLoopInfo &DecoupleInfo,
+                              MapVector<int, DUInfo> &ProtectedMemInfo) {
   std::string PipeCalls;
   llvm::raw_string_ostream O(PipeCalls);
   for (auto LdReq : DecoupleInfo.loads) {
@@ -216,7 +226,7 @@ json::Array getLoopsToDecoupleJson(DynamicLoopFusionAnalysis &DLFA,
                                    LoopInfo &LI) {
   auto Res = json::Array();
 
-  auto ProtectedMemInfo = DLFA.getProtectedMemoryInfo();
+  auto DUInfos = DLFA.getDUInfos();
   auto AllDecoupledLoops = llvm::concat<DecoupledLoopInfo>(
       DLFA.getSimpleMemoryLoops(), DLFA.getAguLoops(), DLFA.getComputeLoops());
   for (auto decoupleInfo : AllDecoupledLoops) {
@@ -226,7 +236,7 @@ json::Array getLoopsToDecoupleJson(DynamicLoopFusionAnalysis &DLFA,
 
     if (decoupleInfo.type == DynamicLoopFusionAnalysis::agu) {
       info["type"] = "agu";
-      info["pipeCalls"] = getPipeCallsInAgu(decoupleInfo, ProtectedMemInfo);
+      info["pipeCalls"] = getPipeCallsInAgu(decoupleInfo, DUInfos);
     } else if (decoupleInfo.type == DynamicLoopFusionAnalysis::compute) {
       info["type"] = "compute";
       info["pipeCalls"] = getPipeCallsInCompute(decoupleInfo);

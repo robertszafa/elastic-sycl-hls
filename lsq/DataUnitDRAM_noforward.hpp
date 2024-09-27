@@ -574,7 +574,9 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         if (LoadValid[iLd][0]) {
           bool NoRAW = true;
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
-            NoRAW &= checkNoRAW(iLd, iSt);
+            if constexpr (DI.LOAD_CHECK_STORE[iLd][iSt]) {
+              NoRAW &= checkNoRAW(iLd, iSt);
+            }
           });
 
           // If no hazards against any store, then move load to "safe" stage.
@@ -663,13 +665,14 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         /** Rule for checking the safety of the next store. */
         bool NoWAW = true;
         UnrolledLoop<NUM_STORES>([&](auto iStOther) {
-          if constexpr (iSt != iStOther) {
+          if constexpr (DI.STORE_CHECK_STORE[iSt][iStOther]) {
             NoWAW &= checkNoWAW(iSt, iStOther);
           }
         });
         bool NoWAR = true;
         UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-          if constexpr (!DI.LOAD_STORE_IN_SAME_CU[iLd][iSt]) {
+          if constexpr (DI.STORE_CHECK_LOAD[iSt][iLd] &&
+                        !DI.LOAD_STORE_IN_SAME_CU[iLd][iSt]) {
             NoWAR &= checkNoWAR(iLd, iSt);
           }
         });

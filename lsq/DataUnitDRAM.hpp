@@ -554,19 +554,18 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
           bool ThisReuse[NUM_STORES];
           T ThisReuseVal[NUM_STORES];
           bool NoRAW = true;
-          bool ThisSafe[NUM_STORES];
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
-            ThisSafe[iSt] = checkNoRAW(iLd, iSt);
-            // NoRAW &= checkNoRAW(iLd, iSt);
-            NoRAW &= ThisSafe[iSt];
+            if constexpr (DI.LOAD_CHECK_STORE[iLd][iSt]) {
+              NoRAW &= checkNoRAW(iLd, iSt);
 
-            ThisReuse[iSt] = false;
-            ThisReuseVal[iSt] = T{};
-            #pragma unroll
-            for (int i = 0; i < ST_PENDING_BUFF_SIZE; ++i) {
-              if (NextLoadAddr[iLd] == StorePendingBuffAddr[iSt][i]) {
-                ThisReuse[iSt] = true;
-                ThisReuseVal[iSt] = StorePendingBuffVal[iSt][i];
+              ThisReuse[iSt] = false;
+              ThisReuseVal[iSt] = T{};
+              #pragma unroll
+              for (int i = 0; i < ST_PENDING_BUFF_SIZE; ++i) {
+                if (NextLoadAddr[iLd] == StorePendingBuffAddr[iSt][i]) {
+                  ThisReuse[iSt] = true;
+                  ThisReuseVal[iSt] = StorePendingBuffVal[iSt][i];
+                }
               }
             }
           });
@@ -575,12 +574,14 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
           T ReuseVal = T{};
           [[maybe_unused]] int reuse_id = -1;
           UnrolledLoop<NUM_STORES>([&](auto iSt) {
-            // There can be onyl one hit bacause stores invalidate store
-            // commit queue entries of other stores.
-            if (ThisReuse[iSt]) {
-              Reuse = true;
-              ReuseVal = ThisReuseVal[iSt];
-              reuse_id = iSt;
+            if constexpr (DI.LOAD_CHECK_STORE[iLd][iSt]) {
+              // There can be onyl one hit bacause stores invalidate store
+              // commit queue entries of other stores.
+              if (ThisReuse[iSt]) {
+                Reuse = true;
+                ReuseVal = ThisReuseVal[iSt];
+                reuse_id = iSt;
+              }
             }
           });
 
@@ -671,13 +672,14 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         /** Rule for checking the safety of the next store. */
         bool NoWAW = true;
         UnrolledLoop<NUM_STORES>([&](auto iStOther) {
-          if constexpr (iSt != iStOther) {
+          if constexpr (DI.STORE_CHECK_STORE[iSt][iStOther]) {
             NoWAW &= checkNoWAW(iSt, iStOther);
           }
         });
         bool NoWAR = true;
         UnrolledLoop<NUM_LOADS>([&](auto iLd) {
-          if constexpr (!DI.LOAD_STORE_IN_SAME_CU[iLd][iSt]) {
+          if constexpr (DI.STORE_CHECK_LOAD[iSt][iLd] &&
+                        !DI.LOAD_STORE_IN_SAME_CU[iLd][iSt]) { 
             NoWAR &= checkNoWAR(iLd, iSt);
           }
         });
@@ -696,13 +698,17 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
               ShiftBundle(StorePendingBuffAddr[iSt], NextStoreAddr[iSt]);
             }
 
-            // Check if this store overrides another store in its pending buffer.
+            // Check if this store overrides another store in its pending
+            // buffer. This is needed because we don't shift away ACKed stores
+            // in pending buffers. We only shift away when buffer gets filled.
             UnrolledLoop<NUM_STORES>([&](auto iStOther) {
+              // TODO: remove:
+              // if constexpr (DI.STORE_CHECK_STORE[iSt][iStOther]) {
               if constexpr (iStOther != iSt) {
                 #pragma unroll
                 for (int i = 0; i < ST_PENDING_BUFF_SIZE; ++i) {
                   if (NextStoreAddr[iSt] == StorePendingBuffAddr[iStOther][i]) {
-                    // Invalid address, i.e. a load will never requiest this.
+                    // Invalid address, i.e. a load will never request this.
                     StorePendingBuffAddr[iStOther][i] = STORE_ADDR_SENTINEL;
                   }
                 }

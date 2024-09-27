@@ -76,7 +76,7 @@ public:
     Loop *outer() const { return loops.front(); }
   };
 
-  struct MemoryDependencyInfo {
+  struct DUInfo {
     int id;
 
     int numLoads;
@@ -91,12 +91,15 @@ public:
     SmallVector<SmallVector<bool>> loadStoreInSameThread;
     SmallVector<SmallVector<int>> loadStoreCommonLoopDepth;
     SmallVector<SmallVector<bool>> loadPrecedsStore;
+    SmallVector<SmallVector<bool>> loadCheckStore;
 
     SmallVector<int> storeLoopDepth;
     SmallVector<SmallVector<bool>> storeisLastIterNeeded;
     SmallVector<SmallVector<bool>> storeStoreInSameLoop;
     SmallVector<SmallVector<int>> storeStoreCommonLoopDepth;
     SmallVector<SmallVector<bool>> storePrecedsOtherStore;
+    SmallVector<SmallVector<bool>> storeCheckLoad;
+    SmallVector<SmallVector<bool>> storeCheckStore;
   };
 
   explicit DynamicLoopFusionAnalysis(Function &F, LoopInfo &LI,
@@ -106,9 +109,9 @@ public:
 
     collectComputeLoops(LI);
     collectBasePointersToProtect(LI);
-    collectProtectedMemoryRequests(LI);
+    collectDURequests(LI);
     checkisLastIterNeeded(LI, SE);
-    collectProtectedMemoryInfo(F, LI);
+    collectDUInfos(F, LI);
     collectAguLoops();
     collectSimpleMemoryLoops(LI);
   }
@@ -119,7 +122,7 @@ public:
   auto getComputeLoops() { return ComputeLoops; }
   auto getSimpleMemoryLoops() { return SimpleMemoryLoops; }
   auto getBasePointersToProtect() { return BasePtrsToProtect; }
-  auto getProtectedMemoryInfo() { return ProtectedMemoryInfo; }
+  auto getDUInfos() { return DUInfos; }
 
   auto getDecoupledLoopsWithType(DecoupledLoopType loopType) {
     if (loopType == DecoupledLoopType::agu)
@@ -130,6 +133,13 @@ public:
       return getComputeLoops();
   }
 
+  SmallVector<DecoupledLoopInfo, 4>
+  getDecoupledLoops(const std::string &KernelName);
+  SmallVector<MemoryRequest, 4>
+  getDuRequestsInTopologicalOrder(const int duID);
+  SmallVector<MemoryRequest, 4>
+  getKernelRequestsInTopologicalOrder(const std::string &KernelName);
+
 private:
   /// The function name of the analyzed kernel. This is used as the basis to
   /// generate kernel names of the decoupled loops.
@@ -139,16 +149,16 @@ private:
   SmallVector<DecoupledLoopInfo, 4> ComputeLoops;
   // Not every decoupled loop needs an associated AGU.
   SmallVector<DecoupledLoopInfo, 4> AguLoops;
-  MapVector<int, MemoryDependencyInfo> ProtectedMemoryInfo;
+  MapVector<int, DUInfo> DUInfos;
   SetVector<Instruction *> BasePtrsToProtect;
 
   SmallVector<DecoupledLoopInfo, 4> SimpleMemoryLoops;
 
   void collectComputeLoops(LoopInfo &LI);
   void collectBasePointersToProtect(LoopInfo &LI);
-  void collectProtectedMemoryRequests(LoopInfo &LI);
+  void collectDURequests(LoopInfo &LI);
   void checkisLastIterNeeded(LoopInfo &LI, ScalarEvolution &SE);
-  void collectProtectedMemoryInfo(Function &F, LoopInfo &LI);
+  void collectDUInfos(Function &F, LoopInfo &LI);
   void collectAguLoops();
   void collectSimpleMemoryLoops(LoopInfo &LI);
   // void collectLoopIO(LoopInfo &LI, ControlDependenceGraph &CDG);

@@ -12,7 +12,6 @@ const std::string POISON_BB_NAME = "poisonBB";
 using MemoryRequest = DynamicLoopFusionAnalysis::MemoryRequest;
 using DecoupledLoopType = DynamicLoopFusionAnalysis::DecoupledLoopType;
 using DecoupledLoopInfo = DynamicLoopFusionAnalysis::DecoupledLoopInfo;
-using MemoryDependencyInfo = DynamicLoopFusionAnalysis::MemoryDependencyInfo;
 
 DecoupledLoopType getLoopType(Function &F) {
   std::string fName = demangle(std::string(F.getNameOrAsOperand()));
@@ -21,38 +20,13 @@ DecoupledLoopType getLoopType(Function &F) {
                                                 : DecoupledLoopType::compute;
 }
 
-/// Get loops to be decoupled in this function.
-SmallVector<DecoupledLoopInfo, 4>
-getLoopsToDecouple(Function &F, DynamicLoopFusionAnalysis &DLFA) {
-  auto loopsToDecouple = DLFA.getDecoupledLoopsWithType(getLoopType(F));
-  auto thisFName = demangle(std::string(F.getNameOrAsOperand()));
-
-  SmallVector<DecoupledLoopInfo, 4> LoopsForThisFunction;
-  for (auto &decoupleInfo : loopsToDecouple) {
-    if (thisFName == decoupleInfo.kernelName) 
-      LoopsForThisFunction.push_back(decoupleInfo);
-  }
-
-  return LoopsForThisFunction;
-}
-
-/// Get the memory requests in this function.
-SmallVector<MemoryRequest, 4>
-getMemoryRequests(Function &F,
-                  SmallVector<DecoupledLoopInfo, 4> &loopsToDecouple) {
+void collectPipeCalls(Function &F, SmallVector<MemoryRequest, 4> &Requests) {
   auto loopType = getLoopType(F);
-  SmallVector<MemoryRequest, 4> MemoryRequests;
-  for (auto &decoupleInfo : loopsToDecouple) {
-    for (auto &Req :
-         llvm::concat<MemoryRequest>(decoupleInfo.loads, decoupleInfo.stores)) {
-      Req.collectPipeCalls(F, loopType);
-      Req.collectAGURequestStores(F, loopType);
-      Req.collectStoreValPipeStores(F, loopType);
-      MemoryRequests.push_back(Req);
-    }
+  for (auto &Req : Requests) {
+    Req.collectPipeCalls(F, loopType);
+    Req.collectAGURequestStores(F, loopType);
+    Req.collectStoreValPipeStores(F, loopType);
   }
-
-  return MemoryRequests;
 }
 
 void addSentinelPipeWrite(Function &F, MemoryRequest &Req) {
@@ -307,17 +281,6 @@ void swapMemOpForPipeReadWrite(MemoryRequest &Req) {
   }
 }
 
-void topologicalOrderSort(Function &F, SmallVector<MemoryRequest, 4> &ToSort) {
-  MapVector<BasicBlock*, int> TopologicalOrder;
-  for (auto [iOrd, BB] : llvm::enumerate(getTopologicalOrder(F)))
-    TopologicalOrder[BB] = iOrd;
-
-  llvm::sort(ToSort, [&TopologicalOrder](auto A, auto B) {
-    return TopologicalOrder[A.memOp->getParent()] <
-           TopologicalOrder[B.memOp->getParent()];
-  });
-}
-
 /// Return the if-condition src of BB, if it exisits.
 BasicBlock *getIfSrcBlockInLoop(ControlDependenceGraph &CDG, LoopInfo &LI,
                                 BasicBlock *BB) {
@@ -400,8 +363,8 @@ void walkToTopLevelIfSrcBB(
 /// Hoist memory requests out of if-conditions.
 void speculateRequests(Function &F, ControlDependenceGraph &CDG, LoopInfo &LI,
                        const SmallVector<MemoryRequest, 4> &Requests) {
-  auto SortedRequests = Requests;
-  topologicalOrderSort(F, SortedRequests);
+  // auto SortedRequests = Requests;
+  // topologicalOrderSort(F, SortedRequests);
 
   auto HoistFromToMap = getIfBodyToConditionMap(F, CDG, LI);
   
@@ -409,7 +372,7 @@ void speculateRequests(Function &F, ControlDependenceGraph &CDG, LoopInfo &LI,
   bool Done = false;
   while (!Done) {
     Done = true;
-    for (auto Req : SortedRequests) {
+    for (auto Req : Requests) {
       auto ReqBB = Req.memOp->getParent();
       if (HoistFromToMap.contains(ReqBB)) {
         hoistRequest(Req, HoistFromToMap[ReqBB]);
@@ -541,7 +504,7 @@ void poisonMisspeculations(Function &F, ControlDependenceGraph &CDG,
   // Get speculated requests in the topological program order.
   SmallVector<MemoryRequest, 4> SpeculatedRequests =
       getSpeculatedRequests(CDG, LI, Requests);
-  topologicalOrderSort(F, SpeculatedRequests);
+  // topologicalOrderSort(F, SpeculatedRequests);
 
   // Get a mapping of where the speculated requests were hoisted to in the AGU.
   auto HoistedFromToMap = getIfBodyToConditionMap(F, CDG, LI);
@@ -701,8 +664,9 @@ struct DynamicLoopFusionTransform : PassInfoMixin<DynamicLoopFusionTransform> {
         new ControlDependenceGraph(F, PDT));
     auto *DLFA = new DynamicLoopFusionAnalysis(F, LI, SE, originalKernelName);
 
-    auto DecoupledLoops = getLoopsToDecouple(F, *DLFA);
-    auto MemoryRequests = getMemoryRequests(F, DecoupledLoops);
+    auto DecoupledLoops = DLFA->getDecoupledLoops(fName);
+    auto MemoryRequests = DLFA->getKernelRequestsInTopologicalOrder(fName);
+    collectPipeCalls(F, MemoryRequests);
 
     auto LoopsToDelete = getLoopsToDelete(LI, DecoupledLoops);
     auto InstrToDelete = getSideEffectsToDelete(F, DecoupledLoops); 

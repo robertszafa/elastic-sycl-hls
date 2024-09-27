@@ -15,6 +15,8 @@
 using namespace sycl;
 using namespace fpga_tools;
 
+// #define PRINT_DU_LOAD_REUSE 1
+
 /// Use only offset in (base + offset) addr representation.
 using addr_t = uint;
 using sched_t = uint;
@@ -133,13 +135,8 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         // PRINTF("MEM%d st%d stores address %u\n", MEM_ID, int(iSt), Req.addr);
         if (Val.valid) {
           BurstCoalescedLSU::store(StorePtr, Val.val);
-          NextAck = Req;
-        } else {
-          UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-            NextAck.sched[iD] = Req.sched[iD];
-            NextAck.isLastIter[iD] = Req.isLastIter[iD];
-          });
         }
+        NextAck = Req;
       }
 
       // Force any outstanding burst before ACKing addr sentinel.
@@ -567,7 +564,6 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
             ThisReuseVal[iSt] = T{};
             #pragma unroll
             for (int i = 0; i < ST_PENDING_BUFF_SIZE; ++i) {
-              // On multiple matches this will choose the one with highest tag.
               if (NextLoadAddr[iLd] == StorePendingBuffAddr[iSt][i]) {
                 ThisReuse[iSt] = true;
                 ThisReuseVal[iSt] = StorePendingBuffVal[iSt][i];

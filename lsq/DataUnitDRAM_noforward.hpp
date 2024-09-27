@@ -94,7 +94,7 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
   constexpr uint DRAM_BURST_BYTES = 64; /// 512-bit DRAM interface
   constexpr uint T_BYTES = sizeof(T);
   constexpr uint BURST_SIZE = ((DRAM_BURST_BYTES + T_BYTES - 1) / T_BYTES) ;
-  constexpr uint ST_PENDING_BUFF_SIZE = BURST_SIZE + 4;
+  constexpr uint ST_PENDING_BUFF_SIZE = BURST_SIZE * 2;
   constexpr uint ST_REQ_Q_SIZE = 2;
   constexpr uint LD_REQ_Q_SIZE = 2;
 
@@ -130,16 +130,10 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
         // auto StorePtr = ext::intel::device_ptr<T>(data + Req.addr);
         #pragma clang diagnostic pop
 
-        // PRINTF("MEM%d st%d stores address %u\n", MEM_ID, int(iSt), Req.addr);
         if (Val.valid) {
           BurstCoalescedLSU::store(StorePtr, Val.val);
-          NextAck = Req;
-        } else {
-          UnrolledLoop<LOOP_DEPTH>([&](auto iD) {
-            NextAck.sched[iD] = Req.sched[iD];
-            NextAck.isLastIter[iD] = Req.isLastIter[iD];
-          });
         }
+        NextAck = Req;
       }
 
       // Force any outstanding burst before ACKing addr sentinel.

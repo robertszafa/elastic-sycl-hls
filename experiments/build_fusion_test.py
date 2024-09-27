@@ -17,6 +17,7 @@ BENCHMARKS = [
     "page_rank_dram",
 
     "hist2x_dram",
+    "tanh_spmv_dram",
 
     # To regular to get a benefit, existing approaches are better than dynamic fusion:
     # "spmv_sort_dram",
@@ -54,7 +55,7 @@ if __name__ == '__main__':
 
         os.system('printf "\n============== FUSION_NO_FRWD =============\n"')
         os.system(f'cp {GIT_DIR}/experiments/{kernel}.cpp {GIT_DIR}/experiments/{kernel}_nofrwd.cpp')
-        os.system(f'NO_FUSION_FRWD=1 {GIT_DIR}/elastic_pass.sh {TARGET} {GIT_DIR}/experiments/{kernel}_nofrwd.cpp')
+        os.system(f'NO_FUSION_FRWD=1 {GIT_DIR}/elastic_pass.sh {TARGET} {GIT_DIR}/experiments/{kernel}_nofrwd.cpp -f')
 
         os.system('printf "\n============== Fusion =============\n"')
         os.system(f'{GIT_DIR}/elastic_pass.sh {TARGET} {GIT_DIR}/experiments/{kernel}.cpp -f')

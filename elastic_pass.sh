@@ -60,7 +60,7 @@ cleanup_ir() {
   # $LLVM_BIN_DIR/opt $1 -o $1 --load-pass-plugin $ELASTIC_SYCL_HLS_DIR/build/lib/libPipeDeduplicationPass.so \
   #   -passes=pipe-deduplication
   # Remove dead code
-  $LLVM_BIN_DIR/opt $1 -o $1 -passes='adce,loop-simplify' # ,simplifycfg
+  $LLVM_BIN_DIR/opt $1 -o $1 -passes='adce,loop-simplify,simplifycfg' # ,simplifycfg
   # $LLVM_BIN_DIR/opt $1 -o $1 -passes='deadargelim-sycl,strip-debug-declare' 
   # Save human readable bitcode
   $LLVM_BIN_DIR/llvm-dis $1 -o $1.ll && $LLVM_BIN_DIR/llvm-cxxfilt < $1.ll > $1.demangled.ll

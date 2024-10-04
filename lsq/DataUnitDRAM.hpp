@@ -698,23 +698,6 @@ template <int MEM_ID, typename LoadReqPipes, typename LoadValPipes,
               ShiftBundle(StorePendingBuffAddr[iSt], NextStoreAddr[iSt]);
             }
 
-            // Check if this store overrides another store in its pending
-            // buffer. This is needed because we don't shift away ACKed stores
-            // in pending buffers. We only shift away when buffer gets filled.
-            UnrolledLoop<NUM_STORES>([&](auto iStOther) {
-              // TODO: remove:
-              // if constexpr (DI.STORE_CHECK_STORE[iSt][iStOther]) {
-              if constexpr (iStOther != iSt) {
-                #pragma unroll
-                for (int i = 0; i < ST_PENDING_BUFF_SIZE; ++i) {
-                  if (NextStoreAddr[iSt] == StorePendingBuffAddr[iStOther][i]) {
-                    // Invalid address, i.e. a load will never request this.
-                    StorePendingBuffAddr[iStOther][i] = STORE_ADDR_SENTINEL;
-                  }
-                }
-              }
-            });
-
             StoreValid[iSt][0] = false;
             StoreValuePipeReadValid[iSt] = false;
             NextStoreValueIsValid[iSt] = true;

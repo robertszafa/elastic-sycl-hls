@@ -46,6 +46,10 @@ BENCHMARKS_AND_ARGS = {
         "1000",  # sim
         "10000000",  # hw
     ],
+    "tanh_spmv_dram": [
+        "100 0.1",  # sim
+        "10000 0.0001",  # hw
+    ],
 }
 
 

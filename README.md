@@ -16,11 +16,12 @@ If you want to cite this work:
 ## Build:
 
 **Pre-requisites:**
-- Ubuntu 20 or 22.
+- Ubuntu >=20
 - gcc >= 7.1
 - CMake >=3.16
 - git
 - Intel SYCL compiler. The version used in this project is 2023.1.0. To install it on Ubuntu: `sudo apt install intel-basekit-2023.1.0`
+- FPGA Support Package for the Intel oneAPI (https://www.intel.com/content/www/us/en/developer/tools/oneapi/fpga.html)
 - RTL simulator on path (I used the Questa FPGA Starter Edition which is free but requires a free license). 
 - (Optional) To run in hardware, I used the Intel DevCloud for free to access the Altera Arria 10AX115S FPGA.
 
@@ -28,7 +29,10 @@ If you want to cite this work:
 
 The below install script downloads the intel/llvm github repo and builds it. Then it builds the passes from this repo out-of-tree.
 ```bash
+# Always do before using this repo:
 export ELASTIC_SYCL_HLS_DIR=path/to/elastic_sycl_hls 
+source /opt/intel/oneapi/setvars.sh # Or wherever your oneapi base-kit is installed.
+# Install dependencies:
 bash install.sh
 ```
 
